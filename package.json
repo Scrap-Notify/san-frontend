@@ -7,7 +7,7 @@
   "scripts": {
     "dev:dashboard": "pnpm --filter dashboard dev",
     "dev:extension": "pnpm --filter extension dev",
-    "build:all": "pnpm --filter shared build && pnpm --filter '*' build",
+    "build:all": "pnpm --filter dashboard build && pnpm --filter extension build",
     "lint": "pnpm --filter '*' lint"
   },
   "devDependencies": {

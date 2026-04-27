@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ScrapCard } from '@san/shared/src/types';
 
 export default function SidePanel() {
-  const [cards, setCards] = useState<ScrapCard[]>([]);
+  const [cards, _setCards] = useState<ScrapCard[]>([]);
   const [pendingScrap, setPendingScrap] = useState<string | null>(null);
 
   useEffect(() => {
