@@ -1,0 +1,26 @@
+{
+  "name": "san-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:dashboard": "pnpm --filter dashboard dev",
+    "dev:extension": "pnpm --filter extension dev",
+    "build:all": "pnpm --filter shared build && pnpm --filter '*' build",
+    "lint": "pnpm --filter '*' lint"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.4.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.33.2",
+  "dependencies": {
+    "env": "^0.0.2"
+  }
+}
