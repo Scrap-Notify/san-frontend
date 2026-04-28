@@ -1,9 +1,8 @@
 // packages/shared/src/hooks/useCards.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { cardsApi } from '../api/cards';
+import { useApiContext } from '@san/shared';
 import type { GetCardsParams } from '../types';
 
-// 쿼리 키
 export const cardKeys = {
   all: ['cards'] as const,
   list: (params?: GetCardsParams) => ['cards', 'list', params] as const,
@@ -11,22 +10,22 @@ export const cardKeys = {
 };
 
 // ----------------------------
-// 카드 목록 조회
-// 대시보드 리스트 뷰의 핵심 훅
+// 컴포넌트에서 cardsApi 인수 없이 바로 호출 가능
+// const { data } = useCards()
+// const { data } = useCards({ page: 1, tag: 'react' })
 // ----------------------------
+
 export function useCards(params?: GetCardsParams) {
+  const { cardsApi } = useApiContext();
   return useQuery({
     queryKey: cardKeys.list(params),
     queryFn: () => cardsApi.getAll(params),
-    staleTime: 1000 * 30, // 30초 동안 캐시 유지
+    staleTime: 1000 * 30,
   });
 }
 
-// ----------------------------
-// 카드 단건 조회
-// 카드 상세 페이지용
-// ----------------------------
 export function useCard(cardId: string) {
+  const { cardsApi } = useApiContext();
   return useQuery({
     queryKey: cardKeys.detail(cardId),
     queryFn: () => cardsApi.getById(cardId),
@@ -34,16 +33,12 @@ export function useCard(cardId: string) {
   });
 }
 
-// ----------------------------
-// 카드 삭제
-// ----------------------------
 export function useDeleteCard() {
+  const { cardsApi } = useApiContext();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (cardId: string) => cardsApi.delete(cardId),
     onSuccess: () => {
-      // 목록 전체 캐시 무효화
       queryClient.invalidateQueries({ queryKey: cardKeys.all });
     },
   });

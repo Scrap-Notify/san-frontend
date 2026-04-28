@@ -1,4 +1,7 @@
 // packages/shared/src/api/index.ts
-export { scrapsApi } from './scraps';
-export { cardsApi } from './cards';
-export { apiClient } from './client';
+export { createApiClient } from './client';
+export type { TokenProvider } from './client';
+export { createScrapsApi } from './scraps';
+export type { ScrapsApi } from './scraps';
+export { createCardsApi } from './cards';
+export type { CardsApi } from './cards';
