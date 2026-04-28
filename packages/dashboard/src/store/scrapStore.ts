@@ -1,10 +1,10 @@
 import { create } from 'zustand';
-import type { ScrapCard } from '@san/shared/src/types';
+import { type KnowledgeCardView } from '@san/shared';
 
 interface ScrapStore {
-  cards: ScrapCard[];
+  cards: KnowledgeCardView[];
   viewMode: 'card' | 'graph';
-  setCards: (cards: ScrapCard[]) => void;
+  setCards: (cards: KnowledgeCardView[]) => void;
   setViewMode: (mode: 'card' | 'graph') => void;
 }
 
