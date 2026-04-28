@@ -72,6 +72,42 @@ pnpm install
 
 ---
 
+## 🐳 로컬 테스트
+
+### 사전 준비
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) 설치 및 실행
+- `act` 설치 (Windows)
+  ```powershell
+  winget install nektos.act
+  ```
+  > macOS: `brew install act` / Linux: [공식 설치 가이드](https://nektosact.com/installation/index.html)
+
+### Docker 실행 (Dashboard)
+
+```bash
+# 컨테이너 빌드 및 실행
+docker compose up -d --build
+
+# 종료
+docker compose down
+
+# 로그 확인
+docker compose logs -f
+
+# 헬스체크
+curl http://localhost:80
+```
+
+### CI 로컬 테스트 (act)
+
+```bash
+# build job만 실행
+act -j build --container-architecture linux/amd64
+```
+
+---
+
 ## 🧩 Chrome Extension Load Guide
 
 익스텐션 개발 시에는 빌드된 결과물을 브라우저에 수동으로 한 번 로드해야 합니다.
