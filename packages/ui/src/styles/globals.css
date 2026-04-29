@@ -1,0 +1,48 @@
+/* packages/ui/src/styles/globals.css */
+@import "tailwindcss";
+
+@theme {
+  /* ── 컬러 팔레트 ── */
+  --color-background:    #101417;
+  --color-surface:       #181c1f;
+  --color-surface-dim:   #1c2023;
+
+  --color-neon:          #00ffc2;
+  --color-neon-dim:      rgba(0, 255, 194, 0.2);
+  --color-neon-subtle:   rgba(0, 255, 194, 0.1);
+
+  --color-teal:          #1e5056;
+  --color-teal-dim:      rgba(30, 80, 86, 0.4);
+
+  --color-text-primary:  #fbfffa;
+  --color-text-secondary:#e0e3e7;
+  --color-text-muted:    #b9cbc1;
+  --color-text-ghost:    #83958c;
+
+  --color-chip:          rgba(49, 53, 57, 0.5);
+  --color-icon-bg:       #313539;
+
+  --font-sans: 'Pretendard', sans-serif;
+}
+
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+@layer utilities {
+  /* 발광 효과 */
+  .glow-neon {
+    box-shadow: 0 0 12px 0 #00ffc2;
+  }
+  .glow-neon-sm {
+    box-shadow: 0 0 6px 0 rgba(0, 255, 194, 0.6);
+  }
+  /* 나뭇잎 radius 변형들 */
+  .rounded-leaf {
+    border-radius: 48px 8px 8px 48px;
+  }
+  .rounded-leaf-reverse {
+    border-radius: 8px 48px 48px 8px;
+  }
+  .rounded-leaf-full {
+    border-radius: 48px 8px 48px 8px;
+  }
+}

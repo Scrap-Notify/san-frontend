@@ -7,12 +7,11 @@
     "moduleResolution": "bundler", // 최신 번들러(Vite 등) 최적화
     
     /* 2. 경로 설정 (중앙 집중식 관리) */
-    "baseUrl": ".",
     "paths": {
-      "@san/shared/*": ["packages/shared/src/*"],
-      "@san/ui/*": ["packages/ui/src/*"],
-      "@san/extension/*": ["packages/extension/src/*"],
-      "@san/dashboard/*": ["packages/dashboard/src/*"]
+      "@san/shared/*": ["./packages/shared/src/*"],
+      "@san/ui/*": ["./packages/ui/src/*"],
+      "@san/extension/*": ["./packages/extension/src/*"],
+      "@san/dashboard/*": ["./packages/dashboard/src/*"]
     },
 
     /* 3. 타입 및 컴파일 설정 */

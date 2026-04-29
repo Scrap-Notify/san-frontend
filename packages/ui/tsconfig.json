@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json", // ✅ 루트 상속
+  "compilerOptions": {
+    // UI는 화면을 그려야 하므로 DOM 라이브러리가 명시적으로 필요할 수 있음
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "jsx": "react-jsx", // ✅ JSX 활성화 (필수!)
+    "paths": {
+      "@san/shared": ["../shared/src/index.ts"], // ✅ 옆집(shared) 찾는 길
+      "@san/shared/*": ["../shared/src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
