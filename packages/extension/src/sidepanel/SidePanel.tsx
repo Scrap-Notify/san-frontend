@@ -1,54 +1,69 @@
-// 전체 레이아웃 Shell
-
+// packages/extension/src/sidepanel/SidePanel.tsx
 import { useState, useEffect } from 'react';
-import type { KnowledgeCard, Tag } from '@san/shared';
-
-interface CardWithTags extends KnowledgeCard {
-  tags: string[];
-}
+import { DropZone } from './DropZone';
+import { CardList } from './CardList';
 
 export default function SidePanel() {
-  const [cards, _setCards] = useState<CardWithTags[]>([]);
   const [pendingScrap, setPendingScrap] = useState<string | null>(null);
 
+  // 브라우저에서 드래그로 선택한 텍스트 감지 (Chrome API)
   useEffect(() => {
-    chrome.runtime.onMessage.addListener((msg) => {
+    const handleMessage = (msg: any) => {
       if (msg.type === 'TEXT_SELECTED') {
         setPendingScrap(msg.payload.text);
       }
-    });
+    };
+    chrome.runtime.onMessage.addListener(handleMessage);
+    return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-white/80 backdrop-blur-md p-4 gap-3">
-      <h1 className="text-lg font-bold text-emerald-600">SAN</h1>
-
-      {pendingScrap && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm">
-          <p className="text-gray-600 line-clamp-3">{pendingScrap}</p>
-          <button
-            className="mt-2 w-full bg-emerald-500 text-white rounded-lg py-1.5 text-sm font-medium"
-            onClick={() => {/* API 호출 */}}
-          >
-            스크랩 저장
-          </button>
+    <div className="flex flex-col h-screen bg-[#0A0F1E] text-slate-200 font-sans overflow-hidden">
+      {/* 상단 헤더 */}
+      <header className="p-5 flex items-center justify-between border-b border-white/5 backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-[#4ADE80] rounded-full animate-pulse shadow-[0_0_10px_#4ADE80]" />
+          <h1 className="text-xl font-black tracking-tighter text-white">SAN</h1>
         </div>
-      )}
+        <button className="text-slate-500 hover:text-[#4ADE80] transition-colors">
+          <i className="fa-solid fa-gear"></i>
+        </button>
+      </header>
 
-      <div className="flex flex-col gap-2 overflow-y-auto">
-        {cards.map(card => (
-          <div key={card.card_id} className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
-            <p className="font-medium text-sm text-gray-800 line-clamp-1">{card.title}</p>
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{card.summary}</p>
-            <div className="flex gap-1 mt-2 flex-wrap">
-              {card.tags.map((tag: string) => (
-                <span key={tag} className="text-xs bg-mint-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                  #{tag}
-                </span>
-              ))}
+      {/* 스크롤 가능한 콘텐츠 영역 */}
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
+        
+        {/* 1. 드롭존 영역 */}
+        <section>
+          <DropZone />
+        </section>
+
+        {/* 2. 텍스트 스크랩 제안 (감지 시에만 노출) */}
+        {pendingScrap && (
+          <section className="bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-2xl p-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-4">
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-[10px] font-bold text-[#4ADE80] uppercase tracking-wider">New Insight Found</span>
+              <button onClick={() => setPendingScrap(null)} className="text-slate-500 hover:text-white">
+                <i className="fa-solid fa-xmark text-xs"></i>
+              </button>
             </div>
+            <p className="text-sm text-slate-300 line-clamp-3 mb-3 leading-relaxed italic">
+              "{pendingScrap}"
+            </p>
+            <button className="w-full bg-[#4ADE80] hover:bg-[#2DD4BF] text-[#0A0F1E] font-bold py-2 rounded-xl text-sm transition-all transform active:scale-95">
+              지식으로 저장하기
+            </button>
+          </section>
+        )}
+
+        {/* 3. 수집된 카드 리스트 */}
+        <section>
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h2 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em]">Collected Insights</h2>
+            <span className="text-[10px] text-slate-600">3 items</span>
           </div>
-        ))}
+          <CardList />
+        </section>
       </div>
     </div>
   );
