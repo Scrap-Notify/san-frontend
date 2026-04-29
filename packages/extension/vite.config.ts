@@ -3,12 +3,24 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite'; 
+import { crx } from '@crxjs/vite-plugin';
 import { resolve } from 'path';
+import manifest from './src/manifest.json';
 
 export default defineConfig({
+  server: {
+    port: 5173,
+    strictPort: true,
+    cors: true,      // ✅ 이 줄을 추가하세요! (모든 접속 허용)
+    origin: 'http://localhost:5173', // ✅ 출처 명시
+    hmr: {
+      port: 5173,
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
+    crx({ manifest }),
   ],
   resolve: {
     alias: {
