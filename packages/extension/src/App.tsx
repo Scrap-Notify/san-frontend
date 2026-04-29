@@ -1,121 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+// packages/extension/src/App.tsx
+import '@san/ui/styles/globals.css'; // ✅ 경로 구체화 + 확장자 포함
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    // 1. 전체 컨테이너: 심해 어둠 배경, Pretendard 폰트, 화면 꽉 차게
+    <div className="flex h-screen w-full flex-col bg-background text-text-primary font-sans overflow-hidden">
+      
+      {/* 2. 상단 헤더: 로고와 제목 */}
+      <header className="flex h-16 items-center justify-between border-b border-surface p-4">
+        <div className="flex items-center gap-2">
+          {/* 우리가 합의한 Leaf-Radius가 적용된 로고 플레이스홀더 */}
+          <div className="h-7 w-7 rounded-leaf bg-neon border border-neon-dim glow-neon-sm" />
+          <h1 className="text-xl font-bold tracking-tight text-text-primary">SAN</h1>
+          <span className="text-xs text-text-ghost mt-1">지식 창고</span>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+        {/* 나중에 설정을 넣을 수 있는 버튼 영역 */}
+        <button className="text-text-muted hover:text-neon transition-colors">
+          <i className="fa-solid fa-cog"></i>
         </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* 3. 메인 콘텐츠 영역: 실제 부품들이 들어갈 곳 */}
+      <main className="flex-grow p-4 space-y-4 overflow-y-auto">
+        {/* Placeholder: 여기에 DropZone과 CardList가 들어갑니다 */}
+        <div className="border-2 border-dashed border-surface rounded-xl p-10 text-center text-text-muted">
+          지식을 드래그해서 넣어주세요 🍃
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+        
+        <div className="space-y-3">
+          <div className="h-20 bg-surface rounded-lg animate-pulse" />
+          <div className="h-20 bg-surface rounded-lg animate-pulse" />
         </div>
-      </section>
+      </main>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
+      {/* 4. 하단 바: 정보 표시 */}
+      <footer className="flex h-12 items-center justify-center border-t border-surface p-3">
+        <p className="text-[10px] uppercase tracking-widest text-text-ghost">
+          Knowledge Archive v1.0
+        </p>
+      </footer>
+    </div>
+  );
+};
 
-export default App
+export default App;
