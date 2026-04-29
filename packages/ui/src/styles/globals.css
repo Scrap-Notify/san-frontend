@@ -1,5 +1,6 @@
 /* packages/ui/src/styles/globals.css */
 @import "tailwindcss";
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 @theme {
   /* ── 컬러 팔레트 ── */
@@ -22,10 +23,16 @@
   --color-chip:          rgba(49, 53, 57, 0.5);
   --color-icon-bg:       #313539;
 
+  /* 폰트 */
   --font-sans: 'Pretendard', sans-serif;
+
+  /* radius */
+  /* 변수로 등록해두면 다른 곳에서 재활용하기 편해요! */
+  --radius-leaf: 48px 8px 8px 48px;
+  --radius-leaf-reverse: 8px 48px 48px 8px;
+  --radius-leaf-full: 48px 8px 48px 8px;
 }
 
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 @layer utilities {
   /* 발광 효과 */
@@ -37,12 +44,12 @@
   }
   /* 나뭇잎 radius 변형들 */
   .rounded-leaf {
-    border-radius: 48px 8px 8px 48px;
+    border-radius: var(--radius-leaf);
   }
   .rounded-leaf-reverse {
-    border-radius: 8px 48px 48px 8px;
+    border-radius: var(--radius-leaf-reverse);
   }
   .rounded-leaf-full {
-    border-radius: 48px 8px 48px 8px;
+    border-radius: var(--radius-leaf-full);
   }
 }
