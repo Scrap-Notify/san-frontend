@@ -6,10 +6,26 @@
 
 import type { ExtensionMessage, PendingScrap } from '../types/index';
 
+const DEBUG_PREFIX = '[SAN:background]';
+const isDebug = import.meta.env.DEV;
+
+function debugLog(message: string, data?: unknown) {
+  if (!isDebug) return;
+  if (data === undefined) {
+    console.debug(DEBUG_PREFIX, message);
+    return;
+  }
+  console.debug(DEBUG_PREFIX, message, data);
+}
+
+debugLog('service worker loaded');
+
 // ──────────────────────────────────────────
 // 설치 시 초기화
 // ──────────────────────────────────────────
 chrome.runtime.onInstalled.addListener(() => {
+  debugLog('onInstalled');
+
   chrome.contextMenus.create({
     id: 'san-scrap-page',
     title: 'SAN: 이 페이지 스크랩',
@@ -27,6 +43,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // 아이콘 클릭 → 사이드패널 열기
 // ──────────────────────────────────────────
 chrome.action.onClicked.addListener((tab) => {
+  debugLog('action clicked', { tabId: tab.id, url: tab.url });
   if (!tab.id) return;
   chrome.sidePanel.open({ tabId: tab.id });
 });
@@ -35,10 +52,28 @@ chrome.action.onClicked.addListener((tab) => {
 // 컨텍스트 메뉴 클릭 처리
 // ──────────────────────────────────────────
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  debugLog('context menu clicked', { menuItemId: info.menuItemId, tabId: tab?.id, url: tab?.url });
   if (!tab?.id) return;
-  await chrome.sidePanel.open({ tabId: tab.id });
 
-  const metadata = await chrome.tabs.sendMessage<any, PendingScrap>(tab.id, { type: 'REQUEST_METADATA' });
+  try {
+    await chrome.sidePanel.open({ tabId: tab.id });
+  } catch (error) {
+    console.error(DEBUG_PREFIX, 'failed to open side panel', error);
+    return;
+  }
+
+  let metadata: PendingScrap;
+  try {
+    metadata = await chrome.tabs.sendMessage<any, PendingScrap>(tab.id, { type: 'REQUEST_METADATA' });
+    debugLog('received metadata from content script', metadata);
+  } catch (error) {
+    console.error(
+      DEBUG_PREFIX,
+      'failed to request metadata. Check that the content script is injected into this page.',
+      error,
+    );
+    return;
+  }
 
   if (info.menuItemId === 'san-scrap-page') {
     pushToSidePanel(metadata);
@@ -57,6 +92,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // ──────────────────────────────────────────
 // Content Script로부터 온 메시지 중계
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender) => {
+  debugLog('runtime message received', { message, tabId: sender.tab?.id, url: sender.tab?.url });
   if (message.type === 'SCRAP_SELECTION' && sender.tab?.id) {
     pushToSidePanel(message.payload);
   }
@@ -66,5 +102,8 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender) => {
 // 사이드패널로 메시지 전송 헬퍼
 // ──────────────────────────────────────────
 function pushToSidePanel(payload: PendingScrap) {
-  chrome.runtime.sendMessage({ type: 'PUSH_TO_SIDEPANEL', payload }).catch(() => {});
+  debugLog('push to side panel', payload);
+  chrome.runtime.sendMessage({ type: 'PUSH_TO_SIDEPANEL', payload }).catch((error) => {
+    debugLog('side panel is not ready to receive messages yet', error);
+  });
 }

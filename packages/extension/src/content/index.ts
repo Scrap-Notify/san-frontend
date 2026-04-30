@@ -5,6 +5,20 @@
 
 import type { ExtensionMessage, PendingScrap } from '../types/index';
 
+const DEBUG_PREFIX = '[SAN:content]';
+const isDebug = import.meta.env.DEV;
+
+function debugLog(message: string, data?: unknown) {
+  if (!isDebug) return;
+  if (data === undefined) {
+    console.debug(DEBUG_PREFIX, message);
+    return;
+  }
+  console.debug(DEBUG_PREFIX, message, data);
+}
+
+debugLog('content script injected', { url: location.href });
+
 // ──────────────────────────────────────────
 // OG 태그 추출 유틸
 // ──────────────────────────────────────────
@@ -19,7 +33,7 @@ function extractMetadata(): PendingScrap {
   const url = location.href;
   const domain = new URL(url).hostname;
 
-  return {
+  const metadata: PendingScrap = {
     source_type: 'LINK', // 기본값
     source_url: url,     // 규격 일치
     raw_content: getMeta('og:description') ?? getMeta('description'), // 규격 일치
@@ -28,12 +42,16 @@ function extractMetadata(): PendingScrap {
     domain,
     favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
   };
+
+  debugLog('metadata extracted', metadata);
+  return metadata;
 }
 
 // ──────────────────────────────────────────
 // 메시지 리스너
 // ──────────────────────────────────────────
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendResponse) => {
+  debugLog('runtime message received', message);
   if (message.type === 'REQUEST_METADATA') {
     sendResponse(extractMetadata());
   }
@@ -46,6 +64,7 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
 document.addEventListener('mouseup', () => {
   const selectedText = window.getSelection()?.toString().trim();
   if (!selectedText || selectedText.length < 10) return;
+  debugLog('selection detected', { length: selectedText.length });
 
   const metadata = extractMetadata();
   
@@ -59,5 +78,7 @@ document.addEventListener('mouseup', () => {
     },
   };
 
-  chrome.runtime.sendMessage(message);
+  chrome.runtime.sendMessage(message).catch((error) => {
+    console.error(DEBUG_PREFIX, 'failed to send selected text to background', error);
+  });
 });

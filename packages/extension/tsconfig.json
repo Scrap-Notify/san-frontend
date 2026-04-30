@@ -4,6 +4,8 @@
     "jsx": "react-jsx",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "types": ["chrome"],
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "paths": {
     "@san/shared": ["../shared/src"],
     "@san/shared/*": ["../shared/src/*"],

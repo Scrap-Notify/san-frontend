@@ -3,16 +3,31 @@ import { useState, useEffect } from 'react';
 import { DropZone } from './DropZone';
 import { CardList } from './CardList';
 
+const DEBUG_PREFIX = '[SAN:sidepanel]';
+const isDebug = import.meta.env.DEV;
+
+function debugLog(message: string, data?: unknown) {
+  if (!isDebug) return;
+  if (data === undefined) {
+    console.debug(DEBUG_PREFIX, message);
+    return;
+  }
+  console.debug(DEBUG_PREFIX, message, data);
+}
+
 export default function SidePanel() {
   const [pendingScrap, setPendingScrap] = useState<string | null>(null);
 
   // 브라우저에서 드래그로 선택한 텍스트 감지 (Chrome API)
   useEffect(() => {
+    debugLog('side panel mounted');
+
     const handleMessage = (msg: any) => {
+      debugLog('runtime message received', msg);
       // 백그라운드에서 보내는 타입('PUSH_TO_SIDEPANEL')과 일치시킵니다.
       if (msg.type === 'PUSH_TO_SIDEPANEL') {
         // payload 전체(PendingScrap)를 받아서 처리할 수 있게 됩니다.
-        setPendingScrap(msg.payload.description); 
+        setPendingScrap(msg.payload.raw_content ?? msg.payload.title ?? null);
       }
     };
     chrome.runtime.onMessage.addListener(handleMessage);
