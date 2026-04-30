@@ -93,7 +93,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 // Content Script로부터 온 메시지 중계
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender) => {
   debugLog('runtime message received', { message, tabId: sender.tab?.id, url: sender.tab?.url });
-  if (message.type === 'SCRAP_SELECTION' && sender.tab?.id) {
+  if (message.type === 'SCRAP_SELECTION' && sender.tab?.id && message.payload) {
     pushToSidePanel(message.payload);
   }
 });

@@ -1,9 +1,11 @@
 // packages/extension/src/sidepanel/SidePanel.tsx
-import { useState, useEffect } from 'react';
-import { DropZone } from './DropZone';
-import { CardList } from './CardList';
+import { useCallback, useEffect, useState } from 'react';
+import { DropZone } from './components/DropZone';
+import { CardList } from './components/CardList';
+import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
+const STORAGE_KEY = 'san:saved-insights';
 const isDebug = import.meta.env.DEV;
 
 function debugLog(message: string, data?: unknown) {
@@ -15,71 +17,151 @@ function debugLog(message: string, data?: unknown) {
   console.debug(DEBUG_PREFIX, message, data);
 }
 
-export default function SidePanel() {
-  const [pendingScrap, setPendingScrap] = useState<string | null>(null);
+function isPendingScrap(value: unknown): value is PendingScrap {
+  if (!value || typeof value !== 'object') return false;
+  const maybe = value as Partial<PendingScrap>;
+  return typeof maybe.source_type === 'string' && typeof maybe.title === 'string';
+}
 
-  // 브라우저에서 드래그로 선택한 텍스트 감지 (Chrome API)
+function toSavedInsight(scrap: PendingScrap): SavedInsight {
+  const id = typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  return {
+    ...scrap,
+    id,
+    created_at: new Date().toISOString(),
+  };
+}
+
+async function loadSavedInsights(): Promise<SavedInsight[]> {
+  const stored = await chrome.storage.local.get(STORAGE_KEY);
+  const value = stored[STORAGE_KEY];
+  return Array.isArray(value) ? value : [];
+}
+
+async function saveInsights(cards: SavedInsight[]) {
+  await chrome.storage.local.set({ [STORAGE_KEY]: cards });
+}
+
+async function requestActiveTabMetadata(): Promise<PendingScrap | null> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return null;
+
+  try {
+    return await chrome.tabs.sendMessage<ExtensionMessage, PendingScrap>(tab.id, { type: 'REQUEST_METADATA' });
+  } catch (error) {
+    debugLog('failed to read metadata from active tab, using fallback metadata', error);
+    const url = tab.url ?? null;
+    const domain = url ? new URL(url).hostname : '';
+    return {
+      source_type: 'TEXT',
+      source_url: url,
+      raw_content: null,
+      image_url: null,
+      title: tab.title ?? 'Dragged text',
+      domain,
+      favicon: domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : null,
+    };
+  }
+}
+
+export default function SidePanel() {
+  const [pendingScrap, setPendingScrap] = useState<PendingScrap | null>(null);
+  const [cards, setCards] = useState<SavedInsight[]>([]);
+
   useEffect(() => {
     debugLog('side panel mounted');
 
-    const handleMessage = (msg: any) => {
+    loadSavedInsights()
+      .then((savedCards) => {
+        debugLog('saved insights loaded', { count: savedCards.length });
+        setCards(savedCards);
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to load saved insights', error);
+      });
+
+    const handleMessage = (msg: ExtensionMessage) => {
       debugLog('runtime message received', msg);
-      // 백그라운드에서 보내는 타입('PUSH_TO_SIDEPANEL')과 일치시킵니다.
-      if (msg.type === 'PUSH_TO_SIDEPANEL') {
-        // payload 전체(PendingScrap)를 받아서 처리할 수 있게 됩니다.
-        setPendingScrap(msg.payload.raw_content ?? msg.payload.title ?? null);
+      if (msg.type === 'PUSH_TO_SIDEPANEL' && isPendingScrap(msg.payload)) {
+        setPendingScrap(msg.payload);
       }
     };
+
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, []);
 
+  const handleTextDrop = useCallback(async (text: string) => {
+    const metadata = await requestActiveTabMetadata();
+    const nextPending: PendingScrap = {
+      ...(metadata ?? {
+        source_type: 'TEXT',
+        source_url: null,
+        raw_content: null,
+        image_url: null,
+        title: 'Dragged text',
+        domain: '',
+        favicon: null,
+      }),
+      source_type: 'TEXT',
+      raw_content: text,
+    };
+
+    debugLog('drop zone text received', {
+      length: text.length,
+      source_url: nextPending.source_url,
+      title: nextPending.title,
+    });
+    setPendingScrap(nextPending);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    if (!pendingScrap) return;
+
+    const saved = toSavedInsight(pendingScrap);
+    const nextCards = [saved, ...cards];
+    setCards(nextCards);
+    setPendingScrap(null);
+
+    try {
+      await saveInsights(nextCards);
+      debugLog('insight saved', saved);
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to persist insight', error);
+    }
+  }, [cards, pendingScrap]);
+
   return (
     <div className="flex flex-col h-screen bg-[#0A0F1E] text-slate-200 font-sans overflow-hidden">
-      {/* 상단 헤더 */}
       <header className="p-5 flex items-center justify-between border-b border-white/5 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-[#4ADE80] rounded-full animate-pulse shadow-[0_0_10px_#4ADE80]" />
           <h1 className="text-xl font-black tracking-tighter text-white">SAN</h1>
         </div>
-        <button className="text-slate-500 hover:text-[#4ADE80] transition-colors">
+        <button className="text-slate-500 hover:text-[#4ADE80] transition-colors" aria-label="설정">
           <i className="fa-solid fa-gear"></i>
         </button>
       </header>
 
-      {/* 스크롤 가능한 콘텐츠 영역 */}
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
-        
-        {/* 1. 드롭존 영역 */}
         <section>
-          <DropZone />
+          <DropZone
+            pendingScrap={pendingScrap}
+            onTextDrop={handleTextDrop}
+            onSave={handleSave}
+            onClear={() => setPendingScrap(null)}
+          />
         </section>
 
-        {/* 2. 텍스트 스크랩 제안 (감지 시에만 노출) */}
-        {pendingScrap && (
-          <section className="bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-2xl p-4 backdrop-blur-xl animate-in fade-in slide-in-from-top-4">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-[10px] font-bold text-[#4ADE80] uppercase tracking-wider">New Insight Found</span>
-              <button onClick={() => setPendingScrap(null)} className="text-slate-500 hover:text-white">
-                <i className="fa-solid fa-xmark text-xs"></i>
-              </button>
-            </div>
-            <p className="text-sm text-slate-300 line-clamp-3 mb-3 leading-relaxed italic">
-              "{pendingScrap}"
-            </p>
-            <button className="w-full bg-[#4ADE80] hover:bg-[#2DD4BF] text-[#0A0F1E] font-bold py-2 rounded-xl text-sm transition-all transform active:scale-95">
-              지식으로 저장하기
-            </button>
-          </section>
-        )}
-
-        {/* 3. 수집된 카드 리스트 */}
         <section>
           <div className="flex items-center justify-between mb-4 px-1">
             <h2 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em]">Collected Insights</h2>
-            <span className="text-[10px] text-slate-600">3 items</span>
+            <span className="text-[10px] text-slate-600">{cards.length} items</span>
           </div>
-          <CardList />
+          <CardList cards={cards} />
         </section>
       </div>
     </div>
