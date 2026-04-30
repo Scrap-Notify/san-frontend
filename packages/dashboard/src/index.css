@@ -1,1 +1,39 @@
+/* packages/dashboard/src/index.css */
+/* Pretendard 폰트 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 @import "tailwindcss";
+
+/* @san/ui 디자인 토큰 공유 */
+@import "../../ui/src/styles/globals.css";
+
+
+/* 대시보드 전역 기본값 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  background-color: #101417;
+  color: #fbfffa;
+  font-family: 'Pretendard', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 스크롤바 커스텀 */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e5056;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00ffc2;
+}
