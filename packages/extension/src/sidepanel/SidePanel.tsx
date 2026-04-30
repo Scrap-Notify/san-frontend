@@ -9,8 +9,10 @@ export default function SidePanel() {
   // 브라우저에서 드래그로 선택한 텍스트 감지 (Chrome API)
   useEffect(() => {
     const handleMessage = (msg: any) => {
-      if (msg.type === 'TEXT_SELECTED') {
-        setPendingScrap(msg.payload.text);
+      // 백그라운드에서 보내는 타입('PUSH_TO_SIDEPANEL')과 일치시킵니다.
+      if (msg.type === 'PUSH_TO_SIDEPANEL') {
+        // payload 전체(PendingScrap)를 받아서 처리할 수 있게 됩니다.
+        setPendingScrap(msg.payload.description); 
       }
     };
     chrome.runtime.onMessage.addListener(handleMessage);

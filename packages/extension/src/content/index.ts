@@ -3,50 +3,41 @@
 // 역할 1: background의 REQUEST_METADATA 수신 → OG 태그 추출 → 응답
 // 역할 2: 드래그 선택 텍스트 감지 → background로 전송
 
-import type { ExtensionMessage, PendingScrap } from '../types';
+import type { ExtensionMessage, PendingScrap } from '../types/index';
 
 // ──────────────────────────────────────────
 // OG 태그 추출 유틸
 // ──────────────────────────────────────────
 function getMeta(property: string): string | null {
-  return (
-    document.querySelector<HTMLMetaElement>(
-      `meta[property='${property}'], meta[name='${property}']`
-    )?.content ?? null
-  );
+  return document.querySelector<HTMLMetaElement>(
+    `meta[property='${property}'], meta[name='${property}']`
+  )?.content ?? null;
 }
 
+// 메타데이터 추출 시 기본적으로 'LINK' 타입을 상정합니다.
 function extractMetadata(): PendingScrap {
   const url = location.href;
-  let domain = '';
-
-  try {
-    domain = new URL(url).hostname;
-  } catch {
-    domain = url;
-  }
+  const domain = new URL(url).hostname;
 
   return {
-    title:       getMeta('og:title')       ?? document.title,
-    url,
+    source_type: 'LINK', // 기본값
+    source_url: url,     // 규격 일치
+    raw_content: getMeta('og:description') ?? getMeta('description'), // 규격 일치
+    image_url: getMeta('og:image'), // 규격 일치
+    title: getMeta('og:title') ?? document.title,
     domain,
-    description: getMeta('og:description') ?? getMeta('description'),
-    image:       getMeta('og:image'),
-    favicon:     `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+    favicon: `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
   };
 }
 
 // ──────────────────────────────────────────
 // 메시지 리스너
 // ──────────────────────────────────────────
-chrome.runtime.onMessage.addListener(
-  (message: ExtensionMessage, _sender, sendResponse) => {
-    if (message.type === 'REQUEST_METADATA') {
-      sendResponse(extractMetadata());
-    }
-    // sendResponse를 비동기로 쓰지 않으므로 return 불필요
+chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendResponse) => {
+  if (message.type === 'REQUEST_METADATA') {
+    sendResponse(extractMetadata());
   }
-);
+});
 
 // ──────────────────────────────────────────
 // 드래그 선택 텍스트 감지
@@ -54,15 +45,18 @@ chrome.runtime.onMessage.addListener(
 // ──────────────────────────────────────────
 document.addEventListener('mouseup', () => {
   const selectedText = window.getSelection()?.toString().trim();
-
-  // 너무 짧은 선택(오클릭 등)은 무시
   if (!selectedText || selectedText.length < 10) return;
 
-  const { title, url, domain } = extractMetadata();
-
+  const metadata = extractMetadata();
+  
+  // 드래그 선택 시에는 타입을 'TEXT'로 변경하고 내용을 raw_content에 넣습니다.
   const message: ExtensionMessage = {
     type: 'SCRAP_SELECTION',
-    payload: { title, url, domain, selectedText },
+    payload: { 
+      ...metadata, 
+      source_type: 'TEXT', 
+      raw_content: selectedText 
+    },
   };
 
   chrome.runtime.sendMessage(message);
