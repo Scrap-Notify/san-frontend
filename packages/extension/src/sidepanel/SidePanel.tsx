@@ -6,6 +6,7 @@ import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const STORAGE_KEY = 'san:saved-insights';
+const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const isDebug = import.meta.env.DEV;
 
 function debugLog(message: string, data?: unknown) {
@@ -45,6 +46,20 @@ async function saveInsights(cards: SavedInsight[]) {
   await chrome.storage.local.set({ [STORAGE_KEY]: cards });
 }
 
+async function loadPendingScrap(): Promise<PendingScrap | null> {
+  const stored = await chrome.storage.local.get(PENDING_STORAGE_KEY);
+  const value = stored[PENDING_STORAGE_KEY];
+  return isPendingScrap(value) ? value : null;
+}
+
+async function savePendingScrap(scrap: PendingScrap | null) {
+  if (scrap) {
+    await chrome.storage.local.set({ [PENDING_STORAGE_KEY]: scrap });
+    return;
+  }
+  await chrome.storage.local.remove(PENDING_STORAGE_KEY);
+}
+
 async function requestActiveTabMetadata(): Promise<PendingScrap | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return null;
@@ -74,13 +89,17 @@ export default function SidePanel() {
   useEffect(() => {
     debugLog('side panel mounted');
 
-    loadSavedInsights()
-      .then((savedCards) => {
+    Promise.all([loadSavedInsights(), loadPendingScrap()])
+      .then(([savedCards, storedPendingScrap]) => {
         debugLog('saved insights loaded', { count: savedCards.length });
         setCards(savedCards);
+        if (storedPendingScrap) {
+          debugLog('pending scrap restored', storedPendingScrap);
+          setPendingScrap(storedPendingScrap);
+        }
       })
       .catch((error) => {
-        console.error(DEBUG_PREFIX, 'failed to load saved insights', error);
+        console.error(DEBUG_PREFIX, 'failed to load side panel state', error);
       });
 
     const handleMessage = (msg: ExtensionMessage) => {
@@ -116,6 +135,7 @@ export default function SidePanel() {
       title: nextPending.title,
     });
     setPendingScrap(nextPending);
+    await savePendingScrap(nextPending);
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -127,6 +147,7 @@ export default function SidePanel() {
     setPendingScrap(null);
 
     try {
+      await savePendingScrap(null);
       await saveInsights(nextCards);
       debugLog('insight saved', saved);
     } catch (error) {
@@ -141,7 +162,7 @@ export default function SidePanel() {
           <div className="w-2 h-2 bg-[#4ADE80] rounded-full animate-pulse shadow-[0_0_10px_#4ADE80]" />
           <h1 className="text-xl font-black tracking-tighter text-white">SAN</h1>
         </div>
-        <button className="text-slate-500 hover:text-[#4ADE80] transition-colors" aria-label="설정">
+        <button className="text-slate-500 hover:text-[#4ADE80] transition-colors" aria-label="Settings">
           <i className="fa-solid fa-gear"></i>
         </button>
       </header>
@@ -152,7 +173,10 @@ export default function SidePanel() {
             pendingScrap={pendingScrap}
             onTextDrop={handleTextDrop}
             onSave={handleSave}
-            onClear={() => setPendingScrap(null)}
+            onClear={() => {
+              setPendingScrap(null);
+              void savePendingScrap(null);
+            }}
           />
         </section>
 

@@ -26,23 +26,3 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendRe
     sendResponse(extractMetadata());
   }
 });
-
-document.addEventListener('mouseup', () => {
-  const selectedText = window.getSelection()?.toString().trim();
-  if (!selectedText || selectedText.length < 10) return;
-  debugLog('selection detected', { length: selectedText.length });
-
-  const metadata = extractMetadata();
-  const message: ExtensionMessage = {
-    type: 'SCRAP_SELECTION',
-    payload: {
-      ...metadata,
-      source_type: 'TEXT',
-      raw_content: selectedText,
-    },
-  };
-
-  chrome.runtime.sendMessage(message).catch((error) => {
-    console.error(DEBUG_PREFIX, 'failed to send selected text to background', error);
-  });
-});

@@ -56,9 +56,9 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
 
         <div className="min-w-0">
           <p className={`font-bold text-sm transition-colors ${isOver ? 'text-white' : 'text-slate-300'}`}>
-            {isOver ? '지식을 여기에 놓으세요' : 'URL을 드래그하세요'}
+            {isOver ? 'Drop to prepare a save' : 'Drop selected text here'}
           </p>
-          <p className="text-[11px] text-slate-600 mt-1">글자는 최소 10자 이상이어야 합니다.</p>
+          <p className="text-[11px] text-slate-600 mt-1">Selected text must be at least 10 characters.</p>
         </div>
       </div>
 
@@ -72,7 +72,7 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
         <div className="bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-lg p-3">
           <div className="flex justify-between items-start gap-3 mb-2">
             <span className="text-[10px] font-bold text-[#4ADE80] uppercase tracking-wider">
-              선택된 내용
+              Pending save
             </span>
             <button onClick={onClear} className="text-slate-500 hover:text-white" aria-label="Clear pending scrap">
               <i className="fa-solid fa-xmark text-xs"></i>
@@ -85,7 +85,7 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
             onClick={onSave}
             className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
           >
-            지식으로 수집하기
+            Save
           </button>
         </div>
       )}
