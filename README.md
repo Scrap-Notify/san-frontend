@@ -7,14 +7,15 @@
 
 ## 🛠 Tech Stack
 
-| 분류                 | 기술 스택           | 비고                        |
-| :------------------- | :------------------ | :-------------------------- |
-| **Package Manager**  | `pnpm` (Workspaces) | 효율적인 모노레포 관리      |
-| **Framework**        | `React` + `Vite`    | 빠른 개발 서버 및 빌드      |
-| **Language**         | `TypeScript`        | 타입 안정성 확보            |
-| **Styling**          | `Tailwind CSS v4`   | `@tailwindcss/postcss` 기반 |
-| **State Management** | `Zustand`           | 가볍고 직관적인 상태 관리   |
-| **Data Fetching**    | `TanStack Query v5` | 서버 상태 관리 최적화       |
+| 분류                 | 기술 스택                     | 비고                                                             |
+| :------------------- | :---------------------------- | :--------------------------------------------------------------- |
+| **Package Manager**  | `pnpm` (Workspaces)           | 효율적인 모노레포 관리                                           |
+| **Framework**        | `React`(^18.3) + `Vite`(^6.0) | 빠른 개발 서버 및 빌드                                           |
+| **Language**         | `TypeScript`(^5.0)            | 타입 안정성 확보                                                 |
+| **Styling**          | `Tailwind CSS v4`(^4.0)       | `@tailwindcss/postcss` 기반                                      |
+| **State Management** | `Zustand`(^5.0)               | 가볍고 직관적인 상태 관리                                        |
+| **Data Fetching**    | `TanStack Query v5`           | 서버 상태 관리 최적화                                            |
+| **Extension Tool**   | `CRXJS`(^2.0)                 | Vite 기반 크롬 익스텐션 개발 플러그인(실시간 수정사항 반영 지원) |
 
 ---
 
@@ -67,8 +68,11 @@ pnpm install
 
 각 패키지를 독립적으로 혹은 동시에 실행할 수 있습니다.
 
-- **대시보드 실행:** `pnpm dev:dashboard` (localhost:5173)
-- **익스텐션 빌드:** `pnpm dev:extension` (실시간 빌드 모드)
+- 전체 실행: `pnpm dev`
+
+- 익스텐션 실시간 빌드: `pnpm dev --filter @san/extension`
+
+- 대시보드 실행: `pnpm dev --filter @san/dashboard`
 
 ---
 
@@ -123,9 +127,9 @@ Body (Main): 14pt / Regular / Line-height 1.6 (스크랩 본문 가독성)
 
 ### Commit Message
 
-`type: [패키지명] 작업 내용` 형식으로 작성합니다.
+`type(scope): commit message (ticket_number)` 형식으로 작성합니다.
 
-> 예: `feat: [extension] 사이드패널 스크랩 버튼 추가`
+> 예: `feat(user): 회원가입 API 구현 (S14P31A309-123)`
 
 ---
 
