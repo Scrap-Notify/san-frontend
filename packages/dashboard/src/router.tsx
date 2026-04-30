@@ -1,7 +1,7 @@
 // packages/dashboard/src/router.tsx
 import { createBrowserRouter } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
-import { LoginPage } from './pages/LoginPage';
+import { LoginPage } from './pages/Login';
 import { HomePage } from './pages/HomePage';
 
 export const router = createBrowserRouter([

@@ -10,10 +10,11 @@ export default defineConfig({
     tailwindcss(),
   ],
   resolve: {
-    alias: {
-      '@san/shared': resolve(__dirname, '../shared/src/index.ts'),
-      '@san/ui':     resolve(__dirname, '../ui/src/index.ts'),
-    },
+    alias: [
+      { find: '@san/shared/utils', replacement: resolve(__dirname, '../shared/src/utils/format.ts') },
+      { find: '@san/shared', replacement: resolve(__dirname, '../shared/src/index.ts') },
+      { find: '@san/ui', replacement: resolve(__dirname, '../ui/src/index.ts') },
+    ],
   },
   server: {
     port: 5173,

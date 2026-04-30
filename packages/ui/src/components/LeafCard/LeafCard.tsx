@@ -3,12 +3,12 @@
 // ai_status에 따라 skeleton / 실제 내용 분기 처리
 import type { ReactNode } from 'react';
 
-import type { KnowledgeCardView } from '@san/shared';
-import { IconBox } from '../IconBox';
-import { TagBadge } from '../TagBadge';
-import { MetaLabel } from '../MetaLabel';
-import { NeonDot } from '../NeonDot';
-import { formatRelativeTime } from '@san/shared/utils/format';
+import type { KnowledgeCardView } from '@san/shared/';
+import { IconBox } from '../IconBox/IconBox.tsx';
+import { TagBadge } from '../TagBadge/TagBadge.tsx';
+import { MetaLabel } from '../MetaLabel/MetaLabel.tsx';
+import { NeonDot } from '../NeonDot/NeonDot.tsx';
+import { formatRelativeTime } from '@san/shared/utils';
 
 // source_type별 아이콘 SVG (인라인 — 외부 의존 없이 독립 동작)
 function SourceIcon({ type }: { type: KnowledgeCardView['source_type'] }) {

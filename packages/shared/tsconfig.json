@@ -1,8 +1,9 @@
 {
-  "extends": "../../tsconfig.json", // ✅ 루트 상속
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
