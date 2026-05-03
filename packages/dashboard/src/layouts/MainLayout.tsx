@@ -8,12 +8,12 @@ import { GNB } from '../components/GNB';
 export function MainLayout() {
   return (
     <div className="min-h-screen bg-[#101417]">
-      {/* 고정 GNB */}
-      <GNB />
-      {/* GNB 높이(56px)만큼 상단 여백 — 각 페이지가 신경 쓸 필요 없음 */}
-      <main className="pt-14">
-        <Outlet />
-      </main>
+      <div className="mx-auto min-h-[810px] w-full max-w-[1440px] px-[60px] py-6">
+        <GNB />
+        <main className="pt-10">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

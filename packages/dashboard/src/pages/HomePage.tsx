@@ -8,7 +8,7 @@ export function HomePage() {
   return (
     <>
       <GraphSection />
-      <div className="mx-8 h-px bg-[#1e5056]/20 mb-10" />
+      <div className="h-px bg-[#1e5056]/20 mb-10" />
       <ArchiveSection />
     </>
   );
