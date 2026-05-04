@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage } from '../api/client';
@@ -12,6 +12,7 @@ export function GithubAuthResultPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [message, setMessage] = useState('Connecting GitHub account...');
+  const processedAuthKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const ticket = searchParams.get('ticket');
@@ -34,6 +35,12 @@ export function GithubAuthResultPage() {
       setMessage('GitHub authentication ticket is missing');
       return;
     }
+
+    const authKey = ticket ? `ticket:${ticket}` : `code:${code}`;
+    if (processedAuthKeyRef.current === authKey) {
+      return;
+    }
+    processedAuthKeyRef.current = authKey;
 
     let ignore = false;
 
