@@ -1,15 +1,11 @@
-// packages/dashboard/src/pages/HomePage.tsx
-// GNB는 MainLayout이 담당 → 여기선 콘텐츠만
-
-import { GraphSection } from '../components/GraphSection';
 import { ArchiveSection } from '../components/ArchiveSection';
+import { GraphSection } from '../components/GraphSection';
 
 export function HomePage() {
   return (
-    <>
+    <div className="w-full min-w-0 space-y-[clamp(3rem,6vw,6rem)]">
       <GraphSection />
-      <div className="h-px bg-[#1e5056]/20 mb-10" />
       <ArchiveSection />
-    </>
+    </div>
   );
 }

@@ -10,10 +10,34 @@ html,
 body,
 #root {
   height: 100%;
+  width: 100%;
   background-color: #101417;
   color: #fbfffa;
   font-family: 'Pretendard', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+}
+
+.dashboard-shell {
+  width: 100%;
+  padding-inline: clamp(32px, 6vw, 120px);
+}
+
+.auth-shell {
+  width: 100%;
+  padding-inline: clamp(24px, 5vw, 96px);
+  padding-block: clamp(32px, 6vw, 80px);
+}
+
+@media (max-width: 480px) {
+  .dashboard-shell,
+  .auth-shell {
+    padding-inline: 20px;
+  }
 }
 
 ::-webkit-scrollbar {
