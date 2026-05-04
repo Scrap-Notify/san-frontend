@@ -4,6 +4,7 @@ import { LoginPage } from './pages/LoginPage';
 import { HomePage } from './pages/HomePage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { Signup } from './pages/SignUpPage';
+import { ResultPage } from './pages/ResultPage';
 
 export const router = createBrowserRouter([
   {
@@ -33,13 +34,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '/result',
-        element: (
-          <PlaceholderPage
-            eyebrow="Search"
-            title="Search results"
-            description="Search results will be connected here."
-          />
-        ),
+        element: <ResultPage />,
       },
       {
         path: '/til',

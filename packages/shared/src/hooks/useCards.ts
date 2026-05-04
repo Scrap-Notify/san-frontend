@@ -15,11 +15,12 @@ export const cardKeys = {
 // const { data } = useCards({ page: 1, tag: 'react' })
 // ----------------------------
 
-export function useCards(params?: GetCardsParams) {
+export function useCards(params?: GetCardsParams, options?: { enabled?: boolean }) {
   const { cardsApi } = useApiContext();
   return useQuery({
     queryKey: cardKeys.list(params),
     queryFn: () => cardsApi.getAll(params),
+    enabled: options?.enabled ?? true,
     staleTime: 1000 * 30,
   });
 }

@@ -153,5 +153,9 @@ export interface GetCardsParams {
   limit?: number;
   category_id?: string;
   tag?: string;
+  tags?: string[];
   search?: string;
+  date?: string;
+  from?: string;
+  to?: string;
 }
