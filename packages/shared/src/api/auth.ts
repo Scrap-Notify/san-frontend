@@ -20,6 +20,18 @@ export interface ReissueRequest {
   refreshToken: string;
 }
 
+export interface GithubTokenExchangeRequest {
+  ticket: string;
+}
+
+export interface GithubLoginRequest {
+  code: string;
+}
+
+export interface WithdrawRequest {
+  password: string;
+}
+
 export interface SignupResponse {
   userId: string;
   username: string;
@@ -57,11 +69,26 @@ export function createAuthApi(apiClient: AxiosInstance) {
 
     reissue: (payload: ReissueRequest): Promise<TokenResponse> =>
       apiClient
-        .post<ApiResponse<TokenResponse>>('/auth/reissue', payload, publicRequest)
+        .post<ApiResponse<TokenResponse>>('/auth/token/reissue', payload, publicRequest)
+        .then((response) => unwrapApiResponse(response.data)),
+
+    getGithubAuthorizeUrl: (): string => apiClient.getUri({ url: '/auth/github/authorize' }),
+
+    loginWithGithubCode: (payload: GithubLoginRequest): Promise<TokenResponse> =>
+      apiClient
+        .post<ApiResponse<TokenResponse>>('/auth/github/login', payload, publicRequest)
+        .then((response) => unwrapApiResponse(response.data)),
+
+    exchangeGithubToken: (payload: GithubTokenExchangeRequest): Promise<TokenResponse> =>
+      apiClient
+        .post<ApiResponse<TokenResponse>>('/auth/github/token', payload, publicRequest)
         .then((response) => unwrapApiResponse(response.data)),
 
     logout: (): Promise<void> =>
       apiClient.post<ApiResponse<void>>('/auth/logout').then(() => undefined),
+
+    withdraw: (payload: WithdrawRequest): Promise<void> =>
+      apiClient.delete<ApiResponse<void>>('/auth/withdraw', { data: payload }).then(() => undefined),
   };
 }
 

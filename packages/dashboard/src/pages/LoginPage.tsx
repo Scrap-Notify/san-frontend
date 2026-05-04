@@ -12,6 +12,14 @@ export function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleGithubLogin = () => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = authApi.getGithubAuthorizeUrl();
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
@@ -69,6 +77,7 @@ export function LoginPage() {
 
             <button
               type="button"
+              onClick={handleGithubLogin}
               className="flex min-h-14 w-full items-center justify-center gap-3 rounded-bl-xl rounded-br-3xl rounded-tl-3xl rounded-tr-xl bg-[#fbfffa] px-5 py-4 text-base font-bold text-[#101417] shadow-[0_20px_40px_rgba(251,255,250,0.1)] transition hover:scale-[1.01] hover:bg-white sm:text-lg"
             >
               <GitBranch className="h-5 w-5" />

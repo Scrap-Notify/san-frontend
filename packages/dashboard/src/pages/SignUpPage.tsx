@@ -18,6 +18,14 @@ export function Signup() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleGithubLogin = () => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = authApi.getGithubAuthorizeUrl();
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const handleUsernameChange = (value: string) => {
     setUsername(value);
     setCheckedUsername('');
@@ -111,6 +119,7 @@ export function Signup() {
 
           <button
             type="button"
+            onClick={handleGithubLogin}
             className="flex min-h-14 w-full items-center justify-center gap-3 rounded-full border border-[#3a4a43]/30 px-5 py-4 text-base font-bold text-[#e0e3e7] transition hover:border-[#00ffc2]/50 hover:text-[#00ffc2]"
           >
             <GitBranch size={20} />

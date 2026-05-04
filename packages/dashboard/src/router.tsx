@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { Signup } from './pages/SignUpPage';
 import { ResultPage } from './pages/ResultPage';
+import { GithubAuthResultPage } from './pages/GithubAuthResultPage';
 
 export const router = createBrowserRouter([
   {
@@ -14,6 +15,14 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />,
+  },
+  {
+    path: '/auth/github/success',
+    element: <GithubAuthResultPage />,
+  },
+  {
+    path: '/auth/github/failure',
+    element: <GithubAuthResultPage />,
   },
   {
     element: <MainLayout />,

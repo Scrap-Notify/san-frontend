@@ -4,10 +4,13 @@ export type { ApiResponse, AuthTokens, TokenProvider, TokenResponse } from './cl
 export { createAuthApi } from './auth';
 export type {
   AuthApi,
+  GithubLoginRequest,
+  GithubTokenExchangeRequest,
   LoginRequest,
   ReissueRequest,
   SignupRequest,
   SignupResponse,
+  WithdrawRequest,
 } from './auth';
 export { createScrapsApi } from './scraps';
 export type { ScrapsApi } from './scraps';
