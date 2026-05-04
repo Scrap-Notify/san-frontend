@@ -6,7 +6,7 @@ import {
   type AuthTokens,
 } from '@san/shared';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080';
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
 
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';

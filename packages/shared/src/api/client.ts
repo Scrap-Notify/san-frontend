@@ -1,5 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
+export const SKIP_AUTH_HEADER = 'X-SAN-Skip-Auth';
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -27,6 +29,7 @@ export interface TokenResponse extends AuthTokens {
 
 interface RetriableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
+  _skipAuth?: boolean;
 }
 
 export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
@@ -38,6 +41,13 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
 
   client.interceptors.request.use(
     async (config) => {
+      const skipAuth = config.headers?.[SKIP_AUTH_HEADER];
+      if (skipAuth) {
+        (config as RetriableRequestConfig)._skipAuth = true;
+        delete config.headers[SKIP_AUTH_HEADER];
+        return config;
+      }
+
       const token = await tokenProvider.getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -51,6 +61,10 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
     (response) => response,
     async (error: AxiosError) => {
       const originalRequest = error.config as RetriableRequestConfig | undefined;
+
+      if (originalRequest?._skipAuth) {
+        return Promise.reject(error);
+      }
 
       if (
         error.response?.status === 401 &&
@@ -68,7 +82,7 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
           }
 
           const response = await axios.post<ApiResponse<TokenResponse>>(
-            '/api/auth/reissue',
+            '/auth/reissue',
             { refreshToken },
             {
               baseURL,

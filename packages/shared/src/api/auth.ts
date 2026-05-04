@@ -1,5 +1,10 @@
 import type { AxiosInstance } from 'axios';
-import { unwrapApiResponse, type ApiResponse, type TokenResponse } from './client';
+import {
+  SKIP_AUTH_HEADER,
+  unwrapApiResponse,
+  type ApiResponse,
+  type TokenResponse,
+} from './client';
 
 export interface LoginRequest {
   username: string;
@@ -23,10 +28,17 @@ export interface SignupResponse {
 }
 
 export function createAuthApi(apiClient: AxiosInstance) {
+  const publicRequest = {
+    headers: { [SKIP_AUTH_HEADER]: 'true' },
+  };
+
   return {
     checkUsername: (username: string): Promise<void> =>
       apiClient
-        .get<ApiResponse<void>>('/api/auth/check-username', { params: { username } })
+        .get<ApiResponse<void>>('/auth/check-username', {
+          ...publicRequest,
+          params: { username },
+        })
         .then((response) => {
           if (!response.data.ok) {
             throw new Error(response.data.message ?? response.data.error ?? 'Username is unavailable');
@@ -35,21 +47,21 @@ export function createAuthApi(apiClient: AxiosInstance) {
 
     signup: (payload: SignupRequest): Promise<SignupResponse> =>
       apiClient
-        .post<ApiResponse<SignupResponse>>('/api/auth/signup', payload)
+        .post<ApiResponse<SignupResponse>>('/auth/signup', payload, publicRequest)
         .then((response) => unwrapApiResponse(response.data)),
 
     login: (payload: LoginRequest): Promise<TokenResponse> =>
       apiClient
-        .post<ApiResponse<TokenResponse>>('/api/auth/login', payload)
+        .post<ApiResponse<TokenResponse>>('/auth/login', payload, publicRequest)
         .then((response) => unwrapApiResponse(response.data)),
 
     reissue: (payload: ReissueRequest): Promise<TokenResponse> =>
       apiClient
-        .post<ApiResponse<TokenResponse>>('/api/auth/reissue', payload)
+        .post<ApiResponse<TokenResponse>>('/auth/reissue', payload, publicRequest)
         .then((response) => unwrapApiResponse(response.data)),
 
     logout: (): Promise<void> =>
-      apiClient.post<ApiResponse<void>>('/api/auth/logout').then(() => undefined),
+      apiClient.post<ApiResponse<void>>('/auth/logout').then(() => undefined),
   };
 }
 

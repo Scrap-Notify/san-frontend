@@ -1,4 +1,4 @@
-import { GitBranch, KeyRound, Mail, Sprout, UserRound } from 'lucide-react';
+import { GitBranch, KeyRound, Sprout, UserRound } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi, authTokenStorage } from '../api/client';
@@ -6,7 +6,6 @@ import { authApi, authTokenStorage } from '../api/client';
 export function Signup() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
@@ -90,14 +89,6 @@ export function Signup() {
               icon={<UserRound className="h-5 w-5" />}
               value={username}
               onChange={setUsername}
-            />
-            <Field
-              label="Email"
-              type="email"
-              placeholder="name@example.com"
-              icon={<Mail className="h-5 w-5" />}
-              value={email}
-              onChange={setEmail}
             />
             <Field
               label="Password"
