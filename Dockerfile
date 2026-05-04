@@ -5,18 +5,12 @@ RUN corepack enable && corepack prepare pnpm@10.33.2 --activate
 
 # working directory를 /app으로 설정
 WORKDIR /app
-
 # 의존성 설치를 위한 매니페스트 복사
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/dashboard/package.json ./packages/dashboard/
+COPY . ./
 RUN pnpm install --frozen-lockfile
 
-# 소스 파일 복사 및 dashboard 빌드
-COPY packages/shared ./packages/shared
-COPY packages/dashboard ./packages/dashboard
-COPY tailwind.config.js ./
-RUN pnpm --filter dashboard build
+# dashboard 빌드
+RUN pnpm --filter @san/dashboard build
 
 # Nginx
 FROM nginx:alpine

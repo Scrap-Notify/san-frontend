@@ -39,10 +39,10 @@ jobs:
         continue-on-error: true
 
       - name: Build dashboard
-        run: pnpm --filter dashboard build
+        run: pnpm --filter @san/dashboard build
 
       - name: Build extension
-        run: pnpm --filter extension build
+        run: pnpm --filter @san/extension build
         continue-on-error: true
 
   deploy:
@@ -74,4 +74,4 @@ jobs:
 
             # 헬스체크
             sleep 5
-            curl -f http://localhost:80 || exit 1
+            curl -f http://localhost:3000 || exit 1
