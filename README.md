@@ -133,6 +133,92 @@ Body (Main): 14pt / Regular / Line-height 1.6 (스크랩 본문 가독성)
 
 ---
 
+## CI/CD 파이프라인
+
+GitHub Actions 기반으로 세 가지 워크플로우가 동작합니다.
+
+### 1. CI/CD Pipeline (`.github/workflows/ci-cd.yml`)
+
+| 트리거 | 대상 브랜치 |
+|--------|-------------|
+| `push`, `pull_request` | `main`, `develop` |
+
+**Build 단계 (모든 push/PR):**
+
+```
+Checkout → pnpm 설정 → Node.js 22 설치 → 의존성 설치(pnpm install --frozen-lockfile) → Lint → Dashboard 빌드 → Extension 빌드
+```
+
+- Lint와 Extension 빌드는 `continue-on-error: true`로 설정되어 실패해도 파이프라인이 중단되지 않습니다.
+
+**Deploy 단계 (main push만):**
+
+```
+SSH 접속 → git pull → docker compose up --build → 헬스체크(localhost:80)
+```
+
+배포 시 Nginx 컨테이너로 Dashboard 정적 파일을 서빙합니다.
+
+### 2. PR Mattermost 알림 (`.github/workflows/pr-mattermost.yml`)
+
+PR이 열리거나, 업데이트되거나, 머지/클로즈될 때 Mattermost 웹훅으로 알림을 전송합니다.
+
+### 3. GitLab 동기화 (`.github/workflows/sync-to-gitlab.yml`)
+
+`main` 브랜치에 push 시 GitLab의 `front/default` 브랜치로 자동 동기화됩니다. `workflow_dispatch`로 수동 실행도 가능합니다.
+
+### 필요한 GitHub Secrets
+
+| Secret | 용도 |
+|--------|------|
+| `DEPLOY_HOST` | 배포 서버 호스트 |
+| `DEPLOY_USER` | 배포 서버 SSH 사용자 |
+| `DEPLOY_SSH_KEY` | 배포 서버 SSH 키 |
+| `MATTERMOST_WEBHOOK_URL` | Mattermost 알림 웹훅 URL |
+| `GITLAB_TOKEN` | GitLab 동기화용 토큰 |
+
+---
+
+## 로컬 테스트
+
+### 직접 실행
+
+```bash
+# 의존성 설치
+pnpm install
+
+# 린트
+pnpm lint
+
+# 전체 개발 서버 실행
+pnpm dev
+
+# 대시보드만 실행
+pnpm dev --filter @san/dashboard
+
+# 익스텐션 실시간 빌드
+pnpm dev --filter @san/extension
+
+# 대시보드 프로덕션 빌드
+pnpm --filter dashboard build
+
+# 익스텐션 프로덕션 빌드
+pnpm --filter extension build
+```
+
+### Docker로 실행 (Dashboard)
+
+```bash
+docker compose up --build
+
+# 헬스체크
+curl http://localhost:80
+```
+
+Docker 빌드는 Dashboard만 대상이며, 멀티스테이지 빌드(Node.js 빌드 → Nginx 서빙)로 구성됩니다.
+
+---
+
 ## 💡 Troubleshooting
 
 - **빨간 줄(TypeScript) 발생 시:** `Ctrl+Shift+P` -> `TypeScript: Restart TS server`를 실행해 주세요.
