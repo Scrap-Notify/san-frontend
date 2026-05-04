@@ -1,7 +1,10 @@
 import { GitBranch, KeyRound, Sprout, UserRound } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage } from '../api/client';
+
+type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
 export function Signup() {
   const navigate = useNavigate();
@@ -9,12 +12,53 @@ export function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
+  const [checkedUsername, setCheckedUsername] = useState('');
+  const [usernameCheckStatus, setUsernameCheckStatus] = useState<UsernameCheckStatus>('idle');
+  const [usernameMessage, setUsernameMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+    setCheckedUsername('');
+    setUsernameCheckStatus('idle');
+    setUsernameMessage(null);
+  };
+
+  const handleCheckUsername = async () => {
+    const trimmedUsername = username.trim();
+    setErrorMessage(null);
+    setUsernameMessage(null);
+
+    if (!trimmedUsername) {
+      setUsernameCheckStatus('unavailable');
+      setUsernameMessage('Archive ID is required');
+      return;
+    }
+
+    setUsernameCheckStatus('checking');
+
+    try {
+      await authApi.checkUsername(trimmedUsername);
+      setCheckedUsername(trimmedUsername);
+      setUsernameCheckStatus('available');
+      setUsernameMessage('Archive ID is available');
+    } catch (error) {
+      setCheckedUsername('');
+      setUsernameCheckStatus('unavailable');
+      setUsernameMessage(getApiErrorMessage(error, 'Archive ID is unavailable'));
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
+    const trimmedUsername = username.trim();
+
+    if (checkedUsername !== trimmedUsername || usernameCheckStatus !== 'available') {
+      setErrorMessage('Please check Archive ID availability');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setErrorMessage('Passwords do not match');
@@ -29,12 +73,12 @@ export function Signup() {
     setIsSubmitting(true);
 
     try {
-      await authApi.signup({ username, password });
-      const tokens = await authApi.login({ username, password });
+      await authApi.signup({ username: trimmedUsername, password });
+      const tokens = await authApi.login({ username: trimmedUsername, password });
       await authTokenStorage.setTokens(tokens);
       navigate('/');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Sign up failed');
+      setErrorMessage(getApiErrorMessage(error, 'Sign up failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -88,8 +132,28 @@ export function Signup() {
               placeholder="archive"
               icon={<UserRound className="h-5 w-5" />}
               value={username}
-              onChange={setUsername}
+              onChange={handleUsernameChange}
+              action={
+                <button
+                  type="button"
+                  onClick={handleCheckUsername}
+                  disabled={usernameCheckStatus === 'checking'}
+                  className="text-xs font-bold uppercase tracking-wide text-[#00ffc2] transition hover:text-[#1affcb] disabled:cursor-not-allowed disabled:text-[#b9cbc1]/50"
+                >
+                  {usernameCheckStatus === 'checking' ? 'Checking...' : 'Check'}
+                </button>
+              }
             />
+            {usernameMessage ? (
+              <p
+                className={[
+                  '-mt-3 text-sm font-semibold',
+                  usernameCheckStatus === 'available' ? 'text-[#00ffc2]' : 'text-red-300',
+                ].join(' ')}
+              >
+                {usernameMessage}
+              </p>
+            ) : null}
             <Field
               label="Password"
               type="password"
@@ -159,6 +223,7 @@ function Field({
   icon,
   value,
   onChange,
+  action,
 }: {
   label: string;
   type: string;
@@ -166,11 +231,13 @@ function Field({
   icon: ReactNode;
   value: string;
   onChange: (value: string) => void;
+  action?: ReactNode;
 }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-2 block text-sm font-bold uppercase tracking-wide text-[#b9cbc1] sm:text-base">
+      <span className="mb-2 flex items-center justify-between gap-3 text-sm font-bold uppercase tracking-wide text-[#b9cbc1] sm:text-base">
         {label}
+        {action ? <span>{action}</span> : null}
       </span>
 
       <div className="relative min-w-0">

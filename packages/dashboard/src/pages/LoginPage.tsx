@@ -1,6 +1,7 @@
 import { GitBranch, KeyRound, Mail, Sprout } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage } from '../api/client';
 import loginTreeImage from '../assets/login-tree.png';
 
@@ -21,7 +22,7 @@ export function LoginPage() {
       await authTokenStorage.setTokens(tokens);
       navigate('/');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Login failed');
+      setErrorMessage(getApiErrorMessage(error, 'Login failed'));
     } finally {
       setIsSubmitting(false);
     }

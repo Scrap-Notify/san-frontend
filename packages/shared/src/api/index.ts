@@ -1,5 +1,5 @@
 // packages/shared/src/api/index.ts
-export { createApiClient, unwrapApiResponse } from './client';
+export { createApiClient, getApiErrorMessage, unwrapApiResponse } from './client';
 export type { ApiResponse, AuthTokens, TokenProvider, TokenResponse } from './client';
 export { createAuthApi } from './auth';
 export type {
