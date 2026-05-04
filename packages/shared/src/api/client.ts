@@ -1,26 +1,34 @@
-// packages/shared/src/api/client.ts
-// apiclient를 이용한 카드 관련 API 함수 모음이 아니라
-// 인자를 받아 인스턴스를 생성하는 함수 형태로 export
-// (예: getCardsApi() → cardsApi.getAll() 등)
-// 이렇게 하면 apiClient를 직접 import하지 않고도 사용할 수 있음
-// 또한, 테스트 시 mock api client를 주입하기도 쉬워짐
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-import axios from 'axios';
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+}
 
-// ----------------------------
-// 토큰 제공자 인터페이스
-// dashboard/extension에서 각각 구현체를 주입
-// ----------------------------
 export interface TokenProvider {
   getToken: () => Promise<string | null>;
+  getRefreshToken?: () => Promise<string | null>;
+  setTokens?: (tokens: AuthTokens) => Promise<void>;
   clearToken: () => Promise<void>;
 }
 
-// ----------------------------
-// 팩토리 함수
-// baseURL, tokenProvider를 외부에서 주입받아
-// 환경(dashboard/extension)에 종속되지 않는 Axios 인스턴스 생성
-// ----------------------------
+export interface ApiResponse<T> {
+  ok: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+  timestamp: string;
+}
+
+export interface TokenResponse extends AuthTokens {
+  tokenType: 'Bearer' | string;
+  expiresIn: number;
+}
+
+interface RetriableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
   const client = axios.create({
     baseURL,
@@ -28,7 +36,6 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
     headers: { 'Content-Type': 'application/json' },
   });
 
-  // 요청 인터셉터 — 토큰 주입
   client.interceptors.request.use(
     async (config) => {
       const token = await tokenProvider.getToken();
@@ -40,17 +47,61 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
     (error) => Promise.reject(error)
   );
 
-  // 응답 인터셉터 — 공통 에러 처리
   client.interceptors.response.use(
     (response) => response,
-    async (error) => {
+    async (error: AxiosError) => {
+      const originalRequest = error.config as RetriableRequestConfig | undefined;
+
+      if (
+        error.response?.status === 401 &&
+        originalRequest &&
+        !originalRequest._retry &&
+        tokenProvider.getRefreshToken &&
+        tokenProvider.setTokens
+      ) {
+        originalRequest._retry = true;
+
+        try {
+          const refreshToken = await tokenProvider.getRefreshToken();
+          if (!refreshToken) {
+            throw new Error('Missing refresh token');
+          }
+
+          const response = await axios.post<ApiResponse<TokenResponse>>(
+            '/api/auth/reissue',
+            { refreshToken },
+            {
+              baseURL,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+
+          const tokens = unwrapApiResponse(response.data);
+          await tokenProvider.setTokens(tokens);
+          originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
+
+          return client(originalRequest);
+        } catch (refreshError) {
+          await tokenProvider.clearToken();
+          return Promise.reject(refreshError);
+        }
+      }
+
       if (error.response?.status === 401) {
         await tokenProvider.clearToken();
-        console.warn('[SAN] 인증이 만료되었습니다.');
       }
+
       return Promise.reject(error);
     }
   );
 
   return client;
+}
+
+export function unwrapApiResponse<T>(response: ApiResponse<T>): T {
+  if (!response.ok || response.data === undefined) {
+    throw new Error(response.message ?? response.error ?? 'API request failed');
+  }
+
+  return response.data;
 }

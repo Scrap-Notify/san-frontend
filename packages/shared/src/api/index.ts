@@ -1,6 +1,14 @@
 // packages/shared/src/api/index.ts
-export { createApiClient } from './client';
-export type { TokenProvider } from './client';
+export { createApiClient, unwrapApiResponse } from './client';
+export type { ApiResponse, AuthTokens, TokenProvider, TokenResponse } from './client';
+export { createAuthApi } from './auth';
+export type {
+  AuthApi,
+  LoginRequest,
+  ReissueRequest,
+  SignupRequest,
+  SignupResponse,
+} from './auth';
 export { createScrapsApi } from './scraps';
 export type { ScrapsApi } from './scraps';
 export { createCardsApi } from './cards';

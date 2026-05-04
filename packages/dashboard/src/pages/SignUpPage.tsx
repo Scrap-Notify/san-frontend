@@ -1,7 +1,46 @@
 import { GitBranch, KeyRound, Mail, Sprout, UserRound } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { type FormEvent, type ReactNode, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { authApi, authTokenStorage } from '../api/client';
 
 export function Signup() {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreed, setAgreed] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage(null);
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match');
+      return;
+    }
+
+    if (!agreed) {
+      setErrorMessage('Please agree to the terms');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await authApi.signup({ username, password });
+      const tokens = await authApi.login({ username, password });
+      await authTokenStorage.setTokens(tokens);
+      navigate('/');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Sign up failed');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="auth-shell flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-[#101417] text-[#fbfffa]">
       <section className="relative w-full max-w-2xl min-w-0">
@@ -43,34 +82,47 @@ export function Signup() {
             <div className="h-px flex-1 bg-[#3a4a43]/20" />
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <Field
               label="Archive ID"
               type="text"
               placeholder="archive"
               icon={<UserRound className="h-5 w-5" />}
+              value={username}
+              onChange={setUsername}
             />
             <Field
               label="Email"
               type="email"
               placeholder="name@example.com"
               icon={<Mail className="h-5 w-5" />}
+              value={email}
+              onChange={setEmail}
             />
             <Field
               label="Password"
               type="password"
               placeholder="********"
               icon={<KeyRound className="h-5 w-5" />}
+              value={password}
+              onChange={setPassword}
             />
             <Field
               label="Confirm Password"
               type="password"
               placeholder="********"
               icon={<KeyRound className="h-5 w-5" />}
+              value={confirmPassword}
+              onChange={setConfirmPassword}
             />
 
             <label className="flex items-start gap-3 pt-2 text-sm leading-6 text-[#b9cbc1]">
-              <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-[#00ffc2]" />
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(event) => setAgreed(event.target.checked)}
+                className="mt-1 h-5 w-5 shrink-0 accent-[#00ffc2]"
+              />
               <span>
                 I agree to the{' '}
                 <a href="#" className="text-[#baebf2] hover:text-[#00ffc2]">
@@ -84,11 +136,16 @@ export function Signup() {
               </span>
             </label>
 
+            {errorMessage ? (
+              <p className="text-sm font-semibold text-red-300">{errorMessage}</p>
+            ) : null}
+
             <button
               type="submit"
+              disabled={isSubmitting}
               className="!mt-8 flex min-h-14 w-full items-center justify-center rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg bg-[#00ffc2] px-5 py-4 text-xl font-black text-[#007255] shadow-[0_0_30px_rgba(0,255,194,0.3)] transition hover:scale-[1.01] hover:bg-[#1affcb] sm:text-2xl"
             >
-              Sign up
+              {isSubmitting ? 'Signing up...' : 'Sign up'}
             </button>
           </form>
 
@@ -109,11 +166,15 @@ function Field({
   type,
   placeholder,
   icon,
+  value,
+  onChange,
 }: {
   label: string;
   type: string;
   placeholder: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
+  value: string;
+  onChange: (value: string) => void;
 }) {
   return (
     <label className="block min-w-0">
@@ -125,6 +186,8 @@ function Field({
         <input
           type={type}
           placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
           className="min-h-14 w-full rounded-none border-b-2 border-[#3a4a43]/30 bg-transparent px-1 py-4 pr-12 text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/40 focus:border-[#00ffc2]/70 sm:text-lg"
         />
         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[#b9cbc1]/40">
