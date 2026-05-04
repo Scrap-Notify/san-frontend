@@ -32,6 +32,16 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/result',
+        element: (
+          <PlaceholderPage
+            eyebrow="Search"
+            title="Search results"
+            description="Search results will be connected here."
+          />
+        ),
+      },
+      {
         path: '/til',
         element: (
           <PlaceholderPage

@@ -1,14 +1,42 @@
-import { Calendar, Menu, Plus, Settings, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { Calendar, Check, ChevronDown, Menu, Plus, Search, Settings, Tag, X } from 'lucide-react';
+import { type FormEvent, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+const TAG_OPTIONS = ['Design', 'Research', 'Cognition', 'Systems', 'Colors'];
 
 export function GNB() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [date, setDate] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const isRecall = location.pathname === '/';
 
   const closeMenu = () => setIsOpen(false);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((current) =>
+      current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag]
+    );
+  };
+
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const params = new URLSearchParams();
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery) params.set('query', trimmedQuery);
+    if (date) params.set('date', date);
+    if (selectedTags.length > 0) params.set('tags', selectedTags.join(','));
+
+    const search = params.toString();
+
+    navigate(search ? `/result?${search}` : '/result');
+    setIsOpen(false);
+  };
 
   return (
     <nav className="w-full min-w-0 rounded-3xl border border-white/5 bg-black/35 px-4 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)] backdrop-blur-xl md:rounded-full md:px-5">
@@ -37,6 +65,15 @@ export function GNB() {
         </div>
 
         <div className="hidden min-w-0 items-center justify-end gap-2 md:flex">
+          <SearchForm
+            value={query}
+            onChange={setQuery}
+            date={date}
+            onDateChange={setDate}
+            selectedTags={selectedTags}
+            onToggleTag={toggleTag}
+            onSubmit={handleSearch}
+          />
           <DesktopActions locationPath={location.pathname} />
         </div>
 
@@ -53,11 +90,18 @@ export function GNB() {
 
       {isOpen ? (
         <div className="mt-4 grid gap-2 border-t border-white/5 pt-4 md:hidden">
+          <SearchForm
+            value={query}
+            onChange={setQuery}
+            date={date}
+            onDateChange={setDate}
+            selectedTags={selectedTags}
+            onToggleTag={toggleTag}
+            onSubmit={handleSearch}
+            mobile
+          />
           <MobileLink to="/" active={isRecall} onClick={closeMenu}>
             Recall
-          </MobileLink>
-          <MobileLink to="/date-range" onClick={closeMenu} icon={<Calendar className="h-4 w-4" />}>
-            Date range
           </MobileLink>
           <MobileLink to="/til" onClick={closeMenu} icon={<Plus className="h-4 w-4" />}>
             TIL
@@ -79,17 +123,116 @@ export function GNB() {
   );
 }
 
+function SearchForm({
+  value,
+  onChange,
+  date,
+  onDateChange,
+  selectedTags,
+  onToggleTag,
+  onSubmit,
+  mobile = false,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  date: string;
+  onDateChange: (value: string) => void;
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  mobile?: boolean;
+}) {
+  return (
+    <form
+      onSubmit={onSubmit}
+      className={[
+        mobile
+          ? 'grid gap-2 rounded-2xl bg-[#1b2023]/70 p-3'
+          : 'flex min-w-0 items-center gap-2',
+      ].join(' ')}
+      role="search"
+    >
+      <div className="flex min-h-9 min-w-0 items-center gap-2 rounded-full border border-white/5 bg-[#1b2023] px-3 py-1.5 text-[#b9cbc1] transition focus-within:border-[#00ffc2]/40 focus-within:text-white md:w-[min(22vw,18rem)] md:min-w-44">
+        <Search className="h-4 w-4 shrink-0" />
+        <input
+          type="search"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="Search"
+          className="min-w-0 flex-1 bg-transparent text-sm text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/50"
+        />
+      </div>
+
+      <label className="flex min-h-9 min-w-0 items-center gap-2 rounded-full border border-white/5 bg-[#1b2023] px-3 py-1.5 text-xs font-medium text-[#b9cbc1] transition focus-within:border-[#00ffc2]/40 focus-within:text-white">
+        <Calendar className="h-4 w-4 shrink-0" />
+        <input
+          type="date"
+          value={date}
+          onChange={(event) => onDateChange(event.target.value)}
+          className="min-w-0 bg-transparent text-xs text-[#fbfffa] outline-none [color-scheme:dark]"
+          aria-label="Search date"
+        />
+      </label>
+
+      <TagPicker selectedTags={selectedTags} onToggleTag={onToggleTag} />
+
+      <button
+        type="submit"
+        className="flex min-h-9 items-center justify-center rounded-full bg-[#00ffc2] px-4 py-1.5 text-xs font-bold text-[#101417] transition hover:bg-[#1affcb]"
+      >
+        Search
+      </button>
+    </form>
+  );
+}
+
+function TagPicker({
+  selectedTags,
+  onToggleTag,
+}: {
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
+}) {
+  return (
+    <div className="group relative">
+      <button
+        type="button"
+        className="flex min-h-9 w-full items-center justify-center gap-2 rounded-full border border-white/5 bg-[#1b2023] px-3 py-1.5 text-xs font-medium text-[#b9cbc1] transition hover:border-[#00ffc2]/30 hover:text-white md:w-auto"
+      >
+        <Tag className="h-4 w-4 shrink-0" />
+        <span>{selectedTags.length > 0 ? `${selectedTags.length} tags` : 'Tags'}</span>
+        <ChevronDown className="h-3.5 w-3.5" />
+      </button>
+
+      <div className="invisible absolute right-0 z-30 mt-2 w-52 rounded-2xl border border-white/5 bg-[#181c1f] p-2 opacity-0 shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+        {TAG_OPTIONS.map((tag) => {
+          const selected = selectedTags.includes(tag);
+
+          return (
+            <button
+              key={tag}
+              type="button"
+              className={[
+                'flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition',
+                selected
+                  ? 'bg-[#00ffc2]/10 text-[#00ffc2]'
+                  : 'text-[#b9cbc1] hover:bg-white/5 hover:text-white',
+              ].join(' ')}
+              onClick={() => onToggleTag(tag)}
+            >
+              <span>{tag}</span>
+              {selected ? <Check className="h-4 w-4" /> : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function DesktopActions({ locationPath }: { locationPath: string }) {
   return (
     <>
-      <Link
-        to="/date-range"
-        className="flex min-h-9 min-w-0 items-center justify-center gap-2 rounded-full border border-white/5 bg-[#1b2023] px-4 py-1.5 text-sm font-medium text-[#b9cbc1] transition hover:border-[#00ffc2]/30 hover:text-white"
-      >
-        <Calendar className="h-4 w-4 shrink-0" />
-        <span className="truncate">Date</span>
-      </Link>
-
       <Link
         to="/til"
         className="flex min-h-9 min-w-0 items-center justify-center gap-2 rounded-full bg-[#00ffc2] px-5 py-1.5 text-sm font-bold text-[#101417] shadow-[0_0_24px_rgba(0,255,194,0.16)] transition hover:bg-[#1affcb]"
