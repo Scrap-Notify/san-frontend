@@ -1,32 +1,10 @@
 import { useRef } from 'react';
 import { ArrowLeft, ArrowRight, Brain, FlaskConical, NotebookText } from 'lucide-react';
-
-const archiveCards = [
-  {
-    title: 'Memory relationship mapping',
-    date: '2024. 05. 21',
-    summary: 'A design note about navigating knowledge as connected nodes instead of a flat chronological list.',
-    tags: ['#Psychology', '#Cognition'],
-    icon: Brain,
-  },
-  {
-    title: 'Bioluminescence system',
-    date: '2024. 05. 18',
-    summary: 'A visual system inspired by low-light forests, luminous contrast, and calm interface feedback.',
-    tags: ['#Colors', '#Systems'],
-    icon: FlaskConical,
-  },
-  {
-    title: 'Biophilic UI patterns',
-    date: '2024. 05. 24',
-    summary: 'Research notes on applying organic rhythm, rounded geometry, and readable density to product UI.',
-    tags: ['#Design', '#Research'],
-    icon: NotebookText,
-  },
-];
+import { useArchiveCards } from '../hooks/useArchiveCards';
 
 export function ArchiveSection() {
   const carouselRef = useRef<HTMLDivElement>(null);
+  const { cards, isPending, isError } = useArchiveCards({ limit: 12 });
 
   const scrollCarousel = (direction: 'previous' | 'next') => {
     const carousel = carouselRef.current;
@@ -71,12 +49,25 @@ export function ArchiveSection() {
           ref={carouselRef}
           className="relative flex w-full min-w-0 snap-x snap-mandatory gap-[clamp(1rem,2vw,2rem)] overflow-x-auto scroll-smooth pb-5"
         >
-          {archiveCards.map((card) => {
-            const Icon = card.icon;
+          {isPending ? (
+            <StatusCard message="Loading archive cards..." />
+          ) : null}
+
+          {isError ? (
+            <StatusCard message="Archive cards could not be loaded." tone="error" />
+          ) : null}
+
+          {!isPending && !isError && cards.length === 0 ? (
+            <StatusCard message="No archive cards yet." />
+          ) : null}
+
+          {!isPending && !isError ? cards.map((card) => {
+            const Icon = getCardIcon(card.category_name ?? card.tags[0]?.name);
+            const date = formatDate(card.created_at);
 
             return (
               <article
-                key={card.title}
+                key={card.card_id}
                 className="flex min-h-80 w-[min(85vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border-l border-t border-[#83958c]/10 bg-[#1c2023]/60 p-[clamp(1.5rem,2.5vw,2.25rem)] shadow-[0_40px_80px_rgba(0,0,0,0.4)] backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]"
               >
                 <div>
@@ -86,32 +77,73 @@ export function ArchiveSection() {
                     </div>
 
                     <time className="text-xs font-bold uppercase tracking-widest text-[#b9cbc1]">
-                      {card.date}
+                      {date}
                     </time>
                   </div>
 
                   <h3 className="text-xl font-bold leading-snug text-[#fbfffa]">{card.title}</h3>
 
                   <p className="mt-4 text-sm font-medium leading-7 text-[#b9cbc1]">
-                    {card.summary}
+                    {card.summary ?? 'No summary has been generated yet.'}
                   </p>
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-2">
                   {card.tags.map((tag) => (
                     <span
-                      key={tag}
+                      key={tag.tag_id}
                       className="rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg bg-[#313539]/50 px-3 py-1.5 text-xs text-[#b9cbc1]"
                     >
-                      {tag}
+                      #{tag.name}
                     </span>
                   ))}
                 </div>
               </article>
             );
-          })}
+          }) : null}
         </div>
       </div>
     </section>
+  );
+}
+
+function getCardIcon(seed?: string | null) {
+  const normalized = seed?.toLowerCase() ?? '';
+
+  if (normalized.includes('design') || normalized.includes('color') || normalized.includes('system')) {
+    return FlaskConical;
+  }
+
+  if (normalized.includes('research') || normalized.includes('cognition')) {
+    return Brain;
+  }
+
+  return NotebookText;
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('en', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+}
+
+function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'default' | 'error' }) {
+  return (
+    <div
+      className={[
+        'flex min-h-80 w-[min(85vw,28rem)] shrink-0 snap-start items-center justify-center rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border-l border-t bg-[#1c2023]/60 p-8 text-center text-sm font-medium backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]',
+        tone === 'error' ? 'border-red-400/20 text-red-300' : 'border-[#83958c]/10 text-[#b9cbc1]',
+      ].join(' ')}
+    >
+      {message}
+    </div>
   );
 }
