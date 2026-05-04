@@ -1,30 +1,25 @@
 {
   "compilerOptions": {
-    /* 1. 기본 설정 */
     "target": "ESNext",
     "module": "ESNext",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "moduleResolution": "bundler", // 최신 번들러(Vite 등) 최적화
-    
-    /* 2. 경로 설정 (중앙 집중식 관리) */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "paths": {
       "@san/shared/*": ["./packages/shared/src/*"],
       "@san/ui/*": ["./packages/ui/src/*"],
       "@san/extension/*": ["./packages/extension/src/*"],
       "@san/dashboard/*": ["./packages/dashboard/src/*"]
     },
-
-    /* 3. 타입 및 컴파일 설정 */
     "strict": true,
-    "esModuleInterop": true,         // CommonJS와 ES 모듈 호환성
-    "skipLibCheck": true,           // 외부 라이브러리 타입 체크 건너뛰기 (빌드 속도 향상)
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    
-    /* 4. 모노레포를 위한 설정 */
-    "composite": true,              // 프로젝트 간 참조(Project References) 활성화
-    "declaration": true,            // .d.ts 파일 생성 (shared 패키지 공유를 위해 필수)
+    "composite": true,
+    "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noEmit": true
   },
   "exclude": ["node_modules", "dist", "build", "**/node_modules"]
 }
