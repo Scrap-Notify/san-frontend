@@ -12,6 +12,12 @@ export type {
   SignupResponse,
   WithdrawRequest,
 } from './auth';
+export { createGithubApi } from './github';
+export type {
+  GithubApi,
+  GithubRepository,
+  GithubRepositoryConnectRequest,
+} from './github';
 export { createScrapsApi } from './scraps';
 export type { ScrapsApi } from './scraps';
 export { createCardsApi } from './cards';

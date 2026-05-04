@@ -82,7 +82,7 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
           }
 
           const response = await axios.post<ApiResponse<TokenResponse>>(
-            '/auth/token/reissue',
+            '/auth/reissue',
             { refreshToken },
             {
               baseURL,

@@ -2,6 +2,7 @@ import {
   createApiClient,
   createAuthApi,
   createCardsApi,
+  createGithubApi,
   createScrapsApi,
   type AuthTokens,
 } from '@san/shared';
@@ -27,6 +28,7 @@ const tokenProvider = {
 const apiClient = createApiClient(baseURL, tokenProvider);
 
 export const authApi = createAuthApi(apiClient);
+export const githubApi = createGithubApi(apiClient);
 export const scrapsApi = createScrapsApi(apiClient);
 export const cardsApi = createCardsApi(apiClient);
 export const authTokenStorage = tokenProvider;

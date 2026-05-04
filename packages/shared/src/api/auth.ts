@@ -69,7 +69,7 @@ export function createAuthApi(apiClient: AxiosInstance) {
 
     reissue: (payload: ReissueRequest): Promise<TokenResponse> =>
       apiClient
-        .post<ApiResponse<TokenResponse>>('/auth/token/reissue', payload, publicRequest)
+        .post<ApiResponse<TokenResponse>>('/auth/reissue', payload, publicRequest)
         .then((response) => unwrapApiResponse(response.data)),
 
     getGithubAuthorizeUrl: (): string => apiClient.getUri({ url: '/auth/github/authorize' }),

@@ -13,11 +13,7 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGithubLogin = () => {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = authApi.getGithubAuthorizeUrl();
-    document.body.appendChild(form);
-    form.submit();
+    window.location.href = authApi.getGithubAuthorizeUrl();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

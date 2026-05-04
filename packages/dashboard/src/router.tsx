@@ -6,6 +6,7 @@ import { PlaceholderPage } from './pages/PlaceholderPage';
 import { Signup } from './pages/SignUpPage';
 import { ResultPage } from './pages/ResultPage';
 import { GithubAuthResultPage } from './pages/GithubAuthResultPage';
+import { SettingsIntegrationsPage } from './pages/SettingsIntegrationsPage';
 
 export const router = createBrowserRouter([
   {
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />,
+  },
+  {
+    path: '/auth/github/callback',
+    element: <GithubAuthResultPage />,
   },
   {
     path: '/auth/github/success',
@@ -57,13 +62,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/settings',
-        element: (
-          <PlaceholderPage
-            eyebrow="Workspace"
-            title="Settings"
-            description="Dashboard preferences and integrations will be managed here."
-          />
-        ),
+        element: <SettingsIntegrationsPage />,
+      },
+      {
+        path: '/settings/integrations',
+        element: <SettingsIntegrationsPage />,
       },
       {
         path: '/account',

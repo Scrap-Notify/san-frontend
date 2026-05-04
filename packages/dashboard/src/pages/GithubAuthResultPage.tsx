@@ -3,6 +3,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage } from '../api/client';
 
+const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
+  A008: 'GitHub authentication failed. Please try again.',
+  C003: 'Authentication is required. Please log in again.',
+};
+
 export function GithubAuthResultPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -10,6 +15,7 @@ export function GithubAuthResultPage() {
 
   useEffect(() => {
     const ticket = searchParams.get('ticket');
+    const code = searchParams.get('code');
     const error = searchParams.get('error');
     const githubLinked = searchParams.get('githubLinked');
 
@@ -20,19 +26,22 @@ export function GithubAuthResultPage() {
     }
 
     if (error) {
-      setMessage(`GitHub authentication failed (${error})`);
+      setMessage(GITHUB_AUTH_ERROR_MESSAGE[error] ?? `GitHub authentication failed (${error})`);
       return;
     }
 
-    if (!ticket) {
+    if (!ticket && !code) {
       setMessage('GitHub authentication ticket is missing');
       return;
     }
 
     let ignore = false;
 
-    authApi
-      .exchangeGithubToken({ ticket })
+    const tokenRequest = ticket
+      ? authApi.exchangeGithubToken({ ticket })
+      : authApi.loginWithGithubCode({ code: code as string });
+
+    tokenRequest
       .then(async (tokens) => {
         if (ignore) return;
         await authTokenStorage.setTokens(tokens);
