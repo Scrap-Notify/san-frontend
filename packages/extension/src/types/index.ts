@@ -21,9 +21,13 @@ export interface SavedInsight extends PendingScrap {
 export type MessageType =
   | 'REQUEST_METADATA'
   | 'SCRAP_SELECTION'
-  | 'PUSH_TO_SIDEPANEL';
+  | 'PUSH_TO_SIDEPANEL'
+  | 'SAN_AUTH_SYNC'
+  | 'SAN_AUTH_CLEAR';
 
 export interface ExtensionMessage {
   type: MessageType;
   payload?: PendingScrap;
+  accessToken?: string;
+  refreshToken?: string;
 }
