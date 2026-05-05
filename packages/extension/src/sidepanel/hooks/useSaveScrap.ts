@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
 import {
   getApiErrorMessage,
-  type KnowledgeCardResponse,
   type CreateScrapRequest,
+  type KnowledgeCardResponse,
+  type KnowledgeCardView,
 } from '@san/shared';
 import { asyncJobsApi, cardsApi, scrapsApi } from '../../api/client';
 import type { PendingScrap, SavedInsight } from '../../types';
@@ -92,6 +93,8 @@ interface UseSaveScrapParams {
   setHasRelatedResult: (next: boolean) => void;
   isRestoringPendingImage: boolean;
   deletePendingImageFile: (id: string | null | undefined) => void | Promise<void>;
+  setCreatedCard: (next: KnowledgeCardView | null) => void;
+  refreshRecentCards: () => void | Promise<void>;
 }
 
 export function useSaveScrap({
@@ -108,6 +111,8 @@ export function useSaveScrap({
   setHasRelatedResult,
   isRestoringPendingImage,
   deletePendingImageFile,
+  setCreatedCard,
+  refreshRecentCards,
 }: UseSaveScrapParams) {
   const [isSaving, setIsSaving] = useState(false);
   const [savingLabel, setSavingLabel] = useState('Saving...');
@@ -129,6 +134,7 @@ export function useSaveScrap({
     setRelatedError(null);
     setRelatedCards([]);
     setHasRelatedResult(false);
+    setCreatedCard(null);
     setIsLoadingRelated(false);
 
     try {
@@ -137,15 +143,7 @@ export function useSaveScrap({
       }
 
       if (!isAuthenticated) {
-        const saved = toSavedInsight(pendingScrap);
-        const nextCards = [saved, ...cards];
-        setCards(nextCards);
-        setPendingScrap(null);
-        setPendingImageFile(null);
-        await savePendingScrap(null);
-        await saveInsights(nextCards);
-        await deletePendingImageFile(pendingScrap.image_blob_id);
-        setSaveNotice('Saved locally. Login to create knowledge cards and see related cards.');
+        setSaveNotice('Login to save this source as a knowledge card.');
         return;
       }
 
@@ -177,10 +175,14 @@ export function useSaveScrap({
       setSavingLabel('Finding related cards...');
       await waitForCardAnalysis(cardJob.jobId);
 
+      const latestCards = await cardsApi.getAll({ page: 0, limit: 1 });
+      setCreatedCard(latestCards.cards[0] ?? null);
+
       const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
       setRelatedCards(similarCards.similarCards);
       setHasRelatedResult(true);
       setSaveNotice('Saved to your archive.');
+      void refreshRecentCards();
     } catch (error) {
       setSaveError(getApiErrorMessage(error, 'Failed to save scrap.'));
       setRelatedError(getApiErrorMessage(error, 'Failed to load related cards.'));
@@ -195,7 +197,9 @@ export function useSaveScrap({
     isRestoringPendingImage,
     pendingImageFile,
     pendingScrap,
+    refreshRecentCards,
     setCards,
+    setCreatedCard,
     setHasRelatedResult,
     setIsLoadingRelated,
     setPendingImageFile,

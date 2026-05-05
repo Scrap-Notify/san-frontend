@@ -13,6 +13,8 @@ interface DropZoneProps {
   saveLabel?: string;
   saveError?: string | null;
   saveNotice?: string | null;
+  canSave?: boolean;
+  authNotice?: string | null;
   onLogin?: () => void;
 }
 
@@ -27,6 +29,8 @@ export const DropZone = ({
   saveLabel = 'Save',
   saveError = null,
   saveNotice = null,
+  canSave = true,
+  authNotice = null,
   onLogin,
 }: DropZoneProps) => {
   const [isOver, setIsOver] = useState(false);
@@ -63,71 +67,54 @@ export const DropZone = ({
       }}
       onDragLeave={() => setIsOver(false)}
       onDrop={handleDrop}
-      className={`
-        relative group cursor-pointer
-        border-2 border-dashed rounded-2xl p-5
-        transition-all duration-300 ease-out
-        flex flex-col gap-4
-        ${isOver
-          ? 'border-[#4ADE80] bg-[#4ADE80]/10 shadow-[0_0_24px_rgba(74,222,128,0.14)]'
-          : 'border-slate-800 bg-white/[0.02] hover:border-slate-600'
-        }
-      `}
+      className={[
+        'rounded-[24px] border-2 border-dashed bg-[#181c1f] p-6 text-center transition-all duration-300',
+        isOver
+          ? 'border-[#00ffc2] bg-[#00ffc2]/10 shadow-[0_0_24px_rgba(0,255,194,0.14)]'
+          : 'border-[#00ffc2]/30',
+      ].join(' ')}
     >
-      <div className="flex items-center gap-3">
-        <div className={`
-          w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300
-          ${isOver ? 'bg-[#4ADE80] text-[#0A0F1E]' : 'bg-slate-900 text-slate-500 group-hover:text-slate-300'}
-        `}>
-          <i className="fa-solid fa-leaf text-lg"></i>
-        </div>
-
-        <div className="min-w-0">
-          <p className={`font-bold text-sm transition-colors ${isOver ? 'text-white' : 'text-slate-300'}`}>
-            {isOver ? 'Drop to prepare a save' : 'Drop text or image here'}
-          </p>
-          <p className="text-[11px] text-slate-600 mt-1">Text needs 10+ characters. Images are saved as scraps.</p>
-        </div>
+      <div className="space-y-2">
+        <div className="text-xl font-black text-[#00ffc2]">+</div>
+        <p className="text-sm font-medium uppercase text-[#e0e3e7]">
+          {isOver ? 'Drop to capture' : 'Collect source material'}
+        </p>
+        <p className="text-xs text-[#b9cbc1]">Drag text, image, or a link to prepare it.</p>
       </div>
 
-      {error && (
-        <p className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
+      <div className="mt-4 rounded-lg border border-[#00ffc2]/20 p-3 text-sm text-[#b9cbc1]">
+        One saved source becomes one knowledge card.
+      </div>
+
+      {error ? (
+        <p className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
           {error}
         </p>
-      )}
+      ) : null}
 
-      {saveError && (
-        <p className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
+      {saveError ? (
+        <p className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
           {saveError}
         </p>
-      )}
+      ) : null}
 
-      {saveNotice && (
-        <div className="text-xs text-[#4ADE80] bg-[#4ADE80]/10 border border-[#4ADE80]/20 rounded-md px-3 py-2">
+      {saveNotice ? (
+        <div className="mt-4 rounded-md border border-[#00ffc2]/20 bg-[#00ffc2]/10 px-3 py-2 text-xs text-[#00ffc2]">
           <p>{saveNotice}</p>
-          {onLogin ? (
-            <button
-              type="button"
-              onClick={onLogin}
-              className="mt-2 rounded-md bg-[#4ADE80] px-3 py-1.5 font-bold text-[#0A0F1E] transition hover:bg-[#2DD4BF]"
-            >
-              Open dashboard login
-            </button>
-          ) : null}
         </div>
-      )}
+      ) : null}
 
-      {pendingScrap && (
-        <div className="bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-lg p-3">
-          <div className="flex justify-between items-start gap-3 mb-2">
-            <span className="text-[10px] font-bold text-[#4ADE80] uppercase tracking-wider">
-              Pending save
+      {pendingScrap ? (
+        <div className="mt-4 rounded-lg border border-[#00ffc2]/30 bg-[#00ffc2]/10 p-3 text-left">
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#00ffc2]">
+              Source preview
             </span>
-            <button onClick={onClear} className="text-slate-500 hover:text-white" aria-label="Clear pending scrap">
+            <button onClick={onClear} className="text-[#b9cbc1] hover:text-white" aria-label="Clear source">
               <i className="fa-solid fa-xmark text-xs"></i>
             </button>
           </div>
-          <p className="text-sm text-slate-300 line-clamp-3 leading-relaxed">
+          <p className="line-clamp-3 text-sm leading-relaxed text-[#e0e3e7]">
             {pendingScrap.raw_content ?? pendingScrap.title}
           </p>
           {pendingScrap.image_preview_url ? (
@@ -137,15 +124,33 @@ export const DropZone = ({
               className="mt-3 max-h-40 w-full rounded-md object-cover"
             />
           ) : null}
-          <button
-            onClick={onSave}
-            disabled={isSaving}
-            className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
-          >
-            {isSaving ? savingLabel : saveLabel}
-          </button>
+
+          {authNotice ? (
+            <div className="mt-3 rounded-lg border border-white/10 bg-[#101417]/70 p-3">
+              <p className="text-xs leading-5 text-[#b9cbc1]">{authNotice}</p>
+              {onLogin ? (
+                <button
+                  type="button"
+                  onClick={onLogin}
+                  className="mt-2 w-full rounded-lg bg-[#00ffc2] py-2 text-xs font-bold text-black transition hover:opacity-90"
+                >
+                  Login to save
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {canSave ? (
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className="mt-3 w-full rounded-lg bg-[#00ffc2] py-2 text-sm font-bold text-black transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+            >
+              {isSaving ? savingLabel : saveLabel}
+            </button>
+          ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KnowledgeCardResponse } from '@san/shared';
-import { authTokenStorage } from '../api/client';
+import type { KnowledgeCardResponse, KnowledgeCardView } from '@san/shared';
+import { authTokenStorage, cardsApi } from '../api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
-import { CardList } from './components/CardList';
+import { ArchiveList } from './components/ArchiveList';
 import { DropZone } from './components/DropZone';
 import { EmptyState } from './components/EmptyState';
-import { Header } from './components/Header';
-import { RelatedCards } from './components/RelatedCards';
+import GlowBackground from './components/GlowBackground';
+import KnowledgeProgressCard from './components/KnowledgeProgressCard';
+import { RecentKnowledgeList } from './components/RecentKnowledgeList';
+import SidePanelHeader from './components/SidePanelHeader';
 import {
   loadPendingScrap,
   loadSavedInsights,
@@ -143,6 +145,24 @@ export default function SidePanel() {
   const [relatedError, setRelatedError] = useState<string | null>(null);
   const [hasRelatedResult, setHasRelatedResult] = useState(false);
   const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
+  const [createdCard, setCreatedCard] = useState<KnowledgeCardView | null>(null);
+  const [recentCards, setRecentCards] = useState<KnowledgeCardView[]>([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(false);
+  const [recentError, setRecentError] = useState<string | null>(null);
+
+  const refreshRecentCards = useCallback(async () => {
+    setIsLoadingRecent(true);
+    setRecentError(null);
+    try {
+      const response = await cardsApi.getAll({ page: 0, limit: 3 });
+      setRecentCards(response.cards);
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to load recent cards', error);
+      setRecentError('Recent cards could not be loaded.');
+    } finally {
+      setIsLoadingRecent(false);
+    }
+  }, []);
 
   const {
     isSaving,
@@ -166,13 +186,16 @@ export default function SidePanel() {
     setHasRelatedResult,
     isRestoringPendingImage,
     deletePendingImageFile,
+    setCreatedCard,
+    refreshRecentCards,
   });
 
-  const clearRelatedFeedback = useCallback(() => {
+  const clearResultState = useCallback(() => {
     clearSaveFeedback();
     setRelatedError(null);
     setRelatedCards([]);
     setHasRelatedResult(false);
+    setCreatedCard(null);
     setIsLoadingRelated(false);
   }, [clearSaveFeedback]);
 
@@ -232,8 +255,12 @@ export default function SidePanel() {
     let ignore = false;
 
     authTokenStorage.getToken().then((token) => {
-      if (!ignore) {
-        setIsAuthenticated(Boolean(token));
+      if (ignore) return;
+
+      const hasToken = Boolean(token);
+      setIsAuthenticated(hasToken);
+      if (hasToken) {
+        void refreshRecentCards();
       }
     });
 
@@ -242,7 +269,15 @@ export default function SidePanel() {
       areaName: string
     ) => {
       if (areaName === 'local' && changes[ACCESS_TOKEN_KEY]) {
-        setIsAuthenticated(Boolean(changes[ACCESS_TOKEN_KEY].newValue));
+        const hasToken = Boolean(changes[ACCESS_TOKEN_KEY].newValue);
+        setIsAuthenticated(hasToken);
+        if (hasToken) {
+          void refreshRecentCards();
+        } else {
+          setRecentCards([]);
+          setCreatedCard(null);
+          setRelatedCards([]);
+        }
       }
     };
 
@@ -251,7 +286,7 @@ export default function SidePanel() {
       ignore = true;
       chrome.storage.onChanged.removeListener(handleStorageChange);
     };
-  }, []);
+  }, [refreshRecentCards]);
 
   const handleTextDrop = useCallback(async (text: string) => {
     const metadata = await requestActiveTabMetadata();
@@ -271,7 +306,7 @@ export default function SidePanel() {
       image_blob_id: null,
     };
 
-    clearRelatedFeedback();
+    clearResultState();
     debugLog('drop zone text received', {
       length: text.length,
       source_url: nextPending.source_url,
@@ -280,7 +315,7 @@ export default function SidePanel() {
     setPendingScrap(nextPending);
     setPendingImageFile(null);
     await savePendingScrap(nextPending);
-  }, [clearRelatedFeedback, pendingScrap?.image_blob_id]);
+  }, [clearResultState, pendingScrap?.image_blob_id]);
 
   const handleImageDrop = useCallback(async (file: File) => {
     const metadata = await requestActiveTabMetadata();
@@ -307,30 +342,35 @@ export default function SidePanel() {
       title: file.name || metadata?.title || 'Dropped image',
     };
 
-    clearRelatedFeedback();
+    clearResultState();
     setPendingScrap(nextPending);
     setPendingImageFile(file);
     await savePendingScrap(nextPending);
-  }, [clearRelatedFeedback, pendingScrap?.image_blob_id]);
-
-  const openDashboardLogin = useCallback(() => {
-    chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
-  }, []);
+  }, [clearResultState, pendingScrap?.image_blob_id]);
 
   const handleClearPending = useCallback(() => {
     void deletePendingImageFile(pendingScrap?.image_blob_id);
     setPendingScrap(null);
     setPendingImageFile(null);
-    clearRelatedFeedback();
+    clearResultState();
     void savePendingScrap(null);
-  }, [clearRelatedFeedback, pendingScrap?.image_blob_id]);
+  }, [clearResultState, pendingScrap?.image_blob_id]);
+
+  const openDashboardLogin = useCallback(() => {
+    chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
+  }, []);
+
+  const hasKnowledgeResult = isLoadingRelated
+    || Boolean(createdCard)
+    || hasRelatedResult
+    || relatedCards.length > 0
+    || Boolean(relatedError);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#0A0F1E] font-sans text-slate-200">
-      <Header isAuthenticated={isAuthenticated} />
-
-      <div className="custom-scrollbar flex-1 space-y-6 overflow-y-auto p-4">
-        <section>
+    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] text-white">
+      <div className="custom-scrollbar relative flex-1 overflow-y-auto">
+        <GlowBackground />
+        <div className="relative z-10 space-y-6 px-4 py-6">
           <DropZone
             pendingScrap={pendingScrap}
             onTextDrop={handleTextDrop}
@@ -342,49 +382,35 @@ export default function SidePanel() {
             saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
             saveError={saveError}
             saveNotice={saveNotice}
+            canSave={isAuthenticated}
+            authNotice={!isAuthenticated && pendingScrap ? 'Login to save this source and turn it into a knowledge card.' : null}
             onLogin={!isAuthenticated ? openDashboardLogin : undefined}
           />
-        </section>
 
-        {isAuthenticated ? (
-          <>
-            <section>
-              <div className="mb-4 flex items-center justify-between px-1">
-                <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  Related Cards
-                </h2>
-                <span className="text-[10px] text-[#4ADE80]">Synced</span>
-              </div>
-              <RelatedCards
-                cards={relatedCards}
-                isAuthenticated={isAuthenticated}
-                isLoading={isLoadingRelated}
-                error={relatedError}
-                hasScrapContext={
-                  Boolean(pendingScrap)
-                  || hasRelatedResult
-                  || relatedCards.length > 0
-                  || isLoadingRelated
-                  || Boolean(relatedError)
-                }
-                onLogin={openDashboardLogin}
-              />
-            </section>
+          {!isAuthenticated ? (
+            pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
+          ) : hasKnowledgeResult ? (
+            <KnowledgeProgressCard
+              cards={relatedCards}
+              isLoading={isLoadingRelated}
+              error={relatedError}
+              hasScrapContext={hasKnowledgeResult}
+              createdCard={createdCard}
+            />
+          ) : pendingScrap ? (
+            null
+          ) : (
+            <RecentKnowledgeList
+              cards={recentCards}
+              isLoading={isLoadingRecent}
+              error={recentError}
+            />
+          )}
 
-            <section>
-              <div className="mb-4 flex items-center justify-between px-1">
-                <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                  Collected Insights
-                </h2>
-                <span className="text-[10px] text-slate-600">{cards.length} items</span>
-              </div>
-              <CardList cards={cards} />
-            </section>
-          </>
-        ) : (
-          <EmptyState onLogin={openDashboardLogin} />
-        )}
+          {cards.length > 0 ? <ArchiveList cards={cards} /> : null}
+        </div>
       </div>
+      <SidePanelHeader />
     </div>
   );
 }
