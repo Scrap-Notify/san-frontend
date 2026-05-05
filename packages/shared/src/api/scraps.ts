@@ -9,6 +9,21 @@ export function createScrapsApi(apiClient: AxiosInstance) {
         .post<ApiResponse<CreateScrapResponse>>('/scraps', payload)
         .then((response) => unwrapApiResponse(response.data)),
 
+    createWithImage: (payload: CreateScrapRequest, image: File): Promise<CreateScrapResponse> => {
+      const formData = new FormData();
+      if (payload.sourceUrl) {
+        formData.append('sourceUrl', payload.sourceUrl);
+      }
+      formData.append('rawContent', payload.rawContent);
+      formData.append('image', image);
+
+      return apiClient
+        .post<ApiResponse<CreateScrapResponse>>('/scraps', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+        .then((response) => unwrapApiResponse(response.data));
+    },
+
     getById: (scrapId: string): Promise<Scrap> =>
       apiClient
         .get<ApiResponse<Scrap>>(`/scraps/${scrapId}`)
@@ -20,4 +35,3 @@ export function createScrapsApi(apiClient: AxiosInstance) {
 }
 
 export type ScrapsApi = ReturnType<typeof createScrapsApi>;
-

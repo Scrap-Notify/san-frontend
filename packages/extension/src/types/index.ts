@@ -5,6 +5,9 @@ export interface PendingScrap {
   source_url: string | null;
   raw_content: string | null;
   image_url: string | null;
+  image_preview_url?: string | null;
+  image_file_name?: string | null;
+  image_mime_type?: string | null;
   title: string;
   domain: string;
   favicon: string | null;

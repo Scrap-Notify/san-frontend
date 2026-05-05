@@ -50,8 +50,17 @@ function toSavedInsight(scrap: PendingScrap): SavedInsight {
 function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
   return {
     sourceUrl: scrap.source_url,
-    rawContent: scrap.raw_content ?? scrap.source_url ?? scrap.title,
+    rawContent: scrap.raw_content ?? scrap.source_url ?? scrap.image_file_name ?? scrap.title,
   };
+}
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
 
 function delay(ms: number) {
@@ -124,6 +133,7 @@ async function requestActiveTabMetadata(): Promise<PendingScrap | null> {
 
 export default function SidePanel() {
   const [pendingScrap, setPendingScrap] = useState<PendingScrap | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [cards, setCards] = useState<SavedInsight[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [savingLabel, setSavingLabel] = useState('Saving...');
@@ -213,6 +223,39 @@ export default function SidePanel() {
       title: nextPending.title,
     });
     setPendingScrap(nextPending);
+    setPendingImageFile(null);
+    await savePendingScrap(nextPending);
+  }, []);
+
+  const handleImageDrop = useCallback(async (file: File) => {
+    const metadata = await requestActiveTabMetadata();
+    const previewUrl = await fileToDataUrl(file);
+    const nextPending: PendingScrap = {
+      ...(metadata ?? {
+        source_type: 'IMAGE',
+        source_url: null,
+        raw_content: null,
+        image_url: null,
+        title: file.name || 'Dropped image',
+        domain: '',
+        favicon: null,
+      }),
+      source_type: 'IMAGE',
+      raw_content: file.name || 'Dropped image',
+      image_url: null,
+      image_preview_url: previewUrl,
+      image_file_name: file.name,
+      image_mime_type: file.type,
+      title: file.name || metadata?.title || 'Dropped image',
+    };
+
+    setSaveError(null);
+    setSaveNotice(null);
+    setRelatedError(null);
+    setRelatedCards([]);
+    setIsLoadingRelated(false);
+    setPendingScrap(nextPending);
+    setPendingImageFile(file);
     await savePendingScrap(nextPending);
   }, []);
 
@@ -240,7 +283,10 @@ export default function SidePanel() {
         return;
       }
 
-      const response = await scrapsApi.create(toCreateScrapRequest(pendingScrap));
+      const request = toCreateScrapRequest(pendingScrap);
+      const response = pendingScrap.source_type === 'IMAGE' && pendingImageFile
+        ? await scrapsApi.createWithImage(request, pendingImageFile)
+        : await scrapsApi.create(request);
       const saved = {
         ...toSavedInsight(pendingScrap),
         id: response.scrapId,
@@ -249,6 +295,7 @@ export default function SidePanel() {
       const nextCards = [saved, ...cards];
       setCards(nextCards);
       setPendingScrap(null);
+      setPendingImageFile(null);
       await savePendingScrap(null);
       await saveInsights(nextCards);
       debugLog('insight saved', saved);
@@ -294,9 +341,11 @@ export default function SidePanel() {
           <DropZone
             pendingScrap={pendingScrap}
             onTextDrop={handleTextDrop}
+            onImageDrop={handleImageDrop}
             onSave={handleSave}
             onClear={() => {
               setPendingScrap(null);
+              setPendingImageFile(null);
               setSaveError(null);
               setSaveNotice(null);
               setRelatedError(null);

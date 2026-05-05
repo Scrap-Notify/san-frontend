@@ -5,6 +5,7 @@ import type { PendingScrap } from '../../types';
 interface DropZoneProps {
   pendingScrap: PendingScrap | null;
   onTextDrop: (text: string) => void | Promise<void>;
+  onImageDrop: (file: File) => void | Promise<void>;
   onSave: () => void | Promise<void>;
   onClear: () => void;
   isSaving?: boolean;
@@ -18,6 +19,7 @@ interface DropZoneProps {
 export const DropZone = ({
   pendingScrap,
   onTextDrop,
+  onImageDrop,
   onSave,
   onClear,
   isSaving = false,
@@ -34,6 +36,15 @@ export const DropZone = ({
     event.preventDefault();
     setIsOver(false);
     setError(null);
+
+    const imageFile = Array.from(event.dataTransfer.files).find((file) =>
+      file.type.startsWith('image/')
+    );
+
+    if (imageFile) {
+      await onImageDrop(imageFile);
+      return;
+    }
 
     const droppedText = event.dataTransfer.getData('text/plain').trim();
     if (droppedText.length < 10) {
@@ -73,9 +84,9 @@ export const DropZone = ({
 
         <div className="min-w-0">
           <p className={`font-bold text-sm transition-colors ${isOver ? 'text-white' : 'text-slate-300'}`}>
-            {isOver ? 'Drop to prepare a save' : 'Drop selected text here'}
+            {isOver ? 'Drop to prepare a save' : 'Drop text or image here'}
           </p>
-          <p className="text-[11px] text-slate-600 mt-1">Selected text must be at least 10 characters.</p>
+          <p className="text-[11px] text-slate-600 mt-1">Text needs 10+ characters. Images are saved as scraps.</p>
         </div>
       </div>
 
@@ -119,6 +130,13 @@ export const DropZone = ({
           <p className="text-sm text-slate-300 line-clamp-3 leading-relaxed">
             {pendingScrap.raw_content ?? pendingScrap.title}
           </p>
+          {pendingScrap.image_preview_url ? (
+            <img
+              src={pendingScrap.image_preview_url}
+              alt={pendingScrap.title}
+              className="mt-3 max-h-40 w-full rounded-md object-cover"
+            />
+          ) : null}
           <button
             onClick={onSave}
             disabled={isSaving}
