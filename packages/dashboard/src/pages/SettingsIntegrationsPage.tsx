@@ -6,12 +6,13 @@ import { githubApi } from '../api/client';
 
 export function SettingsIntegrationsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [connectedRepositories, setConnectedRepositories] = useState<GithubRepository[]>([]);
-  const [message, setMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
   const githubLinked = searchParams.get('githubLinked') === 'true';
+  const [connectedRepositories, setConnectedRepositories] = useState<GithubRepository[]>([]);
+  const [message, setMessage] = useState<string | null>(
+    githubLinked ? 'GitHub account connected' : null,
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const statusText = useMemo(() => {
     if (connectedRepositories.length > 0) {
@@ -36,10 +37,28 @@ export function SettingsIntegrationsPage() {
 
   useEffect(() => {
     if (githubLinked) {
-      setMessage('GitHub account connected');
       setSearchParams({}, { replace: true });
     }
-    void loadConnectedRepositories();
+
+    let ignore = false;
+    githubApi.getConnectedRepositories()
+      .then((repositories) => {
+        if (ignore) return;
+        setConnectedRepositories(repositories);
+      })
+      .catch((error) => {
+        if (ignore) return;
+        setConnectedRepositories([]);
+        setErrorMessage(getApiErrorMessage(error, 'Failed to load connected repositories'));
+      })
+      .finally(() => {
+        if (ignore) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

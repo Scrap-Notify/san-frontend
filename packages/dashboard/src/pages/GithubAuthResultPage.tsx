@@ -11,28 +11,34 @@ const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
 export function GithubAuthResultPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [message, setMessage] = useState('Connecting GitHub account...');
+  const [exchangeErrorMessage, setExchangeErrorMessage] = useState<string | null>(null);
   const processedAuthKeyRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const ticket = searchParams.get('ticket');
-    const code = searchParams.get('code');
-    const error = searchParams.get('error');
-    const githubLinked = searchParams.get('githubLinked');
+  const ticket = searchParams.get('ticket');
+  const code = searchParams.get('code');
+  const error = searchParams.get('error');
+  const githubLinked = searchParams.get('githubLinked');
 
+  const message = exchangeErrorMessage
+    ?? (githubLinked === 'true'
+      ? 'GitHub account connected'
+      : error
+        ? (GITHUB_AUTH_ERROR_MESSAGE[error] ?? `GitHub authentication failed (${error})`)
+        : !ticket && !code
+          ? 'GitHub authentication ticket is missing'
+          : 'Connecting GitHub account...');
+
+  useEffect(() => {
     if (githubLinked === 'true') {
-      setMessage('GitHub account connected');
       navigate('/settings', { replace: true });
       return;
     }
 
     if (error) {
-      setMessage(GITHUB_AUTH_ERROR_MESSAGE[error] ?? `GitHub authentication failed (${error})`);
       return;
     }
 
     if (!ticket && !code) {
-      setMessage('GitHub authentication ticket is missing');
       return;
     }
 
@@ -56,13 +62,13 @@ export function GithubAuthResultPage() {
       })
       .catch((exchangeError) => {
         if (ignore) return;
-        setMessage(getApiErrorMessage(exchangeError, 'GitHub authentication failed'));
+        setExchangeErrorMessage(getApiErrorMessage(exchangeError, 'GitHub authentication failed'));
       });
 
     return () => {
       ignore = true;
     };
-  }, [navigate, searchParams]);
+  }, [code, error, githubLinked, navigate, ticket]);
 
   return (
     <main className="auth-shell flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-[#101417] px-6 text-[#fbfffa]">
