@@ -25,8 +25,8 @@ export const DropZone = ({
   onSave,
   onClear,
   isSaving = false,
-  savingLabel = 'Saving...',
-  saveLabel = 'Save',
+  savingLabel = '저장 중...',
+  saveLabel = '저장하기 (Save)',
   saveError = null,
   saveNotice = null,
   canSave = true,
@@ -52,7 +52,7 @@ export const DropZone = ({
 
     const droppedText = event.dataTransfer.getData('text/plain').trim();
     if (droppedText.length < 10) {
-      setError('Drop at least 10 characters.');
+      setError('10자 이상 드롭해주세요.');
       return;
     }
 
@@ -74,16 +74,25 @@ export const DropZone = ({
           : 'border-[#00ffc2]/30',
       ].join(' ')}
     >
-      <div className="space-y-2">
-        <div className="text-xl font-black text-[#00ffc2]">+</div>
-        <p className="text-sm font-medium uppercase text-[#e0e3e7]">
-          {isOver ? 'Drop to capture' : 'Collect source material'}
+      <div className="flex flex-col items-center gap-9">
+        <div className="flex flex-col items-center">
+          <CloudUploadIcon />
+
+          <p className="mt-3 text-center text-sm font-medium text-[#e0e3e7]">
+            {isOver ? '여기에 놓아서 저장 준비' : '여기로 드래그하여 지식 심기'}
         </p>
-        <p className="text-xs text-[#b9cbc1]">Drag text, image, or a link to prepare it.</p>
+
+          <p className="mt-2 text-center text-[10px] text-[#b9cbc1]">
+            Drag text, image or link to archive
+          </p>
       </div>
 
-      <div className="mt-4 rounded-lg border border-[#00ffc2]/20 p-3 text-sm text-[#b9cbc1]">
-        One saved source becomes one knowledge card.
+        <div className="flex min-h-[100px] w-full items-start gap-3 rounded-lg border-2 border-[#00ffc2]/20 bg-[#181c1f] p-4 text-left">
+          <EditIcon />
+          <p className="text-sm font-medium leading-6 text-[#b9cbc1]">
+            텍스트를 직접 입력하거나 붙여넣으세요
+          </p>
+        </div>
       </div>
 
       {error ? (
