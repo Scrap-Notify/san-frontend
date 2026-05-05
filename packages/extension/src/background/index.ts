@@ -3,7 +3,22 @@ import type { ExtensionMessage, PendingScrap } from '../types/index';
 
 const DEBUG_PREFIX = '[SAN:background]';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
+const ACCESS_TOKEN_KEY = 'san_access_token';
+const REFRESH_TOKEN_KEY = 'san_refresh_token';
+const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const isDebug = import.meta.env.DEV;
+
+interface AuthSyncMessage {
+  type: typeof AUTH_SYNC_MESSAGE;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+function isAuthSyncMessage(message: unknown): message is AuthSyncMessage {
+  if (!message || typeof message !== 'object') return false;
+  const maybe = message as Partial<AuthSyncMessage>;
+  return maybe.type === AUTH_SYNC_MESSAGE;
+}
 
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
@@ -80,6 +95,35 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender) => {
   if (message.type === 'SCRAP_SELECTION' && sender.tab?.id && message.payload) {
     pushToSidePanel(message.payload);
   }
+});
+
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  debugLog('external message received', { message, origin: sender.origin, url: sender.url });
+
+  if (!isAuthSyncMessage(message)) {
+    return;
+  }
+
+  if (!message.accessToken || !message.refreshToken) {
+    sendResponse({ ok: false });
+    return;
+  }
+
+  chrome.storage.local
+    .set({
+      [ACCESS_TOKEN_KEY]: message.accessToken,
+      [REFRESH_TOKEN_KEY]: message.refreshToken,
+    })
+    .then(() => {
+      debugLog('auth tokens synced from dashboard');
+      sendResponse({ ok: true });
+    })
+    .catch((error) => {
+      console.error(DEBUG_PREFIX, 'failed to sync auth tokens', error);
+      sendResponse({ ok: false });
+    });
+
+  return true;
 });
 
 function pushToSidePanel(payload: PendingScrap) {

@@ -5,11 +5,20 @@ import type { PendingScrap } from '../../types';
 interface DropZoneProps {
   pendingScrap: PendingScrap | null;
   onTextDrop: (text: string) => void | Promise<void>;
-  onSave: () => void;
+  onSave: () => void | Promise<void>;
   onClear: () => void;
+  isSaving?: boolean;
+  saveError?: string | null;
 }
 
-export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZoneProps) => {
+export const DropZone = ({
+  pendingScrap,
+  onTextDrop,
+  onSave,
+  onClear,
+  isSaving = false,
+  saveError = null,
+}: DropZoneProps) => {
   const [isOver, setIsOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +77,12 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
         </p>
       )}
 
+      {saveError && (
+        <p className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
+          {saveError}
+        </p>
+      )}
+
       {pendingScrap && (
         <div className="bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-lg p-3">
           <div className="flex justify-between items-start gap-3 mb-2">
@@ -83,9 +98,10 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
           </p>
           <button
             onClick={onSave}
-            className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
+            disabled={isSaving}
+            className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
           >
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       )}

@@ -2,6 +2,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { DropZone } from './components/DropZone';
 import { CardList } from './components/CardList';
+import { getApiErrorMessage, type CreateScrapRequest } from '@san/shared';
+import { scrapsApi } from '../api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
@@ -33,6 +35,15 @@ function toSavedInsight(scrap: PendingScrap): SavedInsight {
     ...scrap,
     id,
     created_at: new Date().toISOString(),
+  };
+}
+
+function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
+  return {
+    sourceUrl: scrap.source_url,
+    rawContent: scrap.raw_content,
+    imageUrl: scrap.image_url,
+    collectedAt: new Date().toISOString(),
   };
 }
 
@@ -85,6 +96,8 @@ async function requestActiveTabMetadata(): Promise<PendingScrap | null> {
 export default function SidePanel() {
   const [pendingScrap, setPendingScrap] = useState<PendingScrap | null>(null);
   const [cards, setCards] = useState<SavedInsight[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     debugLog('side panel mounted');
@@ -129,6 +142,7 @@ export default function SidePanel() {
       raw_content: text,
     };
 
+    setSaveError(null);
     debugLog('drop zone text received', {
       length: text.length,
       source_url: nextPending.source_url,
@@ -141,17 +155,27 @@ export default function SidePanel() {
   const handleSave = useCallback(async () => {
     if (!pendingScrap) return;
 
-    const saved = toSavedInsight(pendingScrap);
-    const nextCards = [saved, ...cards];
-    setCards(nextCards);
-    setPendingScrap(null);
+    setIsSaving(true);
+    setSaveError(null);
 
     try {
+      const response = await scrapsApi.create(toCreateScrapRequest(pendingScrap));
+      const saved = {
+        ...toSavedInsight(pendingScrap),
+        id: response.scrapId,
+        created_at: response.createdAt,
+      };
+      const nextCards = [saved, ...cards];
+      setCards(nextCards);
+      setPendingScrap(null);
       await savePendingScrap(null);
       await saveInsights(nextCards);
       debugLog('insight saved', saved);
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to persist insight', error);
+      setSaveError(getApiErrorMessage(error, 'Failed to save scrap.'));
+    } finally {
+      setIsSaving(false);
     }
   }, [cards, pendingScrap]);
 
@@ -175,8 +199,11 @@ export default function SidePanel() {
             onSave={handleSave}
             onClear={() => {
               setPendingScrap(null);
+              setSaveError(null);
               void savePendingScrap(null);
             }}
+            isSaving={isSaving}
+            saveError={saveError}
           />
         </section>
 

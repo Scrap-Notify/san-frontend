@@ -3,6 +3,7 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage } from '../api/client';
+import { syncExtensionAuth } from '../api/extensionAuth';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
@@ -80,6 +81,7 @@ export function Signup() {
       await authApi.signup({ username: trimmedUsername, password });
       const tokens = await authApi.login({ username: trimmedUsername, password });
       await authTokenStorage.setTokens(tokens);
+      await syncExtensionAuth(tokens);
       navigate('/');
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, 'Sign up failed'));

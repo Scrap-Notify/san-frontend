@@ -3,6 +3,7 @@ import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage } from '../api/client';
+import { syncExtensionAuth } from '../api/extensionAuth';
 import loginTreeImage from '../assets/login-tree.png';
 
 export function LoginPage() {
@@ -24,6 +25,7 @@ export function LoginPage() {
     try {
       const tokens = await authApi.login({ username, password });
       await authTokenStorage.setTokens(tokens);
+      await syncExtensionAuth(tokens);
       navigate('/');
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, 'Login failed'));
