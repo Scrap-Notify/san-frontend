@@ -406,8 +406,7 @@ export default function SidePanel() {
               error={recentError}
             />
           )}
-
-          {cards.length > 0 ? <ArchiveList cards={cards} /> : null}
+          {isAuthenticated && cards.length > 0 ? <ArchiveList cards={cards} /> : null}
         </div>
       </div>
       <SidePanelHeader />

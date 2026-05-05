@@ -13,7 +13,7 @@ export default function ArchiveItem({ title, meta }: ArchiveItemProps) {
           <div className="text-[10px] uppercase text-[#b9cbc1]">{meta}</div>
         </div>
       </div>
-      <div className="text-[#b9cbc1]">...</div>
+      <div className="shrink-0 text-[#b9cbc1]">→</div>
     </div>
   );
 }
