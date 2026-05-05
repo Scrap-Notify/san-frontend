@@ -8,6 +8,7 @@ interface DropZoneProps {
   onSave: () => void | Promise<void>;
   onClear: () => void;
   isSaving?: boolean;
+  savingLabel?: string;
   saveError?: string | null;
 }
 
@@ -17,6 +18,7 @@ export const DropZone = ({
   onSave,
   onClear,
   isSaving = false,
+  savingLabel = 'Saving...',
   saveError = null,
 }: DropZoneProps) => {
   const [isOver, setIsOver] = useState(false);
@@ -101,7 +103,7 @@ export const DropZone = ({
             disabled={isSaving}
             className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? savingLabel : 'Save'}
           </button>
         </div>
       )}

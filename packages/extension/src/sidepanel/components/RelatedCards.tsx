@@ -1,11 +1,11 @@
-import type { KnowledgeCardView } from '@san/shared';
+import type { KnowledgeCardResponse } from '@san/shared';
 
 interface RelatedCardsProps {
-  cards: KnowledgeCardView[];
+  cards: KnowledgeCardResponse[];
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  hasPendingScrap: boolean;
+  hasScrapContext: boolean;
   onLogin: () => void;
 }
 
@@ -25,10 +25,10 @@ export function RelatedCards({
   isAuthenticated,
   isLoading,
   error,
-  hasPendingScrap,
+  hasScrapContext,
   onLogin,
 }: RelatedCardsProps) {
-  if (!hasPendingScrap) {
+  if (!hasScrapContext) {
     return (
       <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
         <p className="text-sm font-semibold text-slate-400">Related cards</p>
@@ -89,13 +89,13 @@ export function RelatedCards({
     <div className="space-y-3">
       {cards.map((card) => (
         <article
-          key={card.card_id}
+          key={card.cardId}
           className="rounded-lg border border-white/5 bg-white/[0.03] p-4 transition hover:border-[#4ADE80]/20 hover:bg-white/[0.06]"
         >
           <div className="flex items-start justify-between gap-3">
             <h3 className="line-clamp-1 text-sm font-bold text-slate-200">{card.title}</h3>
             <span className="shrink-0 text-[10px] text-slate-600">
-              {formatDate(card.created_at ?? card.createdAt)}
+              {formatDate(card.createdAt)}
             </span>
           </div>
           {card.summary ? (
@@ -105,10 +105,10 @@ export function RelatedCards({
             <div className="mt-3 flex flex-wrap gap-1.5">
               {card.tags.slice(0, 3).map((tag) => (
                 <span
-                  key={tag.tag_id}
+                  key={tag.tagId}
                   className="rounded-md border border-white/5 bg-slate-900 px-2 py-0.5 text-[9px] font-bold text-slate-500"
                 >
-                  #{tag.name}
+                  #{tag.tagName}
                 </span>
               ))}
             </div>

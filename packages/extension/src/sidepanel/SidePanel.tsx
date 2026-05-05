@@ -6,9 +6,9 @@ import { RelatedCards } from './components/RelatedCards';
 import {
   getApiErrorMessage,
   type CreateScrapRequest,
-  type KnowledgeCardView,
+  type KnowledgeCardResponse,
 } from '@san/shared';
-import { authTokenStorage, cardsApi, scrapsApi } from '../api/client';
+import { asyncJobsApi, authTokenStorage, cardsApi, scrapsApi } from '../api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
@@ -17,6 +17,8 @@ const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const isDebug = import.meta.env.DEV;
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? 'http://localhost:5174';
+const JOB_POLL_INTERVAL_MS = 1500;
+const JOB_POLL_MAX_ATTEMPTS = 40;
 
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
@@ -52,12 +54,26 @@ function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
   };
 }
 
-function getRelatedSearchText(scrap: PendingScrap) {
-  return [scrap.raw_content, scrap.title, scrap.source_url]
-    .filter(Boolean)
-    .join(' ')
-    .trim()
-    .slice(0, 500);
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForCardAnalysis(jobId: string) {
+  for (let attempt = 0; attempt < JOB_POLL_MAX_ATTEMPTS; attempt += 1) {
+    const job = await asyncJobsApi.getStatus(jobId);
+
+    if (job.status === 'COMPLETED') {
+      return;
+    }
+
+    if (job.status === 'FAILED') {
+      throw new Error(job.errorMessage ?? 'Knowledge card creation failed.');
+    }
+
+    await delay(JOB_POLL_INTERVAL_MS);
+  }
+
+  throw new Error('Knowledge card creation timed out.');
 }
 
 async function loadSavedInsights(): Promise<SavedInsight[]> {
@@ -110,9 +126,10 @@ export default function SidePanel() {
   const [pendingScrap, setPendingScrap] = useState<PendingScrap | null>(null);
   const [cards, setCards] = useState<SavedInsight[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingLabel, setSavingLabel] = useState('Saving...');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [relatedCards, setRelatedCards] = useState<KnowledgeCardView[]>([]);
+  const [relatedCards, setRelatedCards] = useState<KnowledgeCardResponse[]>([]);
   const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [relatedError, setRelatedError] = useState<string | null>(null);
 
@@ -168,46 +185,6 @@ export default function SidePanel() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!pendingScrap || !isAuthenticated) {
-      setRelatedCards([]);
-      setRelatedError(null);
-      setIsLoadingRelated(false);
-      return;
-    }
-
-    const search = getRelatedSearchText(pendingScrap);
-    if (!search) {
-      setRelatedCards([]);
-      return;
-    }
-
-    let ignore = false;
-    setIsLoadingRelated(true);
-    setRelatedError(null);
-
-    cardsApi
-      .getAll({ search, limit: 3 })
-      .then((response) => {
-        if (ignore) return;
-        setRelatedCards(response.cards.slice(0, 3));
-      })
-      .catch((error) => {
-        if (ignore) return;
-        setRelatedCards([]);
-        setRelatedError(getApiErrorMessage(error, 'Failed to load related cards.'));
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoadingRelated(false);
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [isAuthenticated, pendingScrap]);
-
   const handleTextDrop = useCallback(async (text: string) => {
     const metadata = await requestActiveTabMetadata();
     const nextPending: PendingScrap = {
@@ -225,6 +202,9 @@ export default function SidePanel() {
     };
 
     setSaveError(null);
+    setRelatedError(null);
+    setRelatedCards([]);
+    setIsLoadingRelated(false);
     debugLog('drop zone text received', {
       length: text.length,
       source_url: nextPending.source_url,
@@ -238,9 +218,24 @@ export default function SidePanel() {
     if (!pendingScrap) return;
 
     setIsSaving(true);
+    setSavingLabel(isAuthenticated ? 'Saving scrap...' : 'Saving locally...');
     setSaveError(null);
+    setRelatedError(null);
+    setRelatedCards([]);
+    setIsLoadingRelated(false);
 
     try {
+      if (!isAuthenticated) {
+        const saved = toSavedInsight(pendingScrap);
+        const nextCards = [saved, ...cards];
+        setCards(nextCards);
+        setPendingScrap(null);
+        await savePendingScrap(null);
+        await saveInsights(nextCards);
+        debugLog('insight saved locally', saved);
+        return;
+      }
+
       const response = await scrapsApi.create(toCreateScrapRequest(pendingScrap));
       const saved = {
         ...toSavedInsight(pendingScrap),
@@ -253,13 +248,25 @@ export default function SidePanel() {
       await savePendingScrap(null);
       await saveInsights(nextCards);
       debugLog('insight saved', saved);
+
+      setSavingLabel('Creating card...');
+      setIsLoadingRelated(true);
+      const cardJob = await cardsApi.create({ scrapId: response.scrapId });
+
+      setSavingLabel('Finding related cards...');
+      await waitForCardAnalysis(cardJob.jobId);
+
+      const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
+      setRelatedCards(similarCards.similarCards);
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to persist insight', error);
       setSaveError(getApiErrorMessage(error, 'Failed to save scrap.'));
+      setRelatedError(getApiErrorMessage(error, 'Failed to load related cards.'));
     } finally {
       setIsSaving(false);
+      setIsLoadingRelated(false);
     }
-  }, [cards, pendingScrap]);
+  }, [cards, isAuthenticated, pendingScrap]);
 
   const openDashboardLogin = useCallback(() => {
     chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
@@ -286,9 +293,13 @@ export default function SidePanel() {
             onClear={() => {
               setPendingScrap(null);
               setSaveError(null);
+              setRelatedError(null);
+              setRelatedCards([]);
+              setIsLoadingRelated(false);
               void savePendingScrap(null);
             }}
             isSaving={isSaving}
+            savingLabel={savingLabel}
             saveError={saveError}
           />
         </section>
@@ -309,7 +320,7 @@ export default function SidePanel() {
             isAuthenticated={isAuthenticated}
             isLoading={isLoadingRelated}
             error={relatedError}
-            hasPendingScrap={Boolean(pendingScrap)}
+            hasScrapContext={Boolean(pendingScrap) || relatedCards.length > 0 || isLoadingRelated}
             onLogin={openDashboardLogin}
           />
         </section>
