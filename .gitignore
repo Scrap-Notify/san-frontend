@@ -3,6 +3,10 @@ dist/
 .env
 .env.local
 *.local
+!.env.example
+!.env.*.example
+!packages/**/.env.example
+!packages/**/.env.*.example
 packages/extension/dist/
 packages/dashboard/dist/
 packages/extension/tsconfig.tsbuildinfo  # 빌드 테스트 파일 무시

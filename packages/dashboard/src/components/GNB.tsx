@@ -1,6 +1,7 @@
-import { Calendar, Check, ChevronDown, Menu, Plus, Search, Settings, Tag, X } from 'lucide-react';
+import { Calendar, Check, ChevronDown, LogOut, Menu, Plus, Search, Settings, Tag, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { authApi, authTokenStorage } from '../api/client';
 
 const TAG_OPTIONS = ['Design', 'Research', 'Cognition', 'Systems', 'Colors'];
 
@@ -15,6 +16,16 @@ export function GNB() {
   const isRecall = location.pathname === '/';
 
   const closeMenu = () => setIsOpen(false);
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } finally {
+      await authTokenStorage.clearToken();
+      setIsOpen(false);
+      navigate('/login');
+    }
+  };
 
   const toggleTag = (tag: string) => {
     setSelectedTags((current) =>
@@ -74,7 +85,7 @@ export function GNB() {
             onToggleTag={toggleTag}
             onSubmit={handleSearch}
           />
-          <DesktopActions locationPath={location.pathname} />
+          <DesktopActions locationPath={location.pathname} onLogout={handleLogout} />
         </div>
 
         <button
@@ -117,6 +128,14 @@ export function GNB() {
           <MobileLink to="/account" onClick={closeMenu}>
             Account
           </MobileLink>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex min-h-11 items-center gap-3 rounded-2xl bg-[#1b2023]/70 px-4 py-3 text-sm font-bold text-[#b9cbc1] transition hover:bg-white/5 hover:text-white"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </button>
         </div>
       ) : null}
     </nav>
@@ -230,7 +249,13 @@ function TagPicker({
   );
 }
 
-function DesktopActions({ locationPath }: { locationPath: string }) {
+function DesktopActions({
+  locationPath,
+  onLogout,
+}: {
+  locationPath: string;
+  onLogout: () => void;
+}) {
   return (
     <>
       <Link
@@ -261,6 +286,15 @@ function DesktopActions({ locationPath }: { locationPath: string }) {
       >
         <img src="/avatar.png" alt="profile" className="h-full w-full object-cover" />
       </Link>
+
+      <button
+        type="button"
+        onClick={onLogout}
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/5 bg-[#1b2023] text-[#b9cbc1] transition hover:border-[#00ffc2]/30 hover:text-white"
+        aria-label="Logout"
+      >
+        <LogOut className="h-4 w-4" />
+      </button>
     </>
   );
 }

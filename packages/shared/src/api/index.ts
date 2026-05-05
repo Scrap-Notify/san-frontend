@@ -1,6 +1,23 @@
 // packages/shared/src/api/index.ts
-export { createApiClient } from './client';
-export type { TokenProvider } from './client';
+export { createApiClient, getApiErrorMessage, unwrapApiResponse } from './client';
+export type { ApiResponse, AuthTokens, TokenProvider, TokenResponse } from './client';
+export { createAuthApi } from './auth';
+export type {
+  AuthApi,
+  GithubLoginRequest,
+  GithubTokenExchangeRequest,
+  LoginRequest,
+  ReissueRequest,
+  SignupRequest,
+  SignupResponse,
+  WithdrawRequest,
+} from './auth';
+export { createGithubApi } from './github';
+export type {
+  GithubApi,
+  GithubRepository,
+  GithubRepositoryConnectRequest,
+} from './github';
 export { createScrapsApi } from './scraps';
 export type { ScrapsApi } from './scraps';
 export { createCardsApi } from './cards';

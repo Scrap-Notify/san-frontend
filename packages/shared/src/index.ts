@@ -1,6 +1,7 @@
-// packages/shared/src/index.ts
-export * from './types';           // Notification 등 모든 타입
-export * from './api';             // createApiClient, createScrapsApi 등
-export * from './context/ApiContext'; // ApiProvider, useApiContext
-export * from './hooks';           // useCards, useScraps等
-export * from './utils/format';    // formatDate, truncate等
+// shared 패키지 전체의 루트 진입점
+
+export * from './api';  // api 클라이언트
+export * from './context/ApiContext';  // react context
+export * from './hooks';
+export * from './types';
+export * from './utils/format';

@@ -1,8 +1,37 @@
 import { GitBranch, KeyRound, Mail, Sprout } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { type FormEvent, type ReactNode, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { getApiErrorMessage } from '@san/shared';
+import { authApi, authTokenStorage } from '../api/client';
 import loginTreeImage from '../assets/login-tree.png';
 
 export function LoginPage() {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleGithubLogin = () => {
+    window.location.href = authApi.getGithubAuthorizeUrl();
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      const tokens = await authApi.login({ username, password });
+      await authTokenStorage.setTokens(tokens);
+      navigate('/');
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, 'Login failed'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[#101417] text-[#fbfffa]">
       <section className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
@@ -44,6 +73,7 @@ export function LoginPage() {
 
             <button
               type="button"
+              onClick={handleGithubLogin}
               className="flex min-h-14 w-full items-center justify-center gap-3 rounded-bl-xl rounded-br-3xl rounded-tl-3xl rounded-tr-xl bg-[#fbfffa] px-5 py-4 text-base font-bold text-[#101417] shadow-[0_20px_40px_rgba(251,255,250,0.1)] transition hover:scale-[1.01] hover:bg-white sm:text-lg"
             >
               <GitBranch className="h-5 w-5" />
@@ -58,12 +88,14 @@ export function LoginPage() {
               <div className="h-px flex-1 bg-[#3a4a43]/35" />
             </div>
 
-            <form className="space-y-6 sm:space-y-7">
+            <form className="space-y-6 sm:space-y-7" onSubmit={handleSubmit}>
               <Field
                 label="Archive ID"
-                type="email"
-                placeholder="name@biolume.arca"
+                type="text"
+                placeholder="archive"
                 icon={<Mail className="h-5 w-5" />}
+                value={username}
+                onChange={setUsername}
               />
               <Field
                 label="Security Key"
@@ -71,13 +103,20 @@ export function LoginPage() {
                 placeholder="********"
                 icon={<KeyRound className="h-5 w-5" />}
                 action={<button type="button">Forgot?</button>}
+                value={password}
+                onChange={setPassword}
               />
+
+              {errorMessage ? (
+                <p className="text-sm font-semibold text-red-300">{errorMessage}</p>
+              ) : null}
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="!mt-9 flex min-h-14 w-full items-center justify-center gap-3 rounded-bl-xl rounded-br-3xl rounded-tl-3xl rounded-tr-xl bg-[#00ffc2] px-5 py-4 text-xl font-bold text-black transition hover:scale-[1.01] hover:bg-[#1affcb] sm:text-2xl"
               >
-                Start
+                {isSubmitting ? 'Starting...' : 'Start'}
                 <Sprout className="h-6 w-6" />
               </button>
             </form>
@@ -101,12 +140,16 @@ function Field({
   placeholder,
   icon,
   action,
+  value,
+  onChange,
 }: {
   label: string;
   type: string;
   placeholder: string;
-  icon: React.ReactNode;
-  action?: React.ReactNode;
+  icon: ReactNode;
+  action?: ReactNode;
+  value: string;
+  onChange: (value: string) => void;
 }) {
   return (
     <label className="block min-w-0">
@@ -123,6 +166,8 @@ function Field({
         <input
           type={type}
           placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
           className="min-h-14 w-full bg-[#0b0f12] px-5 py-4 pr-14 text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/30 focus:ring-1 focus:ring-[#00ffc2]/60 sm:text-lg"
         />
         <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#b9cbc1]/40">
