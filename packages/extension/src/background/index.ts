@@ -6,6 +6,7 @@ const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
+const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const isDebug = import.meta.env.DEV;
 
 interface AuthSyncMessage {
@@ -14,10 +15,20 @@ interface AuthSyncMessage {
   refreshToken?: string;
 }
 
+interface AuthClearMessage {
+  type: typeof AUTH_CLEAR_MESSAGE;
+}
+
 function isAuthSyncMessage(message: unknown): message is AuthSyncMessage {
   if (!message || typeof message !== 'object') return false;
   const maybe = message as Partial<AuthSyncMessage>;
   return maybe.type === AUTH_SYNC_MESSAGE;
+}
+
+function isAuthClearMessage(message: unknown): message is AuthClearMessage {
+  if (!message || typeof message !== 'object') return false;
+  const maybe = message as Partial<AuthClearMessage>;
+  return maybe.type === AUTH_CLEAR_MESSAGE;
 }
 
 function debugLog(message: string, data?: unknown) {
@@ -101,7 +112,22 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
   debugLog('external message received', { message, origin: sender.origin, url: sender.url });
 
   if (!isAuthSyncMessage(message)) {
-    return;
+    if (!isAuthClearMessage(message)) {
+      return;
+    }
+
+    chrome.storage.local
+      .remove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY])
+      .then(() => {
+        debugLog('auth tokens cleared from dashboard');
+        sendResponse({ ok: true });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to clear auth tokens', error);
+        sendResponse({ ok: false });
+      });
+
+    return true;
   }
 
   if (!message.accessToken || !message.refreshToken) {
