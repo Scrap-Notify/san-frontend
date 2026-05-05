@@ -360,6 +360,10 @@ export default function SidePanel() {
     chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
   }, []);
 
+  const openDashboard = useCallback(() => {
+    chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : `${dashboardBaseUrl}/login` });
+  }, [isAuthenticated]);
+
   const hasKnowledgeResult = isLoadingRelated
     || Boolean(createdCard)
     || hasRelatedResult
@@ -369,6 +373,7 @@ export default function SidePanel() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#101417] text-white">
       <div className="custom-scrollbar relative flex-1 overflow-y-auto">
+        <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
         <div className="relative z-10 space-y-6 px-4 py-6">
           <DropZone
@@ -409,7 +414,6 @@ export default function SidePanel() {
           {isAuthenticated && cards.length > 0 ? <ArchiveList cards={cards} /> : null}
         </div>
       </div>
-      <SidePanelHeader />
     </div>
   );
 }

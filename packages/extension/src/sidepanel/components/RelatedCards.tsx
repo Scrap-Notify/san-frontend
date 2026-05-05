@@ -1,4 +1,5 @@
 import type { KnowledgeCardResponse } from '@san/shared';
+import { CurvedButton } from '../../../../ui/src/components/Button/CurvedButton';
 
 interface RelatedCardsProps {
   cards: KnowledgeCardResponse[];
@@ -46,13 +47,13 @@ export function RelatedCards({
         <p className="mt-1 text-xs leading-5 text-slate-600">
           지식 카드의 유사도를 높이려면 대시보드에서 더 많은 지식 카드를 저장해 보세요.
         </p>
-        <button
-          type="button"
+        <CurvedButton
           onClick={onLogin}
-          className="mt-3 rounded-md bg-[#4ADE80] px-3 py-2 text-xs font-bold text-[#0A0F1E] transition hover:bg-[#2DD4BF]"
+          size="sm"
+          className="mt-3"
         >
           로그인
-        </button>
+        </CurvedButton>
       </div>
     );
   }

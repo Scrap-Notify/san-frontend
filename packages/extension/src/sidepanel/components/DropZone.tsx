@@ -1,5 +1,6 @@
 import type { DragEvent } from 'react';
 import { useState } from 'react';
+import { CurvedButton } from '../../../../ui/src/components/Button/CurvedButton';
 import type { PendingScrap } from '../../types';
 
 interface DropZoneProps {
@@ -121,14 +122,15 @@ export const DropZone = ({
               </span>
             </div>
 
-            <button
-              type="button"
+            <CurvedButton
               onClick={onClear}
-              className="rounded-full border border-[#00ffc2]/20 bg-[#00ffc2]/10 px-2 py-1 text-[10px] text-[#00ffc2] hover:bg-[#00ffc2]/20"
+              tone="subtle"
+              size="sm"
+              className="px-3 py-1 text-[10px]"
               aria-label="Clear source"
             >
               CLEAR
-            </button>
+            </CurvedButton>
           </div>
 
           <div className="max-h-[220px] overflow-y-auto rounded-[32px] border border-[#3a4a43]/10 bg-[#0b0f12]/50 p-5">
@@ -154,27 +156,29 @@ export const DropZone = ({
               <p className="text-xs leading-5 text-[#b9cbc1]">{authNotice}</p>
 
               {onLogin ? (
-                <button
-                  type="button"
+                <CurvedButton
                   onClick={onLogin}
-                  className="mt-3 w-full rounded-tl-[48px] rounded-tr-lg rounded-bl-lg rounded-br-[48px] bg-[#00ffc2] py-3 text-sm font-bold text-[#007255] shadow-[0_0_25px_rgba(0,255,194,0.25)] transition hover:opacity-90"
+                  fullWidth
+                  size="md"
+                  className="mt-3"
                 >
                   로그인하고 시작하기
-                </button>
+                </CurvedButton>
               ) : null}
             </div>
           ) : null}
 
           {canSave ? (
-            <button
-              type="button"
+            <CurvedButton
               onClick={onSave}
               disabled={isSaving}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-tl-[48px] rounded-tr-lg rounded-bl-lg rounded-br-[48px] bg-gradient-to-r from-[#00ffc2] to-[#00e1ab] py-4 text-lg font-bold text-[#007255] shadow-[0_20px_40px_rgba(0,255,194,0.3)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              fullWidth
+              size="lg"
+              className="mt-5"
+              leadingIcon={<DatabaseIcon />}
             >
-              <DatabaseIcon />
               {isSaving ? savingLabel : saveLabel}
-            </button>
+            </CurvedButton>
           ) : null}
         </div>
       ) : null}
