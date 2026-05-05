@@ -16,7 +16,10 @@ const STORAGE_KEY = 'san:saved-insights';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const isDebug = import.meta.env.DEV;
-const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? 'http://localhost:5174';
+const defaultDashboardBaseUrl = import.meta.env.PROD
+  ? 'https://k14a309.p.ssafy.io'
+  : 'http://localhost:5173';
+const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
 const JOB_POLL_INTERVAL_MS = 1500;
 const JOB_POLL_MAX_ATTEMPTS = 40;
 
