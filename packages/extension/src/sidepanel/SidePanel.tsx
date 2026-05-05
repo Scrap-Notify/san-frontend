@@ -128,6 +128,7 @@ export default function SidePanel() {
   const [isSaving, setIsSaving] = useState(false);
   const [savingLabel, setSavingLabel] = useState('Saving...');
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [relatedCards, setRelatedCards] = useState<KnowledgeCardResponse[]>([]);
   const [isLoadingRelated, setIsLoadingRelated] = useState(false);
@@ -202,6 +203,7 @@ export default function SidePanel() {
     };
 
     setSaveError(null);
+    setSaveNotice(null);
     setRelatedError(null);
     setRelatedCards([]);
     setIsLoadingRelated(false);
@@ -220,6 +222,7 @@ export default function SidePanel() {
     setIsSaving(true);
     setSavingLabel(isAuthenticated ? 'Saving scrap...' : 'Saving locally...');
     setSaveError(null);
+    setSaveNotice(null);
     setRelatedError(null);
     setRelatedCards([]);
     setIsLoadingRelated(false);
@@ -232,6 +235,7 @@ export default function SidePanel() {
         setPendingScrap(null);
         await savePendingScrap(null);
         await saveInsights(nextCards);
+        setSaveNotice('Saved locally. Login to create knowledge cards and see related cards.');
         debugLog('insight saved locally', saved);
         return;
       }
@@ -258,6 +262,7 @@ export default function SidePanel() {
 
       const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
       setRelatedCards(similarCards.similarCards);
+      setSaveNotice('Saved to your archive.');
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to persist insight', error);
       setSaveError(getApiErrorMessage(error, 'Failed to save scrap.'));
@@ -293,6 +298,7 @@ export default function SidePanel() {
             onClear={() => {
               setPendingScrap(null);
               setSaveError(null);
+              setSaveNotice(null);
               setRelatedError(null);
               setRelatedCards([]);
               setIsLoadingRelated(false);
@@ -300,7 +306,10 @@ export default function SidePanel() {
             }}
             isSaving={isSaving}
             savingLabel={savingLabel}
+            saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
             saveError={saveError}
+            saveNotice={saveNotice}
+            onLogin={!isAuthenticated ? openDashboardLogin : undefined}
           />
         </section>
 

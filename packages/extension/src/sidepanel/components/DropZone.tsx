@@ -9,7 +9,10 @@ interface DropZoneProps {
   onClear: () => void;
   isSaving?: boolean;
   savingLabel?: string;
+  saveLabel?: string;
   saveError?: string | null;
+  saveNotice?: string | null;
+  onLogin?: () => void;
 }
 
 export const DropZone = ({
@@ -19,7 +22,10 @@ export const DropZone = ({
   onClear,
   isSaving = false,
   savingLabel = 'Saving...',
+  saveLabel = 'Save',
   saveError = null,
+  saveNotice = null,
+  onLogin,
 }: DropZoneProps) => {
   const [isOver, setIsOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +91,21 @@ export const DropZone = ({
         </p>
       )}
 
+      {saveNotice && (
+        <div className="text-xs text-[#4ADE80] bg-[#4ADE80]/10 border border-[#4ADE80]/20 rounded-md px-3 py-2">
+          <p>{saveNotice}</p>
+          {onLogin ? (
+            <button
+              type="button"
+              onClick={onLogin}
+              className="mt-2 rounded-md bg-[#4ADE80] px-3 py-1.5 font-bold text-[#0A0F1E] transition hover:bg-[#2DD4BF]"
+            >
+              Open dashboard login
+            </button>
+          ) : null}
+        </div>
+      )}
+
       {pendingScrap && (
         <div className="bg-[#4ADE80]/10 border border-[#4ADE80]/30 rounded-lg p-3">
           <div className="flex justify-between items-start gap-3 mb-2">
@@ -103,7 +124,7 @@ export const DropZone = ({
             disabled={isSaving}
             className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
           >
-            {isSaving ? savingLabel : 'Save'}
+            {isSaving ? savingLabel : saveLabel}
           </button>
         </div>
       )}
