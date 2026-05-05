@@ -2,6 +2,7 @@
 
 export type { BaseEntity } from './common';
 export type { AuthProvider, User, UserStatus } from './user';
+export type { AsyncJobStatus, AsyncJobStatusResponse, AsyncJobType } from './async';
 export type {
   AiStatus,
   CreateScrapRequest,
@@ -14,12 +15,13 @@ export type {
   CategoryResponse,
   GetCardsParams,
   GetCardsResponse,
+  KnowledgeCardAnalysisJobResponse,
   KnowledgeCardCreateRequest,
   KnowledgeCardListResponse,
   KnowledgeCardResponse,
+  KnowledgeCardSimilarCardsResponse,
   KnowledgeCardView,
   Tag,
   TagResponse,
 } from './knowledge';
 export { toKnowledgeCardView } from './knowledge';
-

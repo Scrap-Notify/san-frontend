@@ -2,14 +2,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { DropZone } from './components/DropZone';
 import { CardList } from './components/CardList';
-import { getApiErrorMessage, type CreateScrapRequest } from '@san/shared';
-import { scrapsApi } from '../api/client';
+import { RelatedCards } from './components/RelatedCards';
+import {
+  getApiErrorMessage,
+  type CreateScrapRequest,
+  type KnowledgeCardView,
+} from '@san/shared';
+import { authTokenStorage, cardsApi, scrapsApi } from '../api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const STORAGE_KEY = 'san:saved-insights';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
+const ACCESS_TOKEN_KEY = 'san_access_token';
 const isDebug = import.meta.env.DEV;
+const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? 'http://localhost:5174';
 
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
@@ -41,10 +48,16 @@ function toSavedInsight(scrap: PendingScrap): SavedInsight {
 function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
   return {
     sourceUrl: scrap.source_url,
-    rawContent: scrap.raw_content,
-    imageUrl: scrap.image_url,
-    collectedAt: new Date().toISOString(),
+    rawContent: scrap.raw_content ?? scrap.source_url ?? scrap.title,
   };
+}
+
+function getRelatedSearchText(scrap: PendingScrap) {
+  return [scrap.raw_content, scrap.title, scrap.source_url]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+    .slice(0, 500);
 }
 
 async function loadSavedInsights(): Promise<SavedInsight[]> {
@@ -98,6 +111,10 @@ export default function SidePanel() {
   const [cards, setCards] = useState<SavedInsight[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [relatedCards, setRelatedCards] = useState<KnowledgeCardView[]>([]);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
+  const [relatedError, setRelatedError] = useState<string | null>(null);
 
   useEffect(() => {
     debugLog('side panel mounted');
@@ -125,6 +142,71 @@ export default function SidePanel() {
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, []);
+
+  useEffect(() => {
+    let ignore = false;
+
+    authTokenStorage.getToken().then((token) => {
+      if (!ignore) {
+        setIsAuthenticated(Boolean(token));
+      }
+    });
+
+    const handleStorageChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string
+    ) => {
+      if (areaName === 'local' && changes[ACCESS_TOKEN_KEY]) {
+        setIsAuthenticated(Boolean(changes[ACCESS_TOKEN_KEY].newValue));
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => {
+      ignore = true;
+      chrome.storage.onChanged.removeListener(handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!pendingScrap || !isAuthenticated) {
+      setRelatedCards([]);
+      setRelatedError(null);
+      setIsLoadingRelated(false);
+      return;
+    }
+
+    const search = getRelatedSearchText(pendingScrap);
+    if (!search) {
+      setRelatedCards([]);
+      return;
+    }
+
+    let ignore = false;
+    setIsLoadingRelated(true);
+    setRelatedError(null);
+
+    cardsApi
+      .getAll({ search, limit: 3 })
+      .then((response) => {
+        if (ignore) return;
+        setRelatedCards(response.cards.slice(0, 3));
+      })
+      .catch((error) => {
+        if (ignore) return;
+        setRelatedCards([]);
+        setRelatedError(getApiErrorMessage(error, 'Failed to load related cards.'));
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoadingRelated(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [isAuthenticated, pendingScrap]);
 
   const handleTextDrop = useCallback(async (text: string) => {
     const metadata = await requestActiveTabMetadata();
@@ -179,6 +261,10 @@ export default function SidePanel() {
     }
   }, [cards, pendingScrap]);
 
+  const openDashboardLogin = useCallback(() => {
+    chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
+  }, []);
+
   return (
     <div className="flex flex-col h-screen bg-[#0A0F1E] text-slate-200 font-sans overflow-hidden">
       <header className="p-5 flex items-center justify-between border-b border-white/5 backdrop-blur-md">
@@ -204,6 +290,27 @@ export default function SidePanel() {
             }}
             isSaving={isSaving}
             saveError={saveError}
+          />
+        </section>
+
+        <section>
+          <div className="mb-4 flex items-center justify-between px-1">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
+              Related Cards
+            </h2>
+            {isAuthenticated ? (
+              <span className="text-[10px] text-[#4ADE80]">Synced</span>
+            ) : (
+              <span className="text-[10px] text-slate-600">Login required</span>
+            )}
+          </div>
+          <RelatedCards
+            cards={relatedCards}
+            isAuthenticated={isAuthenticated}
+            isLoading={isLoadingRelated}
+            error={relatedError}
+            hasPendingScrap={Boolean(pendingScrap)}
+            onLogin={openDashboardLogin}
           />
         </section>
 

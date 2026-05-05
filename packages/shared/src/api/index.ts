@@ -22,3 +22,5 @@ export { createScrapsApi } from './scraps';
 export type { ScrapsApi } from './scraps';
 export { createCardsApi } from './cards';
 export type { CardsApi } from './cards';
+export { createAsyncJobsApi } from './async';
+export type { AsyncJobsApi } from './async';
