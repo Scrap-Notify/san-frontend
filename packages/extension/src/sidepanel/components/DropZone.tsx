@@ -118,7 +118,7 @@ export const DropZone = ({
             <div className="flex items-center gap-2">
               <SparkIcon />
               <span className="text-xs font-bold uppercase tracking-wide text-[#b9cbc1]">
-                RAW ENTRY CAPTURED
+                미리보기
               </span>
             </div>
 

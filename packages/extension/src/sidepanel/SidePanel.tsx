@@ -7,6 +7,7 @@ import { DropZone } from './components/DropZone';
 import { EmptyState } from './components/EmptyState';
 import GlowBackground from './components/GlowBackground';
 import KnowledgeProgressCard from './components/KnowledgeProgressCard';
+import { KnowledgeSearchBar } from './components/KnowledgeSearchBar';
 import { RecentKnowledgeList } from './components/RecentKnowledgeList';
 import SidePanelHeader from './components/SidePanelHeader';
 import {
@@ -113,6 +114,25 @@ async function deletePendingImageFile(id: string | null | undefined) {
   db.close();
 }
 
+function toKnowledgeCardResponse(card: KnowledgeCardView): KnowledgeCardResponse {
+  return {
+    cardId: card.card_id,
+    title: card.title,
+    summary: card.summary,
+    category: card.category_name
+      ? {
+        categoryId: card.category_id ?? card.category_name,
+        categoryName: card.category_name,
+      }
+      : null,
+    tags: card.tags.map((tag) => ({
+      tagId: tag.tag_id,
+      tagName: tag.name,
+    })),
+    createdAt: card.createdAt ?? card.created_at,
+  };
+}
+
 async function requestActiveTabMetadata(): Promise<PendingScrap | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return null;
@@ -149,6 +169,11 @@ export default function SidePanel() {
   const [recentCards, setRecentCards] = useState<KnowledgeCardView[]>([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(false);
   const [recentError, setRecentError] = useState<string | null>(null);
+  const [knowledgeSearchQuery, setKnowledgeSearchQuery] = useState('');
+  const [knowledgeSearchCards, setKnowledgeSearchCards] = useState<KnowledgeCardResponse[]>([]);
+  const [isSearchingKnowledge, setIsSearchingKnowledge] = useState(false);
+  const [knowledgeSearchError, setKnowledgeSearchError] = useState<string | null>(null);
+  const [hasKnowledgeSearchResult, setHasKnowledgeSearchResult] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
     setIsLoadingRecent(true);
@@ -256,9 +281,7 @@ export default function SidePanel() {
 
     const refreshAuthState = async () => {
       const token = await authTokenStorage.getToken();
-      if (ignore) {
-        return;
-      }
+      if (ignore) return;
 
       const hasToken = Boolean(token);
       setIsAuthenticated(hasToken);
@@ -378,13 +401,49 @@ export default function SidePanel() {
     || hasRelatedResult
     || relatedCards.length > 0
     || Boolean(relatedError);
+  const displayedCards = hasKnowledgeSearchResult ? knowledgeSearchCards : relatedCards;
+  const isLoadingDisplayedCards = hasKnowledgeSearchResult ? isSearchingKnowledge : isLoadingRelated;
+  const displayedCardsError = hasKnowledgeSearchResult ? knowledgeSearchError : relatedError;
+
+  const handleKnowledgeSearch = useCallback(async () => {
+    const search = knowledgeSearchQuery.trim();
+
+    if (!search) {
+      setHasKnowledgeSearchResult(false);
+      setKnowledgeSearchCards([]);
+      setKnowledgeSearchError(null);
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setHasKnowledgeSearchResult(true);
+      setKnowledgeSearchCards([]);
+      setKnowledgeSearchError('Login is required to search your knowledge archive.');
+      return;
+    }
+
+    setHasKnowledgeSearchResult(true);
+    setIsSearchingKnowledge(true);
+    setKnowledgeSearchError(null);
+
+    try {
+      const response = await cardsApi.getAll({ page: 0, limit: 10, search });
+      setKnowledgeSearchCards(response.cards.map(toKnowledgeCardResponse));
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to search knowledge cards', error);
+      setKnowledgeSearchCards([]);
+      setKnowledgeSearchError('Knowledge archive search failed.');
+    } finally {
+      setIsSearchingKnowledge(false);
+    }
+  }, [isAuthenticated, knowledgeSearchQuery]);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#101417] text-white">
       <div className="custom-scrollbar relative flex-1 overflow-y-auto">
         <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
-        <div className="relative z-10 px-4 py-6 space-y-6">
+        <div className="relative z-10 space-y-6 px-4 py-6">
           {isLoadingRelated ? (
             <KnowledgeProgressCard
               cards={relatedCards}
@@ -399,17 +458,9 @@ export default function SidePanel() {
               onTextDrop={handleTextDrop}
               onImageDrop={handleImageDrop}
               onSave={handleSave}
-              onClear={() => {
-                setPendingScrap(null);
-                setPendingImageFile(null);
-                clearSaveFeedback();
-                setRelatedError(null);
-                setRelatedCards([]);
-                setIsLoadingRelated(false);
-                void savePendingScrap(null);
-              }}
-              isSaving={isSaving}
-              savingLabel={savingLabel}
+              onClear={handleClearPending}
+              isSaving={isSaving || isRestoringPendingImage}
+              savingLabel={isRestoringPendingImage ? 'Restoring image...' : savingLabel}
               saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
               saveError={saveError}
               saveNotice={saveNotice}
@@ -418,30 +469,44 @@ export default function SidePanel() {
               onLogin={!isAuthenticated ? openDashboardLogin : undefined}
             />
           )}
+
+          {isAuthenticated ? (
+            <KnowledgeSearchBar
+              value={knowledgeSearchQuery}
+              disabled={isSearchingKnowledge}
+              onChange={(value) => {
+                setKnowledgeSearchQuery(value);
+                if (!value.trim()) {
+                  setHasKnowledgeSearchResult(false);
+                  setKnowledgeSearchCards([]);
+                  setKnowledgeSearchError(null);
+                }
+              }}
+              onSubmit={handleKnowledgeSearch}
+            />
+          ) : null}
+
           {!isAuthenticated ? (
             pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
-          ) : !isLoadingRelated && hasKnowledgeResult ? (
-            <>
-              <KnowledgeProgressCard
-                cards={relatedCards}
-                isLoading={isLoadingRelated}
-                error={relatedError}
-                hasScrapContext={hasKnowledgeResult}
-                createdCard={createdCard}
-              />
-            </>
+          ) : !isLoadingRelated && (hasKnowledgeResult || hasKnowledgeSearchResult) ? (
+            <KnowledgeProgressCard
+              cards={displayedCards}
+              isLoading={isLoadingDisplayedCards}
+              error={displayedCardsError}
+              hasScrapContext={hasKnowledgeResult || hasKnowledgeSearchResult}
+              createdCard={hasKnowledgeSearchResult ? null : createdCard}
+            />
           ) : pendingScrap ? (
             null
           ) : (
-            null
-          )}
-          {isAuthenticated && !hasKnowledgeResult ? (
             <RecentKnowledgeList
               cards={recentCards}
               isLoading={isLoadingRecent}
               error={recentError}
             />
-          ) : null}
+          )}
+
+          {isAuthenticated && cards.length > 0 ? <ArchiveList cards={cards} /> : null}
         </div>
       </div>
     </div>
