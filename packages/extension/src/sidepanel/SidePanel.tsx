@@ -211,6 +211,8 @@ export default function SidePanel() {
   const [relatedCards, setRelatedCards] = useState<KnowledgeCardResponse[]>([]);
   const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [relatedError, setRelatedError] = useState<string | null>(null);
+  const [hasRelatedResult, setHasRelatedResult] = useState(false);
+  const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
 
   useEffect(() => {
     debugLog('side panel mounted');
@@ -221,8 +223,9 @@ export default function SidePanel() {
         setCards(savedCards);
         if (storedPendingScrap) {
           debugLog('pending scrap restored', storedPendingScrap);
-          setPendingScrap(storedPendingScrap);
           if (storedPendingScrap.source_type === 'IMAGE' && storedPendingScrap.image_blob_id) {
+            setIsRestoringPendingImage(true);
+            setPendingScrap(storedPendingScrap);
             loadPendingImageFile(
               storedPendingScrap.image_blob_id,
               storedPendingScrap.image_file_name ?? storedPendingScrap.title,
@@ -235,8 +238,14 @@ export default function SidePanel() {
               })
               .catch((error) => {
                 console.error(DEBUG_PREFIX, 'failed to restore pending image file', error);
+                setSaveError('Pending image could not be restored. Please drop the image again.');
+              })
+              .finally(() => {
+                setIsRestoringPendingImage(false);
               });
+            return;
           }
+          setPendingScrap(storedPendingScrap);
         }
       })
       .catch((error) => {
@@ -284,6 +293,7 @@ export default function SidePanel() {
     setSaveNotice(null);
     setRelatedError(null);
     setRelatedCards([]);
+    setHasRelatedResult(false);
     setIsLoadingRelated(false);
   }, []);
 
@@ -356,9 +366,14 @@ export default function SidePanel() {
     setSaveNotice(null);
     setRelatedError(null);
     setRelatedCards([]);
+    setHasRelatedResult(false);
     setIsLoadingRelated(false);
 
     try {
+      if (isRestoringPendingImage) {
+        return;
+      }
+
       if (!isAuthenticated) {
         const saved = toSavedInsight(pendingScrap);
         const nextCards = [saved, ...cards];
@@ -404,6 +419,7 @@ export default function SidePanel() {
 
       const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
       setRelatedCards(similarCards.similarCards);
+      setHasRelatedResult(true);
       setSaveNotice('Saved to your archive.');
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to persist insight', error);
@@ -413,7 +429,7 @@ export default function SidePanel() {
       setIsSaving(false);
       setIsLoadingRelated(false);
     }
-  }, [cards, isAuthenticated, pendingImageFile, pendingScrap]);
+  }, [cards, isAuthenticated, isRestoringPendingImage, pendingImageFile, pendingScrap]);
 
   const openDashboardLogin = useCallback(() => {
     chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
@@ -445,8 +461,8 @@ export default function SidePanel() {
               clearSaveFeedback();
               void savePendingScrap(null);
             }}
-            isSaving={isSaving}
-            savingLabel={savingLabel}
+            isSaving={isSaving || isRestoringPendingImage}
+            savingLabel={isRestoringPendingImage ? 'Restoring image...' : savingLabel}
             saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
             saveError={saveError}
             saveNotice={saveNotice}
@@ -470,7 +486,13 @@ export default function SidePanel() {
             isAuthenticated={isAuthenticated}
             isLoading={isLoadingRelated}
             error={relatedError}
-            hasScrapContext={Boolean(pendingScrap) || relatedCards.length > 0 || isLoadingRelated}
+            hasScrapContext={
+              Boolean(pendingScrap)
+              || hasRelatedResult
+              || relatedCards.length > 0
+              || isLoadingRelated
+              || Boolean(relatedError)
+            }
             onLogin={openDashboardLogin}
           />
         </section>

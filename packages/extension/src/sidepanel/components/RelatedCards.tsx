@@ -31,9 +31,9 @@ export function RelatedCards({
   if (!hasScrapContext) {
     return (
       <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-        <p className="text-sm font-semibold text-slate-400">Related cards</p>
+        <p className="text-sm font-semibold text-slate-400">유사 지식 카드</p>
         <p className="mt-1 text-xs leading-5 text-slate-600">
-          Prepare a scrap to find related knowledge cards.
+          지식을 수집하시면 유사한 지식 카드를 보여드립니다. 웹에서 유용한 정보를 발견하면 스크랩해 보세요.
         </p>
       </div>
     );
@@ -42,16 +42,16 @@ export function RelatedCards({
   if (!isAuthenticated) {
     return (
       <div className="rounded-lg border border-[#4ADE80]/20 bg-[#4ADE80]/5 p-4">
-        <p className="text-sm font-semibold text-slate-300">Login to see related cards</p>
+        <p className="text-sm font-semibold text-slate-300">로그인하시면 연관 지식 카드를 확인할 수 있습니다.</p>
         <p className="mt-1 text-xs leading-5 text-slate-600">
-          Related knowledge cards are shown for your dashboard account.
+          지식 카드의 유사도를 높이려면 대시보드에서 더 많은 지식 카드를 저장해 보세요.
         </p>
         <button
           type="button"
           onClick={onLogin}
           className="mt-3 rounded-md bg-[#4ADE80] px-3 py-2 text-xs font-bold text-[#0A0F1E] transition hover:bg-[#2DD4BF]"
         >
-          Open dashboard login
+          로그인
         </button>
       </div>
     );
@@ -60,7 +60,7 @@ export function RelatedCards({
   if (isLoading) {
     return (
       <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-        <p className="text-sm font-semibold text-slate-400">Finding related cards...</p>
+        <p className="text-sm font-semibold text-slate-400">유사 지식 카드를 찾는 중...</p>
       </div>
     );
   }
@@ -68,7 +68,7 @@ export function RelatedCards({
   if (error) {
     return (
       <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4">
-        <p className="text-sm font-semibold text-red-300">Related cards could not be loaded</p>
+        <p className="text-sm font-semibold text-red-300">유사 지식 카드를 불러올 수 없습니다</p>
         <p className="mt-1 text-xs leading-5 text-red-200/70">{error}</p>
       </div>
     );
@@ -77,9 +77,9 @@ export function RelatedCards({
   if (cards.length === 0) {
     return (
       <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-        <p className="text-sm font-semibold text-slate-400">No related cards found</p>
+        <p className="text-sm font-semibold text-slate-400">유사 지식 카드를 찾을 수 없습니다</p>
         <p className="mt-1 text-xs leading-5 text-slate-600">
-          Save more knowledge cards in the dashboard to improve matches.
+          대시보드에서 더 많은 지식 카드를 저장하여 유사도를 높여보세요.
         </p>
       </div>
     );

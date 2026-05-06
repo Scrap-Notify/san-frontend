@@ -18,9 +18,7 @@ export function createScrapsApi(apiClient: AxiosInstance) {
       formData.append('image', image);
 
       return apiClient
-        .post<ApiResponse<CreateScrapResponse>>('/scraps', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+        .post<ApiResponse<CreateScrapResponse>>('/scraps', formData)
         .then((response) => unwrapApiResponse(response.data));
     },
 
