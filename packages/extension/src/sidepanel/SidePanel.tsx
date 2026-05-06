@@ -384,33 +384,52 @@ export default function SidePanel() {
       <div className="custom-scrollbar relative flex-1 overflow-y-auto">
         <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
-        <div className="relative z-10 space-y-6 px-4 py-6">
-          <DropZone
-            pendingScrap={pendingScrap}
-            onTextDrop={handleTextDrop}
-            onImageDrop={handleImageDrop}
-            onSave={handleSave}
-            onClear={handleClearPending}
-            isSaving={isSaving || isRestoringPendingImage}
-            savingLabel={isRestoringPendingImage ? 'Restoring image...' : savingLabel}
-            saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
-            saveError={saveError}
-            saveNotice={saveNotice}
-            canSave={isAuthenticated}
-            authNotice={!isAuthenticated && pendingScrap ? 'Login to save this source and turn it into a knowledge card.' : null}
-            onLogin={!isAuthenticated ? openDashboardLogin : undefined}
-          />
-
-          {!isAuthenticated ? (
-            pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
-          ) : hasKnowledgeResult ? (
+        <div className="relative z-10 px-4 py-6 space-y-6">
+          {isLoadingRelated ? (
             <KnowledgeProgressCard
               cards={relatedCards}
               isLoading={isLoadingRelated}
               error={relatedError}
-              hasScrapContext={hasKnowledgeResult}
+              hasScrapContext
               createdCard={createdCard}
             />
+          ) : (
+            <DropZone
+              pendingScrap={pendingScrap}
+              onTextDrop={handleTextDrop}
+              onImageDrop={handleImageDrop}
+              onSave={handleSave}
+              onClear={() => {
+                setPendingScrap(null);
+                setPendingImageFile(null);
+                clearSaveFeedback();
+                setRelatedError(null);
+                setRelatedCards([]);
+                setIsLoadingRelated(false);
+                void savePendingScrap(null);
+              }}
+              isSaving={isSaving}
+              savingLabel={savingLabel}
+              saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+              saveError={saveError}
+              saveNotice={saveNotice}
+              canSave={isAuthenticated}
+              authNotice={!isAuthenticated && pendingScrap ? 'Login to save this source and turn it into a knowledge card.' : null}
+              onLogin={!isAuthenticated ? openDashboardLogin : undefined}
+            />
+          )}
+          {!isAuthenticated ? (
+            pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
+          ) : !isLoadingRelated && hasKnowledgeResult ? (
+            <>
+              <KnowledgeProgressCard
+                cards={relatedCards}
+                isLoading={isLoadingRelated}
+                error={relatedError}
+                hasScrapContext={hasKnowledgeResult}
+                createdCard={createdCard}
+              />
+            </>
           ) : pendingScrap ? (
             null
           ) : (
