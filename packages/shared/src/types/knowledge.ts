@@ -76,6 +76,30 @@ export interface GetCardsResponse {
   limit?: number;
 }
 
+export interface SearchParams {
+  keyword: string;
+  tag?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface SearchCardResult {
+  cardId: string;
+  title: string;
+  summary: string | null;
+}
+
+export interface SearchResponse {
+  keyword: string;
+  page: number;
+  size: number;
+  totalCount: number;
+  hasNext: boolean;
+  results: SearchCardResult[];
+}
+
 export function toKnowledgeCardView(card: KnowledgeCardResponse): KnowledgeCardView {
   return {
     card_id: card.cardId,

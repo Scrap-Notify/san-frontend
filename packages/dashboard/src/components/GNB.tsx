@@ -1,20 +1,19 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authTokenStorage } from '../api/client';
+import { SearchBar } from './SearchBar';
 
 interface TopNavBarProps {
   activeMenu?: string;
-  dateRangeLabel?: string;
+  searchPlaceholder?: string;
   userAvatarUrl?: string;
-  onDateRangeClick?: () => void;
   onSettingsClick?: () => void;
 }
 
 export function TopNavBar({
   activeMenu = 'Recall',
-  dateRangeLabel = '내 지식 아카이브에서 검색하기',
+  searchPlaceholder = 'Search knowledge cards...',
   userAvatarUrl,
-  onDateRangeClick,
   onSettingsClick,
 }: TopNavBarProps) {
   const navigate = useNavigate();
@@ -44,15 +43,19 @@ export function TopNavBar({
     };
   }, []);
 
+  const handleSearch = (keyword: string) => {
+    const params = new URLSearchParams();
+    if (keyword) {
+      params.set('query', keyword);
+    }
+    navigate(params.toString() ? `/result?${params.toString()}` : '/result');
+    setIsMenuOpen(false);
+  };
+
   const handleUserClick = () => {
     if (!isAuthenticated) {
       navigate('/login');
     }
-    setIsMenuOpen(false);
-  };
-
-  const handleDateClick = () => {
-    onDateRangeClick?.();
     setIsMenuOpen(false);
   };
 
@@ -63,9 +66,7 @@ export function TopNavBar({
 
   const navActions = (
     <>
-      <DateRangeButton onClick={handleDateClick}>
-        {dateRangeLabel}
-      </DateRangeButton>
+      <SearchBar placeholder={searchPlaceholder} onSearch={handleSearch} />
 
       <IconButton ariaLabel="GitHub settings" tooltip="깃허브 연동하기" onClick={handleGithubClick}>
         <GithubIcon />
@@ -86,9 +87,9 @@ export function TopNavBar({
           <h1 className="shrink-0 text-2xl font-bold leading-none sm:text-3xl">SAN</h1>
 
           <div className="min-w-0 border-b-2 border-[#00ffc2] pb-2">
-          <span className="block truncate pl-2 text-xl font-semibold leading-none text-[#00ffc2] sm:text-2xl">
-            {activeMenu}
-          </span>
+            <span className="block truncate pl-2 text-xl font-semibold leading-none text-[#00ffc2] sm:text-2xl">
+              {activeMenu}
+            </span>
           </div>
         </div>
 
@@ -113,25 +114,6 @@ export function TopNavBar({
         </div>
       ) : null}
     </header>
-  );
-}
-
-interface DateRangeButtonProps {
-  children: ReactNode;
-  onClick?: () => void;
-}
-
-function DateRangeButton({ children, onClick }: DateRangeButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex min-h-14 min-w-0 items-center rounded-full border border-[#00ffc2] bg-[#181c1f] px-5 py-3 transition hover:bg-[#20262a] sm:px-6"
-    >
-      <span className="min-w-0 flex-1 truncate rounded-[20px] px-6 py-3.5 text-left text-sm font-medium text-[#83958c] sm:min-w-80">
-        {children}
-      </span>
-    </button>
   );
 }
 

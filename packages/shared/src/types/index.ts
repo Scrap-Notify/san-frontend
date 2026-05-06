@@ -21,6 +21,9 @@ export type {
   KnowledgeCardResponse,
   KnowledgeCardSimilarCardsResponse,
   KnowledgeCardView,
+  SearchCardResult,
+  SearchParams,
+  SearchResponse,
   Tag,
   TagResponse,
 } from './knowledge';
