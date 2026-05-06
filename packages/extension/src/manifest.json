@@ -11,17 +11,12 @@
     "contextMenus"
   ],
   "host_permissions": [
-    "http://localhost:5173/*", 
-    "http://localhost:5174/*",
-    "http://localhost:5183/*",
-    "http://localhost:8080/*",
+    "http://localhost/*",
     "https://k14a309.p.ssafy.io/*"
   ], 
   "externally_connectable": {
     "matches": [
-      "http://localhost:5173/*",
-      "http://localhost:5174/*",
-      "http://localhost:5183/*",
+      "http://localhost/*",
       "https://k14a309.p.ssafy.io/*"
     ]
   },

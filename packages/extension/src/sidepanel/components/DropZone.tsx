@@ -173,9 +173,8 @@ export const DropZone = ({
               onClick={onSave}
               disabled={isSaving}
               fullWidth
-              size="lg"
-              className="mt-5"
-              leadingIcon={<DatabaseIcon />}
+              size="md"
+              className="mt-5 !bg-[#00ffc2] !text-black !shadow-[0_16px_32px_rgba(0,255,194,0.18)]"
             >
               {isSaving ? savingLabel : saveLabel}
             </CurvedButton>
@@ -219,13 +218,3 @@ function SparkIcon() {
   );
 }
 
-function DatabaseIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path
-        d="M9 18C6.48333 18 4.35417 17.6125 2.6125 16.8375C0.870833 16.0625 0 15.1167 0 14V4C0 2.9 0.879167 1.95833 2.6375 1.175C4.39583 0.391667 6.51667 0 9 0C11.4833 0 13.6042 0.391667 15.3625 1.175C17.1208 1.95833 18 2.9 18 4V14C18 15.1167 17.1292 16.0625 15.3875 16.8375C13.6458 17.6125 11.5167 18 9 18Z"
-        fill="#007255"
-      />
-    </svg>
-  );
-}

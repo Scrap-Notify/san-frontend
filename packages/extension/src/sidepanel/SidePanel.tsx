@@ -22,9 +22,7 @@ const ACCESS_TOKEN_KEY = 'san_access_token';
 const IMAGE_DB_NAME = 'san-extension-images';
 const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
-const defaultDashboardBaseUrl = import.meta.env.PROD
-  ? 'https://k14a309.p.ssafy.io'
-  : 'http://localhost:5173';
+const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
 
 function debugLog(message: string, data?: unknown) {
