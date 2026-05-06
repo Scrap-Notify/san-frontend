@@ -27,6 +27,14 @@ export interface KnowledgeCardCreateRequest {
   scrapId: string;
 }
 
+export interface KnowledgeCardAnalysisJobResponse {
+  jobId: string;
+}
+
+export interface KnowledgeCardSimilarCardsResponse {
+  similarCards: KnowledgeCardResponse[];
+}
+
 export interface GetCardsParams {
   page?: number;
   limit?: number;

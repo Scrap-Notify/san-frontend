@@ -36,7 +36,6 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
   const client = axios.create({
     baseURL,
     timeout: 10_000,
-    headers: { 'Content-Type': 'application/json' },
   });
 
   client.interceptors.request.use(

@@ -12,12 +12,8 @@ export interface Scrap extends BaseEntity {
 }
 
 export interface CreateScrapRequest {
-  source_type?: SourceType;
-  sourceUrl?: string;
-  source_url?: string;
-  rawContent?: string;
-  raw_content?: string;
-  image_url?: string;
+  sourceUrl?: string | null;
+  rawContent: string;
 }
 
 export type CreateScrapResponse = Scrap;

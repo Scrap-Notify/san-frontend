@@ -1,24 +1,38 @@
-// packages/shared/src/api/cards.ts
 import type { AxiosInstance } from 'axios';
+import { unwrapApiResponse, type ApiResponse } from './client';
 import type {
-  KnowledgeCardView,
-  GetCardsResponse,
   GetCardsParams,
+  GetCardsResponse,
+  KnowledgeCardAnalysisJobResponse,
+  KnowledgeCardCreateRequest,
+  KnowledgeCardSimilarCardsResponse,
+  KnowledgeCardView,
 } from '../types';
 
 export function createCardsApi(apiClient: AxiosInstance) {
   return {
-    // GET /cards?page=1&limit=20&...
+    create: (payload: KnowledgeCardCreateRequest): Promise<KnowledgeCardAnalysisJobResponse> =>
+      apiClient
+        .post<ApiResponse<KnowledgeCardAnalysisJobResponse>>('/cards', payload)
+        .then((response) => unwrapApiResponse(response.data)),
+
     getAll: (params?: GetCardsParams): Promise<GetCardsResponse> =>
-      apiClient.get<GetCardsResponse>('/cards', { params }).then((r) => r.data),
+      apiClient
+        .get<ApiResponse<GetCardsResponse>>('/cards', { params })
+        .then((response) => unwrapApiResponse(response.data)),
 
-    // GET /cards/:id
+    getSimilarByJob: (jobId: string): Promise<KnowledgeCardSimilarCardsResponse> =>
+      apiClient
+        .get<ApiResponse<KnowledgeCardSimilarCardsResponse>>(`/cards/jobs/${jobId}/similar-cards`)
+        .then((response) => unwrapApiResponse(response.data)),
+
     getById: (cardId: string): Promise<KnowledgeCardView> =>
-      apiClient.get<KnowledgeCardView>(`/cards/${cardId}`).then((r) => r.data),
+      apiClient
+        .get<ApiResponse<KnowledgeCardView>>(`/cards/${cardId}`)
+        .then((response) => unwrapApiResponse(response.data)),
 
-    // DELETE /cards/:id (소프트 딜리트)
     delete: (cardId: string): Promise<void> =>
-      apiClient.delete(`/cards/${cardId}`).then(() => undefined),
+      apiClient.delete<ApiResponse<void>>(`/cards/${cardId}`).then(() => undefined),
   };
 }
 

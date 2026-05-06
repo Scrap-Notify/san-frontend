@@ -5,6 +5,10 @@ export interface PendingScrap {
   source_url: string | null;
   raw_content: string | null;
   image_url: string | null;
+  image_preview_url?: string | null;
+  image_file_name?: string | null;
+  image_mime_type?: string | null;
+  image_blob_id?: string | null;
   title: string;
   domain: string;
   favicon: string | null;
@@ -18,9 +22,13 @@ export interface SavedInsight extends PendingScrap {
 export type MessageType =
   | 'REQUEST_METADATA'
   | 'SCRAP_SELECTION'
-  | 'PUSH_TO_SIDEPANEL';
+  | 'PUSH_TO_SIDEPANEL'
+  | 'SAN_AUTH_SYNC'
+  | 'SAN_AUTH_CLEAR';
 
 export interface ExtensionMessage {
   type: MessageType;
   payload?: PendingScrap;
+  accessToken?: string;
+  refreshToken?: string;
 }

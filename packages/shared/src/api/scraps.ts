@@ -1,30 +1,35 @@
-// packages/shared/src/api/scraps.ts
 import type { AxiosInstance } from 'axios';
-import type {
-  Scrap,
-  CreateScrapRequest,
-  CreateScrapResponse,
-} from '../types';
+import { unwrapApiResponse, type ApiResponse } from './client';
+import type { CreateScrapRequest, CreateScrapResponse, Scrap } from '../types';
 
-// ----------------------------
-// apiClient를 인수로 받는 팩토리
-// dashboard/extension에서 각자의 client 인스턴스를 주입
-// ----------------------------
 export function createScrapsApi(apiClient: AxiosInstance) {
   return {
-    // POST /scraps
     create: (payload: CreateScrapRequest): Promise<CreateScrapResponse> =>
-      apiClient.post<CreateScrapResponse>('/scraps', payload).then((r) => r.data),
+      apiClient
+        .post<ApiResponse<CreateScrapResponse>>('/scraps', payload)
+        .then((response) => unwrapApiResponse(response.data)),
 
-    // GET /scraps/:id — ai_status 폴링용
+    createWithImage: (payload: CreateScrapRequest, image: File): Promise<CreateScrapResponse> => {
+      const formData = new FormData();
+      if (payload.sourceUrl) {
+        formData.append('sourceUrl', payload.sourceUrl);
+      }
+      formData.append('rawContent', payload.rawContent);
+      formData.append('image', image);
+
+      return apiClient
+        .post<ApiResponse<CreateScrapResponse>>('/scraps', formData)
+        .then((response) => unwrapApiResponse(response.data));
+    },
+
     getById: (scrapId: string): Promise<Scrap> =>
-      apiClient.get<Scrap>(`/scraps/${scrapId}`).then((r) => r.data),
+      apiClient
+        .get<ApiResponse<Scrap>>(`/scraps/${scrapId}`)
+        .then((response) => unwrapApiResponse(response.data)),
 
-    // DELETE /scraps/:id (소프트 딜리트)
     delete: (scrapId: string): Promise<void> =>
-      apiClient.delete(`/scraps/${scrapId}`).then(() => undefined),
+      apiClient.delete<ApiResponse<void>>(`/scraps/${scrapId}`).then(() => undefined),
   };
 }
 
-// createScrapsApi 반환 타입 — hooks에서 타입 명시에 활용
 export type ScrapsApi = ReturnType<typeof createScrapsApi>;

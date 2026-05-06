@@ -2,6 +2,7 @@ import { Calendar, Check, ChevronDown, LogOut, Menu, Plus, Search, Settings, Tag
 import { type FormEvent, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi, authTokenStorage } from '../api/client';
+import { clearExtensionAuth } from '../api/extensionAuth';
 
 const TAG_OPTIONS = ['Design', 'Research', 'Cognition', 'Systems', 'Colors'];
 
@@ -22,6 +23,7 @@ export function GNB() {
       await authApi.logout();
     } finally {
       await authTokenStorage.clearToken();
+      await clearExtensionAuth();
       setIsOpen(false);
       navigate('/login');
     }

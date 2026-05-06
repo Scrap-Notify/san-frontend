@@ -5,11 +5,30 @@ import type { PendingScrap } from '../../types';
 interface DropZoneProps {
   pendingScrap: PendingScrap | null;
   onTextDrop: (text: string) => void | Promise<void>;
-  onSave: () => void;
+  onImageDrop: (file: File) => void | Promise<void>;
+  onSave: () => void | Promise<void>;
   onClear: () => void;
+  isSaving?: boolean;
+  savingLabel?: string;
+  saveLabel?: string;
+  saveError?: string | null;
+  saveNotice?: string | null;
+  onLogin?: () => void;
 }
 
-export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZoneProps) => {
+export const DropZone = ({
+  pendingScrap,
+  onTextDrop,
+  onImageDrop,
+  onSave,
+  onClear,
+  isSaving = false,
+  savingLabel = 'Saving...',
+  saveLabel = 'Save',
+  saveError = null,
+  saveNotice = null,
+  onLogin,
+}: DropZoneProps) => {
   const [isOver, setIsOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,6 +36,15 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
     event.preventDefault();
     setIsOver(false);
     setError(null);
+
+    const imageFile = Array.from(event.dataTransfer.files).find((file) =>
+      file.type.startsWith('image/')
+    );
+
+    if (imageFile) {
+      await onImageDrop(imageFile);
+      return;
+    }
 
     const droppedText = event.dataTransfer.getData('text/plain').trim();
     if (droppedText.length < 10) {
@@ -56,9 +84,9 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
 
         <div className="min-w-0">
           <p className={`font-bold text-sm transition-colors ${isOver ? 'text-white' : 'text-slate-300'}`}>
-            {isOver ? 'Drop to prepare a save' : 'Drop selected text here'}
+            {isOver ? 'Drop to prepare a save' : 'Drop text or image here'}
           </p>
-          <p className="text-[11px] text-slate-600 mt-1">Selected text must be at least 10 characters.</p>
+          <p className="text-[11px] text-slate-600 mt-1">Text needs 10+ characters. Images are saved as scraps.</p>
         </div>
       </div>
 
@@ -66,6 +94,27 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
         <p className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
           {error}
         </p>
+      )}
+
+      {saveError && (
+        <p className="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">
+          {saveError}
+        </p>
+      )}
+
+      {saveNotice && (
+        <div className="text-xs text-[#4ADE80] bg-[#4ADE80]/10 border border-[#4ADE80]/20 rounded-md px-3 py-2">
+          <p>{saveNotice}</p>
+          {onLogin ? (
+            <button
+              type="button"
+              onClick={onLogin}
+              className="mt-2 rounded-md bg-[#4ADE80] px-3 py-1.5 font-bold text-[#0A0F1E] transition hover:bg-[#2DD4BF]"
+            >
+              Open dashboard login
+            </button>
+          ) : null}
+        </div>
       )}
 
       {pendingScrap && (
@@ -81,11 +130,19 @@ export const DropZone = ({ pendingScrap, onTextDrop, onSave, onClear }: DropZone
           <p className="text-sm text-slate-300 line-clamp-3 leading-relaxed">
             {pendingScrap.raw_content ?? pendingScrap.title}
           </p>
+          {pendingScrap.image_preview_url ? (
+            <img
+              src={pendingScrap.image_preview_url}
+              alt={pendingScrap.title}
+              className="mt-3 max-h-40 w-full rounded-md object-cover"
+            />
+          ) : null}
           <button
             onClick={onSave}
-            className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
+            disabled={isSaving}
+            className="mt-3 w-full bg-[#4ADE80] hover:bg-[#2DD4BF] disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 text-[#0A0F1E] font-bold py-2 rounded-lg text-sm transition-all active:scale-[0.99]"
           >
-            Save
+            {isSaving ? savingLabel : saveLabel}
           </button>
         </div>
       )}

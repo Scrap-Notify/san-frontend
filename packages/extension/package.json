@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:prod-api": "vite --mode prod-api",
     "build": "tsc && vite build",
+    "build:prod": "tsc && vite build --mode production",
     "test:og": "node scripts/og-metadata-smoke.mjs",
     "preview": "vite preview"
   },

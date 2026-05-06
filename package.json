@@ -9,8 +9,10 @@
     "dev:dashboard:local": "pnpm --filter @san/dashboard dev:local",
     "dev:dashboard:prod-api": "pnpm --filter @san/dashboard dev:prod-api",
     "dev:extension": "pnpm --filter @san/extension dev",
+    "dev:extension:prod-api": "pnpm --filter @san/extension dev:prod-api",
     "build:all": "pnpm --filter @san/dashboard build && pnpm --filter @san/extension build",
     "build:dashboard:prod": "pnpm --filter @san/dashboard build:prod",
+    "build:extension:prod": "pnpm --filter @san/extension build:prod",
     "lint": "pnpm --filter '*' lint"
   },
   "devDependencies": {
