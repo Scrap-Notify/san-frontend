@@ -8,6 +8,7 @@ export interface PendingScrap {
   image_preview_url?: string | null;
   image_file_name?: string | null;
   image_mime_type?: string | null;
+  image_blob_id?: string | null;
   title: string;
   domain: string;
   favicon: string | null;

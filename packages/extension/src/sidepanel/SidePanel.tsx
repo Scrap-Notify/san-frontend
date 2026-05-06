@@ -15,6 +15,8 @@ const DEBUG_PREFIX = '[SAN:sidepanel]';
 const STORAGE_KEY = 'san:saved-insights';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
+const IMAGE_DB_NAME = 'san-extension-images';
+const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
 const defaultDashboardBaseUrl = import.meta.env.PROD
   ? 'https://k14a309.p.ssafy.io'
@@ -64,6 +66,69 @@ function fileToDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function openImageDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(IMAGE_DB_NAME, 1);
+
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(IMAGE_STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function savePendingImageFile(file: File): Promise<string> {
+  const id = typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const db = await openImageDb();
+
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(IMAGE_STORE_NAME, 'readwrite');
+    transaction.objectStore(IMAGE_STORE_NAME).put(file, id);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+
+  db.close();
+  return id;
+}
+
+async function loadPendingImageFile(
+  id: string,
+  fallbackName = 'pending-image',
+  fallbackType = 'application/octet-stream'
+): Promise<File | null> {
+  const db = await openImageDb();
+  const value = await new Promise<Blob | File | undefined>((resolve, reject) => {
+    const transaction = db.transaction(IMAGE_STORE_NAME, 'readonly');
+    const request = transaction.objectStore(IMAGE_STORE_NAME).get(id);
+    request.onsuccess = () => resolve(request.result as Blob | File | undefined);
+    request.onerror = () => reject(request.error);
+  });
+
+  db.close();
+
+  if (!value) return null;
+  if (value instanceof File) return value;
+
+  return new File([value], fallbackName, { type: value.type || fallbackType });
+}
+
+async function deletePendingImageFile(id: string | null | undefined) {
+  if (!id) return;
+
+  const db = await openImageDb();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(IMAGE_STORE_NAME, 'readwrite');
+    transaction.objectStore(IMAGE_STORE_NAME).delete(id);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+  db.close();
 }
 
 function delay(ms: number) {
@@ -157,6 +222,21 @@ export default function SidePanel() {
         if (storedPendingScrap) {
           debugLog('pending scrap restored', storedPendingScrap);
           setPendingScrap(storedPendingScrap);
+          if (storedPendingScrap.source_type === 'IMAGE' && storedPendingScrap.image_blob_id) {
+            loadPendingImageFile(
+              storedPendingScrap.image_blob_id,
+              storedPendingScrap.image_file_name ?? storedPendingScrap.title,
+              storedPendingScrap.image_mime_type ?? undefined
+            )
+              .then((file) => {
+                if (file) {
+                  setPendingImageFile(file);
+                }
+              })
+              .catch((error) => {
+                console.error(DEBUG_PREFIX, 'failed to restore pending image file', error);
+              });
+          }
         }
       })
       .catch((error) => {
@@ -199,8 +279,17 @@ export default function SidePanel() {
     };
   }, []);
 
+  const clearSaveFeedback = useCallback(() => {
+    setSaveError(null);
+    setSaveNotice(null);
+    setRelatedError(null);
+    setRelatedCards([]);
+    setIsLoadingRelated(false);
+  }, []);
+
   const handleTextDrop = useCallback(async (text: string) => {
     const metadata = await requestActiveTabMetadata();
+    await deletePendingImageFile(pendingScrap?.image_blob_id);
     const nextPending: PendingScrap = {
       ...(metadata ?? {
         source_type: 'TEXT',
@@ -213,13 +302,10 @@ export default function SidePanel() {
       }),
       source_type: 'TEXT',
       raw_content: text,
+      image_blob_id: null,
     };
 
-    setSaveError(null);
-    setSaveNotice(null);
-    setRelatedError(null);
-    setRelatedCards([]);
-    setIsLoadingRelated(false);
+    clearSaveFeedback();
     debugLog('drop zone text received', {
       length: text.length,
       source_url: nextPending.source_url,
@@ -228,11 +314,13 @@ export default function SidePanel() {
     setPendingScrap(nextPending);
     setPendingImageFile(null);
     await savePendingScrap(nextPending);
-  }, []);
+  }, [clearSaveFeedback, pendingScrap?.image_blob_id]);
 
   const handleImageDrop = useCallback(async (file: File) => {
     const metadata = await requestActiveTabMetadata();
     const previewUrl = await fileToDataUrl(file);
+    const imageBlobId = await savePendingImageFile(file);
+    await deletePendingImageFile(pendingScrap?.image_blob_id);
     const nextPending: PendingScrap = {
       ...(metadata ?? {
         source_type: 'IMAGE',
@@ -249,18 +337,15 @@ export default function SidePanel() {
       image_preview_url: previewUrl,
       image_file_name: file.name,
       image_mime_type: file.type,
+      image_blob_id: imageBlobId,
       title: file.name || metadata?.title || 'Dropped image',
     };
 
-    setSaveError(null);
-    setSaveNotice(null);
-    setRelatedError(null);
-    setRelatedCards([]);
-    setIsLoadingRelated(false);
+    clearSaveFeedback();
     setPendingScrap(nextPending);
     setPendingImageFile(file);
     await savePendingScrap(nextPending);
-  }, []);
+  }, [clearSaveFeedback, pendingScrap?.image_blob_id]);
 
   const handleSave = useCallback(async () => {
     if (!pendingScrap) return;
@@ -279,14 +364,20 @@ export default function SidePanel() {
         const nextCards = [saved, ...cards];
         setCards(nextCards);
         setPendingScrap(null);
+        setPendingImageFile(null);
         await savePendingScrap(null);
         await saveInsights(nextCards);
+        await deletePendingImageFile(pendingScrap.image_blob_id);
         setSaveNotice('Saved locally. Login to create knowledge cards and see related cards.');
         debugLog('insight saved locally', saved);
         return;
       }
 
       const request = toCreateScrapRequest(pendingScrap);
+      if (pendingScrap.source_type === 'IMAGE' && !pendingImageFile) {
+        throw new Error('Image file could not be restored. Please drop the image again.');
+      }
+
       const response = pendingScrap.source_type === 'IMAGE' && pendingImageFile
         ? await scrapsApi.createWithImage(request, pendingImageFile)
         : await scrapsApi.create(request);
@@ -301,6 +392,7 @@ export default function SidePanel() {
       setPendingImageFile(null);
       await savePendingScrap(null);
       await saveInsights(nextCards);
+      await deletePendingImageFile(pendingScrap.image_blob_id);
       debugLog('insight saved', saved);
 
       setSavingLabel('Creating card...');
@@ -321,7 +413,7 @@ export default function SidePanel() {
       setIsSaving(false);
       setIsLoadingRelated(false);
     }
-  }, [cards, isAuthenticated, pendingScrap]);
+  }, [cards, isAuthenticated, pendingImageFile, pendingScrap]);
 
   const openDashboardLogin = useCallback(() => {
     chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
@@ -347,13 +439,10 @@ export default function SidePanel() {
             onImageDrop={handleImageDrop}
             onSave={handleSave}
             onClear={() => {
+              void deletePendingImageFile(pendingScrap?.image_blob_id);
               setPendingScrap(null);
               setPendingImageFile(null);
-              setSaveError(null);
-              setSaveNotice(null);
-              setRelatedError(null);
-              setRelatedCards([]);
-              setIsLoadingRelated(false);
+              clearSaveFeedback();
               void savePendingScrap(null);
             }}
             isSaving={isSaving}
