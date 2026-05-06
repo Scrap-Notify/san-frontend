@@ -11,7 +11,7 @@ interface TopNavBarProps {
 }
 
 export function TopNavBar({
-  activeMenu = 'TIL',
+  activeMenu = 'Dashboard',
   searchPlaceholder = 'Search knowledge cards...',
   userAvatarUrl,
   onSettingsClick,
@@ -52,6 +52,11 @@ export function TopNavBar({
     setIsMenuOpen(false);
   };
 
+  const handleTilClick = () => {
+    navigate('/til');
+    setIsMenuOpen(false);
+  };
+
   const handleUserClick = () => {
     if (!isAuthenticated) {
       navigate('/login');
@@ -84,7 +89,7 @@ export function TopNavBar({
   return (
     <header className="flex w-full flex-col gap-5 rounded-tr-[48px] rounded-bl-[48px] bg-[#101417]/60 px-6 pb-5 pt-6 text-[#fbfffa] backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-8">
       <div className="flex min-w-0 items-center justify-between gap-4 lg:shrink-0">
-        <div className="flex min-w-0 items-center gap-10">
+        <div className="flex min-w-0 items-center gap-4 sm:gap-6">
           <button
             type="button"
             onClick={() => navigate('/')}
@@ -93,7 +98,20 @@ export function TopNavBar({
             SAN
           </button>
 
-          <div className="min-w-0 border-b-2 border-[#00ffc2] pb-2">
+          <button
+            type="button"
+            onClick={handleTilClick}
+            className={[
+              'min-h-11 shrink-0 rounded-full px-5 text-sm font-bold transition',
+              activeMenu === 'TIL'
+                ? 'bg-[#00ffc2] text-[#101417]'
+                : 'border border-[#3a4a43]/50 bg-[#181c1f] text-[#b9cbc1] hover:border-[#00ffc2]/40 hover:text-[#00ffc2]',
+            ].join(' ')}
+          >
+            TIL
+          </button>
+
+          <div className="hidden min-w-0 border-b-2 border-[#00ffc2] pb-2 sm:block">
             <span className="block truncate pl-2 text-xl font-semibold leading-none text-[#00ffc2] sm:text-2xl">
               {activeMenu}
             </span>
@@ -111,7 +129,7 @@ export function TopNavBar({
         </button>
       </div>
 
-      <div className="hidden min-w-0 gap-3 lg:grid lg:w-[min(60vw,54rem)] lg:grid-cols-[minmax(16rem,1fr)_auto_auto] lg:items-center">
+      <div className="hidden min-w-0 gap-3 lg:grid lg:w-[min(58vw,54rem)] lg:grid-cols-[minmax(16rem,1fr)_auto_auto] lg:items-center">
         {navActions}
       </div>
 

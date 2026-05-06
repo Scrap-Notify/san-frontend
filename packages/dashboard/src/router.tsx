@@ -6,7 +6,7 @@ import { Signup } from './pages/SignUpPage';
 import { ResultPage } from './pages/ResultPage';
 import { GithubAuthResultPage } from './pages/GithubAuthResultPage';
 import { SettingsIntegrationsPage } from './pages/SettingsIntegrationsPage';
-import { TilPage } from './pages/TilPage';
+import { TilPage } from './til/TilPage';
 
 export const router = createBrowserRouter([
   {

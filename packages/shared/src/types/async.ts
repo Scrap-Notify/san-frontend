@@ -1,4 +1,8 @@
-export type AsyncJobType = 'CARD_ANALYSIS' | 'TIL_GENERATION' | 'RECALL_GENERATION';
+export type AsyncJobType =
+  | 'CARD_ANALYSIS'
+  | 'TIL_GENERATION'
+  | 'RECALL_GENERATION'
+  | 'TIL_GITHUB_COMMIT';
 export type AsyncJobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 
 export interface AsyncJobStatusResponse {

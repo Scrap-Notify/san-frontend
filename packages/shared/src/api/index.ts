@@ -26,3 +26,5 @@ export { createSearchApi } from './search';
 export type { SearchApi } from './search';
 export { createAsyncJobsApi } from './async';
 export type { AsyncJobsApi } from './async';
+export { createTilApi } from './til';
+export type { TilApi } from './til';
