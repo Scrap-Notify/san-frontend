@@ -27,6 +27,7 @@ export function EmptyState({ onLogin }: EmptyStateProps) {
         onClick={onLogin}
         size="lg"
         trailingIcon={<LoginArrowIcon />}
+        className="gap-1.5 !px-5 !py-2.5 !text-sm !text-[var(--color-text-primary)]"
       >
         로그인하고 시작하기
       </CurvedButton>

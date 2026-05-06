@@ -21,14 +21,14 @@ const baseClassName = [
 const toneClassMap: Record<NonNullable<CurvedButtonProps['tone']>, string> = {
   primary: [
     'bg-[#00ffc2]',
-    'text-[var(--color-text-primary)]',
+    'text-[var(--color-background)]',
     'shadow-[0_0_25px_rgba(0,255,194,0.3)]',
     'hover:opacity-95',
     'active:shadow-[0_0_12px_rgba(0,255,194,0.22)]',
   ].join(' '),
   subtle: [
     'border border-[#00ffc2]/20 bg-[#00ffc2]/10',
-    'text-[var(--color-text-secondary)]',
+    'text-[var(--color-text-muted)]',
     'shadow-[0_0_10px_rgba(0,255,194,0.12)]',
     'hover:bg-[#00ffc2]/15',
     'active:shadow-[0_0_6px_rgba(0,255,194,0.1)]',
@@ -36,9 +36,9 @@ const toneClassMap: Record<NonNullable<CurvedButtonProps['tone']>, string> = {
 };
 
 const sizeClassMap: Record<NonNullable<CurvedButtonProps['size']>, string> = {
-  sm: 'min-h-9 px-4 py-2 text-xs',
-  md: 'min-h-11 px-6 py-3 text-sm',
-  lg: 'min-h-12 px-8 py-3.5 text-base',
+  sm: 'min-h-8 px-3.5 py-1.5 text-xs',
+  md: 'min-h-10 px-5 py-2.5 text-sm',
+  lg: 'min-h-11 px-6 py-3 text-base',
 };
 
 export function CurvedButton({

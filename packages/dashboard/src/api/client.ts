@@ -6,6 +6,8 @@ import {
   createScrapsApi,
   type AuthTokens,
 } from '@san/shared';
+import { clearExtensionAuth, syncExtensionAuth } from './extensionAuth';
+import { authTokenStorage as localAuthTokenStorage } from './tokenStorage';
 
 const defaultBaseURL = import.meta.env.PROD
   ? 'https://k14a309.p.ssafy.io/api'
@@ -13,19 +15,16 @@ const defaultBaseURL = import.meta.env.PROD
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL;
 
-const ACCESS_TOKEN_KEY = 'san_access_token';
-const REFRESH_TOKEN_KEY = 'san_refresh_token';
-
 const tokenProvider = {
-  getToken: async () => localStorage.getItem(ACCESS_TOKEN_KEY),
-  getRefreshToken: async () => localStorage.getItem(REFRESH_TOKEN_KEY),
-  setTokens: async ({ accessToken, refreshToken }: AuthTokens) => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  getToken: localAuthTokenStorage.getToken,
+  getRefreshToken: localAuthTokenStorage.getRefreshToken,
+  setTokens: async (tokens: AuthTokens) => {
+    await localAuthTokenStorage.setTokens(tokens);
+    void syncExtensionAuth(tokens);
   },
   clearToken: async () => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    await localAuthTokenStorage.clearToken();
+    void clearExtensionAuth();
   },
 };
 

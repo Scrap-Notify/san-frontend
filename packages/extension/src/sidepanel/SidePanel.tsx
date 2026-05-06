@@ -254,37 +254,46 @@ export default function SidePanel() {
   useEffect(() => {
     let ignore = false;
 
-    authTokenStorage.getToken().then((token) => {
-      if (ignore) return;
+    const refreshAuthState = async () => {
+      const token = await authTokenStorage.getToken();
+      if (ignore) {
+        return;
+      }
 
       const hasToken = Boolean(token);
       setIsAuthenticated(hasToken);
       if (hasToken) {
         void refreshRecentCards();
+      } else {
+        setRecentCards([]);
+        setCreatedCard(null);
+        setRelatedCards([]);
       }
-    });
+    };
+
+    void refreshAuthState();
 
     const handleStorageChange = (
       changes: Record<string, chrome.storage.StorageChange>,
       areaName: string
     ) => {
       if (areaName === 'local' && changes[ACCESS_TOKEN_KEY]) {
-        const hasToken = Boolean(changes[ACCESS_TOKEN_KEY].newValue);
-        setIsAuthenticated(hasToken);
-        if (hasToken) {
-          void refreshRecentCards();
-        } else {
-          setRecentCards([]);
-          setCreatedCard(null);
-          setRelatedCards([]);
-        }
+        void refreshAuthState();
+      }
+    };
+
+    const handleAuthMessage = (msg: ExtensionMessage) => {
+      if (msg.type === 'SAN_AUTH_STATE_CHANGED') {
+        void refreshAuthState();
       }
     };
 
     chrome.storage.onChanged.addListener(handleStorageChange);
+    chrome.runtime.onMessage.addListener(handleAuthMessage);
     return () => {
       ignore = true;
       chrome.storage.onChanged.removeListener(handleStorageChange);
+      chrome.runtime.onMessage.removeListener(handleAuthMessage);
     };
   }, [refreshRecentCards]);
 
@@ -405,13 +414,15 @@ export default function SidePanel() {
           ) : pendingScrap ? (
             null
           ) : (
+            null
+          )}
+          {isAuthenticated && !hasKnowledgeResult ? (
             <RecentKnowledgeList
               cards={recentCards}
               isLoading={isLoadingRecent}
               error={recentError}
             />
-          )}
-          {isAuthenticated && cards.length > 0 ? <ArchiveList cards={cards} /> : null}
+          ) : null}
         </div>
       </div>
     </div>

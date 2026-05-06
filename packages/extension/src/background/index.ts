@@ -7,6 +7,7 @@ const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
+const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const isDebug = import.meta.env.DEV;
 
 interface AuthSyncMessage {
@@ -101,7 +102,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender) => {
+chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
   debugLog('runtime message received', { message, tabId: sender.tab?.id, url: sender.tab?.url });
   if (message.type === 'SCRAP_SELECTION' && sender.tab?.id && message.payload) {
     pushToSidePanel(message.payload);
@@ -109,16 +110,29 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender) => {
   }
 
   if (isAuthClearMessage(message)) {
-    clearAuthTokens().catch((error) => {
-      console.error(DEBUG_PREFIX, 'failed to clear auth tokens', error);
-    });
-    return;
+    clearAuthTokens()
+      .then(() => {
+        debugLog('auth tokens cleared');
+        sendResponse({ ok: true, hasAccessToken: false, hasRefreshToken: false });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to clear auth tokens', error);
+        sendResponse({ ok: false });
+      });
+    return true;
   }
 
   if (isAuthSyncMessage(message)) {
-    syncAuthTokens(message).catch((error) => {
-      console.error(DEBUG_PREFIX, 'failed to sync auth tokens', error);
-    });
+    syncAuthTokens(message)
+      .then((authState) => {
+        debugLog('auth tokens synced');
+        sendResponse({ ok: true, ...authState });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to sync auth tokens', error);
+        sendResponse({ ok: false });
+      });
+    return true;
   }
 });
 
@@ -133,7 +147,7 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
     clearAuthTokens()
       .then(() => {
         debugLog('auth tokens cleared from dashboard');
-        sendResponse({ ok: true });
+        sendResponse({ ok: true, hasAccessToken: false, hasRefreshToken: false });
       })
       .catch((error) => {
         console.error(DEBUG_PREFIX, 'failed to clear auth tokens', error);
@@ -149,9 +163,9 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
   }
 
   syncAuthTokens(message)
-    .then(() => {
+    .then((authState) => {
       debugLog('auth tokens synced from dashboard');
-      sendResponse({ ok: true });
+      sendResponse({ ok: true, ...authState });
     })
     .catch((error) => {
       console.error(DEBUG_PREFIX, 'failed to sync auth tokens', error);
@@ -170,10 +184,34 @@ async function syncAuthTokens(message: AuthSyncMessage) {
     [ACCESS_TOKEN_KEY]: message.accessToken,
     [REFRESH_TOKEN_KEY]: message.refreshToken,
   });
+  notifyAuthStateChanged(true);
+
+  return readStoredAuthState();
 }
 
 async function clearAuthTokens() {
   await chrome.storage.local.remove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+  notifyAuthStateChanged(false);
+}
+
+async function readStoredAuthState() {
+  const stored = await chrome.storage.local.get([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+
+  return {
+    hasAccessToken: typeof stored[ACCESS_TOKEN_KEY] === 'string',
+    hasRefreshToken: typeof stored[REFRESH_TOKEN_KEY] === 'string',
+  };
+}
+
+function notifyAuthStateChanged(isAuthenticated: boolean) {
+  chrome.runtime
+    .sendMessage({
+      type: AUTH_STATE_CHANGED_MESSAGE,
+      isAuthenticated,
+    })
+    .catch((error) => {
+      debugLog('auth state change broadcast skipped', error);
+    });
 }
 
 function pushToSidePanel(payload: PendingScrap) {

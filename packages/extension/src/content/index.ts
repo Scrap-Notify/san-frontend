@@ -4,6 +4,7 @@ import { extractMetadataFromDocument } from './metadata';
 
 const DEBUG_PREFIX = '[SAN:content]';
 const DASHBOARD_MESSAGE_SOURCE = 'SAN_DASHBOARD';
+const EXTENSION_MESSAGE_SOURCE = 'SAN_EXTENSION';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const isDebug = import.meta.env.DEV;
@@ -29,7 +30,7 @@ function extractMetadata(): PendingScrap {
   return extractMetadataFromDocument(document, location, debugLog);
 }
 
-function isDashboardAuthMessage(value: unknown): value is { source: string; payload: unknown } {
+function isDashboardAuthMessage(value: unknown): value is { source: string; requestId?: string; payload: unknown } {
   if (!value || typeof value !== 'object') return false;
   const maybe = value as { source?: unknown; payload?: unknown };
   if (maybe.source !== DASHBOARD_MESSAGE_SOURCE) return false;
@@ -61,7 +62,26 @@ window.addEventListener('message', (event) => {
     type: (event.data.payload as { type?: unknown }).type,
   });
 
-  chrome.runtime.sendMessage(event.data.payload).catch((error) => {
-    console.warn(DEBUG_PREFIX, 'failed to relay dashboard auth message', error);
-  });
+  chrome.runtime
+    .sendMessage(event.data.payload)
+    .then((response) => {
+      postBridgeResponse(event.origin, event.data.requestId, response);
+    })
+    .catch((error) => {
+      console.warn(DEBUG_PREFIX, 'failed to relay dashboard auth message', error);
+      postBridgeResponse(event.origin, event.data.requestId, { ok: false });
+    });
 });
+
+function postBridgeResponse(origin: string, requestId: string | undefined, response: unknown) {
+  if (!requestId) return;
+
+  window.postMessage(
+    {
+      source: EXTENSION_MESSAGE_SOURCE,
+      requestId,
+      response,
+    },
+    origin
+  );
+}

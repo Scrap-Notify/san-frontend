@@ -24,11 +24,13 @@ export type MessageType =
   | 'SCRAP_SELECTION'
   | 'PUSH_TO_SIDEPANEL'
   | 'SAN_AUTH_SYNC'
-  | 'SAN_AUTH_CLEAR';
+  | 'SAN_AUTH_CLEAR'
+  | 'SAN_AUTH_STATE_CHANGED';
 
 export interface ExtensionMessage {
   type: MessageType;
   payload?: PendingScrap;
   accessToken?: string;
   refreshToken?: string;
+  isAuthenticated?: boolean;
 }
