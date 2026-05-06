@@ -91,13 +91,10 @@ export function Signup() {
   };
 
   return (
-    <main className="auth-shell flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-[#101417] text-[#fbfffa]">
-      <section className="relative w-full max-w-2xl min-w-0">
-        <div className="pointer-events-none absolute left-0 top-4 aspect-square w-24 rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg bg-[#00ffc2]/30 blur-2xl sm:w-32" />
-        <div className="pointer-events-none absolute bottom-0 right-0 aspect-square w-28 rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg bg-[#00ffc2]/20 blur-2xl sm:w-40" />
-
-        <div className="relative rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border-l border-t border-[#3a4a43]/20 bg-[#181c1f]/50 p-[clamp(1.5rem,4vw,3rem)] shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-          <div className="mb-8 flex min-w-0 items-start justify-between gap-5 sm:mb-10">
+    <main className="auth-shell flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-[#101417] bg-[radial-gradient(circle_at_center,rgba(0,255,194,0.08),transparent_60%)] text-[#fbfffa]">
+      <section className="w-full max-w-2xl min-w-0">
+        <div className="rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border border-[#3a4a43]/20 bg-[#181c1f]/50 p-[clamp(1.5rem,4vw,3rem)] shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <div className="mb-8 grid min-w-0 gap-5 sm:mb-10 sm:grid-cols-[1fr_auto] sm:items-start">
             <div className="min-w-0">
               <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#00ffc2]">
                 Create Account
@@ -247,15 +244,15 @@ function Field({
         {action ? <span>{action}</span> : null}
       </span>
 
-      <div className="relative min-w-0">
+      <div className="flex min-w-0 items-center gap-3 border-b-2 border-[#3a4a43]/30 px-1 py-4 focus-within:border-[#00ffc2]/70">
         <input
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-h-14 w-full rounded-none border-b-2 border-[#3a4a43]/30 bg-transparent px-1 py-4 pr-12 text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/40 focus:border-[#00ffc2]/70 sm:text-lg"
+          className="min-h-6 min-w-0 flex-1 bg-transparent text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/40 sm:text-lg"
         />
-        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[#b9cbc1]/40">
+        <span className="shrink-0 text-[#b9cbc1]/40">
           {icon}
         </span>
       </div>

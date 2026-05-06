@@ -93,9 +93,9 @@ export function SettingsIntegrationsPage() {
   };
 
   return (
-    <section className="w-full min-w-0 space-y-6 py-10 text-[#fbfffa]">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+    <section className="w-full min-w-0 space-y-6 py-[clamp(2rem,5vw,3.5rem)] text-[#fbfffa]">
+      <header className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-widest text-[#00ffc2]">
             Integrations
           </p>
@@ -103,7 +103,7 @@ export function SettingsIntegrationsPage() {
           <p className="mt-2 text-sm leading-6 text-[#83958c]">{statusText}</p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-2 sm:flex sm:flex-wrap sm:justify-end">
           <button
             type="button"
             onClick={handleLinkGithub}
@@ -153,7 +153,7 @@ export function SettingsIntegrationsPage() {
             {connectedRepositories.map((repository) => (
               <article
                 key={repository.githubRepositoryId}
-                className="flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-white/5 bg-[#101417]/70 p-4"
+                className="grid min-w-0 gap-4 rounded-2xl border border-white/5 bg-[#101417]/70 p-4 sm:grid-cols-[1fr_auto] sm:items-center"
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1e5056] text-[#00ffc2]">
@@ -176,7 +176,7 @@ export function SettingsIntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => handleDisconnectRepository(repository.githubRepositoryId)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#1b2023] text-[#b9cbc1] transition hover:border-red-300/40 hover:text-red-200"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#1b2023] text-[#b9cbc1] transition hover:border-red-300/40 hover:text-red-200 sm:justify-self-end"
                   aria-label={`Disconnect ${repository.fullName}`}
                 >
                   <Trash2 className="h-4 w-4" />

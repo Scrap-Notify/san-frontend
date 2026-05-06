@@ -42,12 +42,10 @@ export function ArchiveSection() {
         </div>
       </div>
 
-      <div className="relative min-w-0">
-        <div className="pointer-events-none absolute inset-x-0 -top-8 bottom-0 rounded-3xl bg-[radial-gradient(circle_at_center,rgba(0,255,194,0.12),transparent_62%)] blur-2xl" />
-
+      <div className="min-w-0 rounded-3xl bg-[radial-gradient(circle_at_center,rgba(0,255,194,0.08),transparent_64%)]">
         <div
           ref={carouselRef}
-          className="relative flex w-full min-w-0 snap-x snap-mandatory gap-[clamp(1rem,2vw,2rem)] overflow-x-auto scroll-smooth pb-5"
+          className="flex w-full min-w-0 snap-x snap-mandatory gap-[clamp(1rem,2vw,2rem)] overflow-x-auto scroll-smooth px-1 pb-5"
         >
           {isPending ? (
             <StatusCard message="Loading archive cards..." />
@@ -68,7 +66,7 @@ export function ArchiveSection() {
             return (
               <article
                 key={card.card_id}
-                className="flex min-h-80 w-[min(85vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border-l border-t border-[#83958c]/10 bg-[#1c2023]/60 p-[clamp(1.5rem,2.5vw,2.25rem)] shadow-[0_40px_80px_rgba(0,0,0,0.4)] backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]"
+                className="flex min-h-80 w-[min(88vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border border-[#83958c]/10 bg-[#1c2023]/60 p-[clamp(1.5rem,2.5vw,2.25rem)] shadow-[0_40px_80px_rgba(0,0,0,0.4)] backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]"
               >
                 <div>
                   <div className="mb-7 flex items-start justify-between gap-4">
@@ -139,7 +137,7 @@ function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'de
   return (
     <div
       className={[
-        'flex min-h-80 w-[min(85vw,28rem)] shrink-0 snap-start items-center justify-center rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border-l border-t bg-[#1c2023]/60 p-8 text-center text-sm font-medium backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]',
+        'flex min-h-80 w-[min(88vw,28rem)] shrink-0 snap-start items-center justify-center rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border bg-[#1c2023]/60 p-8 text-center text-sm font-medium backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]',
         tone === 'error' ? 'border-red-400/20 text-red-300' : 'border-[#83958c]/10 text-[#b9cbc1]',
       ].join(' ')}
     >

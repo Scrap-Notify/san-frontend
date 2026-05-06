@@ -3,12 +3,12 @@ import { GNB } from '../components/GNB';
 
 export function MainLayout() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#101417]">
-      <header className="dashboard-shell py-4">
+    <div className="grid min-h-screen grid-rows-[auto_1fr] gap-[var(--dashboard-layout-gap)] overflow-x-hidden bg-[#101417] py-3 sm:py-4">
+      <header className="dashboard-shell">
         <GNB />
       </header>
 
-      <main className="dashboard-shell pt-6 pb-16 md:pt-8 lg:pt-10">
+      <main className="dashboard-shell pb-16">
         <Outlet />
       </main>
     </div>

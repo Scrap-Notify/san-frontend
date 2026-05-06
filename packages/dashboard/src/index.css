@@ -1,5 +1,21 @@
 @import "../../ui/src/styles/globals.css";
 
+:root {
+  /*
+   * Dashboard spacing follows an 8px base scale.
+   * Use multiples of 8px for component gaps: 8, 16, 24, 32, 40, 48.
+   * Prefer layout-level gap utilities over ad hoc margins when separating
+   * sibling sections or major UI regions.
+   */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --dashboard-layout-gap: clamp(var(--space-3), 4vw, var(--space-5));
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

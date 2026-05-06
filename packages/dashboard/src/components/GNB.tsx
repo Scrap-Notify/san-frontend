@@ -52,7 +52,7 @@ export function GNB() {
   };
 
   return (
-    <nav className="w-full min-w-0 rounded-3xl border border-white/5 bg-black/35 px-4 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)] backdrop-blur-xl md:rounded-full md:px-5">
+    <nav className="w-full min-w-0 rounded-3xl border border-white/5 bg-black/35 px-4 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)] backdrop-blur-xl md:px-5 xl:rounded-full">
       <div className="flex min-w-0 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-4 lg:gap-6">
           <Link
@@ -77,7 +77,7 @@ export function GNB() {
           </Link>
         </div>
 
-        <div className="hidden min-w-0 items-center justify-end gap-2 md:flex">
+        <div className="hidden min-w-0 items-center justify-end gap-2 lg:flex">
           <SearchForm
             value={query}
             onChange={setQuery}
@@ -92,7 +92,7 @@ export function GNB() {
 
         <button
           type="button"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/5 bg-[#1b2023] text-[#b9cbc1] transition hover:border-[#00ffc2]/30 hover:text-white md:hidden"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/5 bg-[#1b2023] text-[#b9cbc1] transition hover:border-[#00ffc2]/30 hover:text-white lg:hidden"
           onClick={() => setIsOpen((current) => !current)}
           aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={isOpen}
@@ -102,7 +102,7 @@ export function GNB() {
       </div>
 
       {isOpen ? (
-        <div className="mt-4 grid gap-2 border-t border-white/5 pt-4 md:hidden">
+        <div className="mt-4 grid gap-2 border-t border-white/5 pt-4 lg:hidden">
           <SearchForm
             value={query}
             onChange={setQuery}
@@ -169,11 +169,11 @@ function SearchForm({
       className={[
         mobile
           ? 'grid gap-2 rounded-2xl bg-[#1b2023]/70 p-3'
-          : 'flex min-w-0 items-center gap-2',
+          : 'grid min-w-0 grid-cols-[minmax(10rem,1fr)_auto_auto_auto] items-center gap-2',
       ].join(' ')}
       role="search"
     >
-      <div className="flex min-h-9 min-w-0 items-center gap-2 rounded-full border border-white/5 bg-[#1b2023] px-3 py-1.5 text-[#b9cbc1] transition focus-within:border-[#00ffc2]/40 focus-within:text-white md:w-[min(22vw,18rem)] md:min-w-44">
+      <div className="flex min-h-9 min-w-0 items-center gap-2 rounded-full border border-white/5 bg-[#1b2023] px-3 py-1.5 text-[#b9cbc1] transition focus-within:border-[#00ffc2]/40 focus-within:text-white lg:w-[min(20vw,18rem)] lg:min-w-44">
         <Search className="h-4 w-4 shrink-0" />
         <input
           type="search"
@@ -215,7 +215,7 @@ function TagPicker({
   onToggleTag: (tag: string) => void;
 }) {
   return (
-    <div className="group relative">
+    <div className="group relative min-w-0">
       <button
         type="button"
         className="flex min-h-9 w-full items-center justify-center gap-2 rounded-full border border-white/5 bg-[#1b2023] px-3 py-1.5 text-xs font-medium text-[#b9cbc1] transition hover:border-[#00ffc2]/30 hover:text-white md:w-auto"
@@ -225,7 +225,7 @@ function TagPicker({
         <ChevronDown className="h-3.5 w-3.5" />
       </button>
 
-      <div className="invisible absolute right-0 z-30 mt-2 w-52 rounded-2xl border border-white/5 bg-[#181c1f] p-2 opacity-0 shadow-[0_20px_60px_rgba(0,0,0,0.35)] transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+      <div className="hidden w-full rounded-2xl border border-white/5 bg-[#181c1f] p-2 shadow-[0_20px_60px_rgba(0,0,0,0.35)] group-focus-within:grid group-hover:grid md:absolute md:right-0 md:z-30 md:mt-2 md:w-52">
         {TAG_OPTIONS.map((tag) => {
           const selected = selectedTags.includes(tag);
 

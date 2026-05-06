@@ -37,16 +37,16 @@ export function LoginPage() {
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[#101417] text-[#fbfffa]">
       <section className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
-        <div className="relative hidden min-w-0 overflow-hidden lg:flex lg:items-center lg:justify-center">
+        <div className="hidden min-w-0 overflow-hidden lg:grid">
           <img
             src={loginTreeImage}
             alt="SAN knowledge forest"
-            className="absolute inset-0 h-full w-full object-cover opacity-70"
+            className="col-start-1 row-start-1 h-full min-h-screen w-full object-cover opacity-70"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#101417]/25 to-[#101417]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#101417] via-transparent to-transparent" />
+          <div className="col-start-1 row-start-1 bg-gradient-to-r from-transparent via-[#101417]/25 to-[#101417]" />
+          <div className="col-start-1 row-start-1 bg-gradient-to-t from-[#101417] via-transparent to-transparent" />
 
-          <div className="relative z-10 flex w-full max-w-xl flex-col items-center px-[clamp(2rem,5vw,5rem)] text-center">
+          <div className="col-start-1 row-start-1 flex w-full max-w-xl place-self-center flex-col items-center px-[clamp(2rem,5vw,5rem)] text-center">
             <div className="mb-8 flex aspect-square w-16 items-center justify-center rounded-bl-xl rounded-br-3xl rounded-tl-3xl rounded-tr-xl border border-[#3a4a43]/30 bg-[#1e5056]/35 backdrop-blur-xl xl:w-20">
               <Sprout className="h-8 w-8 text-[#00ffc2] xl:h-10 xl:w-10" />
             </div>
@@ -57,10 +57,8 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="auth-shell relative flex min-h-screen min-w-0 items-center justify-center">
-          <div className="pointer-events-none absolute aspect-square w-4/5 max-w-xl rounded-full bg-[#00ffc2]/5 blur-3xl" />
-
-          <div className="relative z-10 w-full max-w-xl rounded-3xl border border-[#3a4a43]/20 bg-[#181c1f]/35 p-[clamp(1.5rem,4vw,2.5rem)] shadow-[0_30px_90px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+        <div className="auth-shell flex min-h-screen min-w-0 items-center justify-center bg-[radial-gradient(circle_at_center,rgba(0,255,194,0.06),transparent_58%)]">
+          <div className="w-full max-w-xl rounded-3xl border border-[#3a4a43]/20 bg-[#181c1f]/35 p-[clamp(1.5rem,4vw,2.5rem)] shadow-[0_30px_90px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
             <header className="mb-8 sm:mb-10">
               <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#00ffc2]">
                 Welcome Back
@@ -164,15 +162,15 @@ function Field({
         ) : null}
       </span>
 
-      <div className="relative min-w-0">
+      <div className="flex min-w-0 items-center gap-3 bg-[#0b0f12] px-5 py-4 focus-within:ring-1 focus-within:ring-[#00ffc2]/60">
         <input
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-h-14 w-full bg-[#0b0f12] px-5 py-4 pr-14 text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/30 focus:ring-1 focus:ring-[#00ffc2]/60 sm:text-lg"
+          className="min-h-6 min-w-0 flex-1 bg-transparent text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/30 sm:text-lg"
         />
-        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#b9cbc1]/40">
+        <span className="shrink-0 text-[#b9cbc1]/40">
           {icon}
         </span>
       </div>
