@@ -11,7 +11,7 @@ interface TopNavBarProps {
 }
 
 export function TopNavBar({
-  activeMenu = 'Recall',
+  activeMenu = 'TIL',
   searchPlaceholder = 'Search knowledge cards...',
   userAvatarUrl,
   onSettingsClick,
@@ -61,6 +61,7 @@ export function TopNavBar({
 
   const handleGithubClick = () => {
     onSettingsClick?.();
+    navigate('/settings/integrations');
     setIsMenuOpen(false);
   };
 
@@ -84,7 +85,13 @@ export function TopNavBar({
     <header className="flex w-full flex-col gap-5 rounded-tr-[48px] rounded-bl-[48px] bg-[#101417]/60 px-6 pb-5 pt-6 text-[#fbfffa] backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-8">
       <div className="flex min-w-0 items-center justify-between gap-4 lg:shrink-0">
         <div className="flex min-w-0 items-center gap-10">
-          <h1 className="shrink-0 text-2xl font-bold leading-none sm:text-3xl">SAN</h1>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="shrink-0 text-2xl font-bold leading-none transition hover:text-[#00ffc2] sm:text-3xl"
+          >
+            SAN
+          </button>
 
           <div className="min-w-0 border-b-2 border-[#00ffc2] pb-2">
             <span className="block truncate pl-2 text-xl font-semibold leading-none text-[#00ffc2] sm:text-2xl">

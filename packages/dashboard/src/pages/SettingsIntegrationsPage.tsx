@@ -1,3 +1,4 @@
+// 깃허브 연동
 import { GitBranch, LinkIcon, RefreshCw, Trash2, Unlink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
