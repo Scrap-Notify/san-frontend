@@ -23,7 +23,7 @@ const intensityMap = {
 export function NeonDot({ size = 'sm', intensity = 'full', className = '' }: NeonDotProps) {
   return (
     <span
-      className={`inline-block rounded-full bg-[#00ffc2] glow-neon ${sizeMap[size]} ${intensityMap[intensity]} ${className}`}
+      className={`inline-block rounded-full bg-neon glow-neon ${sizeMap[size]} ${intensityMap[intensity]} ${className}`}
     />
   );
 }

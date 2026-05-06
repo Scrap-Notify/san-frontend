@@ -10,7 +10,7 @@ import { clearExtensionAuth, syncExtensionAuth } from './extensionAuth';
 import { authTokenStorage as localAuthTokenStorage } from './tokenStorage';
 
 const defaultBaseURL = import.meta.env.PROD
-  ? 'https://k14a309.p.ssafy.io/api'
+  ? '/api'
   : 'http://localhost:8080/api';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL;

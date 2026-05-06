@@ -24,7 +24,7 @@
   --color-icon-bg:       #313539;
 
   /* 폰트 */
-  --font-sans: 'Pretendard', sans-serif;
+  --font-sans: 'Pretendard';
 
   /* radius */
   /* 변수로 등록해두면 다른 곳에서 재활용하기 편해요! */

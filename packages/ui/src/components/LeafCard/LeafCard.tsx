@@ -46,11 +46,11 @@ function SourceIcon({ type }: { type: KnowledgeCardView['source_type'] }) {
 // ai_status가 PENDING/PROCESSING일 때 보여주는 스켈레톤
 function LeafCardSkeleton() {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-leaf bg-[#181c1f] animate-pulse">
-      <div className="w-10 h-10 rounded-full bg-[#313539]" />
+    <div className="flex items-center gap-4 p-4 rounded-leaf bg-surface animate-pulse">
+      <div className="w-10 h-10 rounded-full bg-icon-bg" />
       <div className="flex flex-col gap-2 flex-1">
-        <div className="h-3 bg-[#313539] rounded w-3/4" />
-        <div className="h-2 bg-[#313539] rounded w-1/3" />
+        <div className="h-3 bg-icon-bg rounded w-3/4" />
+        <div className="h-2 bg-icon-bg rounded w-1/3" />
       </div>
     </div>
   );
@@ -83,10 +83,10 @@ export function LeafCard({ card, variant = 'full', onClick }: LeafCardProps) {
       onClick={onClick}
       className={`
         group flex items-center gap-4 p-4
-        rounded-leaf bg-[#181c1f]
-        border border-[#00ffc2]/10
+        rounded-leaf bg-surface
+        border border-neon-subtle
         transition-all duration-200
-        ${onClick ? 'cursor-pointer hover:border-[#00ffc2]/30 hover:bg-[#1c2023]' : ''}
+        ${onClick ? 'cursor-pointer hover:border-neon-dim hover:bg-surface-dim' : ''}
       `}
     >
       {/* 아이콘 박스 */}
@@ -98,7 +98,7 @@ export function LeafCard({ card, variant = 'full', onClick }: LeafCardProps) {
       <div className="flex flex-col gap-1 flex-1 min-w-0">
         {/* 제목 + 상태 점 */}
         <div className="flex items-center gap-2">
-          <p className="text-xs font-bold text-[#fbfffa] truncate">
+          <p className="text-xs font-bold text-text-primary truncate">
             {card.title}
           </p>
           {card.ai_status === 'COMPLETED' && (
@@ -108,7 +108,7 @@ export function LeafCard({ card, variant = 'full', onClick }: LeafCardProps) {
 
         {/* full variant: 요약 텍스트 */}
         {variant === 'full' && card.summary && (
-          <p className="text-sm text-[#b9cbc1] line-clamp-2 leading-relaxed">
+          <p className="text-sm text-text-muted line-clamp-2 leading-relaxed">
             {card.summary}
           </p>
         )}
@@ -132,7 +132,7 @@ export function LeafCard({ card, variant = 'full', onClick }: LeafCardProps) {
           width="5" height="7" viewBox="0 0 5 7" fill="none"
           className="flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity"
         >
-          <path d="M2.683 3.5L0 .817.817 0 4.317 3.5.817 7 0 6.183 2.683 3.5z" fill="#B9CBC1" />
+          <path d="M2.683 3.5L0 .817.817 0 4.317 3.5.817 7 0 6.183 2.683 3.5z" fill="var(--color-text-muted)" />
         </svg>
       )}
     </div>
