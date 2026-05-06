@@ -77,7 +77,7 @@ jobs:
             # 헬스체크
             echo "Waiting for frontend to start..."
             for i in {1..12}; do
-              if docker compose exec -T dashboard curl -f http://localhost:80/actuator/health; then
+              if docker compose exec -T dashboard curl -f http://localhost:80; then
                 echo "Frontend is UP!"
                 exit 0
               fi
