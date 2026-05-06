@@ -91,26 +91,50 @@ export function RelatedCards({
       {cards.map((card) => (
         <article
           key={card.cardId}
-          className="rounded-lg border border-white/5 bg-white/[0.03] p-4 transition hover:border-[#4ADE80]/20 hover:bg-white/[0.06]"
+          className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative gap-3 p-5 rounded-tl-[48px] rounded-tr-lg rounded-bl-lg rounded-br-[48px] bg-[#1c2023] border-t border-r-0 border-b-0 border-l border-[#3a4a43]/30"
         >
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="line-clamp-1 text-sm font-bold text-slate-200">{card.title}</h3>
-            <span className="shrink-0 text-[10px] text-slate-600">
-              {formatDate(card.createdAt)}
-            </span>
+          <div className="flex justify-between items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+            <p className="flex-grow-0 flex-shrink-0 text-base font-bold text-left text-[#fbfffa]">
+              {card.title}
+            </p>
+            <svg
+              width={11}
+              height={11}
+              viewBox="0 0 11 11"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="flex-grow-0 flex-shrink-0"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M1.16667 10.5C0.845833 10.5 0.571181 10.3858 0.342708 10.1573C0.114236 9.92882 0 9.65417 0 9.33333V1.16667C0 0.845833 0.114236 0.571181 0.342708 0.342708C0.571181 0.114236 0.845833 0 1.16667 0H5.25V1.16667H1.16667V9.33333H9.33333V5.25H10.5V9.33333C10.5 9.65417 10.3858 9.92882 10.1573 10.1573C9.92882 10.3858 9.65417 10.5 9.33333 10.5H1.16667ZM3.90833 7.40833L3.09167 6.59167L8.51667 1.16667H6.41667V0H10.5V4.08333H9.33333V1.98333L3.90833 7.40833Z"
+                fill="#B9CBC1"
+              />
+            </svg>
           </div>
-          {card.summary ? (
-            <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-500">{card.summary}</p>
-          ) : null}
-          {card.tags.length > 0 ? (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {card.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag.tagId}
-                  className="rounded-md border border-white/5 bg-slate-900 px-2 py-0.5 text-[9px] font-bold text-slate-500"
-                >
-                  #{tag.tagName}
+
+          <div className="self-stretch flex-grow-0 flex-shrink-0 h-[68.25px] relative overflow-hidden">
+            <p className="w-[307.85px] absolute left-0 top-[-1.25px] text-sm text-left text-[#b9cbc1]">
+              {card.summary?.split('\n').map((line, index) => (
+                <span key={index} className="w-[307.85px] text-sm text-left text-[#b9cbc1]">
+                  {line}
+                  <br />
                 </span>
+              ))}
+            </p>
+          </div>
+
+          {card.tags.length > 0 ? (
+            <div className="flex justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-2 pt-1">
+              {card.tags.slice(0, 3).map((tag) => (
+                <div
+                  key={tag.tagId}
+                  className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative px-2.5 py-1 rounded-full bg-[#00ffc2]/5 border border-[#00ffc2]/20"
+                >
+                  <p className="flex-grow-0 flex-shrink-0 text-[10px] font-bold text-left uppercase text-[#00ffc2]">
+                    {tag.tagName}
+                  </p>
+                </div>
               ))}
             </div>
           ) : null}

@@ -27,7 +27,7 @@ export const DropZone = ({
   onClear,
   isSaving = false,
   savingLabel = '저장 중...',
-  saveLabel = '저장하기 (Save)',
+  saveLabel = '저장하기',
   saveError = null,
   saveNotice = null,
   canSave = true,
@@ -160,7 +160,7 @@ export const DropZone = ({
                   onClick={onLogin}
                   fullWidth
                   size="md"
-                  className="mt-3 gap-1.5 !px-3.5 !py-2 !text-xs !text-[var(--color-text-primary)]"
+                  className="mt-3 gap-1.5 !px-3.5 !py-2 !text-xs"
                 >
                   로그인하고 시작하기
                 </CurvedButton>
