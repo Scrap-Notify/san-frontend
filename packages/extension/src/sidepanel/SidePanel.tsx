@@ -51,6 +51,69 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+function openImageDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(IMAGE_DB_NAME, 1);
+
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore(IMAGE_STORE_NAME);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function savePendingImageFile(file: File): Promise<string> {
+  const id = typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const db = await openImageDb();
+
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(IMAGE_STORE_NAME, 'readwrite');
+    transaction.objectStore(IMAGE_STORE_NAME).put(file, id);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+
+  db.close();
+  return id;
+}
+
+async function loadPendingImageFile(
+  id: string,
+  fallbackName = 'pending-image',
+  fallbackType = 'application/octet-stream'
+): Promise<File | null> {
+  const db = await openImageDb();
+  const value = await new Promise<Blob | File | undefined>((resolve, reject) => {
+    const transaction = db.transaction(IMAGE_STORE_NAME, 'readonly');
+    const request = transaction.objectStore(IMAGE_STORE_NAME).get(id);
+    request.onsuccess = () => resolve(request.result as Blob | File | undefined);
+    request.onerror = () => reject(request.error);
+  });
+
+  db.close();
+
+  if (!value) return null;
+  if (value instanceof File) return value;
+
+  return new File([value], fallbackName, { type: value.type || fallbackType });
+}
+
+async function deletePendingImageFile(id: string | null | undefined) {
+  if (!id) return;
+
+  const db = await openImageDb();
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction(IMAGE_STORE_NAME, 'readwrite');
+    transaction.objectStore(IMAGE_STORE_NAME).delete(id);
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+  });
+  db.close();
+}
+
 function toKnowledgeCardResponse(card: KnowledgeCardView): KnowledgeCardResponse {
   return {
     cardId: card.card_id,
@@ -393,15 +456,7 @@ export default function SidePanel() {
               onTextDrop={handleTextDrop}
               onImageDrop={handleImageDrop}
               onSave={handleSave}
-              onClear={() => {
-                setPendingScrap(null);
-                setPendingImageFile(null);
-                clearSaveFeedback();
-                setRelatedError(null);
-                setRelatedCards([]);
-                setIsLoadingRelated(false);
-                void savePendingScrap(null);
-              }}
+              onClear={handleClearPending}
               isSaving={isSaving}
               savingLabel={savingLabel}
               saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
