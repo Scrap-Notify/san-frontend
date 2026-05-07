@@ -1,6 +1,8 @@
 import type { FormEvent } from 'react';
 import { Search } from 'lucide-react';
 
+const SEARCH_PLACEHOLDER = '\uC800\uC7A5\uD55C \uC9C0\uC2DD \uAC80\uC0C9';
+
 interface KnowledgeSearchBarProps {
   value: string;
   disabled?: boolean;
@@ -20,10 +22,13 @@ export function KnowledgeSearchBar({
   };
 
   return (
-    <form className="relative flex shrink-0 self-stretch" onSubmit={handleSubmit}>
+    <form
+      className="relative flex h-10 w-[min(100%,220px)] shrink-0 self-stretch"
+      onSubmit={handleSubmit}
+    >
       <Search
-        size={18}
-        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-primary-signal"
+        size={14}
+        className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-primary-signal/75"
         aria-hidden="true"
       />
       <input
@@ -31,8 +36,8 @@ export function KnowledgeSearchBar({
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="지식 아카이브 검색"
-        className="w-full rounded-leaf border border-primary-signal/40 bg-surface-highest py-4 pl-12 pr-4 text-left text-body-main text-text-primary outline-none transition placeholder:text-text-secondary focus:border-primary-signal focus:shadow-neon disabled:cursor-not-allowed disabled:opacity-60"
+        placeholder={SEARCH_PLACEHOLDER}
+        className="h-10 w-full rounded-full border border-primary-signal/15 bg-surface-container/45 pl-4 pr-10 text-left text-body-sm text-text-primary outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/40 focus:bg-surface-container/75 disabled:cursor-not-allowed disabled:opacity-60 [&::-webkit-search-cancel-button]:hidden"
       />
     </form>
   );

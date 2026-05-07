@@ -101,7 +101,7 @@ export const DropZone = ({
         onDragLeave={() => setIsOver(false)}
         onDrop={handleDrop}
         className={[
-          'relative flex h-[220px] w-full cursor-text items-center justify-center overflow-hidden rounded-leaf border-2 border-dashed bg-surface-container px-5 pb-4 pt-8 transition-all duration-300',
+          'relative flex h-[190px] w-full cursor-text items-center justify-center overflow-hidden rounded-leaf border-2 border-dashed bg-surface-container px-5 pb-4 pt-7 transition-all duration-300',
           isOver
             ? 'border-primary-signal bg-primary-signal/10 shadow-neon glow-neon'
             : 'border-primary-signal/30 hover:border-primary-signal/50 hover:bg-surface-container/80',
