@@ -432,7 +432,7 @@ export default function SidePanel() {
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <SidePanelNavbar isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pt-4">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
           <div className="shrink-0">
             {isSaving || (isLoadingRelated && !createdCard) ? (
@@ -456,7 +456,7 @@ export default function SidePanel() {
             )}
           </div>
 
-          {/* 2. Creation Result Area (Fixed 190px): Appears only after successful creation */}
+          {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
           {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
             <div className="shrink-0">
               <CreatedKnowledgeCard card={createdCard} />
@@ -464,7 +464,7 @@ export default function SidePanel() {
           )}
 
           {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex shrink-0 flex-col">
             {!isAuthenticated ? (
               !pendingScrap && <EmptyState onLogin={openDashboardLogin} />
             ) : (
@@ -477,6 +477,7 @@ export default function SidePanel() {
                 }
                 isLoading={hasKnowledgeSearchResult ? isSearchingKnowledge : (isLoadingRecent && recentCards.length === 0)}
                 error={hasKnowledgeSearchResult ? knowledgeSearchError : (relatedError || recentError)}
+                isScrollable={false}
                 action={
                   <KnowledgeSearchBar
                     value={knowledgeSearchQuery}

@@ -7,8 +7,7 @@ interface CreatedKnowledgeCardProps {
 export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
   return (
     <div className="flex flex-col gap-2.5">
-      {/* Title Label: Matching project standard title style */}
-      <div className="px-1 text-caption font-medium uppercase tracking-[0.14em] text-text-secondary">
+      <div className="px-1 font-caption font-medium uppercase tracking-[0.14em] text-text-secondary">
         지식 카드 생성
       </div>
 
