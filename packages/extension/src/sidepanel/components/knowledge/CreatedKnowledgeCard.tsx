@@ -5,9 +5,9 @@ interface CreatedKnowledgeCardProps {
 }
 
 export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
-  return (
+  return (      <div className="px-1 text-body-sm font-medium text-text-secondary">
+
     <div className="flex flex-col gap-2.5">
-      <div className="px-1 font-caption font-medium uppercase tracking-[0.14em] text-text-secondary">
         지식 카드 생성
       </div>
 
