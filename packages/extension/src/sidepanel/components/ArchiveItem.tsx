@@ -1,3 +1,5 @@
+import { ChevronRight } from 'lucide-react';
+
 interface ArchiveItemProps {
   title: string;
   meta: string;
@@ -5,15 +7,15 @@ interface ArchiveItemProps {
 
 export default function ArchiveItem({ title, meta }: ArchiveItemProps) {
   return (
-    <div className="flex items-center justify-between rounded-[20px] border border-white/5 bg-[#181c1f] p-4">
+    <div className="flex items-center justify-between rounded-leaf border border-text-secondary/20 bg-surface-container p-4">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="h-10 w-10 rounded-full bg-[#313539]" />
+        <div className="h-10 w-10 rounded-full bg-surface-highest" />
         <div className="min-w-0">
-          <div className="truncate text-xs font-bold text-[#e0e3e7]">{title}</div>
-          <div className="text-[10px] uppercase text-[#b9cbc1]">{meta}</div>
+          <div className="truncate text-body-main-bold text-text-primary">{title}</div>
+          <div className="text-caption uppercase text-text-secondary">{meta}</div>
         </div>
       </div>
-      <div className="shrink-0 text-[#b9cbc1]">→</div>
+      <ChevronRight size={18} className="text-text-secondary" aria-hidden="true" />
     </div>
   );
 }

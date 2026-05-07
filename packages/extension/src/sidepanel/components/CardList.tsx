@@ -17,9 +17,9 @@ function formatTime(value: string) {
 export const CardList = ({ cards }: CardListProps) => {
   if (cards.length === 0) {
     return (
-      <div className="rounded-[20px] border border-white/5 bg-[#181c1f] p-5 text-center">
-        <p className="text-sm font-semibold text-[#e0e3e7]">No local captures yet</p>
-        <p className="mt-1 text-xs text-[#b9cbc1]">Captured sources will appear here.</p>
+      <div className="rounded-leaf border border-text-secondary/20 bg-surface-container p-popover-padding text-center">
+        <p className="text-body-main-bold text-text-primary">No local captures yet</p>
+        <p className="mt-1 text-caption text-text-secondary">Captured sources will appear here.</p>
       </div>
     );
   }
