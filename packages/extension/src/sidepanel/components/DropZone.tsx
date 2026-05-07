@@ -137,7 +137,7 @@ export const DropZone = ({
         ) : (
           <div className="flex flex-col items-center gap-3 text-center">
             <CloudUpload size={34} className="text-primary-signal" aria-hidden="true" />
-            <p className="text-body-main-bold text-text-primary">
+            <p className="text-body-main font-medium text-text-primary">
               {isOver ? '여기에 놓아 지식 심기' : '여기로 드래그하여 지식 심기'}
             </p>
             <p className="text-caption text-text-secondary">

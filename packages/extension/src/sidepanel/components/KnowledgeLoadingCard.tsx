@@ -17,7 +17,7 @@ export function KnowledgeLoadingCard() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <p className="text-body-sm-bold text-text-primary">
+          <p className="text-body-sm font-medium text-text-primary">
             AI가 정보를 잎사귀로 변환 중...
           </p>
           <div className="flex items-center justify-center gap-2.5" aria-hidden="true">
