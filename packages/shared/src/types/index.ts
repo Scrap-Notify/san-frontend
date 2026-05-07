@@ -16,6 +16,7 @@ export type {
   KnowledgeCardAnalysisJobResponse,
   KnowledgeCardCreateRequest,
   KnowledgeCardListResponse,
+  KnowledgeCardListParams,
   KnowledgeCardResponse,
   KnowledgeCardSimilarCardsResponse,
   KnowledgeCardView,

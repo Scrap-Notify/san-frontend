@@ -4,6 +4,7 @@ import type {
   KnowledgeCardAnalysisJobResponse,
   KnowledgeCardCreateRequest,
   KnowledgeCardListResponse,
+  KnowledgeCardListParams,
   KnowledgeCardSimilarCardsResponse,
 } from '../types';
 
@@ -14,9 +15,9 @@ export function createCardsApi(apiClient: AxiosInstance) {
         .post<ApiResponse<KnowledgeCardAnalysisJobResponse>>('/cards', payload)
         .then((response) => unwrapApiResponse(response.data)),
 
-    getAll: (): Promise<KnowledgeCardListResponse> =>
+    getAll: (params?: KnowledgeCardListParams): Promise<KnowledgeCardListResponse> =>
       apiClient
-        .get<ApiResponse<KnowledgeCardListResponse>>('/cards')
+        .get<ApiResponse<KnowledgeCardListResponse>>('/cards', { params })
         .then((response) => unwrapApiResponse(response.data)),
 
     getSimilarByJob: (jobId: string): Promise<KnowledgeCardSimilarCardsResponse> =>

@@ -20,6 +20,7 @@ import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCar
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
+const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const IMAGE_DB_NAME = 'san-extension-images';
 const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
@@ -48,6 +49,19 @@ function fileToDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function dataUrlToFile(dataUrl: string, fileName: string): File {
+  const [header, base64Data = ''] = dataUrl.split(',');
+  const mimeType = header.match(/^data:(.*?);base64$/)?.[1] ?? 'image/png';
+  const binary = atob(base64Data);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new File([bytes], fileName, { type: mimeType });
 }
 
 function openImageDb(): Promise<IDBDatabase> {
@@ -217,6 +231,68 @@ export default function SidePanel() {
     setIsLoadingRelated(false);
   }, [clearSaveFeedback]);
 
+  const applyPendingScrap = useCallback(async (nextPendingScrap: PendingScrap) => {
+    clearResultState();
+    setPendingScrap(nextPendingScrap);
+
+    if (
+      nextPendingScrap.source_type === 'IMAGE'
+      && nextPendingScrap.image_preview_url?.startsWith('data:')
+      && !nextPendingScrap.image_blob_id
+    ) {
+      try {
+        const file = dataUrlToFile(
+          nextPendingScrap.image_preview_url,
+          `${nextPendingScrap.title || 'captured-image'}.png`
+        );
+        const imageBlobId = await savePendingImageFile(file);
+        const nextPendingImageScrap: PendingScrap = {
+          ...nextPendingScrap,
+          image_file_name: file.name,
+          image_mime_type: file.type,
+          image_blob_id: imageBlobId,
+        };
+
+        setPendingImageFile(file);
+        setPendingScrap(nextPendingImageScrap);
+        await savePendingScrap(nextPendingImageScrap);
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to prepare captured image file', error);
+        setPendingImageFile(null);
+        setSaveError('Captured image could not be prepared. Please try capture again.');
+      }
+      return;
+    }
+
+    if (nextPendingScrap.source_type === 'IMAGE' && nextPendingScrap.image_blob_id) {
+      setIsRestoringPendingImage(true);
+      try {
+        const file = await loadPendingImageFile(
+          nextPendingScrap.image_blob_id,
+          nextPendingScrap.image_file_name ?? nextPendingScrap.title,
+          nextPendingScrap.image_mime_type ?? undefined
+        );
+
+        if (file) {
+          setPendingImageFile(file);
+          return;
+        }
+
+        setPendingImageFile(null);
+        setSaveError('Pending image could not be restored. Please capture the image again.');
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to restore pending image file', error);
+        setPendingImageFile(null);
+        setSaveError('Pending image could not be restored. Please capture the image again.');
+      } finally {
+        setIsRestoringPendingImage(false);
+      }
+      return;
+    }
+
+    setPendingImageFile(null);
+  }, [clearResultState, setSaveError]);
+
   useEffect(() => {
     debugLog('side panel mounted');
 
@@ -261,13 +337,39 @@ export default function SidePanel() {
     const handleMessage = (msg: ExtensionMessage) => {
       debugLog('runtime message received', msg);
       if (msg.type === 'PUSH_TO_SIDEPANEL' && isPendingScrap(msg.payload)) {
-        setPendingScrap(msg.payload);
+        void applyPendingScrap(msg.payload);
       }
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, [setSaveError]);
+  }, [applyPendingScrap, setSaveError]);
+
+  useEffect(() => {
+    const handlePendingScrapChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string
+    ) => {
+      if (areaName !== 'local') return;
+
+      const pendingScrapChange = changes[PENDING_STORAGE_KEY];
+      if (!pendingScrapChange) return;
+
+      const nextPendingScrap = pendingScrapChange.newValue;
+      if (isPendingScrap(nextPendingScrap)) {
+        void applyPendingScrap(nextPendingScrap);
+        return;
+      }
+
+      if (pendingScrapChange.newValue === undefined) {
+        setPendingScrap(null);
+        setPendingImageFile(null);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handlePendingScrapChange);
+    return () => chrome.storage.onChanged.removeListener(handlePendingScrapChange);
+  }, [applyPendingScrap]);
 
   useEffect(() => {
     let ignore = false;
