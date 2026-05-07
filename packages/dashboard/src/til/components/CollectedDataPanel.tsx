@@ -1,9 +1,9 @@
-import type { UseQueryResult } from '@tanstack/react-query';
-import type { TilRecallCardsResponse, TilResponse } from '@san/shared';
+import type { TilResponse } from '@san/shared';
+import type { TilRecallCardsQuery } from '../types';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
 
 interface CollectedDataPanelProps {
-  recallCardsQuery: UseQueryResult<TilRecallCardsResponse>;
+  recallCardsQuery: TilRecallCardsQuery;
   selectedTil: TilResponse | null;
 }
 
