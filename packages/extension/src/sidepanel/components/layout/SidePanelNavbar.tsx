@@ -1,6 +1,6 @@
 import { LayoutDashboard } from 'lucide-react';
-import sanLogo from '../../../../ui/src/assets/brand/SAN_LOGO.svg';
-import sanTypo from '../../../../ui/src/assets/brand/SAN_TYPO.svg';
+import sanLogo from '@san/ui/assets/brand/SAN_LOGO.svg';
+import sanTypo from '@san/ui/assets/brand/SAN_TYPO.svg';
 
 interface SidePanelNavbarProps {
   isAuthenticated: boolean;
@@ -24,7 +24,7 @@ export default function SidePanelNavbar({
           <img
             src={sanTypo}
             alt="SAN"
-            className="h-7 w-[min(108px,calc(100vw-200px))] min-w-0 shrink object-contain object-left"
+            className="h-5 w-[min(84px,calc(100vw-200px))] min-w-0 shrink object-contain object-left"
           />
         </div>
       </div>

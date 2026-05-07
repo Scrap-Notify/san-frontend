@@ -1,6 +1,6 @@
 import type { KnowledgeCardResponse } from '@san/shared';
 import { ExternalLink } from 'lucide-react';
-import { CurvedButton } from '../../../../ui/src/components/Button/CurvedButton';
+import { CurvedButton } from '@san/ui/components/Button/CurvedButton';
 
 interface RelatedCardsProps {
   cards: KnowledgeCardResponse[];

@@ -1,8 +1,8 @@
 import type { DragEvent, MouseEvent } from 'react';
 import { useState } from 'react';
 import { CloudUpload, RotateCcw, Sparkles } from 'lucide-react';
-import { CurvedButton } from '../../../../ui/src/components/Button/CurvedButton';
-import type { PendingScrap } from '../../types';
+import { CurvedButton } from '@san/ui/components/Button/CurvedButton';
+import type { PendingScrap } from '@extension/types';
 
 interface DropZoneProps {
   pendingScrap: PendingScrap | null;

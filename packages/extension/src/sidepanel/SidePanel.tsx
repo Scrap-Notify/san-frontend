@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KnowledgeCardResponse, KnowledgeCardView } from '@san/shared';
-import { authTokenStorage, cardsApi } from '../api/client';
-import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
-import { ArchiveList } from './components/ArchiveList';
-import { DropZone } from './components/DropZone';
-import { EmptyState } from './components/EmptyState';
-import GlowBackground from './components/GlowBackground';
-import KnowledgeProgressCard from './components/KnowledgeProgressCard';
-import { KnowledgeSearchBar } from './components/KnowledgeSearchBar';
-import { RecentKnowledgeList } from './components/RecentKnowledgeList';
-import SidePanelNavbar from './components/SidePanelNavbar';
+import { authTokenStorage, cardsApi } from '@extension/api/client';
+import type { ExtensionMessage, PendingScrap, SavedInsight } from '@extension/types';
+import { ArchiveList } from '@sidepanel/components/archive/ArchiveList';
+import { DropZone } from '@sidepanel/components/capture/DropZone';
+import { EmptyState } from '@sidepanel/components/feedback/EmptyState';
+import GlowBackground from '@sidepanel/components/feedback/GlowBackground';
+import KnowledgeProgressCard from '@sidepanel/components/knowledge/KnowledgeProgressCard';
+import { KnowledgeSearchBar } from '@sidepanel/components/knowledge/KnowledgeSearchBar';
+import { RecentKnowledgeList } from '@sidepanel/components/knowledge/RecentKnowledgeList';
+import SidePanelNavbar from '@sidepanel/components/layout/SidePanelNavbar';
 import {
   loadPendingScrap,
   loadSavedInsights,
@@ -159,7 +159,7 @@ export default function SidePanel() {
   const [cards, setCards] = useState<SavedInsight[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [relatedCards, setRelatedCards] = useState<KnowledgeCardResponse[]>([]);
-  const [isLoadingRelated, setIsLoadingRelated] = useState(true);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [relatedError, setRelatedError] = useState<string | null>(null);
   const [hasRelatedResult, setHasRelatedResult] = useState(false);
   const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
