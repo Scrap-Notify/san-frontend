@@ -2,6 +2,7 @@ import {
   createApiClient,
   createAsyncJobsApi,
   createCardsApi,
+  createSearchApi,
   createScrapsApi,
   type AuthTokens,
   type TokenProvider,
@@ -36,5 +37,6 @@ const apiClient = createApiClient(baseURL, tokenProvider);
 
 export const scrapsApi = createScrapsApi(apiClient);
 export const cardsApi = createCardsApi(apiClient);
+export const searchApi = createSearchApi(apiClient);
 export const asyncJobsApi = createAsyncJobsApi(apiClient);
 export const authTokenStorage = tokenProvider;

@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import {
   getApiErrorMessage,
+  toKnowledgeCardView,
   type CreateScrapRequest,
   type KnowledgeCardResponse,
   type KnowledgeCardView,
@@ -175,8 +176,8 @@ export function useSaveScrap({
       setSavingLabel('Finding related cards...');
       await waitForCardAnalysis(cardJob.jobId);
 
-      const latestCards = await cardsApi.getAll({ page: 0, limit: 1 });
-      setCreatedCard(latestCards.cards[0] ?? null);
+      const latestCards = await cardsApi.getAll();
+      setCreatedCard(latestCards.cards[0] ? toKnowledgeCardView(latestCards.cards[0]) : null);
 
       const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
       setRelatedCards(similarCards.similarCards);

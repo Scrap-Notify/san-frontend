@@ -35,18 +35,6 @@ export interface KnowledgeCardSimilarCardsResponse {
   similarCards: KnowledgeCardResponse[];
 }
 
-export interface GetCardsParams {
-  page?: number;
-  limit?: number;
-  categoryId?: string;
-  tag?: string;
-  tags?: string[];
-  search?: string;
-  date?: string;
-  from?: string;
-  to?: string;
-}
-
 export interface Tag {
   tag_id: string;
   name: string;
@@ -67,13 +55,6 @@ export interface KnowledgeCardView {
   created_at: string;
   updated_at?: string | null;
   is_deleted?: boolean | null;
-}
-
-export interface GetCardsResponse {
-  cards: KnowledgeCardView[];
-  total?: number;
-  page?: number;
-  limit?: number;
 }
 
 export interface SearchParams {

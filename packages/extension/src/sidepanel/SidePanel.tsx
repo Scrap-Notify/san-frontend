@@ -1,21 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KnowledgeCardListResponse, KnowledgeCardResponse, KnowledgeCardView } from '@san/shared';
-import { authTokenStorage, cardsApi } from '@extension/api/client';
-import type { ExtensionMessage, PendingScrap, SavedInsight } from '@extension/types';
-import { ArchiveList } from '@sidepanel/components/archive/ArchiveList';
-import { DropZone } from '@sidepanel/components/capture/DropZone';
-import { EmptyState } from '@sidepanel/components/feedback/EmptyState';
-import GlowBackground from '@sidepanel/components/feedback/GlowBackground';
-import KnowledgeProgressCard from '@sidepanel/components/knowledge/KnowledgeProgressCard';
-import { KnowledgeSearchBar } from '@sidepanel/components/knowledge/KnowledgeSearchBar';
-import { RecentKnowledgeList } from '@sidepanel/components/knowledge/RecentKnowledgeList';
-import SidePanelNavbar from '@sidepanel/components/layout/SidePanelNavbar';
+import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
+import { authTokenStorage, cardsApi, searchApi } from '../api/client';
+import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
+import { DropZone } from './components/capture/DropZone';
+import { EmptyState } from './components/feedback/EmptyState';
+import GlowBackground from './components/feedback/GlowBackground';
+import KnowledgeProgressCard from './components/knowledge/KnowledgeProgressCard';
+import { KnowledgeSearchBar } from './components/knowledge/KnowledgeSearchBar';
+import { RecentKnowledgeList } from './components/knowledge/RecentKnowledgeList';
 import {
   loadPendingScrap,
   loadSavedInsights,
   savePendingScrap,
   useSaveScrap,
 } from './hooks/useSaveScrap';
+import SidePanelNavbar from './components/layout/SidePanelNavbar';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
@@ -24,77 +23,6 @@ const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
 const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
-const USE_RECENT_CARDS_MOCK = true;
-const MOCK_RECENT_CARDS: KnowledgeCardResponse[] = [
-  {
-    cardId: 'mock-card-1',
-    title: 'Design system layering',
-    summary: 'Deep dark mode UI guide inspired by abyss tones. It uses subtle border shifts and soft blur effects to deliver structured information with depth.',
-    category: {
-      categoryId: 'mock-category-1',
-      categoryName: 'Design',
-    },
-    tags: [
-      { tagId: 'mock-tag-1', tagName: 'Bioluminescence' },
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    cardId: 'mock-card-2',
-    title: 'Chrome Extension side panel UX',
-    summary: 'Patterns for keeping drag capture, manual input, and save feedback calm inside a compact side panel.',
-    category: {
-      categoryId: 'mock-category-2',
-      categoryName: 'Product',
-    },
-    tags: [
-      { tagId: 'mock-tag-2', tagName: 'Extension' },
-      { tagId: 'mock-tag-3', tagName: 'UX' },
-    ],
-    createdAt: new Date(Date.now() - 86_400_000).toISOString(),
-  },
-  {
-    cardId: 'mock-card-3',
-    title: 'Pretendard weight guide',
-    summary: 'Using 400, 500, 600, and 700 weights to keep interface hierarchy consistent without making text feel heavy.',
-    category: {
-      categoryId: 'mock-category-3',
-      categoryName: 'Typography',
-    },
-    tags: [
-      { tagId: 'mock-tag-4', tagName: 'Design System' },
-    ],
-    createdAt: new Date(Date.now() - 172_800_000).toISOString(),
-  },
-  {
-    cardId: 'mock-card-4',
-    title: 'Knowledge card response mapping',
-    summary: 'A response shape using cardId, category, tags, and createdAt keeps the side panel card renderer close to the server contract.',
-    category: {
-      categoryId: 'mock-category-4',
-      categoryName: 'API',
-    },
-    tags: [
-      { tagId: 'mock-tag-5', tagName: 'Response' },
-      { tagId: 'mock-tag-6', tagName: 'Cards' },
-    ],
-    createdAt: new Date(Date.now() - 259_200_000).toISOString(),
-  },
-  {
-    cardId: 'mock-card-5',
-    title: 'Compact panel scrolling',
-    summary: 'Keep the capture zone fixed and let only the card list scroll, so the side panel maintains a stable tool-like rhythm.',
-    category: {
-      categoryId: 'mock-category-5',
-      categoryName: 'Layout',
-    },
-    tags: [
-      { tagId: 'mock-tag-7', tagName: 'Scroll' },
-      { tagId: 'mock-tag-8', tagName: 'Panel' },
-    ],
-    createdAt: new Date(Date.now() - 345_600_000).toISOString(),
-  },
-];
 
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
@@ -183,22 +111,14 @@ async function deletePendingImageFile(id: string | null | undefined) {
   db.close();
 }
 
-function toKnowledgeCardResponse(card: KnowledgeCardView): KnowledgeCardResponse {
+function toKnowledgeCardSearchResponse(card: SearchCardResult): KnowledgeCardResponse {
   return {
-    cardId: card.card_id,
+    cardId: card.cardId,
     title: card.title,
     summary: card.summary,
-    category: card.category_name
-      ? {
-        categoryId: card.category_id ?? card.category_name,
-        categoryName: card.category_name,
-      }
-      : null,
-    tags: card.tags.map((tag) => ({
-      tagId: tag.tag_id,
-      tagName: tag.name,
-    })),
-    createdAt: card.createdAt ?? card.created_at,
+    category: null,
+    tags: [],
+    createdAt: '',
   };
 }
 
@@ -245,18 +165,11 @@ export default function SidePanel() {
   const [hasKnowledgeSearchResult, setHasKnowledgeSearchResult] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
-    if (USE_RECENT_CARDS_MOCK) {
-      setRecentCards(MOCK_RECENT_CARDS);
-      setRecentError(null);
-      setIsLoadingRecent(false);
-      return;
-    }
-
     setIsLoadingRecent(true);
     setRecentError(null);
     try {
-      const response = await cardsApi.getAll({ page: 0, limit: 10 }) as unknown as KnowledgeCardListResponse;
-      setRecentCards(response.cards);
+      const response = await cardsApi.getAll();
+      setRecentCards(response.cards.slice(0, 3));
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to load recent cards', error);
       setRecentError('Recent cards could not be loaded.');
@@ -501,8 +414,8 @@ export default function SidePanel() {
     setKnowledgeSearchError(null);
 
     try {
-      const response = await cardsApi.getAll({ page: 0, limit: 10, search });
-      setKnowledgeSearchCards(response.cards.map(toKnowledgeCardResponse));
+      const response = await searchApi.search({ keyword: search, page: 0, size: 10 });
+      setKnowledgeSearchCards(response.results.map(toKnowledgeCardSearchResponse));
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to search knowledge cards', error);
       setKnowledgeSearchCards([]);
