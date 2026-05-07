@@ -1,11 +1,11 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
-import { LoginPage } from './pages/LoginPage';
-import { HomePage } from './pages/HomePage';
-import { Signup } from './pages/SignUpPage';
-import { ResultPage } from './pages/ResultPage';
-import { GithubAuthResultPage } from './pages/GithubAuthResultPage';
-import { SettingsIntegrationsPage } from './pages/SettingsIntegrationsPage';
+import { LoginPage } from './auth/LoginPage';
+import { HomePage } from './main/HomePage';
+import { Signup } from './auth/SignUpPage';
+import { ResultPage } from './github/ResultPage';
+import { GithubAuthResultPage } from './auth/GithubAuthResultPage';
+import { SettingsIntegrationsPage } from './main/SettingsIntegrationsPage';
 import { TilPage } from './til/TilPage';
 
 export const router = createBrowserRouter([

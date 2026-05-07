@@ -1,5 +1,5 @@
-import { ArchiveSection } from '../components/ArchiveSection';
-import { GraphSection } from '../components/GraphSection';
+import { ArchiveSection } from './components/ArchiveSection';
+import { GraphSection } from './components/GraphSection';
 
 export function HomePage() {
   return (

@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { ArrowLeft, ArrowRight, Brain, FlaskConical, NotebookText } from 'lucide-react';
 import { IconBox, TagBadge } from '@san/ui';
-import { useArchiveCards } from '../hooks/useArchiveCards';
+import { useArchiveCards } from '../../hooks/useArchiveCards';
 
 export function ArchiveSection() {
   const carouselRef = useRef<HTMLDivElement>(null);
