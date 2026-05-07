@@ -435,11 +435,11 @@ export default function SidePanel() {
   }, [isAuthenticated, knowledgeSearchQuery]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] text-white">
+    <div className="flex h-screen flex-col overflow-hidden bg-background text-text-primary">
       <div className="custom-scrollbar relative flex-1 overflow-y-auto">
         <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
-        <div className="relative z-10 px-4 py-6 space-y-6">
+        <div className="relative z-10 px-popover-padding py-popover-padding space-y-6">
           {isLoadingRelated ? (
             <KnowledgeProgressCard
               cards={relatedCards}
