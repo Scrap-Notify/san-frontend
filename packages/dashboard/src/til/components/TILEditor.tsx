@@ -6,16 +6,17 @@ import remarkGfm from 'remark-gfm';
 import { Bold, Italic, List, Link as LinkIcon, RotateCcw, ArrowRight } from 'lucide-react';
 import type { TILMode } from './TILModeTabs';
 import type { TilResponse } from '@san/shared';
+import type { TilGenerateMutation, TilGithubCommitMutation, TilJobStatusQuery } from '../types';
 
 interface TILEditorProps {
   activeTab: TILMode;
   draft: string;
   setDraft: (value: string) => void;
   selectedTil: TilResponse | null;
-  generateMutation: { isPending: boolean; mutate: () => void; };
-  commitMutation: { isPending: boolean; mutate: (summaryId: string) => void; };
-  generationStatusQuery: { data?: { status?: string }; };
-  commitStatusQuery: { data?: { status?: string }; };
+  generateMutation: TilGenerateMutation;
+  commitMutation: TilGithubCommitMutation;
+  generationStatusQuery: TilJobStatusQuery;
+  commitStatusQuery: TilJobStatusQuery;
 }
 
 export function TILEditor({
@@ -121,11 +122,6 @@ export function TILEditor({
               <article className="prose prose-invert max-w-none text-til-body prose-headings:text-primary-signal prose-strong:text-primary-signal">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayedDraft}</ReactMarkdown>
               </article>
-            </div>
-          )}
-
-          {activeTab === 'drafts' && (
-            <div className="pointer-events-none absolute left-12 right-12 top-[40%]">
             </div>
           )}
 

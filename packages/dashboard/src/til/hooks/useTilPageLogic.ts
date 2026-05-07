@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getApiErrorMessage, type KnowledgeCardResponse, type TilResponse } from '@san/shared';
-import { asyncJobsApi, tilApi } from '../../api/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { getApiErrorMessage } from '@san/shared';
+import type { TilJobTone, TilPageLogic } from '../types';
+import { useTilGenerateMutation, useTilGithubCommitMutation } from './useTilMutations';
+import { tilKeys, useTilAsyncJobStatus, useTilByDate, useTilRecallCards } from './useTilQueries';
 
-type JobTone = 'idle' | 'pending' | 'success' | 'error';
-
-export function useTilPageLogic() {
+export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(() => getPreviousDate());
   const [selectedSummaryId, setSelectedSummaryId] = useState<string | null>(null);
@@ -13,10 +13,7 @@ export function useTilPageLogic() {
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [commitJobId, setCommitJobId] = useState<string | null>(null);
 
-  const tilQuery = useQuery({
-    queryKey: ['til', selectedDate],
-    queryFn: () => tilApi.getByDate(selectedDate),
-  });
+  const tilQuery = useTilByDate(selectedDate);
 
   const tilList = tilQuery.data ?? [];
   const selectedTil = useMemo(
@@ -34,48 +31,25 @@ export function useTilPageLogic() {
     setDraft(selectedTil?.content ?? '');
   }, [selectedTil?.summaryId, selectedTil?.content]);
 
-  const recallCardsQuery = useQuery({
-    queryKey: ['til-recall-cards', selectedTil?.summaryId],
-    queryFn: () => tilApi.getRecallCards(selectedTil?.summaryId ?? ''),
-    enabled: Boolean(selectedTil?.summaryId),
-  });
-
-  const generationStatusQuery = useQuery({
-    queryKey: ['async-job', generationJobId],
-    queryFn: () => asyncJobsApi.getStatus(generationJobId ?? ''),
-    enabled: Boolean(generationJobId),
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      return status === 'PENDING' || status === 'PROCESSING' ? 1500 : false;
-    },
-  });
-
-  const commitStatusQuery = useQuery({
-    queryKey: ['async-job', commitJobId],
-    queryFn: () => asyncJobsApi.getStatus(commitJobId ?? ''),
-    enabled: Boolean(commitJobId),
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      return status === 'PENDING' || status === 'PROCESSING' ? 1500 : false;
-    },
-  });
+  const recallCardsQuery = useTilRecallCards(selectedTil?.summaryId);
+  const generationStatusQuery = useTilAsyncJobStatus(generationJobId);
+  const commitStatusQuery = useTilAsyncJobStatus(commitJobId);
 
   useEffect(() => {
     if (generationStatusQuery.data?.status === 'COMPLETED') {
-      void queryClient.invalidateQueries({ queryKey: ['til', selectedDate] });
+      void queryClient.invalidateQueries({ queryKey: tilKeys.byDate(selectedDate) });
     }
   }, [generationStatusQuery.data?.status, queryClient, selectedDate]);
 
-  const generateMutation = useMutation({
-    mutationFn: () => tilApi.generate({ targetDate: selectedDate }),
+  const generateMutation = useTilGenerateMutation({
+    targetDate: selectedDate,
     onSuccess: (response) => {
       setGenerationJobId(response.jobId);
       setSelectedSummaryId(response.summaryId);
     },
   });
 
-  const commitMutation = useMutation({
-    mutationFn: (summaryId: string) => tilApi.commitToGithub(summaryId),
+  const commitMutation = useTilGithubCommitMutation({
     onSuccess: (response) => {
       setCommitJobId(response.jobId);
     },
@@ -117,6 +91,7 @@ export function useTilPageLogic() {
     setDraft,
     tilList,
     selectedTil,
+    tilQuery,
     recallCardsQuery,
     generationStatusQuery,
     commitStatusQuery,
@@ -151,7 +126,7 @@ function getJobTone(
   status: string | undefined,
   isPending: boolean,
   isError: boolean,
-): JobTone {
+): TilJobTone {
   if (isError) return 'error';
   if (isPending || isRunning(status)) return 'pending';
   if (jobId && status === 'COMPLETED') return 'success';

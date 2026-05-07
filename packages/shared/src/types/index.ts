@@ -13,8 +13,6 @@ export type {
 } from './scraps';
 export type {
   CategoryResponse,
-  GetCardsParams,
-  GetCardsResponse,
   KnowledgeCardAnalysisJobResponse,
   KnowledgeCardCreateRequest,
   KnowledgeCardListResponse,

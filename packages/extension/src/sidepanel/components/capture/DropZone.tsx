@@ -88,7 +88,8 @@ export const DropZone = ({
   };
 
   const previewContent = pendingScrap?.raw_content ?? pendingScrap?.title ?? '';
-  const isImageCapture = Boolean(pendingScrap?.image_preview_url);
+  const imagePreviewUrl = pendingScrap?.image_preview_url ?? undefined;
+  const isImageCapture = Boolean(imagePreviewUrl);
 
   return (
     <>
@@ -184,7 +185,7 @@ export const DropZone = ({
           <div className="max-h-[220px] overflow-y-auto rounded-leaf border border-primary-signal/10 bg-background/40 p-4">
             {isImageCapture ? (
               <img
-                src={pendingScrap.image_preview_url}
+                src={imagePreviewUrl}
                 alt={pendingScrap.title}
                 className="max-h-44 w-full rounded-leaf object-cover"
               />

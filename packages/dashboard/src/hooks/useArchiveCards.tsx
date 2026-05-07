@@ -1,4 +1,14 @@
-import { useCards, type GetCardsParams, type KnowledgeCardView } from '@san/shared';
+import { toKnowledgeCardView, useCards, type KnowledgeCardView } from '@san/shared';
+
+export interface ArchiveCardsParams {
+  limit?: number;
+  tag?: string;
+  tags?: string[];
+  search?: string;
+  date?: string;
+  from?: string;
+  to?: string;
+}
 
 const MOCK_CARDS: KnowledgeCardView[] = [
   {
@@ -83,8 +93,8 @@ interface UseArchiveCardsResult {
 
 const useMockCards = import.meta.env.VITE_USE_MOCK === 'true';
 
-export function useArchiveCards(params?: GetCardsParams): UseArchiveCardsResult {
-  const query = useCards(params, { enabled: !useMockCards });
+export function useArchiveCards(params?: ArchiveCardsParams): UseArchiveCardsResult {
+  const query = useCards({ enabled: !useMockCards });
 
   if (useMockCards) {
     return {
@@ -95,19 +105,19 @@ export function useArchiveCards(params?: GetCardsParams): UseArchiveCardsResult 
   }
 
   return {
-    cards: query.data?.cards ?? [],
+    cards: filterMockCards(query.data?.cards.map(toKnowledgeCardView) ?? [], params),
     isPending: query.isPending,
     isError: query.isError,
   };
 }
 
-function filterMockCards(cards: KnowledgeCardView[], params?: GetCardsParams) {
+function filterMockCards(cards: KnowledgeCardView[], params?: ArchiveCardsParams) {
   if (!params) return cards;
 
   const search = params.search?.trim().toLowerCase();
   const selectedTags = normalizeTags(params.tags ?? (params.tag ? [params.tag] : []));
 
-  return cards.filter((card) => {
+  const filtered = cards.filter((card) => {
     const matchesSearch = search
       ? [card.title, card.summary, card.category_name]
           .filter(Boolean)
@@ -127,6 +137,8 @@ function filterMockCards(cards: KnowledgeCardView[], params?: GetCardsParams) {
 
     return matchesSearch && matchesTags && matchesDate && matchesFrom && matchesTo;
   });
+
+  return typeof params.limit === 'number' ? filtered.slice(0, params.limit) : filtered;
 }
 
 function normalizeTags(tags: string[]) {
