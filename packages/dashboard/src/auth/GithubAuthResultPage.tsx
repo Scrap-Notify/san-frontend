@@ -60,7 +60,7 @@ export function GithubAuthResultPage() {
         if (ignore) return;
         await authTokenStorage.setTokens(tokens);
         await syncExtensionAuth(tokens);
-        navigate('/', { replace: true });
+        navigate('/settings/repositories', { replace: true });
       })
       .catch((exchangeError) => {
         if (ignore) return;

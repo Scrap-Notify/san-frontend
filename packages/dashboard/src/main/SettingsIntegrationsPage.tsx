@@ -1,10 +1,11 @@
 import { GitBranch, LinkIcon, RefreshCw, Trash2, Unlink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
 
 export function SettingsIntegrationsPage() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const githubLinked = searchParams.get('githubLinked') === 'true';
   const [connectedRepositories, setConnectedRepositories] = useState<GithubRepository[]>([]);
@@ -111,6 +112,14 @@ export function SettingsIntegrationsPage() {
           >
             <LinkIcon size={20} />
             Connect GitHub
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/settings/repositories')}
+            className="inline-flex min-h-10 items-center justify-center gap-sm rounded-leaf border border-primary-signal/30 bg-surface-container px-md text-body-sm-bold text-text-primary transition hover:border-primary-signal/60 hover:glow-neon"
+          >
+            <GitBranch size={20} />
+            Choose Repository
           </button>
           <button
             type="button"
