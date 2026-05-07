@@ -75,9 +75,29 @@ chrome.commands.onCommand.addListener(async (command) => {
     if (!tab?.id) return;
 
     try {
-      await chrome.sidePanel.open({ tabId: tab.id });
-      const dataUrl = await chrome.tabs.captureVisibleTab();
-      
+      try {
+        await chrome.sidePanel.open({ tabId: tab.id });
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to open side panel before capture_image', {
+          error,
+          tabId: tab.id,
+          url: tab.url,
+        });
+        throw error;
+      }
+
+      let dataUrl: string;
+      try {
+        dataUrl = await chrome.tabs.captureVisibleTab();
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to capture visible tab for capture_image', {
+          error,
+          tabId: tab.id,
+          url: tab.url,
+        });
+        throw error;
+      }
+
       let metadata: PendingScrap;
       try {
         metadata = await chrome.tabs.sendMessage<ExtensionMessage, PendingScrap>(tab.id, { type: 'REQUEST_METADATA' });

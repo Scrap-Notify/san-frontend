@@ -1,6 +1,7 @@
 import {
   createApiClient,
   createAsyncJobsApi,
+  createAuthApi,
   createCardsApi,
   createSearchApi,
   createScrapsApi,
@@ -35,6 +36,7 @@ const tokenProvider: TokenProvider = {
 
 const apiClient = createApiClient(baseURL, tokenProvider);
 
+export const authApi = createAuthApi(apiClient);
 export const scrapsApi = createScrapsApi(apiClient);
 export const cardsApi = createCardsApi(apiClient);
 export const searchApi = createSearchApi(apiClient);

@@ -5,14 +5,15 @@ interface CreatedKnowledgeCardProps {
 }
 
 export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
-  return (      <div className="px-1 text-body-sm font-medium text-text-secondary">
+  return (
+    <div className="px-1 text-body-sm font-medium text-text-secondary">
 
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-[calc(var(--spacing-dashboard-gap)/2)]">
         지식 카드 생성
       </div>
 
       {/* Card Content: Compact Organic Leaf Shape */}
-      <article className="relative flex h-[120px] w-full gap-4 overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-4 backdrop-blur-xl shadow-neon-sm">
+      <article className="relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*2/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-4 backdrop-blur-xl shadow-neon-sm">
         {/* Subtle Background Glow */}
         <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-primary-signal/5 blur-2xl" aria-hidden="true" />
         
@@ -49,8 +50,8 @@ export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
           
           {/* Tags (Conditional and limited for space) */}
           {card.tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5 shrink-0">
-               {card.tags.slice(0, 2).map((tag) => (
+            <div className="mt-2 flex shrink-0 flex-wrap gap-[calc(var(--spacing-dashboard-gap)/4)]">
+              {card.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag.tag_id}
                   className="rounded-full border border-primary-signal/15 bg-background/40 px-2 py-0.5 text-[10px] font-bold text-primary-signal"

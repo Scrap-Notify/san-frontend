@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
-import { authTokenStorage, cardsApi, searchApi } from '../api/client';
+import { authApi, authTokenStorage, cardsApi, searchApi } from '../api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 import { DropZone } from './components/capture/DropZone';
 import { EmptyState } from './components/feedback/EmptyState';
@@ -165,6 +165,8 @@ export default function SidePanel() {
   const [isSearchingKnowledge, setIsSearchingKnowledge] = useState(false);
   const [knowledgeSearchError, setKnowledgeSearchError] = useState<string | null>(null);
   const [hasKnowledgeSearchResult, setHasKnowledgeSearchResult] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
     setIsLoadingRecent(true);
@@ -389,6 +391,42 @@ export default function SidePanel() {
     chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : `${dashboardBaseUrl}/login` });
   }, [isAuthenticated]);
 
+  const handleAuthButtonClick = useCallback(() => {
+    if (!isAuthenticated) {
+      openDashboardLogin();
+      return;
+    }
+
+    setIsLogoutConfirmOpen(true);
+  }, [isAuthenticated, openDashboardLogin]);
+
+  const handleCancelLogout = useCallback(() => {
+    if (isLoggingOut) return;
+    setIsLogoutConfirmOpen(false);
+  }, [isLoggingOut]);
+
+  const handleConfirmLogout = useCallback(async () => {
+    setIsLoggingOut(true);
+
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to logout on server', error);
+    } finally {
+      await authTokenStorage.clearToken();
+      setIsAuthenticated(false);
+      setRecentCards([]);
+      setCreatedCard(null);
+      setRelatedCards([]);
+      setKnowledgeSearchCards([]);
+      setHasKnowledgeSearchResult(false);
+      setKnowledgeSearchError(null);
+      setIsLogoutConfirmOpen(false);
+      setIsLoggingOut(false);
+      void chrome.runtime.sendMessage({ type: 'SAN_AUTH_STATE_CHANGED', isAuthenticated: false });
+    }
+  }, []);
+
   const hasKnowledgeResult = isLoadingRelated || Boolean(createdCard) || relatedCards.length > 0 || Boolean(relatedError);
   const displayedCards = hasKnowledgeSearchResult ? knowledgeSearchCards : relatedCards;
   const isLoadingDisplayedCards = hasKnowledgeSearchResult ? isSearchingKnowledge : isLoadingRelated;
@@ -430,7 +468,43 @@ export default function SidePanel() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#101417] px-4 pb-4 text-text-primary">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <SidePanelNavbar isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
+        <SidePanelNavbar
+          isAuthenticated={isAuthenticated}
+          onOpenDashboard={openDashboard}
+          onAuthButtonClick={handleAuthButtonClick}
+        />
+        {isLogoutConfirmOpen && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="logout-confirm-title"
+              className="w-full max-w-[280px] rounded-lg border border-white/10 bg-surface-container p-4 text-text-primary shadow-2xl"
+            >
+              <h2 id="logout-confirm-title" className="text-sm font-semibold">
+                로그아웃 하시겠습니까?
+              </h2>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelLogout}
+                  disabled={isLoggingOut}
+                  className="h-9 rounded-md border border-white/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLogout}
+                  disabled={isLoggingOut}
+                  className="h-9 rounded-md border border-primary-signal/35 bg-primary-signal/15 text-sm font-semibold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isLoggingOut ? '처리 중' : '확인'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <GlowBackground />
         <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
