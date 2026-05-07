@@ -159,7 +159,7 @@ export default function SidePanel() {
   const [cards, setCards] = useState<SavedInsight[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [relatedCards, setRelatedCards] = useState<KnowledgeCardResponse[]>([]);
-  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
+  const [isLoadingRelated, setIsLoadingRelated] = useState(true);
   const [relatedError, setRelatedError] = useState<string | null>(null);
   const [hasRelatedResult, setHasRelatedResult] = useState(false);
   const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
@@ -436,10 +436,10 @@ export default function SidePanel() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#101417] px-4 pb-4 text-text-primary">
-      <div className="custom-scrollbar relative flex-1 overflow-y-auto">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <SidePanelNavbar isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
-        <div className="relative z-10 flex flex-col gap-4 pt-4">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pt-4">
           {isLoadingRelated ? (
             <KnowledgeProgressCard
               cards={relatedCards}
