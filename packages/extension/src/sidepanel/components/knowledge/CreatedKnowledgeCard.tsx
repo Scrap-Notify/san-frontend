@@ -6,22 +6,22 @@ interface CreatedKnowledgeCardProps {
 
 export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2.5">
       {/* Title Label: Matching project standard title style */}
       <div className="px-1 text-caption font-medium uppercase tracking-[0.14em] text-text-secondary">
         지식 카드 생성
       </div>
 
-      {/* Card Content: Organic Leaf Shape with Misty Teal Glassmorphism */}
-      <article className="relative flex h-[190px] w-full gap-4 overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-5 backdrop-blur-xl shadow-neon-sm">
+      {/* Card Content: Compact Organic Leaf Shape */}
+      <article className="relative flex h-[120px] w-full gap-4 overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-4 backdrop-blur-xl shadow-neon-sm">
         {/* Subtle Background Glow */}
-        <div className="absolute -left-4 -top-4 h-32 w-32 rounded-full bg-primary-signal/5 blur-3xl" aria-hidden="true" />
+        <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-primary-signal/5 blur-2xl" aria-hidden="true" />
         
         {/* Left: Icon Area with SPROUT Badge */}
-        <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-leaf border border-primary-signal/20 bg-surface-low shadow-neon-sm">
+        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-leaf border border-primary-signal/20 bg-surface-low shadow-neon-sm">
           <svg
-            width={24}
-            height={24}
+            width={20}
+            height={20}
             viewBox="0 0 22 22"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -33,28 +33,28 @@ export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
             />
           </svg>
           <div className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full bg-primary-signal px-1.5 py-0.5 shadow-neon-sm">
-            <span className="text-[8px] font-bold uppercase text-forest-bg leading-none">SPROUT</span>
+            <span className="text-[7px] font-bold uppercase text-forest-bg leading-none">SPROUT</span>
           </div>
         </div>
 
         {/* Right: Content Area */}
-        <div className="flex flex-1 flex-col justify-start overflow-hidden pt-1">
+        <div className="flex flex-1 flex-col justify-start overflow-hidden">
           <h3 className="line-clamp-1 text-body-main-bold text-text-primary">
             {card.title}
           </h3>
-          <div className="mt-2 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <p className="text-body-sm leading-6 text-text-secondary">
+          <div className="mt-1 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <p className="text-body-sm leading-5 text-text-secondary/90">
               {card.summary}
             </p>
           </div>
           
-          {/* Tags */}
+          {/* Tags (Conditional and limited for space) */}
           {card.tags.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5 shrink-0">
+            <div className="mt-2 flex flex-wrap gap-1.5 shrink-0">
                {card.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag.tag_id}
-                  className="rounded-full border border-primary-signal/20 bg-background/50 px-2.5 py-1 text-caption font-bold text-primary-signal"
+                  className="rounded-full border border-primary-signal/15 bg-background/40 px-2 py-0.5 text-[10px] font-bold text-primary-signal"
                 >
                   #{tag.name}
                 </span>
