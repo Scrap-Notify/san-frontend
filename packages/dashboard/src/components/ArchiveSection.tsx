@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { ArrowLeft, ArrowRight, Brain, FlaskConical, NotebookText } from 'lucide-react';
+import { IconBox, TagBadge } from '@san/ui';
 import { useArchiveCards } from '../hooks/useArchiveCards';
 
 export function ArchiveSection() {
@@ -20,19 +21,19 @@ export function ArchiveSection() {
   };
 
   return (
-    <section className="w-full min-w-0 overflow-hidden pb-[clamp(3rem,6vw,5rem)]">
-      <div className="mb-[clamp(1.5rem,3vw,2.5rem)] flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    <section className="w-full min-w-0 overflow-hidden pb-xl">
+      <div className="mb-dashboard-gap flex flex-col gap-dashboard-gap sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h2 className="text-3xl font-black text-[#fbfffa] sm:text-4xl">Archive</h2>
-          <p className="mt-2 text-base text-[#b9cbc1] sm:text-xl">Saved fragments from your knowledge map</p>
+          <h2 className="text-h1-bold text-text-primary">Archive</h2>
+          <p className="mt-sm text-body-main text-text-secondary">Saved fragments from your knowledge map</p>
         </div>
 
-        <div className="flex shrink-0 gap-3">
+        <div className="flex shrink-0 gap-sm">
           {[ArrowLeft, ArrowRight].map((Icon, index) => (
             <button
               key={index}
               type="button"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#3a4a43] bg-[#181c1f]/40 text-[#b9cbc1] transition hover:border-[#00ffc2]/60 hover:text-[#00ffc2] sm:h-12 sm:w-12"
+              className="flex h-12 w-12 items-center justify-center rounded-leaf border border-text-secondary/30 bg-surface-low/40 text-text-secondary transition hover:border-primary-signal/60 hover:text-primary-signal hover:glow-neon"
               onClick={() => scrollCarousel(index === 0 ? 'previous' : 'next')}
               aria-label={index === 0 ? 'Previous archive page' : 'Next archive page'}
             >
@@ -42,10 +43,10 @@ export function ArchiveSection() {
         </div>
       </div>
 
-      <div className="min-w-0 rounded-3xl bg-[radial-gradient(circle_at_center,rgba(0,255,194,0.08),transparent_64%)]">
+      <div className="min-w-0 rounded-leaf bg-primary-signal/5">
         <div
           ref={carouselRef}
-          className="flex w-full min-w-0 snap-x snap-mandatory gap-[clamp(1rem,2vw,2rem)] overflow-x-auto scroll-smooth px-1 pb-5"
+          className="flex w-full min-w-0 snap-x snap-mandatory gap-dashboard-gap overflow-x-auto scroll-smooth px-xs pb-lg"
         >
           {isPending ? (
             <StatusCard message="Loading archive cards..." />
@@ -66,34 +67,29 @@ export function ArchiveSection() {
             return (
               <article
                 key={card.card_id}
-                className="flex min-h-80 w-[min(88vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border border-[#83958c]/10 bg-[#1c2023]/60 p-[clamp(1.5rem,2.5vw,2.25rem)] shadow-[0_40px_80px_rgba(0,0,0,0.4)] backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]"
+                className="flex min-h-80 w-[min(88vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-leaf border border-text-ghost/10 bg-surface-container/60 p-lg shadow-neon-sm backdrop-blur-xl md:w-[calc((100%-theme(spacing.dashboard-gap))/2)] xl:w-[calc((100%-2*theme(spacing.dashboard-gap))/3)]"
               >
                 <div>
-                  <div className="mb-7 flex items-start justify-between gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg bg-[#1e5056]/30 text-[#00ffc2]">
-                      <Icon size={22} />
-                    </div>
+                  <div className="mb-lg flex items-start justify-between gap-md">
+                    <IconBox variant="leaf" size="md" className="text-primary-signal">
+                      <Icon size={20} />
+                    </IconBox>
 
-                    <time className="text-xs font-bold uppercase tracking-widest text-[#b9cbc1]">
+                    <time className="text-caption-bold uppercase tracking-wide text-text-secondary">
                       {date}
                     </time>
                   </div>
 
-                  <h3 className="text-xl font-bold leading-snug text-[#fbfffa]">{card.title}</h3>
+                  <h3 className="text-body-lg-bold text-text-primary">{card.title}</h3>
 
-                  <p className="mt-4 text-sm font-medium leading-7 text-[#b9cbc1]">
+                  <p className="mt-md text-body-sm text-text-secondary">
                     {card.summary ?? 'No summary has been generated yet.'}
                   </p>
                 </div>
 
-                <div className="mt-8 flex flex-wrap gap-2">
+                <div className="mt-xl flex flex-wrap gap-sm">
                   {card.tags.map((tag) => (
-                    <span
-                      key={tag.tag_id}
-                      className="rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg bg-[#313539]/50 px-3 py-1.5 text-xs text-[#b9cbc1]"
-                    >
-                      #{tag.name}
-                    </span>
+                    <TagBadge key={tag.tag_id} label={tag.name} />
                   ))}
                 </div>
               </article>
@@ -137,8 +133,8 @@ function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'de
   return (
     <div
       className={[
-        'flex min-h-80 w-[min(88vw,28rem)] shrink-0 snap-start items-center justify-center rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border bg-[#1c2023]/60 p-8 text-center text-sm font-medium backdrop-blur-xl md:w-[calc((100%-clamp(1rem,2vw,2rem))/2)] xl:w-[calc((100%-2*clamp(1rem,2vw,2rem))/3)]',
-        tone === 'error' ? 'border-red-400/20 text-red-300' : 'border-[#83958c]/10 text-[#b9cbc1]',
+        'flex min-h-80 w-[min(88vw,28rem)] shrink-0 snap-start items-center justify-center rounded-leaf border bg-surface-container/60 p-xl text-center text-body-sm backdrop-blur-xl md:w-[calc((100%-theme(spacing.dashboard-gap))/2)] xl:w-[calc((100%-2*theme(spacing.dashboard-gap))/3)]',
+        tone === 'error' ? 'border-red-400/20 text-red-300' : 'border-text-ghost/10 text-text-secondary',
       ].join(' ')}
     >
       {message}

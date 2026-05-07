@@ -6,7 +6,7 @@ export function MainLayout() {
   const activeMenu = getActiveMenu(location.pathname);
 
   return (
-    <div className="grid min-h-screen grid-rows-[auto_1fr] gap-dashboard-gap overflow-x-hidden bg-background py-dashboard-gap">
+    <div className="flex min-h-screen flex-col gap-dashboard-gap overflow-x-hidden bg-background py-dashboard-gap">
       <header className="dashboard-shell">
         <TopNavBar activeMenu={activeMenu} />
       </header>

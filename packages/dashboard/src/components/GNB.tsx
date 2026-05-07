@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { GitBranch, Menu, User, X } from 'lucide-react';
 import { authTokenStorage } from '../api/client';
 import { SearchBar } from './SearchBar';
 
@@ -87,13 +88,13 @@ export function TopNavBar({
   );
 
   return (
-    <header className="flex w-full flex-col gap-5 rounded-tr-[48px] rounded-bl-[48px] bg-[#101417]/60 px-6 pb-5 pt-6 text-[#fbfffa] backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-8">
-      <div className="flex min-w-0 items-center justify-between gap-4 lg:shrink-0">
-        <div className="flex min-w-0 items-center gap-4 sm:gap-6">
+    <header className="flex w-full flex-col gap-dashboard-gap rounded-leaf bg-background/60 px-lg py-lg text-text-primary backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between lg:px-xl">
+      <div className="flex min-w-0 items-center justify-between gap-md lg:shrink-0">
+        <div className="flex min-w-0 items-center gap-md sm:gap-dashboard-gap">
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="shrink-0 text-2xl font-bold leading-none transition hover:text-[#00ffc2] sm:text-3xl"
+            className="shrink-0 text-h2-bold leading-none transition hover:text-primary-signal"
           >
             SAN
           </button>
@@ -102,17 +103,17 @@ export function TopNavBar({
             type="button"
             onClick={handleTilClick}
             className={[
-              'min-h-11 shrink-0 rounded-full px-5 text-sm font-bold transition',
+              'min-h-11 shrink-0 rounded-leaf px-lg text-body-sm-bold transition hover:glow-neon',
               activeMenu === 'TIL'
-                ? 'bg-[#00ffc2] text-[#101417]'
-                : 'border border-[#3a4a43]/50 bg-[#181c1f] text-[#b9cbc1] hover:border-[#00ffc2]/40 hover:text-[#00ffc2]',
+                ? 'bg-primary-signal text-background'
+                : 'border border-text-secondary/40 bg-surface-low text-text-secondary hover:border-primary-signal/40 hover:text-primary-signal',
             ].join(' ')}
           >
             TIL
           </button>
 
-          <div className="hidden min-w-0 border-b-2 border-[#00ffc2] pb-2 sm:block">
-            <span className="block truncate pl-2 text-xl font-semibold leading-none text-[#00ffc2] sm:text-2xl">
+          <div className="hidden min-w-0 border-b-2 border-primary-signal pb-sm sm:block">
+            <span className="block truncate pl-sm text-body-lg-bold leading-none text-primary-signal">
               {activeMenu}
             </span>
           </div>
@@ -121,20 +122,20 @@ export function TopNavBar({
         <button
           type="button"
           onClick={() => setIsMenuOpen((current) => !current)}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#181c1f] text-[#b9cbc1] transition hover:border-[#00ffc2]/40 hover:text-[#00ffc2] lg:hidden"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-leaf border border-text-primary/10 bg-surface-low text-text-secondary transition hover:border-primary-signal/40 hover:text-primary-signal hover:glow-neon lg:hidden"
           aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           aria-expanded={isMenuOpen}
         >
-          {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
-      <div className="hidden min-w-0 gap-3 lg:grid lg:w-[min(58vw,54rem)] lg:grid-cols-[minmax(16rem,1fr)_auto_auto] lg:items-center">
+      <div className="hidden min-w-0 gap-dashboard-gap lg:grid lg:w-[min(58vw,54rem)] lg:grid-cols-[minmax(16rem,1fr)_auto_auto] lg:items-center">
         {navActions}
       </div>
 
       {isMenuOpen ? (
-        <div className="grid min-w-0 gap-3 border-t border-white/5 pt-5 lg:hidden">
+        <div className="grid min-w-0 gap-dashboard-gap border-t border-text-primary/5 pt-lg lg:hidden">
           {navActions}
         </div>
       ) : null}
@@ -156,12 +157,12 @@ function IconButton({ children, ariaLabel, tooltip, onClick }: IconButtonProps) 
         type="button"
         aria-label={ariaLabel}
         onClick={onClick}
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/5 bg-[#181c1f] text-[#b9cbc1] transition hover:border-[#00ffc2]/40 hover:text-[#00ffc2]"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-leaf border border-text-primary/5 bg-surface-low text-text-secondary transition hover:border-primary-signal/40 hover:text-primary-signal hover:glow-neon"
       >
         {children}
       </button>
       {tooltip ? (
-        <span className="mt-2 hidden whitespace-nowrap rounded-full border border-[#00ffc2]/50 bg-[#181c1f]/95 px-4 py-2 text-sm font-bold text-[#00ffc2] shadow-[0_12px_30px_rgba(0,0,0,0.45)] group-hover:inline-flex lg:absolute lg:top-full">
+        <span className="mt-sm hidden whitespace-nowrap rounded-leaf border border-primary-signal/50 bg-surface-low/95 px-md py-sm text-body-sm-bold text-primary-signal shadow-neon-sm group-hover:inline-flex lg:absolute lg:top-full">
           {tooltip}
         </span>
       ) : null}
@@ -183,10 +184,10 @@ function UserButton({
       type="button"
       onClick={onClick}
       className={[
-        'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border transition',
+        'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-leaf border transition hover:glow-neon',
         isAuthenticated
-          ? 'border-[#00ffc2]/60 bg-[#00ffc2]/15 text-[#00ffc2] shadow-[0_0_24px_rgba(0,255,194,0.16)] hover:bg-[#00ffc2]/20'
-          : 'border-white/10 bg-[#1b2023] text-[#83958c] hover:border-[#83958c]/60 hover:text-[#b9cbc1]',
+          ? 'border-primary-signal/60 bg-primary-signal/15 text-primary-signal shadow-neon-sm hover:bg-primary-signal/20'
+          : 'border-text-primary/10 bg-surface-container text-text-ghost hover:border-text-ghost/60 hover:text-text-secondary',
       ].join(' ')}
       aria-label={isAuthenticated ? 'User profile' : 'Go to login'}
       title={isAuthenticated ? 'User profile' : 'Login'}
@@ -195,56 +196,18 @@ function UserButton({
         <span className="grid h-full w-full place-items-center">
           <img src={src} alt="" className="col-start-1 row-start-1 h-full w-full object-cover opacity-45" />
           <span className="col-start-1 row-start-1">
-            <UserIcon />
+            <User size={20} />
           </span>
         </span>
       ) : (
         <div className="flex h-full w-full items-center justify-center">
-          <UserIcon />
+          <User size={20} />
         </div>
       )}
     </button>
   );
 }
 
-function MenuIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true">
-      <path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true">
-      <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function GithubIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" className="shrink-0" aria-hidden="true">
-      <path d="M12 2C6.477 2 2 6.59 2 12.253c0 4.52 2.865 8.354 6.839 9.708.5.095.682-.222.682-.494 0-.244-.009-.889-.014-1.744-2.782.619-3.369-1.375-3.369-1.375-.455-1.184-1.11-1.5-1.11-1.5-.908-.636.069-.623.069-.623 1.004.072 1.532 1.057 1.532 1.057.892 1.566 2.341 1.114 2.91.852.091-.662.349-1.114.635-1.37-2.221-.259-4.556-1.139-4.556-5.067 0-1.12.39-2.034 1.03-2.75-.103-.26-.446-1.303.098-2.714 0 0 .84-.276 2.75 1.05A9.376 9.376 0 0 1 12 6.938c.85.004 1.705.118 2.504.347 1.909-1.326 2.747-1.05 2.747-1.05.546 1.411.203 2.455.1 2.714.64.716 1.028 1.63 1.028 2.75 0 3.938-2.339 4.805-4.567 5.059.359.316.678.94.678 1.895 0 1.368-.012 2.472-.012 2.807 0 .274.18.594.688.493C19.138 20.604 22 16.771 22 12.253 22 6.59 17.523 2 12 2Z" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" className="shrink-0" aria-hidden="true">
-      <path
-        d="M12 12C14.4853 12 16.5 9.98528 16.5 7.5C16.5 5.01472 14.4853 3 12 3C9.51472 3 7.5 5.01472 7.5 7.5C7.5 9.98528 9.51472 12 12 12Z"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M4 21C4.75 17.15 7.68 15 12 15C16.32 15 19.25 17.15 20 21"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+  return <GitBranch size={20} aria-hidden="true" />;
 }

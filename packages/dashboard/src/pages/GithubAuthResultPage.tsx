@@ -73,16 +73,16 @@ export function GithubAuthResultPage() {
   }, [code, error, githubLinked, navigate, ticket]);
 
   return (
-    <main className="auth-shell grid min-h-screen w-full place-items-center overflow-x-hidden bg-[#101417] px-6 text-[#fbfffa]">
-      <section className="grid w-full max-w-md gap-3 rounded-bl-lg rounded-br-3xl rounded-tl-3xl rounded-tr-lg border border-[#3a4a43]/20 bg-[#181c1f]/50 p-8 text-center shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#00ffc2]">
+    <main className="auth-shell grid min-h-screen w-full place-items-center overflow-x-hidden bg-background px-lg text-text-primary">
+      <section className="grid w-full max-w-md gap-sm rounded-leaf border border-text-secondary/20 bg-surface-low/50 p-xl text-center shadow-neon-sm backdrop-blur-xl">
+        <p className="text-caption-bold uppercase tracking-wide text-primary-signal">
           GitHub Auth
         </p>
-        <h1 className="text-2xl font-black">Authentication</h1>
-        <p className="text-sm font-medium leading-6 text-[#b9cbc1]">{message}</p>
+        <h1 className="text-h2-bold">Authentication</h1>
+        <p className="text-body-sm text-text-secondary">{message}</p>
         <Link
           to="/login"
-          className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full bg-[#00ffc2] px-5 text-sm font-bold text-[#101417]"
+          className="mt-lg inline-flex min-h-11 items-center justify-center rounded-leaf bg-primary-signal px-lg text-body-sm-bold text-background transition hover:glow-neon"
         >
           Back to login
         </Link>

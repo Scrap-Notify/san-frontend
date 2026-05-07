@@ -22,14 +22,14 @@ export function SearchBar({
     <form
       onSubmit={handleSubmit}
       role="search"
-      className="flex min-h-14 min-w-0 items-center rounded-full border border-[#00ffc2] bg-[#181c1f] px-5 py-3 transition focus-within:bg-[#20262a] sm:px-6"
+      className="flex min-h-14 min-w-0 items-center rounded-leaf border border-primary-signal bg-surface-low px-md py-sm transition focus-within:bg-surface-container focus-within:glow-neon sm:px-lg"
     >
       <input
         type="search"
         value={value}
         onChange={(event) => setValue(event.target.value)}
         placeholder={placeholder}
-        className="min-w-0 flex-1 rounded-[20px] bg-transparent px-6 py-3.5 text-left text-sm font-medium text-[#fbfffa] outline-none placeholder:text-[#83958c] sm:min-w-80"
+        className="min-w-0 flex-1 rounded-leaf bg-transparent px-lg py-sm text-left text-body-sm text-text-primary outline-none placeholder:text-text-ghost sm:min-w-80"
       />
     </form>
   );

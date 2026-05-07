@@ -35,7 +35,7 @@ export function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full overflow-x-hidden bg-[#101417] text-[#fbfffa]">
+    <main className="min-h-screen w-full overflow-x-hidden bg-background text-text-primary">
       <section className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
         <div className="hidden min-w-0 overflow-hidden lg:grid">
           <img
@@ -43,30 +43,30 @@ export function LoginPage() {
             alt="SAN knowledge forest"
             className="col-start-1 row-start-1 h-full min-h-screen w-full object-cover opacity-70"
           />
-          <div className="col-start-1 row-start-1 bg-gradient-to-r from-transparent via-[#101417]/25 to-[#101417]" />
-          <div className="col-start-1 row-start-1 bg-gradient-to-t from-[#101417] via-transparent to-transparent" />
+          <div className="col-start-1 row-start-1 bg-gradient-to-r from-transparent via-background/25 to-background" />
+          <div className="col-start-1 row-start-1 bg-gradient-to-t from-background via-transparent to-transparent" />
 
-          <div className="col-start-1 row-start-1 flex w-full max-w-xl place-self-center flex-col items-center px-[clamp(2rem,5vw,5rem)] text-center">
-            <div className="mb-8 flex aspect-square w-16 items-center justify-center rounded-bl-xl rounded-br-3xl rounded-tl-3xl rounded-tr-xl border border-[#3a4a43]/30 bg-[#1e5056]/35 backdrop-blur-xl xl:w-20">
-              <Sprout className="h-8 w-8 text-[#00ffc2] xl:h-10 xl:w-10" />
+          <div className="col-start-1 row-start-1 flex w-full max-w-xl place-self-center flex-col items-center px-xl text-center">
+            <div className="mb-xl flex aspect-square w-16 items-center justify-center rounded-leaf border border-text-secondary/30 bg-misty-teal backdrop-blur-xl xl:w-20">
+              <Sprout size={32} className="text-primary-signal" />
             </div>
-            <h1 className="text-6xl font-black leading-none tracking-tight xl:text-8xl">SAN</h1>
-            <p className="mt-6 text-xl font-bold leading-tight text-[#d7e2dc] xl:text-3xl">
+            <h1 className="text-h1-bold leading-none">SAN</h1>
+            <p className="mt-lg text-body-lg-bold text-text-primary">
               Grow your knowledge archive.
             </p>
           </div>
         </div>
 
-        <div className="auth-shell flex min-h-screen min-w-0 items-center justify-center bg-[radial-gradient(circle_at_center,rgba(0,255,194,0.06),transparent_58%)]">
-          <div className="w-full max-w-xl rounded-3xl border border-[#3a4a43]/20 bg-[#181c1f]/35 p-[clamp(1.5rem,4vw,2.5rem)] shadow-[0_30px_90px_rgba(0,0,0,0.25)] backdrop-blur-xl lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
-            <header className="mb-8 sm:mb-10">
-              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#00ffc2]">
+        <div className="auth-shell flex min-h-screen min-w-0 items-center justify-center bg-primary-signal/5">
+          <div className="w-full max-w-xl rounded-leaf border border-text-secondary/20 bg-surface-low/35 p-xl shadow-neon-sm backdrop-blur-xl lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+            <header className="mb-xl">
+              <p className="mb-sm text-caption-bold uppercase tracking-wide text-primary-signal">
                 Welcome Back
               </p>
-              <h2 className="text-3xl font-bold leading-tight text-[#fbfffa] sm:text-4xl">
+              <h2 className="text-h1-bold text-text-primary">
                 Login
               </h2>
-              <p className="mt-3 text-base leading-relaxed text-[#b9cbc1] sm:text-xl">
+              <p className="mt-sm text-body-main text-text-secondary">
                 Enter your archive and continue exploring.
               </p>
             </header>
@@ -74,21 +74,21 @@ export function LoginPage() {
             <button
               type="button"
               onClick={handleGithubLogin}
-              className="flex min-h-14 w-full items-center justify-center gap-3 rounded-bl-xl rounded-br-3xl rounded-tl-3xl rounded-tr-xl bg-[#fbfffa] px-5 py-4 text-base font-bold text-[#101417] shadow-[0_20px_40px_rgba(251,255,250,0.1)] transition hover:scale-[1.01] hover:bg-white sm:text-lg"
+              className="flex min-h-14 w-full items-center justify-center gap-sm rounded-leaf bg-text-primary px-lg py-md text-body-main-bold text-background transition hover:glow-neon"
             >
-              <GitBranch className="h-5 w-5" />
+              <GitBranch size={20} />
               Continue with GitHub
             </button>
 
-            <div className="my-8 flex items-center gap-4 sm:my-10">
-              <div className="h-px flex-1 bg-[#3a4a43]/35" />
-              <span className="whitespace-nowrap text-xs font-bold uppercase tracking-widest text-[#b9cbc1]">
+            <div className="my-xl flex items-center gap-md">
+              <div className="h-px flex-1 bg-text-secondary/35" />
+              <span className="whitespace-nowrap text-caption-bold uppercase tracking-wide text-text-secondary">
                 OR LOCAL ACCESS
               </span>
-              <div className="h-px flex-1 bg-[#3a4a43]/35" />
+              <div className="h-px flex-1 bg-text-secondary/35" />
             </div>
 
-            <form className="space-y-6 sm:space-y-7" onSubmit={handleSubmit}>
+            <form className="space-y-dashboard-gap" onSubmit={handleSubmit}>
               <Field
                 label="Archive ID"
                 type="text"
@@ -108,22 +108,22 @@ export function LoginPage() {
               />
 
               {errorMessage ? (
-                <p className="text-sm font-semibold text-red-300">{errorMessage}</p>
+                <p className="text-body-sm-bold text-red-300">{errorMessage}</p>
               ) : null}
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="!mt-9 flex min-h-14 w-full items-center justify-center gap-3 rounded-bl-xl rounded-br-3xl rounded-tl-3xl rounded-tr-xl bg-[#00ffc2] px-5 py-4 text-xl font-bold text-black transition hover:scale-[1.01] hover:bg-[#1affcb] sm:text-2xl"
+                className="!mt-xl flex min-h-14 w-full items-center justify-center gap-sm rounded-leaf bg-primary-signal px-lg py-md text-body-lg-bold text-background transition hover:glow-neon"
               >
                 {isSubmitting ? 'Starting...' : 'Start'}
-                <Sprout className="h-6 w-6" />
+                <Sprout size={20} />
               </button>
             </form>
 
-            <p className="mt-8 text-center text-sm text-[#b9cbc1]">
+            <p className="mt-xl text-center text-body-sm text-text-secondary">
               Need an account?{' '}
-              <Link to="/signup" className="font-bold text-[#00ffc2] hover:underline">
+              <Link to="/signup" className="font-bold text-primary-signal hover:underline">
                 Sign up
               </Link>
             </p>
@@ -153,24 +153,24 @@ function Field({
 }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-3 flex items-center justify-between gap-3 text-sm font-bold uppercase tracking-wide text-[#b9cbc1] sm:text-base">
+      <span className="mb-sm flex items-center justify-between gap-sm text-body-sm-bold uppercase tracking-wide text-text-secondary">
         <span>{label}</span>
         {action ? (
-          <span className="text-xs font-medium tracking-wide text-[#00ffc2]/75 transition hover:text-[#00ffc2] sm:text-sm">
+          <span className="text-caption-bold tracking-wide text-primary-signal/75 transition hover:text-primary-signal">
             {action}
           </span>
         ) : null}
       </span>
 
-      <div className="flex min-w-0 items-center gap-3 bg-[#0b0f12] px-5 py-4 focus-within:ring-1 focus-within:ring-[#00ffc2]/60">
+      <div className="flex min-w-0 items-center gap-sm rounded-leaf bg-background px-lg py-md focus-within:ring-1 focus-within:ring-primary-signal/60">
         <input
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-h-6 min-w-0 flex-1 bg-transparent text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/30 sm:text-lg"
+          className="min-h-6 min-w-0 flex-1 bg-transparent text-body-main text-text-primary outline-none placeholder:text-text-secondary/30"
         />
-        <span className="shrink-0 text-[#b9cbc1]/40">
+        <span className="shrink-0 text-text-secondary/40">
           {icon}
         </span>
       </div>
