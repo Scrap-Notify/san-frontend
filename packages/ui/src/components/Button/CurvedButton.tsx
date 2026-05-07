@@ -14,19 +14,19 @@ interface CurvedButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const buttonToneStyles: Record<ButtonTone, string> = {
   primary:
-    'bg-gradient-to-r from-[#00ffc2] to-[#00e1ab] !text-black shadow-[0_20px_40px_rgba(0,255,194,0.2)] hover:opacity-95 active:shadow-[0_10px_24px_rgba(0,255,194,0.16)]',
+    'bg-gradient-to-r from-primary-signal to-surface-container text-text-primary shadow-neon hover:opacity-95 hover:glow-neon active:shadow-neon-sm',
 
   subtle:
-    'border border-[#00ffc2]/20 bg-[#00ffc2]/10 text-[#00ffc2] shadow-[0_0_10px_rgba(0,255,194,0.12)] hover:bg-[#00ffc2]/15',
+    'border border-primary-signal/20 bg-primary-signal/10 text-primary-signal shadow-neon-sm hover:bg-primary-signal/15 hover:glow-neon',
 
   ghost:
-    'text-[#b9cbc1] hover:bg-white/5',
+    'text-text-secondary hover:bg-surface-container/40 hover:glow-neon',
 };
 
 const buttonSizeStyles: Record<ButtonSize, string> = {
-  sm: 'px-4 py-2 text-xs',
-  md: 'px-5 py-3 text-sm',
-  lg: 'px-6 py-4 text-lg',
+  sm: 'px-4 py-2 text-body-sm',
+  md: 'px-5 py-3 text-body-main',
+  lg: 'px-6 py-4 text-body-lg',
 };
 
 export function CurvedButton({
@@ -47,10 +47,10 @@ export function CurvedButton({
       disabled={disabled}
       className={[
         'inline-flex items-center justify-center gap-2 whitespace-nowrap',
-        'rounded-tl-[48px] rounded-tr-lg rounded-bl-lg rounded-br-[48px]',
+        'rounded-leaf',
         'font-bold leading-none',
         'transition-all duration-150 ease-out',
-        'active:translate-y-px active:scale-[0.99]',
+        'active:translate-y-px active:scale-95',
         'disabled:cursor-not-allowed disabled:opacity-60',
         fullWidth ? 'w-full' : 'w-fit',
         buttonToneStyles[tone],
