@@ -52,6 +52,7 @@
 
   /* ── 유기적 간격 및 형태 (san_styleguide.md 기반) ── */
   --spacing-dashboard: 24px;          /* */
+  --spacing-dashboard-gap: 24px;      /* Dashboard layout gap */
   
   --radius-leaf: 48px 8px 48px 8px;   /* leaf: top-left/bottom-right large */
   --radius-leaf-reverse: 8px 48px 8px 48px;
