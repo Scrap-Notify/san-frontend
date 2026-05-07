@@ -17,8 +17,8 @@ interface IconBoxProps {
 }
 
 const variantMap = {
-  circle: 'rounded-full bg-icon-bg',
-  leaf:   'rounded-leaf bg-teal-dim',
+  circle: 'rounded-full bg-surface-highest',
+  leaf:   'rounded-leaf bg-misty-teal',
 };
 
 const sizeMap = {

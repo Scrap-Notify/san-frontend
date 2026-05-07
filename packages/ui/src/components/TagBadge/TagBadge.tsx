@@ -14,8 +14,8 @@ export function TagBadge({ label, className = '' }: TagBadgeProps) {
         inline-flex items-center
         px-3 py-1
         rounded-leaf
-        bg-chip
-        text-[10px] text-text-muted
+        bg-surface-highest
+        text-caption text-text-secondary
         whitespace-nowrap
         ${className}
       `}
