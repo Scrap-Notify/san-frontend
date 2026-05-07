@@ -82,7 +82,7 @@ export const DropZone = ({
       <div className="flex flex-col items-center gap-4">
         <div className="flex flex-col items-center gap-3 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-leaf border border-primary-signal/30 bg-primary-signal/10 text-primary-signal shadow-neon">
-            <CloudUpload size={26} aria-hidden="true" />
+            <CloudUpload size={24} aria-hidden="true" />
           </div>
 
           <p className="text-body-main-bold text-text-primary">
@@ -95,7 +95,7 @@ export const DropZone = ({
         </div>
 
         <div className="flex min-h-[96px] w-full items-start gap-3 rounded-leaf border border-primary-signal/20 bg-surface-highest p-4 text-left">
-          <PencilLine size={20} className="mt-0.5 shrink-0 text-primary-signal" aria-hidden="true" />
+          <PencilLine size={18} className="mt-0.5 shrink-0 text-primary-signal" aria-hidden="true" />
           <p className="text-caption leading-6 text-text-secondary">
             드롭한 내용은 먼저 이곳에 머물고, 저장하면 관련 지식 카드와 함께 정리됩니다.
           </p>
@@ -118,7 +118,7 @@ export const DropZone = ({
         <div className="mt-4 rounded-leaf border border-primary-signal/20 bg-surface-container p-4 shadow-neon">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <Sparkles size={20} className="text-primary-signal" aria-hidden="true" />
+              <Sparkles size={18} className="text-primary-signal" aria-hidden="true" />
               <span className="text-caption font-bold uppercase tracking-wide text-text-secondary">
                 Captured Source
               </span>
@@ -131,7 +131,7 @@ export const DropZone = ({
               aria-label="Clear source"
               title="Clear source"
             >
-              <RotateCcw size={13} aria-hidden="true" />
+              <RotateCcw size={12} aria-hidden="true" />
               Clear
             </button>
           </div>

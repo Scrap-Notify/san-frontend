@@ -24,7 +24,7 @@ export function EmptyState({ onLogin }: EmptyStateProps) {
         울창한 지식의 숲으로 자라납니다.
       </div>
 
-      <CurvedButton onClick={onLogin} size="lg" className="gap-1.5">
+      <CurvedButton onClick={onLogin} fullWidth size="lg" className="max-w-[280px] gap-1.5">
         로그인하고 시작하기
       </CurvedButton>
     </div>
