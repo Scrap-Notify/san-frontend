@@ -52,10 +52,12 @@
 
   /* ── 유기적 간격 및 형태 (san_styleguide.md 기반) ── */
   --spacing-dashboard: 24px;          /* */
+  --spacing-dashboard-gap: 24px;      /* Dashboard layout gap */
   
   --radius-leaf: 48px 8px 48px 8px;   /* leaf: top-left/bottom-right large */
   --radius-leaf-reverse: 8px 48px 8px 48px;
   --radius-leaf-full: 48px 8px 48px 8px;
+  --radius-leaf-soft: 48px 48px 8px 8px;
 }
 
 /* 3. 베이스 스타일 (전역 설정) */
@@ -99,6 +101,9 @@
   .rounded-leaf-full {
     border-radius: var(--radius-leaf-full);
   }
+  .rounded-leaf-soft {
+    border-radius: var(--radius-leaf-soft);
+  }
 
   /* ── 타이포그래피 커스텀 (추출값 매칭) ── */
   .text-h1-bold {
@@ -106,5 +111,23 @@
   }
   .text-body-main {
     @apply text-[16px] font-normal leading-[1.2];
+  }
+  .text-til-caption {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    line-height: 16px;
+  }
+  .text-til-body {
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 24px;
+  }
+  .leading-token-16 {
+    line-height: 16px;
+  }
+  .tracking-token-1_2 {
+    letter-spacing: 1.2px;
   }
 }

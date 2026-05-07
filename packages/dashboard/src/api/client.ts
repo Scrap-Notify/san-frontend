@@ -1,9 +1,12 @@
 import {
   createApiClient,
+  createAsyncJobsApi,
   createAuthApi,
   createCardsApi,
   createGithubApi,
+  createSearchApi,
   createScrapsApi,
+  createTilApi,
   type AuthTokens,
 } from '@san/shared';
 import { clearExtensionAuth, syncExtensionAuth } from './extensionAuth';
@@ -32,6 +35,9 @@ const apiClient = createApiClient(baseURL, tokenProvider);
 
 export const authApi = createAuthApi(apiClient);
 export const githubApi = createGithubApi(apiClient);
+export const searchApi = createSearchApi(apiClient);
 export const scrapsApi = createScrapsApi(apiClient);
 export const cardsApi = createCardsApi(apiClient);
+export const tilApi = createTilApi(apiClient);
+export const asyncJobsApi = createAsyncJobsApi(apiClient);
 export const authTokenStorage = tokenProvider;

@@ -93,99 +93,99 @@ export function SettingsIntegrationsPage() {
   };
 
   return (
-    <section className="w-full min-w-0 space-y-6 py-10 text-[#fbfffa]">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#00ffc2]">
+    <section className="w-full min-w-0 space-y-dashboard-gap py-dashboard-gap text-text-primary">
+      <header className="grid gap-md sm:grid-cols-[1fr_auto] sm:items-end">
+        <div className="min-w-0">
+          <p className="text-caption-bold uppercase tracking-wide text-primary-signal">
             Integrations
           </p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight">GitHub</h1>
-          <p className="mt-2 text-sm leading-6 text-[#83958c]">{statusText}</p>
+          <h1 className="mt-sm text-h1-bold">GitHub</h1>
+          <p className="mt-sm text-body-sm text-text-ghost">{statusText}</p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="grid gap-sm sm:flex sm:flex-wrap sm:justify-end">
           <button
             type="button"
             onClick={handleLinkGithub}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#00ffc2] px-4 text-sm font-bold text-[#101417] transition hover:bg-[#1affcb]"
+            className="inline-flex min-h-10 items-center justify-center gap-sm rounded-leaf bg-primary-signal px-md text-body-sm-bold text-background transition hover:glow-neon"
           >
-            <LinkIcon className="h-4 w-4" />
+            <LinkIcon size={20} />
             Connect GitHub
           </button>
           <button
             type="button"
             onClick={handleUnlinkGithub}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/10 bg-[#1b2023] px-4 text-sm font-bold text-[#b9cbc1] transition hover:border-red-300/40 hover:text-red-200"
+            className="inline-flex min-h-10 items-center justify-center gap-sm rounded-leaf border border-text-primary/10 bg-surface-container px-md text-body-sm-bold text-text-secondary transition hover:border-red-300/40 hover:text-red-200 hover:glow-neon"
           >
-            <Unlink className="h-4 w-4" />
+            <Unlink size={20} />
             Disconnect
           </button>
         </div>
       </header>
 
       {message ? (
-        <p className="rounded-2xl border border-[#00ffc2]/20 bg-[#00ffc2]/10 px-4 py-3 text-sm font-semibold text-[#00ffc2]">
+        <p className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-md py-sm text-body-sm-bold text-primary-signal">
           {message}
         </p>
       ) : null}
       {errorMessage ? (
-        <p className="rounded-2xl border border-red-300/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200">
+        <p className="rounded-leaf border border-red-300/20 bg-red-500/10 px-md py-sm text-body-sm-bold text-red-200">
           {errorMessage}
         </p>
       ) : null}
 
-      <div className="rounded-3xl border border-[#3a4a43]/30 bg-[#181c1f]/50 p-[clamp(1.25rem,3vw,2rem)]">
-        <div className="mb-5 flex items-center justify-between gap-3">
-          <h2 className="text-lg font-black">Connected repositories</h2>
+      <div className="rounded-leaf border border-text-secondary/30 bg-surface-low/50 p-lg">
+        <div className="mb-lg flex items-center justify-between gap-sm">
+          <h2 className="text-body-lg-bold">Connected repositories</h2>
           <button
             type="button"
             onClick={loadConnectedRepositories}
             disabled={isLoading}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#1b2023] text-[#b9cbc1] transition hover:border-[#00ffc2]/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-9 w-9 items-center justify-center rounded-leaf border border-text-primary/10 bg-surface-container text-text-secondary transition hover:border-primary-signal/30 hover:text-text-primary hover:glow-neon disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Refresh repositories"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw size={20} />
           </button>
         </div>
 
         {connectedRepositories.length > 0 ? (
-          <div className="grid gap-3">
+          <div className="grid gap-sm">
             {connectedRepositories.map((repository) => (
               <article
                 key={repository.githubRepositoryId}
-                className="flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-white/5 bg-[#101417]/70 p-4"
+                className="grid min-w-0 gap-md rounded-leaf border border-text-primary/5 bg-background/70 p-md sm:grid-cols-[1fr_auto] sm:items-center"
               >
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1e5056] text-[#00ffc2]">
-                    <GitBranch className="h-5 w-5" />
+                <div className="flex min-w-0 items-center gap-sm">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-leaf bg-misty-teal text-primary-signal">
+                    <GitBranch size={20} />
                   </span>
                   <div className="min-w-0">
                     <a
                       href={repository.htmlUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="block truncate text-sm font-black text-[#fbfffa] hover:text-[#00ffc2]"
+                      className="block truncate text-body-sm-bold text-text-primary hover:text-primary-signal"
                     >
                       {repository.fullName}
                     </a>
-                    <p className="mt-1 text-xs font-medium text-[#83958c]">
-                      {repository.privateRepository ? 'Private' : 'Public'} · {repository.defaultBranch}
+                    <p className="mt-xs text-caption text-text-ghost">
+                      {repository.privateRepository ? 'Private' : 'Public'} / {repository.defaultBranch}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleDisconnectRepository(repository.githubRepositoryId)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-[#1b2023] text-[#b9cbc1] transition hover:border-red-300/40 hover:text-red-200"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-leaf border border-text-primary/10 bg-surface-container text-text-secondary transition hover:border-red-300/40 hover:text-red-200 hover:glow-neon sm:justify-self-end"
                   aria-label={`Disconnect ${repository.fullName}`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 size={20} />
                 </button>
               </article>
             ))}
           </div>
         ) : (
-          <p className="rounded-2xl border border-white/5 bg-[#101417]/70 px-4 py-5 text-sm font-medium text-[#83958c]">
+          <p className="rounded-leaf border border-text-primary/5 bg-background/70 px-md py-lg text-body-sm text-text-ghost">
             Connect GitHub and choose repositories to use them in SAN.
           </p>
         )}

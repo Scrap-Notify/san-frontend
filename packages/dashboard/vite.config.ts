@@ -26,4 +26,31 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+
+          if (id.includes('monaco-editor') || id.includes('@monaco-editor')) {
+            return 'editor';
+          }
+
+          if (id.includes('react-markdown') || id.includes('remark-gfm') || id.includes('micromark') || id.includes('unified')) {
+            return 'markdown';
+          }
+
+          if (id.includes('@tanstack')) {
+            return 'query';
+          }
+
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            return 'react-vendor';
+          }
+
+          return undefined;
+        },
+      },
+    },
+  },
 });

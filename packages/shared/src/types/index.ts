@@ -21,7 +21,18 @@ export type {
   KnowledgeCardResponse,
   KnowledgeCardSimilarCardsResponse,
   KnowledgeCardView,
+  SearchCardResult,
+  SearchParams,
+  SearchResponse,
   Tag,
   TagResponse,
 } from './knowledge';
+export type {
+  TilGenerateRequest,
+  TilGenerationJobResponse,
+  TilGithubCommitJobResponse,
+  TilGithubCommitStatus,
+  TilRecallCardsResponse,
+  TilResponse,
+} from './til';
 export { toKnowledgeCardView } from './knowledge';

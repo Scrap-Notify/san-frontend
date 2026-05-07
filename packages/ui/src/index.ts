@@ -7,3 +7,4 @@ export { MetaLabel } from './components/MetaLabel/MetaLabel.tsx';
 export { TagBadge } from './components/TagBadge/TagBadge.tsx';
 export { IconBox } from './components/IconBox/IconBox.tsx';
 export { LeafCard } from './components/LeafCard/LeafCard.tsx';
+export { CurvedButton } from './components/Button/CurvedButton.tsx';
