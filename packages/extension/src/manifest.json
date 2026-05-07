@@ -53,5 +53,11 @@
   "background": {
     "service_worker": "src/background/index.ts",
     "type": "module"
+  },
+  "web_accessible_resources": [
+  {
+    "resources": ["fonts/*.woff"],
+    "matches": ["<all_urls>"]
   }
+]
 }
