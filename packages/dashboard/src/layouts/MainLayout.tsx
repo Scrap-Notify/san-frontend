@@ -7,7 +7,7 @@ export function MainLayout() {
 
   return (
     <div className="flex min-h-screen flex-col gap-dashboard-gap overflow-x-hidden bg-background py-dashboard-gap">
-      <header className="dashboard-shell">
+      <header className="dashboard-shell pt-dashboard-gap">
         <TopNavBar activeMenu={activeMenu} />
       </header>
 

@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GitBranch, Menu, User, X } from 'lucide-react';
+import { Menu, User, X } from 'lucide-react';
 import { authTokenStorage } from '../api/client';
 import { SearchBar } from './SearchBar';
+import githubSvg from '../assets/github.svg';
 
 interface TopNavBarProps {
   activeMenu?: string;
@@ -12,7 +13,6 @@ interface TopNavBarProps {
 }
 
 export function TopNavBar({
-  activeMenu = 'Dashboard',
   searchPlaceholder = 'Search knowledge cards...',
   userAvatarUrl,
   onSettingsClick,
@@ -94,7 +94,7 @@ export function TopNavBar({
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="shrink-0 text-h2-bold leading-none transition hover:text-primary-signal"
+            className="shrink-0 text-h1-bold leading-none transition hover:text-primary-signal"
           >
             SAN
           </button>
@@ -102,21 +102,10 @@ export function TopNavBar({
           <button
             type="button"
             onClick={handleTilClick}
-            className={[
-              'min-h-11 shrink-0 rounded-leaf px-lg text-body-sm-bold transition hover:glow-neon',
-              activeMenu === 'TIL'
-                ? 'bg-primary-signal text-background'
-                : 'border border-text-secondary/40 bg-surface-low text-text-secondary hover:border-primary-signal/40 hover:text-primary-signal',
-            ].join(' ')}
+            className="shrink-0 border-b border-primary-signal text-body-lg-bold text-primary-signal transition hover:glow-neon"
           >
             TIL
           </button>
-
-          <div className="hidden min-w-0 border-b-2 border-primary-signal pb-sm sm:block">
-            <span className="block truncate pl-sm text-body-lg-bold leading-none text-primary-signal">
-              {activeMenu}
-            </span>
-          </div>
         </div>
 
         <button
@@ -130,8 +119,10 @@ export function TopNavBar({
         </button>
       </div>
 
-      <div className="hidden min-w-0 gap-dashboard-gap lg:grid lg:w-[min(58vw,54rem)] lg:grid-cols-[minmax(16rem,1fr)_auto_auto] lg:items-center">
-        {navActions}
+      <div className="hidden min-w-0 justify-end lg:flex lg:flex-1">
+        <div className="flex min-w-0 items-center gap-dashboard-gap">
+          {navActions}
+        </div>
       </div>
 
       {isMenuOpen ? (
@@ -157,7 +148,7 @@ function IconButton({ children, ariaLabel, tooltip, onClick }: IconButtonProps) 
         type="button"
         aria-label={ariaLabel}
         onClick={onClick}
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-leaf border border-text-primary/5 bg-surface-low text-text-secondary transition hover:border-primary-signal/40 hover:text-primary-signal hover:glow-neon"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary-signal/20 bg-primary-signal transition hover:glow-neon"
       >
         {children}
       </button>
@@ -184,7 +175,7 @@ function UserButton({
       type="button"
       onClick={onClick}
       className={[
-        'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-leaf border transition hover:glow-neon',
+        'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border transition hover:glow-neon',
         isAuthenticated
           ? 'border-primary-signal/60 bg-primary-signal/15 text-primary-signal shadow-neon-sm hover:bg-primary-signal/20'
           : 'border-text-primary/10 bg-surface-container text-text-ghost hover:border-text-ghost/60 hover:text-text-secondary',
@@ -209,5 +200,5 @@ function UserButton({
 }
 
 function GithubIcon() {
-  return <GitBranch size={20} aria-hidden="true" />;
+  return <img src={githubSvg} alt="" aria-hidden="true" className="h-7 w-7" />;
 }
