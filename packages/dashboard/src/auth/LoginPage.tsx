@@ -153,24 +153,24 @@ function Field({
 }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-sm flex items-center justify-between gap-sm text-body-sm-bold uppercase tracking-wide text-text-secondary">
+      <span className="mb-3 flex items-center justify-between gap-3 text-sm font-bold uppercase tracking-wide text-[#b9cbc1] sm:text-base">
         <span>{label}</span>
         {action ? (
-          <span className="text-caption-bold tracking-wide text-primary-signal/75 transition hover:text-primary-signal">
+          <span className="text-xs font-medium tracking-wide text-[#00ffc2]/75 transition hover:text-[#00ffc2] sm:text-sm">
             {action}
           </span>
         ) : null}
       </span>
 
-      <div className="flex min-w-0 items-center gap-sm rounded-leaf bg-background px-lg py-md focus-within:ring-1 focus-within:ring-primary-signal/60">
+      <div className="relative min-w-0">
         <input
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-h-6 min-w-0 flex-1 bg-transparent text-body-main text-text-primary outline-none placeholder:text-text-secondary/30"
+          className="min-h-14 w-full bg-[#0b0f12] px-5 py-4 pr-14 text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/30 focus:ring-1 focus:ring-[#00ffc2]/60 sm:text-lg"
         />
-        <span className="shrink-0 text-text-secondary/40">
+        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#b9cbc1]/40">
           {icon}
         </span>
       </div>

@@ -28,7 +28,13 @@ module.exports = {
         // 2. '지식의 숲' 컬러 시스템 (colors.tokens.json 반영)
         colors: {
           'forest-bg': '#101417',       // background
-          'primary-signal': '#00ffc2',  // primary_signal
+          'primary-signal': '#00ffc2',  // primary_signal / normal
+          'primary-signal-hover': '#00e6af',
+          'primary-signal-active': '#00cc9b',
+          'primary-signal-dark': '#00bf92',
+          'primary-signal-dark-hover': '#009974',
+          'primary-signal-dark-active': '#007357',
+          'primary-signal-darker': '#005944',
           'misty-teal': 'rgba(30, 80, 86, 0.4)', // misty_teal (alpha 40%)
           
           'text-primary': '#fbfffa',    // text/primary

@@ -35,7 +35,13 @@
   --color-surface-container: #1c2023; /* Surface Container */
   --color-surface-highest: #313539;   /* Surface Highest */
 
-  --color-primary-signal: #00ffc2;    /* Primary Signal */
+  --color-primary-signal: #00ffc2;    /* Primary Signal / Normal */
+  --color-primary-signal-hover: #00e6af;
+  --color-primary-signal-active: #00cc9b;
+  --color-primary-signal-dark: #00bf92;
+  --color-primary-signal-dark-hover: #009974;
+  --color-primary-signal-dark-active: #007357;
+  --color-primary-signal-darker: #005944;
   --color-neon: #00ffc2;              /* Primary Signal */
   --color-neon-dim: rgba(0, 255, 194, 0.2);
   --color-neon-subtle: rgba(0, 255, 194, 0.1);
@@ -48,12 +54,12 @@
   --color-text-ghost: #83958c;
 
   /* ── 타이포그래피 (typography.json 기반) ── */
-  --font-sans: 'Pretendard', -apple-system, sans-serif; /* */
+  --font-sans: 'Pretendard'; /* */
 
   /* ── 유기적 간격 및 형태 (san_styleguide.md 기반) ── */
   --spacing-dashboard: 24px;          /* */
   --spacing-dashboard-gap: 24px;      /* Dashboard layout gap */
-  
+
   --radius-leaf: 48px 8px 48px 8px;   /* leaf: top-left/bottom-right large */
   --radius-leaf-reverse: 8px 48px 8px 48px;
   --radius-leaf-full: 48px 8px 48px 8px;
@@ -62,9 +68,23 @@
 
 /* 3. 베이스 스타일 (전역 설정) */
 @layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
   body {
     @apply bg-background text-text-primary antialiased;
+    margin: 0;
     font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 
   /* 스크롤바 디자인 - '지식의 숲' 컨셉에 맞게 최소화 */
@@ -108,6 +128,21 @@
   /* ── 타이포그래피 커스텀 (추출값 매칭) ── */
   .text-h1-bold {
     @apply text-[31px] font-bold leading-[1.2];
+  }
+  .text-h1 {
+    @apply text-[31px] font-normal leading-[1.2];
+  }
+  .text-h2 {
+    @apply text-[25px] font-normal leading-[1.2];
+  }
+  .text-h2-bold {
+    @apply text-[25px] font-bold leading-[1.2];
+  }
+  .text-body-lg {
+    @apply text-[20px] font-normal leading-[1.2];
+  }
+  .text-body-lg-bold {
+    @apply text-[20px] font-bold leading-[1.2];
   }
   .text-body-main {
     @apply text-[16px] font-normal leading-[1.2];
