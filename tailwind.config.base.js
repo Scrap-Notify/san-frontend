@@ -56,6 +56,8 @@ module.exports = {
         borderRadius: {
           'leaf-sm': '8px',
           'leaf-lg': '48px', // globals.css의 --radius-leaf 값 기반
+          'leaf-btn-lg': '48px', // 피그마 leaf/large 반영
+          'leaf-btn-sm': '8px',  // 피그마 leaf/small 반영
         },
   
         // 4. 발광 효과 (Glowing Roots 컨셉)

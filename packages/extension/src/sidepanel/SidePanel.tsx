@@ -435,11 +435,11 @@ export default function SidePanel() {
   }, [isAuthenticated, knowledgeSearchQuery]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-text-primary">
-      <div className="custom-scrollbar relative flex-1 overflow-y-auto">
+    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] p-4 text-text-primary">
+      <div className="custom-scrollbar relative flex-1 overflow-y-auto rounded-leaf">
         <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
-        <div className="relative z-10 px-popover-padding py-popover-padding space-y-6">
+        <div className="relative z-10 flex flex-col gap-4 pt-4">
           {isLoadingRelated ? (
             <KnowledgeProgressCard
               cards={relatedCards}
@@ -461,7 +461,7 @@ export default function SidePanel() {
               saveError={saveError}
               saveNotice={saveNotice}
               canSave={isAuthenticated}
-              authNotice={!isAuthenticated && pendingScrap ? 'Login to save this source and turn it into a knowledge card.' : null}
+              authNotice={!isAuthenticated && pendingScrap ? '' : null}
               onLogin={!isAuthenticated ? openDashboardLogin : undefined}
             />
           )}

@@ -12,6 +12,7 @@
   --color-surface-container: #1c2023; /* Surface Container */
   --color-surface-highest: #313539;   /* Surface Highest */
 
+  --color-primary-signal: #00ffc2;    /* Primary Signal */
   --color-neon: #00ffc2;              /* Primary Signal */
   --color-neon-dim: rgba(0, 255, 194, 0.2);
   --color-neon-subtle: rgba(0, 255, 194, 0.1);
@@ -29,8 +30,8 @@
   /* ── 유기적 간격 및 형태 (san_styleguide.md 기반) ── */
   --spacing-dashboard: 24px;          /* */
   
-  --radius-leaf: 48px 8px 8px 48px;   /* 지식 카드 기본 형태 */
-  --radius-leaf-reverse: 8px 48px 48px 8px;
+  --radius-leaf: 48px 8px 48px 8px;   /* leaf: top-left/bottom-right large */
+  --radius-leaf-reverse: 8px 48px 8px 48px;
   --radius-leaf-full: 48px 8px 48px 8px;
 }
 

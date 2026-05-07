@@ -20,25 +20,20 @@ export function KnowledgeSearchBar({
   };
 
   return (
-    <form
-      className="relative flex shrink-0 flex-col items-start self-stretch rounded-leaf border border-primary-signal/40"
-      onSubmit={handleSubmit}
-    >
-      <div className="flex shrink-0 items-start justify-center self-stretch overflow-hidden rounded-leaf border border-primary-signal/50 bg-surface-highest px-12 py-4">
-        <div className="relative flex grow flex-col items-start overflow-hidden pb-px">
-          <input
-            type="search"
-            value={value}
-            disabled={disabled}
-            onChange={(event) => onChange(event.target.value)}
-            placeholder="내 지식 아카이브에서 검색하기"
-            className="w-full bg-transparent text-left text-body-main text-text-secondary outline-none placeholder:text-text-secondary disabled:cursor-not-allowed disabled:opacity-60"
-          />
-        </div>
-      </div>
-      <div className="absolute left-4 top-0 flex h-[50px] shrink-0 items-center justify-start">
-        <Search size={18} className="text-text-secondary" aria-hidden="true" />
-      </div>
+    <form className="relative flex shrink-0 self-stretch" onSubmit={handleSubmit}>
+      <Search
+        size={18}
+        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-primary-signal"
+        aria-hidden="true"
+      />
+      <input
+        type="search"
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder="지식 아카이브 검색"
+        className="w-full rounded-leaf border border-primary-signal/40 bg-surface-highest py-4 pl-12 pr-4 text-left text-body-main text-text-primary outline-none transition placeholder:text-text-secondary focus:border-primary-signal focus:shadow-neon disabled:cursor-not-allowed disabled:opacity-60"
+      />
     </form>
   );
 }
