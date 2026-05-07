@@ -16,6 +16,6 @@
   "include": [
     "src/**/*",
     "../shared/src/**/*"
-  ],
+, "../ui/src/components/Button/CurvedButton.tsx"  ],
   "exclude": ["node_modules", "dist"]
 }

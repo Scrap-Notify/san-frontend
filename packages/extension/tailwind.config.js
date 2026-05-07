@@ -1,4 +1,3 @@
-// /packages/dashboard/tailwind.config.js
 const baseConfig = require('../../tailwind.config.base.js');
 
 module.exports = {
@@ -8,7 +7,7 @@ module.exports = {
     extend: {
       ...baseConfig.theme.extend,
       spacing: {
-        'dashboard-gap': '24px', // 대시보드 전용 넓은 간격
+        'popover-padding': '12px', // 익스텐션 팝업용 좁은 간격
       }
     }
   }

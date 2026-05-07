@@ -1,29 +1,29 @@
-// packages/extension/src/sidepanel/SidePanel.tsx
 import { useCallback, useEffect, useState } from 'react';
-import { DropZone } from './components/DropZone';
-import { CardList } from './components/CardList';
-import { RelatedCards } from './components/RelatedCards';
-import {
-  getApiErrorMessage,
-  type CreateScrapRequest,
-  type KnowledgeCardResponse,
-} from '@san/shared';
-import { asyncJobsApi, authTokenStorage, cardsApi, scrapsApi } from '../api/client';
+import type { KnowledgeCardResponse, KnowledgeCardView } from '@san/shared';
+import { authTokenStorage, cardsApi } from '../api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
+import { ArchiveList } from './components/ArchiveList';
+import { DropZone } from './components/DropZone';
+import { EmptyState } from './components/EmptyState';
+import GlowBackground from './components/GlowBackground';
+import KnowledgeProgressCard from './components/KnowledgeProgressCard';
+import { KnowledgeSearchBar } from './components/KnowledgeSearchBar';
+import { RecentKnowledgeList } from './components/RecentKnowledgeList';
+import SidePanelHeader from './components/SidePanelHeader';
+import {
+  loadPendingScrap,
+  loadSavedInsights,
+  savePendingScrap,
+  useSaveScrap,
+} from './hooks/useSaveScrap';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
-const STORAGE_KEY = 'san:saved-insights';
-const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const IMAGE_DB_NAME = 'san-extension-images';
 const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
-const defaultDashboardBaseUrl = import.meta.env.PROD
-  ? 'https://k14a309.p.ssafy.io'
-  : 'http://localhost:5173';
+const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
-const JOB_POLL_INTERVAL_MS = 1500;
-const JOB_POLL_MAX_ATTEMPTS = 40;
 
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
@@ -38,25 +38,6 @@ function isPendingScrap(value: unknown): value is PendingScrap {
   if (!value || typeof value !== 'object') return false;
   const maybe = value as Partial<PendingScrap>;
   return typeof maybe.source_type === 'string' && typeof maybe.title === 'string';
-}
-
-function toSavedInsight(scrap: PendingScrap): SavedInsight {
-  const id = typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  return {
-    ...scrap,
-    id,
-    created_at: new Date().toISOString(),
-  };
-}
-
-function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
-  return {
-    sourceUrl: scrap.source_url,
-    rawContent: scrap.raw_content ?? scrap.source_url ?? scrap.image_file_name ?? scrap.title,
-  };
 }
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -131,50 +112,23 @@ async function deletePendingImageFile(id: string | null | undefined) {
   db.close();
 }
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForCardAnalysis(jobId: string) {
-  for (let attempt = 0; attempt < JOB_POLL_MAX_ATTEMPTS; attempt += 1) {
-    const job = await asyncJobsApi.getStatus(jobId);
-
-    if (job.status === 'COMPLETED') {
-      return;
-    }
-
-    if (job.status === 'FAILED') {
-      throw new Error(job.errorMessage ?? 'Knowledge card creation failed.');
-    }
-
-    await delay(JOB_POLL_INTERVAL_MS);
-  }
-
-  throw new Error('Knowledge card creation timed out.');
-}
-
-async function loadSavedInsights(): Promise<SavedInsight[]> {
-  const stored = await chrome.storage.local.get(STORAGE_KEY);
-  const value = stored[STORAGE_KEY];
-  return Array.isArray(value) ? value : [];
-}
-
-async function saveInsights(cards: SavedInsight[]) {
-  await chrome.storage.local.set({ [STORAGE_KEY]: cards });
-}
-
-async function loadPendingScrap(): Promise<PendingScrap | null> {
-  const stored = await chrome.storage.local.get(PENDING_STORAGE_KEY);
-  const value = stored[PENDING_STORAGE_KEY];
-  return isPendingScrap(value) ? value : null;
-}
-
-async function savePendingScrap(scrap: PendingScrap | null) {
-  if (scrap) {
-    await chrome.storage.local.set({ [PENDING_STORAGE_KEY]: scrap });
-    return;
-  }
-  await chrome.storage.local.remove(PENDING_STORAGE_KEY);
+function toKnowledgeCardResponse(card: KnowledgeCardView): KnowledgeCardResponse {
+  return {
+    cardId: card.card_id,
+    title: card.title,
+    summary: card.summary,
+    category: card.category_name
+      ? {
+        categoryId: card.category_id ?? card.category_name,
+        categoryName: card.category_name,
+      }
+      : null,
+    tags: card.tags.map((tag) => ({
+      tagId: tag.tag_id,
+      tagName: tag.name,
+    })),
+    createdAt: card.createdAt ?? card.created_at,
+  };
 }
 
 async function requestActiveTabMetadata(): Promise<PendingScrap | null> {
@@ -203,16 +157,70 @@ export default function SidePanel() {
   const [pendingScrap, setPendingScrap] = useState<PendingScrap | null>(null);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [cards, setCards] = useState<SavedInsight[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [savingLabel, setSavingLabel] = useState('Saving...');
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [relatedCards, setRelatedCards] = useState<KnowledgeCardResponse[]>([]);
   const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [relatedError, setRelatedError] = useState<string | null>(null);
   const [hasRelatedResult, setHasRelatedResult] = useState(false);
   const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
+  const [createdCard, setCreatedCard] = useState<KnowledgeCardView | null>(null);
+  const [recentCards, setRecentCards] = useState<KnowledgeCardView[]>([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(false);
+  const [recentError, setRecentError] = useState<string | null>(null);
+  const [knowledgeSearchQuery, setKnowledgeSearchQuery] = useState('');
+  const [knowledgeSearchCards, setKnowledgeSearchCards] = useState<KnowledgeCardResponse[]>([]);
+  const [isSearchingKnowledge, setIsSearchingKnowledge] = useState(false);
+  const [knowledgeSearchError, setKnowledgeSearchError] = useState<string | null>(null);
+  const [hasKnowledgeSearchResult, setHasKnowledgeSearchResult] = useState(false);
+
+  const refreshRecentCards = useCallback(async () => {
+    setIsLoadingRecent(true);
+    setRecentError(null);
+    try {
+      const response = await cardsApi.getAll({ page: 0, limit: 3 });
+      setRecentCards(response.cards);
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to load recent cards', error);
+      setRecentError('Recent cards could not be loaded.');
+    } finally {
+      setIsLoadingRecent(false);
+    }
+  }, []);
+
+  const {
+    isSaving,
+    savingLabel,
+    saveError,
+    saveNotice,
+    handleSave,
+    clearSaveFeedback,
+    setSaveError,
+  } = useSaveScrap({
+    cards,
+    setCards,
+    pendingScrap,
+    setPendingScrap,
+    pendingImageFile,
+    setPendingImageFile,
+    isAuthenticated,
+    setRelatedCards,
+    setRelatedError,
+    setIsLoadingRelated,
+    setHasRelatedResult,
+    isRestoringPendingImage,
+    deletePendingImageFile,
+    setCreatedCard,
+    refreshRecentCards,
+  });
+
+  const clearResultState = useCallback(() => {
+    clearSaveFeedback();
+    setRelatedError(null);
+    setRelatedCards([]);
+    setHasRelatedResult(false);
+    setCreatedCard(null);
+    setIsLoadingRelated(false);
+  }, [clearSaveFeedback]);
 
   useEffect(() => {
     debugLog('side panel mounted');
@@ -221,32 +229,35 @@ export default function SidePanel() {
       .then(([savedCards, storedPendingScrap]) => {
         debugLog('saved insights loaded', { count: savedCards.length });
         setCards(savedCards);
-        if (storedPendingScrap) {
-          debugLog('pending scrap restored', storedPendingScrap);
-          if (storedPendingScrap.source_type === 'IMAGE' && storedPendingScrap.image_blob_id) {
-            setIsRestoringPendingImage(true);
-            setPendingScrap(storedPendingScrap);
-            loadPendingImageFile(
-              storedPendingScrap.image_blob_id,
-              storedPendingScrap.image_file_name ?? storedPendingScrap.title,
-              storedPendingScrap.image_mime_type ?? undefined
-            )
-              .then((file) => {
-                if (file) {
-                  setPendingImageFile(file);
-                }
-              })
-              .catch((error) => {
-                console.error(DEBUG_PREFIX, 'failed to restore pending image file', error);
-                setSaveError('Pending image could not be restored. Please drop the image again.');
-              })
-              .finally(() => {
-                setIsRestoringPendingImage(false);
-              });
-            return;
-          }
-          setPendingScrap(storedPendingScrap);
+        if (!storedPendingScrap) return;
+
+        debugLog('pending scrap restored', storedPendingScrap);
+        setPendingScrap(storedPendingScrap);
+
+        if (storedPendingScrap.source_type !== 'IMAGE' || !storedPendingScrap.image_blob_id) {
+          return;
         }
+
+        setIsRestoringPendingImage(true);
+        loadPendingImageFile(
+          storedPendingScrap.image_blob_id,
+          storedPendingScrap.image_file_name ?? storedPendingScrap.title,
+          storedPendingScrap.image_mime_type ?? undefined
+        )
+          .then((file) => {
+            if (file) {
+              setPendingImageFile(file);
+              return;
+            }
+            setSaveError('Pending image could not be restored. Please drop the image again.');
+          })
+          .catch((error) => {
+            console.error(DEBUG_PREFIX, 'failed to restore pending image file', error);
+            setSaveError('Pending image could not be restored. Please drop the image again.');
+          })
+          .finally(() => {
+            setIsRestoringPendingImage(false);
+          });
       })
       .catch((error) => {
         console.error(DEBUG_PREFIX, 'failed to load side panel state', error);
@@ -261,41 +272,53 @@ export default function SidePanel() {
 
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, []);
+  }, [setSaveError]);
 
   useEffect(() => {
     let ignore = false;
 
-    authTokenStorage.getToken().then((token) => {
-      if (!ignore) {
-        setIsAuthenticated(Boolean(token));
+    const refreshAuthState = async () => {
+      const token = await authTokenStorage.getToken();
+      if (ignore) {
+        return;
       }
-    });
+
+      const hasToken = Boolean(token);
+      setIsAuthenticated(hasToken);
+      if (hasToken) {
+        void refreshRecentCards();
+      } else {
+        setRecentCards([]);
+        setCreatedCard(null);
+        setRelatedCards([]);
+      }
+    };
+
+    void refreshAuthState();
 
     const handleStorageChange = (
       changes: Record<string, chrome.storage.StorageChange>,
       areaName: string
     ) => {
       if (areaName === 'local' && changes[ACCESS_TOKEN_KEY]) {
-        setIsAuthenticated(Boolean(changes[ACCESS_TOKEN_KEY].newValue));
+        void refreshAuthState();
+      }
+    };
+
+    const handleAuthMessage = (msg: ExtensionMessage) => {
+      if (msg.type === 'SAN_AUTH_STATE_CHANGED') {
+        void refreshAuthState();
       }
     };
 
     chrome.storage.onChanged.addListener(handleStorageChange);
+    chrome.runtime.onMessage.addListener(handleAuthMessage);
     return () => {
       ignore = true;
       chrome.storage.onChanged.removeListener(handleStorageChange);
+      chrome.runtime.onMessage.removeListener(handleAuthMessage);
     };
-  }, []);
-
-  const clearSaveFeedback = useCallback(() => {
-    setSaveError(null);
-    setSaveNotice(null);
-    setRelatedError(null);
-    setRelatedCards([]);
-    setHasRelatedResult(false);
-    setIsLoadingRelated(false);
-  }, []);
+  }, [refreshRecentCards]);
 
   const handleTextDrop = useCallback(async (text: string) => {
     const metadata = await requestActiveTabMetadata();
@@ -315,7 +338,7 @@ export default function SidePanel() {
       image_blob_id: null,
     };
 
-    clearSaveFeedback();
+    clearResultState();
     debugLog('drop zone text received', {
       length: text.length,
       source_url: nextPending.source_url,
@@ -324,7 +347,7 @@ export default function SidePanel() {
     setPendingScrap(nextPending);
     setPendingImageFile(null);
     await savePendingScrap(nextPending);
-  }, [clearSaveFeedback, pendingScrap?.image_blob_id]);
+  }, [clearResultState, pendingScrap?.image_blob_id]);
 
   const handleImageDrop = useCallback(async (file: File) => {
     const metadata = await requestActiveTabMetadata();
@@ -351,159 +374,137 @@ export default function SidePanel() {
       title: file.name || metadata?.title || 'Dropped image',
     };
 
-    clearSaveFeedback();
+    clearResultState();
     setPendingScrap(nextPending);
     setPendingImageFile(file);
     await savePendingScrap(nextPending);
-  }, [clearSaveFeedback, pendingScrap?.image_blob_id]);
+  }, [clearResultState, pendingScrap?.image_blob_id]);
 
-  const handleSave = useCallback(async () => {
-    if (!pendingScrap) return;
-
-    setIsSaving(true);
-    setSavingLabel(isAuthenticated ? 'Saving scrap...' : 'Saving locally...');
-    setSaveError(null);
-    setSaveNotice(null);
-    setRelatedError(null);
-    setRelatedCards([]);
-    setHasRelatedResult(false);
-    setIsLoadingRelated(false);
-
-    try {
-      if (isRestoringPendingImage) {
-        return;
-      }
-
-      if (!isAuthenticated) {
-        const saved = toSavedInsight(pendingScrap);
-        const nextCards = [saved, ...cards];
-        setCards(nextCards);
-        setPendingScrap(null);
-        setPendingImageFile(null);
-        await savePendingScrap(null);
-        await saveInsights(nextCards);
-        await deletePendingImageFile(pendingScrap.image_blob_id);
-        setSaveNotice('Saved locally. Login to create knowledge cards and see related cards.');
-        debugLog('insight saved locally', saved);
-        return;
-      }
-
-      const request = toCreateScrapRequest(pendingScrap);
-      if (pendingScrap.source_type === 'IMAGE' && !pendingImageFile) {
-        throw new Error('Image file could not be restored. Please drop the image again.');
-      }
-
-      const response = pendingScrap.source_type === 'IMAGE' && pendingImageFile
-        ? await scrapsApi.createWithImage(request, pendingImageFile)
-        : await scrapsApi.create(request);
-      const saved = {
-        ...toSavedInsight(pendingScrap),
-        id: response.scrapId,
-        created_at: response.createdAt,
-      };
-      const nextCards = [saved, ...cards];
-      setCards(nextCards);
-      setPendingScrap(null);
-      setPendingImageFile(null);
-      await savePendingScrap(null);
-      await saveInsights(nextCards);
-      await deletePendingImageFile(pendingScrap.image_blob_id);
-      debugLog('insight saved', saved);
-
-      setSavingLabel('Creating card...');
-      setIsLoadingRelated(true);
-      const cardJob = await cardsApi.create({ scrapId: response.scrapId });
-
-      setSavingLabel('Finding related cards...');
-      await waitForCardAnalysis(cardJob.jobId);
-
-      const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
-      setRelatedCards(similarCards.similarCards);
-      setHasRelatedResult(true);
-      setSaveNotice('Saved to your archive.');
-    } catch (error) {
-      console.error(DEBUG_PREFIX, 'failed to persist insight', error);
-      setSaveError(getApiErrorMessage(error, 'Failed to save scrap.'));
-      setRelatedError(getApiErrorMessage(error, 'Failed to load related cards.'));
-    } finally {
-      setIsSaving(false);
-      setIsLoadingRelated(false);
-    }
-  }, [cards, isAuthenticated, isRestoringPendingImage, pendingImageFile, pendingScrap]);
+  const handleClearPending = useCallback(() => {
+    void deletePendingImageFile(pendingScrap?.image_blob_id);
+    setPendingScrap(null);
+    setPendingImageFile(null);
+    clearResultState();
+    void savePendingScrap(null);
+  }, [clearResultState, pendingScrap?.image_blob_id]);
 
   const openDashboardLogin = useCallback(() => {
     chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
   }, []);
 
+  const openDashboard = useCallback(() => {
+    chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : `${dashboardBaseUrl}/login` });
+  }, [isAuthenticated]);
+
+  const hasKnowledgeResult = isLoadingRelated || Boolean(createdCard) || relatedCards.length > 0 || Boolean(relatedError);
+  const displayedCards = hasKnowledgeSearchResult ? knowledgeSearchCards : relatedCards;
+  const isLoadingDisplayedCards = hasKnowledgeSearchResult ? isSearchingKnowledge : isLoadingRelated;
+  const displayedCardsError = hasKnowledgeSearchResult ? knowledgeSearchError : relatedError;
+
+  const handleKnowledgeSearch = useCallback(async () => {
+    const search = knowledgeSearchQuery.trim();
+
+    if (!search) {
+      setHasKnowledgeSearchResult(false);
+      setKnowledgeSearchCards([]);
+      setKnowledgeSearchError(null);
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setHasKnowledgeSearchResult(true);
+      setKnowledgeSearchCards([]);
+      setKnowledgeSearchError('Login is required to search your knowledge archive.');
+      return;
+    }
+
+    setHasKnowledgeSearchResult(true);
+    setIsSearchingKnowledge(true);
+    setKnowledgeSearchError(null);
+
+    try {
+      const response = await cardsApi.getAll({ page: 0, limit: 10, search });
+      setKnowledgeSearchCards(response.cards.map(toKnowledgeCardResponse));
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to search knowledge cards', error);
+      setKnowledgeSearchCards([]);
+      setKnowledgeSearchError('Knowledge archive search failed.');
+    } finally {
+      setIsSearchingKnowledge(false);
+    }
+  }, [isAuthenticated, knowledgeSearchQuery]);
+
   return (
-    <div className="flex flex-col h-screen bg-[#0A0F1E] text-slate-200 font-sans overflow-hidden">
-      <header className="p-5 flex items-center justify-between border-b border-white/5 backdrop-blur-md">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-[#4ADE80] rounded-full animate-pulse shadow-[0_0_10px_#4ADE80]" />
-          <h1 className="text-xl font-black tracking-tighter text-white">SAN</h1>
+    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] p-4 text-text-primary">
+      <div className="custom-scrollbar relative flex-1 overflow-y-auto rounded-leaf">
+        <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
+        <GlowBackground />
+        <div className="relative z-10 flex flex-col gap-4 pt-4">
+          {isLoadingRelated ? (
+            <KnowledgeProgressCard
+              cards={relatedCards}
+              isLoading={isLoadingRelated}
+              error={relatedError}
+              hasScrapContext
+              createdCard={createdCard}
+            />
+          ) : (
+            <DropZone
+              pendingScrap={pendingScrap}
+              onTextDrop={handleTextDrop}
+              onImageDrop={handleImageDrop}
+              onSave={handleSave}
+              onClear={handleClearPending}
+              isSaving={isSaving}
+              savingLabel={savingLabel}
+              saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+              saveError={saveError}
+              saveNotice={saveNotice}
+              canSave={isAuthenticated}
+              authNotice={!isAuthenticated && pendingScrap ? '' : null}
+              onLogin={!isAuthenticated ? openDashboardLogin : undefined}
+            />
+          )}
+          {isAuthenticated ? (
+            <KnowledgeSearchBar
+              value={knowledgeSearchQuery}
+              disabled={isSearchingKnowledge}
+              onChange={(value) => {
+                setKnowledgeSearchQuery(value);
+                if (!value.trim()) {
+                  setHasKnowledgeSearchResult(false);
+                  setKnowledgeSearchCards([]);
+                  setKnowledgeSearchError(null);
+                }
+              }}
+              onSubmit={handleKnowledgeSearch}
+            />
+          ) : null}
+          {!isAuthenticated ? (
+            pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
+          ) : !isLoadingRelated && (hasKnowledgeResult || hasKnowledgeSearchResult) ? (
+            <>
+              <KnowledgeProgressCard
+                cards={displayedCards}
+                isLoading={isLoadingDisplayedCards}
+                error={displayedCardsError}
+                hasScrapContext={hasKnowledgeResult || hasKnowledgeSearchResult}
+                createdCard={hasKnowledgeSearchResult ? null : createdCard}
+              />
+            </>
+          ) : pendingScrap ? (
+            null
+          ) : (
+            null
+          )}
+          {isAuthenticated && !hasKnowledgeResult && !hasKnowledgeSearchResult ? (
+            <RecentKnowledgeList
+              cards={recentCards}
+              isLoading={isLoadingRecent}
+              error={recentError}
+            />
+          ) : null}
         </div>
-        <button className="text-slate-500 hover:text-[#4ADE80] transition-colors" aria-label="Settings">
-          <i className="fa-solid fa-gear"></i>
-        </button>
-      </header>
-
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
-        <section>
-          <DropZone
-            pendingScrap={pendingScrap}
-            onTextDrop={handleTextDrop}
-            onImageDrop={handleImageDrop}
-            onSave={handleSave}
-            onClear={() => {
-              void deletePendingImageFile(pendingScrap?.image_blob_id);
-              setPendingScrap(null);
-              setPendingImageFile(null);
-              clearSaveFeedback();
-              void savePendingScrap(null);
-            }}
-            isSaving={isSaving || isRestoringPendingImage}
-            savingLabel={isRestoringPendingImage ? 'Restoring image...' : savingLabel}
-            saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
-            saveError={saveError}
-            saveNotice={saveNotice}
-            onLogin={!isAuthenticated ? openDashboardLogin : undefined}
-          />
-        </section>
-
-        <section>
-          <div className="mb-4 flex items-center justify-between px-1">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">
-              Related Cards
-            </h2>
-            {isAuthenticated ? (
-              <span className="text-[10px] text-[#4ADE80]">Synced</span>
-            ) : (
-              <span className="text-[10px] text-slate-600">Login required</span>
-            )}
-          </div>
-          <RelatedCards
-            cards={relatedCards}
-            isAuthenticated={isAuthenticated}
-            isLoading={isLoadingRelated}
-            error={relatedError}
-            hasScrapContext={
-              Boolean(pendingScrap)
-              || hasRelatedResult
-              || relatedCards.length > 0
-              || isLoadingRelated
-              || Boolean(relatedError)
-            }
-            onLogin={openDashboardLogin}
-          />
-        </section>
-
-        <section>
-          <div className="flex items-center justify-between mb-4 px-1">
-            <h2 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em]">Collected Insights</h2>
-            <span className="text-[10px] text-slate-600">{cards.length} items</span>
-          </div>
-          <CardList cards={cards} />
-        </section>
       </div>
     </div>
   );

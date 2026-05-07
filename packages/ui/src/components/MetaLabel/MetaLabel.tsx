@@ -11,9 +11,7 @@ interface MetaLabelProps {
 
 export function MetaLabel({ segments, className = '' }: MetaLabelProps) {
   return (
-    <p
-      className={`text-[10px] uppercase tracking-wide text-[#b9cbc1] ${className}`}
-    >
+    <p className={`text-caption uppercase tracking-wide text-text-secondary ${className}`}>
       {segments.join(' • ')}
     </p>
   );

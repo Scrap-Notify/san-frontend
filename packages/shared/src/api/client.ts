@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosHeaders, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 export const SKIP_AUTH_HEADER = 'X-SAN-Skip-Auth';
 
@@ -36,14 +36,22 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
   const client = axios.create({
     baseURL,
     timeout: 10_000,
+    withCredentials: true,
   });
 
   client.interceptors.request.use(
     async (config) => {
-      const skipAuth = config.headers?.[SKIP_AUTH_HEADER];
+      const headers = config.headers;
+      const skipAuth = headers instanceof AxiosHeaders
+        ? headers.get(SKIP_AUTH_HEADER)
+        : headers?.[SKIP_AUTH_HEADER];
       if (skipAuth) {
         (config as RetriableRequestConfig)._skipAuth = true;
-        delete config.headers[SKIP_AUTH_HEADER];
+        if (headers instanceof AxiosHeaders) {
+          headers.delete(SKIP_AUTH_HEADER);
+        } else if (headers) {
+          delete headers[SKIP_AUTH_HEADER];
+        }
         return config;
       }
 

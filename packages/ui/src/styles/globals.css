@@ -1,48 +1,95 @@
 /* packages/ui/src/styles/globals.css */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+/* 1. 웹폰트 및 테일윈드 엔진 로드 */
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Pretendard';
+  src: url('../assets/fonts/pretendards/Pretendard-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('../assets/fonts/pretendards/Pretendard-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pretendard';
+  src: url('../assets/fonts/pretendards/Pretendard-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. 테일윈드 v4 테마 정의 (피그마 토큰 반영) */
 @theme {
-  /* ── 컬러 팔레트 ── */
-  --color-background:    #101417;
-  --color-surface:       #181c1f;
-  --color-surface-dim:   #1c2023;
+  /* ── 브랜딩 및 시스템 컬러 (colors.tokens.json 기반) ── */
+  --color-background: #101417;        /* Deep navy */
+  --color-surface-low: #181c1f;       /* Surface Low */
+  --color-surface-container: #1c2023; /* Surface Container */
+  --color-surface-highest: #313539;   /* Surface Highest */
 
-  --color-neon:          #00ffc2;
-  --color-neon-dim:      rgba(0, 255, 194, 0.2);
-  --color-neon-subtle:   rgba(0, 255, 194, 0.1);
+  --color-primary-signal: #00ffc2;    /* Primary Signal */
+  --color-neon: #00ffc2;              /* Primary Signal */
+  --color-neon-dim: rgba(0, 255, 194, 0.2);
+  --color-neon-subtle: rgba(0, 255, 194, 0.1);
 
-  --color-teal:          #1e5056;
-  --color-teal-dim:      rgba(30, 80, 86, 0.4);
+  --color-teal: #1e5056;              /* Misty Teal Base */
+  --color-teal-dim: rgba(30, 80, 86, 0.4); /* Misty Teal 40% */
 
-  --color-text-primary:  #fbfffa;
-  --color-text-secondary:#e0e3e7;
-  --color-text-muted:    #b9cbc1;
-  --color-text-ghost:    #83958c;
+  --color-text-primary: #fbfffa;      /* High-contrast white */
+  --color-text-secondary: #b9cbc1;    /* On-surface variant */
+  --color-text-ghost: #83958c;
 
-  --color-chip:          rgba(49, 53, 57, 0.5);
-  --color-icon-bg:       #313539;
+  /* ── 타이포그래피 (typography.json 기반) ── */
+  --font-sans: 'Pretendard', -apple-system, sans-serif; /* */
 
-  /* 폰트 */
-  --font-sans: 'Pretendard', sans-serif;
-
-  /* radius */
-  /* 변수로 등록해두면 다른 곳에서 재활용하기 편해요! */
-  --radius-leaf: 48px 8px 8px 48px;
-  --radius-leaf-reverse: 8px 48px 48px 8px;
+  /* ── 유기적 간격 및 형태 (san_styleguide.md 기반) ── */
+  --spacing-dashboard: 24px;          /* */
+  
+  --radius-leaf: 48px 8px 48px 8px;   /* leaf: top-left/bottom-right large */
+  --radius-leaf-reverse: 8px 48px 8px 48px;
   --radius-leaf-full: 48px 8px 48px 8px;
 }
 
+/* 3. 베이스 스타일 (전역 설정) */
+@layer base {
+  body {
+    @apply bg-background text-text-primary antialiased;
+    font-family: var(--font-sans);
+  }
 
+  /* 스크롤바 디자인 - '지식의 숲' 컨셉에 맞게 최소화 */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-highest rounded-full;
+  }
+}
+
+/* 4. 유틸리티 클래스 (특수 효과 구현) */
 @layer utilities {
-  /* 발광 효과 */
+  /* ── 바이오루미네선스 (발광 효과) ── */
   .glow-neon {
-    box-shadow: 0 0 12px 0 #00ffc2;
+    box-shadow: 0 0 15px 0 var(--color-neon-dim);
   }
-  .glow-neon-sm {
-    box-shadow: 0 0 6px 0 rgba(0, 255, 194, 0.6);
+  .glow-neon-strong {
+    box-shadow: 0 0 20px 2px var(--color-neon);
   }
-  /* 나뭇잎 radius 변형들 */
+
+  /* ── 글래스모피즘 (Misty Layer) ── */
+  .glass-card {
+    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  }
+
+  /* ── 나뭇잎 곡선 변형 ── */
   .rounded-leaf {
     border-radius: var(--radius-leaf);
   }
@@ -51,5 +98,13 @@
   }
   .rounded-leaf-full {
     border-radius: var(--radius-leaf-full);
+  }
+
+  /* ── 타이포그래피 커스텀 (추출값 매칭) ── */
+  .text-h1-bold {
+    @apply text-[31px] font-bold leading-[1.2];
+  }
+  .text-body-main {
+    @apply text-[16px] font-normal leading-[1.2];
   }
 }
