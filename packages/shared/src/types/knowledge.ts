@@ -34,6 +34,11 @@ export interface KnowledgeCardCreateRequest {
   scrapId: string;
 }
 
+export interface KnowledgeCardByScrapResponse {
+  cardId: string;
+  card?: KnowledgeCardResponse;
+}
+
 export interface KnowledgeCardAnalysisJobResponse {
   jobId: string;
 }

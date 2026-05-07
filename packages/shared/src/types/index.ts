@@ -14,6 +14,7 @@ export type {
 export type {
   CategoryResponse,
   KnowledgeCardAnalysisJobResponse,
+  KnowledgeCardByScrapResponse,
   KnowledgeCardCreateRequest,
   KnowledgeCardListResponse,
   KnowledgeCardListParams,

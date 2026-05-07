@@ -3,6 +3,7 @@ import {
   getApiErrorMessage,
   toKnowledgeCardView,
   type CreateScrapRequest,
+  type CreateScrapResponse,
   type KnowledgeCardResponse,
   type KnowledgeCardView,
 } from '@san/shared';
@@ -35,6 +36,22 @@ async function waitForCardAnalysis(jobId: string) {
   }
 
   throw new Error('Knowledge card creation timed out.');
+}
+
+async function resolveCreatedCard(response: CreateScrapResponse) {
+  if (response.jobId) {
+    await waitForCardAnalysis(response.jobId);
+  }
+
+  if (response.cardId) {
+    return { cardId: response.cardId, card: null };
+  }
+
+  const cardResponse = await cardsApi.getByScrapId(response.scrapId);
+  return {
+    cardId: cardResponse.cardId,
+    card: cardResponse.card ?? null,
+  };
 }
 
 function toSavedInsight(scrap: PendingScrap): SavedInsight {
@@ -169,17 +186,13 @@ export function useSaveScrap({
       await saveInsights(nextCards);
       await deletePendingImageFile(pendingScrap.image_blob_id);
 
-      setSavingLabel('Creating card...');
+      setSavingLabel(response.jobId ? 'Creating card...' : 'Loading card...');
       setIsLoadingRelated(true);
-      const cardJob = await cardsApi.create({ scrapId: response.scrapId });
+      const createdCard = await resolveCreatedCard(response);
 
+      setCreatedCard(createdCard.card ? toKnowledgeCardView(createdCard.card) : null);
       setSavingLabel('Finding related cards...');
-      await waitForCardAnalysis(cardJob.jobId);
-
-      const latestCards = await cardsApi.getAll();
-      setCreatedCard(latestCards.cards[0] ? toKnowledgeCardView(latestCards.cards[0]) : null);
-
-      const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
+      const similarCards = await cardsApi.getSimilarByCardId(createdCard.cardId);
       setRelatedCards(similarCards.similarCards);
       setHasRelatedResult(true);
       void refreshRecentCards();
