@@ -182,7 +182,6 @@ export function useSaveScrap({
       const similarCards = await cardsApi.getSimilarByJob(cardJob.jobId);
       setRelatedCards(similarCards.similarCards);
       setHasRelatedResult(true);
-      setSaveNotice('Saved to your archive.');
       void refreshRecentCards();
     } catch (error) {
       setSaveError(getApiErrorMessage(error, 'Failed to save scrap.'));

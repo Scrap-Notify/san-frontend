@@ -15,6 +15,8 @@ import {
   useSaveScrap,
 } from './hooks/useSaveScrap';
 import SidePanelNavbar from './components/layout/SidePanelNavbar';
+import { CreatedKnowledgeCard } from './components/knowledge/CreatedKnowledgeCard';
+import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCard';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
@@ -431,70 +433,68 @@ export default function SidePanel() {
         <SidePanelNavbar isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
         <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pt-4">
-          {isLoadingRelated ? (
-            <KnowledgeProgressCard
-              cards={relatedCards}
-              isLoading={isLoadingRelated}
-              error={relatedError}
-              hasScrapContext
-              createdCard={createdCard}
-            />
-          ) : (
-            <DropZone
-              pendingScrap={pendingScrap}
-              onTextDrop={handleTextDrop}
-              onImageDrop={handleImageDrop}
-              onSave={handleSave}
-              onClear={handleClearPending}
-              isSaving={isSaving}
-              savingLabel={savingLabel}
-              saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
-              saveError={saveError}
-              saveNotice={saveNotice}
-              canSave={isAuthenticated}
-              authNotice={!isAuthenticated && pendingScrap ? '' : null}
-              onLogin={!isAuthenticated ? openDashboardLogin : undefined}
-            />
-          )}
-          {!isAuthenticated ? (
-            pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
-          ) : !isLoadingRelated && (hasKnowledgeResult || hasKnowledgeSearchResult) ? (
-            <>
-              <KnowledgeProgressCard
-                cards={displayedCards}
-                isLoading={isLoadingDisplayedCards}
-                error={displayedCardsError}
-                hasScrapContext={hasKnowledgeResult || hasKnowledgeSearchResult}
-                createdCard={hasKnowledgeSearchResult ? null : createdCard}
+          {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
+          <div className="shrink-0">
+            {isSaving || (isLoadingRelated && !createdCard) ? (
+              <KnowledgeLoadingCard />
+            ) : (
+              <DropZone
+                pendingScrap={pendingScrap}
+                onTextDrop={handleTextDrop}
+                onImageDrop={handleImageDrop}
+                onSave={handleSave}
+                onClear={handleClearPending}
+                isSaving={isSaving}
+                savingLabel={savingLabel}
+                saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+                saveError={saveError}
+                saveNotice={saveNotice}
+                canSave={isAuthenticated}
+                authNotice={!isAuthenticated && pendingScrap ? '' : null}
+                onLogin={!isAuthenticated ? openDashboardLogin : undefined}
               />
-            </>
-          ) : pendingScrap ? (
-            null
-          ) : (
-            null
+            )}
+          </div>
+
+          {/* 2. Creation Result Area (Fixed 190px): Appears only after successful creation */}
+          {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
+            <div className="shrink-0">
+              <CreatedKnowledgeCard card={createdCard} />
+            </div>
           )}
-          {isAuthenticated && !hasKnowledgeResult && !hasKnowledgeSearchResult ? (
-            <RecentKnowledgeList
-              cards={recentCards}
-              isLoading={isLoadingRecent}
-              error={recentError}
-              action={
-                <KnowledgeSearchBar
-                  value={knowledgeSearchQuery}
-                  disabled={isSearchingKnowledge}
-                  onChange={(value) => {
-                    setKnowledgeSearchQuery(value);
-                    if (!value.trim()) {
-                      setHasKnowledgeSearchResult(false);
-                      setKnowledgeSearchCards([]);
-                      setKnowledgeSearchError(null);
-                    }
-                  }}
-                  onSubmit={handleKnowledgeSearch}
-                />
-              }
-            />
-          ) : null}
+
+          {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {!isAuthenticated ? (
+              !pendingScrap && <EmptyState onLogin={openDashboardLogin} />
+            ) : (
+              <RecentKnowledgeList
+                // When we have search results, show them. 
+                // When we just created a card, show related cards at the top.
+                cards={hasKnowledgeSearchResult 
+                  ? knowledgeSearchCards 
+                  : (relatedCards.length > 0 ? relatedCards : recentCards)
+                }
+                isLoading={hasKnowledgeSearchResult ? isSearchingKnowledge : (isLoadingRecent && recentCards.length === 0)}
+                error={hasKnowledgeSearchResult ? knowledgeSearchError : (relatedError || recentError)}
+                action={
+                  <KnowledgeSearchBar
+                    value={knowledgeSearchQuery}
+                    disabled={isSearchingKnowledge}
+                    onChange={(value) => {
+                      setKnowledgeSearchQuery(value);
+                      if (!value.trim()) {
+                        setHasKnowledgeSearchResult(false);
+                        setKnowledgeSearchCards([]);
+                        setKnowledgeSearchError(null);
+                      }
+                    }}
+                    onSubmit={handleKnowledgeSearch}
+                  />
+                }
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

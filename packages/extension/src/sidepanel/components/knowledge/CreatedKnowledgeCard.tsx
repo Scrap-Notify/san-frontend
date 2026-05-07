@@ -6,26 +6,63 @@ interface CreatedKnowledgeCardProps {
 
 export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
   return (
-    <article className="rounded-leaf border border-primary-signal/30 bg-primary-signal/10 p-popover-padding">
-      <p className="text-caption font-bold uppercase tracking-[0.18em] text-primary-signal">
-        Created card
-      </p>
-      <h3 className="mt-2 text-body-main-bold text-text-primary">{card.title}</h3>
-      {card.summary ? (
-        <p className="mt-2 line-clamp-3 text-caption leading-5 text-text-secondary">{card.summary}</p>
-      ) : null}
-      {card.tags.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {card.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag.tag_id}
-              className="rounded-full border border-primary-signal/20 bg-background/70 px-2 py-1 text-caption font-bold text-primary-signal"
-            >
-              #{tag.name}
-            </span>
-          ))}
+    <div className="flex flex-col gap-3">
+      {/* Title Label: Matching project standard title style */}
+      <div className="px-1 text-caption font-medium uppercase tracking-[0.14em] text-text-secondary">
+        지식 카드 생성
+      </div>
+
+      {/* Card Content: Organic Leaf Shape with Misty Teal Glassmorphism */}
+      <article className="relative flex h-[190px] w-full gap-4 overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-5 backdrop-blur-xl shadow-neon-sm">
+        {/* Subtle Background Glow */}
+        <div className="absolute -left-4 -top-4 h-32 w-32 rounded-full bg-primary-signal/5 blur-3xl" aria-hidden="true" />
+        
+        {/* Left: Icon Area with SPROUT Badge */}
+        <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-leaf border border-primary-signal/20 bg-surface-low shadow-neon-sm">
+          <svg
+            width={24}
+            height={24}
+            viewBox="0 0 22 22"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="text-primary-signal"
+          >
+            <path
+              d="M10.3125 21.2809C9.625 21.2809 8.93229 21.2028 8.23438 21.0465C7.53646 20.8903 6.82292 20.6663 6.09375 20.3746C6.34375 17.8538 7.07292 15.4996 8.28125 13.3121C9.48958 11.1246 11.0417 9.19757 12.9375 7.5309C10.6458 8.69757 8.66146 10.2392 6.98438 12.1559C5.30729 14.0726 4.13542 16.2601 3.46875 18.7184C3.38542 18.6559 3.30729 18.5882 3.23438 18.5153C3.16146 18.4424 3.08333 18.3642 3 18.2809C2.02083 17.3017 1.27604 16.208 0.765625 14.9996C0.255208 13.7913 0 12.5309 0 11.2184C0 9.80173 0.28125 8.44757 0.84375 7.1559C1.40625 5.86423 2.1875 4.7184 3.1875 3.7184C4.875 2.0309 7.0625 0.931941 9.75 0.421524C12.4375 -0.0888928 16.2083 -0.135768 21.0625 0.280899C21.4375 5.26007 21.375 9.05694 20.875 11.6715C20.375 14.2861 19.2917 16.4267 17.625 18.0934C16.6042 19.1142 15.4635 19.9007 14.2031 20.4528C12.9427 21.0049 11.6458 21.2809 10.3125 21.2809Z"
+              fill="currentColor"
+            />
+          </svg>
+          <div className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full bg-primary-signal px-1.5 py-0.5 shadow-neon-sm">
+            <span className="text-[8px] font-bold uppercase text-forest-bg leading-none">SPROUT</span>
+          </div>
         </div>
-      ) : null}
-    </article>
+
+        {/* Right: Content Area */}
+        <div className="flex flex-1 flex-col justify-start overflow-hidden pt-1">
+          <h3 className="line-clamp-1 text-body-main-bold text-text-primary">
+            {card.title}
+          </h3>
+          <div className="mt-2 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <p className="text-body-sm leading-6 text-text-secondary">
+              {card.summary}
+            </p>
+          </div>
+          
+          {/* Tags */}
+          {card.tags.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5 shrink-0">
+               {card.tags.slice(0, 2).map((tag) => (
+                <span
+                  key={tag.tag_id}
+                  className="rounded-full border border-primary-signal/20 bg-background/50 px-2.5 py-1 text-caption font-bold text-primary-signal"
+                >
+                  #{tag.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </article>
+    </div>
   );
 }
