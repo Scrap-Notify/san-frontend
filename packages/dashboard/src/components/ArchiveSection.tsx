@@ -22,79 +22,80 @@ export function ArchiveSection() {
 
   return (
     <section className="w-full min-w-0 overflow-hidden pb-xl">
-      <div className="mb-dashboard-gap flex flex-col gap-dashboard-gap sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <h2 className="text-h1-bold text-text-primary">Archive</h2>
-          <p className="mt-sm text-body-main text-text-secondary">Saved fragments from your knowledge map</p>
-        </div>
+      <div className="flex flex-col gap-dashboard-gap">
+        <div className="flex flex-col gap-dashboard-gap sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h2 className="text-h1-bold text-text-primary">나의 지식 아카이브</h2>
+          </div>
 
-        <div className="flex shrink-0 gap-sm">
-          {[ArrowLeft, ArrowRight].map((Icon, index) => (
-            <button
-              key={index}
-              type="button"
-              className="flex h-12 w-12 items-center justify-center rounded-leaf border border-text-secondary/30 bg-surface-low/40 text-text-secondary transition hover:border-primary-signal/60 hover:text-primary-signal hover:glow-neon"
-              onClick={() => scrollCarousel(index === 0 ? 'previous' : 'next')}
-              aria-label={index === 0 ? 'Previous archive page' : 'Next archive page'}
-            >
-              <Icon size={20} />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="min-w-0 rounded-leaf bg-primary-signal/5">
-        <div
-          ref={carouselRef}
-          className="flex w-full min-w-0 snap-x snap-mandatory gap-dashboard-gap overflow-x-auto scroll-smooth px-xs pb-lg"
-        >
-          {isPending ? (
-            <StatusCard message="Loading archive cards..." />
-          ) : null}
-
-          {isError ? (
-            <StatusCard message="Archive cards could not be loaded." tone="error" />
-          ) : null}
-
-          {!isPending && !isError && cards.length === 0 ? (
-            <StatusCard message="No archive cards yet." />
-          ) : null}
-
-          {!isPending && !isError ? cards.map((card) => {
-            const Icon = getCardIcon(card.category_name ?? card.tags[0]?.name);
-            const date = formatDate(card.created_at);
-
-            return (
-              <article
-                key={card.card_id}
-                className="flex min-h-80 w-[min(88vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-leaf border border-text-ghost/10 bg-surface-container/60 p-lg shadow-neon-sm backdrop-blur-xl md:w-[calc((100%-theme(spacing.dashboard-gap))/2)] xl:w-[calc((100%-2*theme(spacing.dashboard-gap))/3)]"
+          <div className="flex shrink-0 gap-dashboard-gap">
+            {[ArrowLeft, ArrowRight].map((Icon, index) => (
+              <button
+                key={index}
+                type="button"
+                className="flex h-12 w-12 items-center justify-center rounded-full border border-text-secondary/30 bg-surface-low/40 text-text-secondary transition hover:border-primary-signal/60 hover:text-primary-signal hover:glow-neon"
+                onClick={() => scrollCarousel(index === 0 ? 'previous' : 'next')}
+                aria-label={index === 0 ? '이전 아카이브 페이지' : '다음 아카이브 페이지'}
               >
-                <div>
-                  <div className="mb-lg flex items-start justify-between gap-md">
-                    <IconBox variant="leaf" size="md" className="text-primary-signal">
-                      <Icon size={20} />
-                    </IconBox>
+                <Icon size={20} />
+              </button>
+            ))}
+          </div>
+        </div>
 
-                    <time className="text-caption-bold uppercase tracking-wide text-text-secondary">
-                      {date}
-                    </time>
+        <div className="min-w-0 rounded-leaf bg-primary-signal/5">
+          <div
+            ref={carouselRef}
+            className="flex w-full min-w-0 snap-x snap-mandatory gap-dashboard-gap overflow-x-auto scroll-smooth px-xs pb-lg"
+          >
+            {isPending ? (
+              <StatusCard message="아카이브 카드를 불러오는 중..." />
+            ) : null}
+
+            {isError ? (
+              <StatusCard message="아카이브 카드를 불러올 수 없습니다." tone="error" />
+            ) : null}
+
+            {!isPending && !isError && cards.length === 0 ? (
+              <StatusCard message="아직 저장된 아카이브 카드가 없습니다." />
+            ) : null}
+
+            {!isPending && !isError ? cards.map((card) => {
+              const Icon = getCardIcon(card.category_name ?? card.tags[0]?.name);
+              const date = formatDate(card.created_at);
+
+              return (
+                <article
+                  key={card.card_id}
+                  className="flex min-h-80 w-[min(88vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-leaf border border-text-ghost/10 bg-surface-container/60 p-lg shadow-neon-sm backdrop-blur-xl md:w-[calc((100%-theme(spacing.dashboard-gap))/2)] xl:w-[calc((100%-2*theme(spacing.dashboard-gap))/3)]"
+                >
+                  <div>
+                    <div className="mb-dashboard-gap flex items-center justify-between gap-dashboard-gap">
+                      <IconBox variant="leaf" size="md" className="text-primary-signal">
+                        <Icon size={20} />
+                      </IconBox>
+
+                      <time className="text-caption-bold uppercase tracking-wide text-text-secondary">
+                        {date}
+                      </time>
+                    </div>
+
+                    <h3 className="text-body-lg-bold text-text-primary">{card.title}</h3>
+
+                    <p className="mt-dashboard-gap text-body-sm text-text-secondary">
+                      {card.summary ?? 'No summary has been generated yet.'}
+                    </p>
                   </div>
 
-                  <h3 className="text-body-lg-bold text-text-primary">{card.title}</h3>
-
-                  <p className="mt-md text-body-sm text-text-secondary">
-                    {card.summary ?? 'No summary has been generated yet.'}
-                  </p>
-                </div>
-
-                <div className="mt-xl flex flex-wrap gap-sm">
-                  {card.tags.map((tag) => (
-                    <TagBadge key={tag.tag_id} label={tag.name} />
-                  ))}
-                </div>
-              </article>
-            );
-          }) : null}
+                  <div className="mt-dashboard-gap flex flex-wrap gap-dashboard-gap">
+                    {card.tags.map((tag) => (
+                      <TagBadge key={tag.tag_id} label={tag.name} />
+                    ))}
+                  </div>
+                </article>
+              );
+            }) : null}
+          </div>
         </div>
       </div>
     </section>
