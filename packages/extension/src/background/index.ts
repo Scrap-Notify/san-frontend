@@ -67,6 +67,44 @@ chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ tabId: tab.id });
 });
 
+chrome.commands.onCommand.addListener(async (command) => {
+  debugLog('command received', command);
+
+  if (command === 'capture_image') {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+      const dataUrl = await chrome.tabs.captureVisibleTab();
+      
+      let metadata: PendingScrap;
+      try {
+        metadata = await chrome.tabs.sendMessage<ExtensionMessage, PendingScrap>(tab.id, { type: 'REQUEST_METADATA' });
+      } catch (error) {
+        metadata = {
+          source_type: 'IMAGE',
+          source_url: tab.url ?? null,
+          raw_content: tab.title ?? 'Captured image',
+          image_url: null,
+          title: tab.title ?? 'Captured image',
+          domain: tab.url ? new URL(tab.url).hostname : '',
+          favicon: tab.favIconUrl ?? null,
+        };
+      }
+
+      pushToSidePanel({
+        ...metadata,
+        source_type: 'IMAGE',
+        image_preview_url: dataUrl,
+        raw_content: tab.title ?? 'Captured image',
+      });
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to capture image or open side panel', error);
+    }
+  }
+});
+
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   debugLog('context menu clicked', { menuItemId: info.menuItemId, tabId: tab?.id, url: tab?.url });
   if (!tab?.id) return;
