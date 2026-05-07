@@ -7,6 +7,8 @@ import {
   Play,
   GitBranch,
 } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { CurvedButton } from '@san/ui';
 
 export function TILToolbar({
   onReset,
@@ -24,53 +26,53 @@ export function TILToolbar({
   isCommitting?: boolean;
 }) {
   return (
-    <div className="flex h-12 items-center justify-between bg-[#181c1f]/50 px-6 backdrop-blur-md shadow-sm">
-      <div className="flex items-center gap-1 border-r border-[#3a4a43] pr-3">
+    <div className="flex h-12 items-center justify-between bg-surface-low/50 px-lg backdrop-blur-md">
+      <div className="flex items-center gap-xs border-r border-text-secondary/20 pr-md">
         <ToolbarButton label="Bold" onClick={() => onFormat?.('bold')}>
-          <Bold size={14} />
+          <Bold size={20} />
         </ToolbarButton>
         <ToolbarButton label="Italic" onClick={() => onFormat?.('italic')}>
-          <Italic size={14} />
+          <Italic size={20} />
         </ToolbarButton>
         <ToolbarButton label="List" onClick={() => onFormat?.('list')}>
-          <List size={14} />
+          <List size={20} />
         </ToolbarButton>
         <ToolbarButton label="Link" onClick={() => onFormat?.('link')}>
-          <Link size={14} />
+          <Link size={20} />
         </ToolbarButton>
 
-        <span className="ml-2 text-xs text-[#b9cbc1]">UTF-8</span>
+        <span className="ml-sm text-caption text-text-secondary">UTF-8</span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
+      <div className="flex items-center gap-sm">
+        <CurvedButton
           onClick={onGenerate}
           disabled={isGenerating}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#00e1ab]/10 px-2 py-1 text-base text-[#00e1ab] transition hover:bg-[#00e1ab]/15 disabled:opacity-50"
+          tone="subtle"
+          size="sm"
+          leadingIcon={<Play size={20} className="text-primary-signal" />}
         >
-          <Play size={14} />
           {isGenerating ? 'Generating...' : 'Generate'}
-        </button>
+        </CurvedButton>
 
-        <button
-          type="button"
+        <CurvedButton
           onClick={onCommit}
           disabled={isCommitting}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#00e1ab]/10 px-2 py-1 text-base text-[#00e1ab] transition hover:bg-[#00e1ab]/15 disabled:opacity-50"
+          tone="subtle"
+          size="sm"
+          leadingIcon={<GitBranch size={20} className="text-primary-signal" />}
         >
-          <GitBranch size={14} />
           {isCommitting ? 'Committing...' : 'Commit'}
-        </button>
+        </CurvedButton>
 
-        <button
-          type="button"
+        <CurvedButton
           onClick={onReset}
-          className="inline-flex items-center gap-2 rounded-2xl bg-[#00e1ab]/10 px-2 py-1 text-base text-[#00e1ab] transition hover:bg-[#00e1ab]/15"
+          tone="ghost"
+          size="sm"
+          leadingIcon={<RotateCcw size={20} className="text-primary-signal" />}
         >
-          <RotateCcw size={14} />
           Reset
-        </button>
+        </CurvedButton>
       </div>
     </div>
   );
@@ -82,7 +84,7 @@ function ToolbarButton({
   onClick,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   onClick?: () => void;
 }) {
   return (
@@ -90,7 +92,7 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex h-8 w-8 items-center justify-center rounded-2xl text-[#b9cbc1] transition hover:bg-white/5 hover:text-[#00ffc2]"
+      className="flex h-8 w-8 items-center justify-center rounded-leaf text-text-secondary transition hover:bg-surface-container hover:text-primary-signal hover:glow-neon"
     >
       {children}
     </button>

@@ -28,7 +28,7 @@ export function TilPage() {
   const dateLabel = formatDateForDisplay(selectedDate);
 
   return (
-    <section className="flex h-[calc(100vh-6rem)] min-h-[720px] w-full min-w-0 flex-col gap-3 text-[#fbfffa]">
+    <section className="flex h-[calc(100vh-6rem)] min-h-[720px] w-full min-w-0 flex-col gap-dashboard-gap text-text-primary">
       <TILWorkspaceHeader
         activeTab={activeTab}
         dateLabel={dateLabel}
@@ -36,7 +36,7 @@ export function TilPage() {
         onSearch={(value) => console.log(value)}
       />
 
-      <div className="grid min-h-0 flex-1 grid-cols-[2fr_1fr] gap-0 overflow-hidden">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,2fr)_24rem] gap-dashboard-gap overflow-hidden">
         <TILEditor
           activeTab={activeTab}
           draft={draft}

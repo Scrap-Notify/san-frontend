@@ -126,7 +126,7 @@ export function TILEditor({
   };
 
   return (
-    <main className="flex min-w-0 flex-col bg-[#0b0f12]">
+    <main className="flex min-w-0 flex-col rounded-leaf bg-background">
       <TILToolbar
         onReset={() => setDraft(visibleSelectedTil?.content ?? '')}
         onGenerate={() => generateMutation.mutate()}
@@ -141,13 +141,13 @@ export function TILEditor({
       />
 
       {activeTab === 'drafts' && (
-        <div className="grid min-h-0 flex-1 overflow-hidden lg:grid-cols-[18rem_minmax(0,1fr)] gap-4">
-          <aside className="rounded-[1.75rem] border border-[#0d221a] bg-[#04110f] p-4 shadow-[0_0_30px_rgba(0,255,194,0.08)]">
-            <div className="mb-4 border-b border-[#0c3225] pb-3 text-sm font-semibold uppercase tracking-[0.22em] text-[#00ffc2]">
+        <div className="grid min-h-0 flex-1 gap-dashboard-gap overflow-hidden lg:grid-cols-[18rem_minmax(0,1fr)]">
+          <aside className="rounded-leaf border border-primary-signal/20 bg-surface-low p-md shadow-neon-sm">
+            <div className="mb-md border-b border-primary-signal/20 pb-sm text-body-sm-bold uppercase tracking-wide text-primary-signal">
               AI Generated Drafts
             </div>
             {visibleTilList.length === 0 ? (
-              <div className="rounded-3xl bg-[#071413] px-4 py-5 text-sm text-[#9fc2b5]">
+              <div className="rounded-leaf bg-surface-container px-md py-lg text-body-sm text-text-secondary">
                 아직 생성된 TIL이 없습니다.
               </div>
             ) : (
@@ -158,16 +158,16 @@ export function TILEditor({
                     type="button"
                     onClick={() => setSelectedSummaryId(til.summaryId)}
                     className={
-                      `w-full rounded-[1.5rem] border px-4 py-4 text-left transition-all duration-200 ` +
+                      `w-full rounded-leaf border px-md py-md text-left transition-all duration-200 hover:glow-neon ` +
                       (til.summaryId === visibleSelectedTil?.summaryId
-                        ? 'border-[#00ffc2] bg-[#00ffc2]/10 text-[#fbfffa] shadow-[0_0_0_1px_rgba(0,255,194,0.18)]'
-                        : 'border-[#11332a] bg-[#081214] text-[#b9cbc1] hover:border-[#00ffc2]/50 hover:bg-[#0b1816]')
+                        ? 'border-primary-signal bg-primary-signal/10 text-text-primary shadow-neon-sm'
+                        : 'border-primary-signal/10 bg-surface-container text-text-secondary hover:border-primary-signal/50 hover:bg-surface-highest')
                     }
                   >
-                    <div className="text-sm font-semibold leading-5 text-[#e8fffb]">
+                    <div className="text-body-sm-bold text-text-primary">
                       {til.title || 'Untitled TIL'}
                     </div>
-                    <p className="mt-2 line-clamp-3 text-xs leading-5 text-[#96bfb3]">
+                    <p className="mt-sm line-clamp-3 text-caption text-text-secondary">
                       {til.content}
                     </p>
                   </button>
@@ -176,19 +176,19 @@ export function TILEditor({
             )}
           </aside>
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] bg-[#04110f] p-5 shadow-[0_0_40px_rgba(0,255,194,0.06)]">
-            <div className="mb-5 flex items-center justify-between gap-4 rounded-3xl border border-[#0a2f22] bg-[#061210]/80 px-5 py-4 text-sm text-[#b9cbc1]">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-leaf bg-surface-low p-lg shadow-neon-sm">
+            <div className="mb-lg flex items-center justify-between gap-md rounded-leaf border border-primary-signal/20 bg-surface-container/80 px-lg py-md text-body-sm text-text-secondary">
               <div>
-                <div className="text-xs uppercase tracking-[0.24em] text-[#7ef6c6]">Selected Draft</div>
-                <div className="mt-2 text-lg font-semibold text-[#fbfffa]">
+                <div className="text-caption-bold uppercase tracking-wide text-primary-signal">Selected Draft</div>
+                <div className="mt-sm text-body-lg-bold text-text-primary">
                   {selectedTil?.title || '선택된 draft가 없습니다.'}
                 </div>
               </div>
-              <div className="rounded-full border border-[#00ffc2]/20 bg-[#00ffc2]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#00ffc2]">
+              <div className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-md py-xs text-caption-bold uppercase tracking-wide text-primary-signal">
                 Read Only
               </div>
             </div>
-            <div className="flex min-h-0 flex-1 overflow-hidden rounded-[1.5rem] border border-[#0c261f] bg-[#071415] p-3">
+            <div className="flex min-h-0 flex-1 overflow-hidden rounded-leaf border border-primary-signal/20 bg-surface-container p-sm">
               <Editor
                 theme="vs-dark"
                 defaultLanguage="markdown"
@@ -204,7 +204,7 @@ export function TILEditor({
                   readOnly: true,
                   padding: { top: 14, bottom: 14 },
                 }}
-                className="h-full w-full rounded-[1.5rem] bg-[#071415]"
+                className="h-full w-full rounded-leaf bg-surface-container"
               />
             </div>
           </div>
@@ -212,19 +212,19 @@ export function TILEditor({
       )}
 
       {activeTab === 'edit' && (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] bg-[#04110f] p-5 shadow-[0_0_40px_rgba(0,255,194,0.06)]">
-          <div className="mb-5 flex items-center justify-between gap-4 rounded-3xl border border-[#0a2f22] bg-[#061210]/80 px-5 py-4 text-sm text-[#b9cbc1]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-leaf bg-surface-low p-lg shadow-neon-sm">
+          <div className="mb-lg flex items-center justify-between gap-md rounded-leaf border border-primary-signal/20 bg-surface-container/80 px-lg py-md text-body-sm text-text-secondary">
             <div>
-              <div className="text-xs uppercase tracking-[0.24em] text-[#7ef6c6]">Editing Draft</div>
-              <div className="mt-2 text-lg font-semibold text-[#fbfffa]">
+              <div className="text-caption-bold uppercase tracking-wide text-primary-signal">Editing Draft</div>
+              <div className="mt-sm text-body-lg-bold text-text-primary">
                 {visibleSelectedTil?.title || 'Untitled TIL'}
               </div>
             </div>
-            <div className="rounded-full border border-[#00ffc2]/20 bg-[#00ffc2]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#00ffc2]">
+            <div className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-md py-xs text-caption-bold uppercase tracking-wide text-primary-signal">
               Editable
             </div>
           </div>
-          <div className="flex min-h-0 flex-1 overflow-hidden rounded-[1.5rem] border border-[#0c261f] bg-[#071415] p-3">
+          <div className="flex min-h-0 flex-1 overflow-hidden rounded-leaf border border-primary-signal/20 bg-surface-container p-sm">
             <Editor
               theme="vs-dark"
               defaultLanguage="markdown"
@@ -240,27 +240,27 @@ export function TILEditor({
                 scrollBeyondLastLine: false,
                 padding: { top: 14, bottom: 14 },
               }}
-              className="h-full w-full rounded-[1.5rem] bg-[#071415]"
+              className="h-full w-full rounded-leaf bg-surface-container"
             />
           </div>
         </div>
       )}
 
       {activeTab === 'preview' && (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] bg-[#04110f] p-5 shadow-[0_0_40px_rgba(0,255,194,0.06)]">
-          <div className="mb-5 flex items-center justify-between gap-4 rounded-3xl border border-[#0a2f22] bg-[#061210]/80 px-5 py-4 text-sm text-[#b9cbc1]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-leaf bg-surface-low p-lg shadow-neon-sm">
+          <div className="mb-lg flex items-center justify-between gap-md rounded-leaf border border-primary-signal/20 bg-surface-container/80 px-lg py-md text-body-sm text-text-secondary">
             <div>
-              <div className="text-xs uppercase tracking-[0.24em] text-[#7ef6c6]">Preview Draft</div>
-              <div className="mt-2 text-lg font-semibold text-[#fbfffa]">
+              <div className="text-caption-bold uppercase tracking-wide text-primary-signal">Preview Draft</div>
+              <div className="mt-sm text-body-lg-bold text-text-primary">
                 {visibleSelectedTil?.title || 'Untitled TIL'}
               </div>
             </div>
-            <div className="rounded-full border border-[#00ffc2]/20 bg-[#00ffc2]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#00ffc2]">
+            <div className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-md py-xs text-caption-bold uppercase tracking-wide text-primary-signal">
               Preview
             </div>
           </div>
-          <div className="flex min-h-0 flex-1 overflow-hidden rounded-[1.5rem] border border-[#0c261f] bg-[#071415] p-6">
-            <div className="prose prose-invert max-w-none overflow-y-auto text-[#fbfffa] prose-headings:text-[#fbfffa] prose-p:text-[#d0d7d9] prose-code:bg-[#11171b] prose-code:text-[#00ffc2] prose-pre:bg-[#020608] prose-a:text-[#00ffc2] prose-a:no-underline hover:prose-a:underline">
+          <div className="flex min-h-0 flex-1 overflow-hidden rounded-leaf border border-primary-signal/20 bg-surface-container p-lg">
+            <div className="prose prose-invert max-w-none overflow-y-auto text-text-primary prose-headings:text-text-primary prose-p:text-text-secondary prose-code:bg-surface-highest prose-code:text-primary-signal prose-pre:bg-background prose-a:text-primary-signal prose-a:no-underline hover:prose-a:underline">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayedDraft || '미리보기할 TIL이 없습니다.'}</ReactMarkdown>
             </div>
           </div>
