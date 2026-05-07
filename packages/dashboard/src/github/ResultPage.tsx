@@ -1,12 +1,18 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, Clock, ExternalLink, Filter } from 'lucide-react';
-import type { SearchCardResult } from '@san/shared';
+import type { SearchCardResult, SearchParams } from '@san/shared';
 import { searchApi } from '../api/client';
 import heroImage from '../assets/hero.png';
 
 type SortKey = 'latest' | 'relevance';
+
+interface SearchFilters {
+  tag: string;
+  fromDate: string;
+  toDate: string;
+}
 
 interface SearchResultItem {
   id: string;
@@ -23,31 +29,55 @@ interface SearchPageProps {
   keyword: string;
   totalCount: number;
   results: SearchResultItem[];
+  filters: SearchFilters;
   sort: SortKey;
   isPending?: boolean;
   isError?: boolean;
   hasNext?: boolean;
+  onFilterChange: (filters: SearchFilters) => void;
   onSortChange: (sort: SortKey) => void;
   onLoadMore: () => void;
-  onFilterClick?: () => void;
 }
 
 export function ResultPage() {
   const [searchParams] = useSearchParams();
   const [sort, setSort] = useState<SortKey>('latest');
+  const [filters, setFilters] = useState<SearchFilters>({
+    tag: '',
+    fromDate: '',
+    toDate: '',
+  });
   const [page, setPage] = useState(0);
+  const [accumulatedCards, setAccumulatedCards] = useState<SearchCardResult[]>([]);
+
   const size = 12;
   const keyword = searchParams.get('query')?.trim() ?? '';
+  const normalizedTag = normalizeTag(filters.tag);
+  const filterKey = `${keyword}|${normalizedTag}|${filters.fromDate}|${filters.toDate}`;
+
+  useEffect(() => {
+    setPage(0);
+    setAccumulatedCards([]);
+  }, [filterKey]);
 
   const searchQuery = useQuery({
-    queryKey: ['knowledge-search', keyword, page, size],
-    queryFn: () => searchApi.search({ keyword, page, size }),
+    queryKey: ['knowledge-search', keyword, normalizedTag, filters.fromDate, filters.toDate, page, size],
+    queryFn: () => searchApi.search(toSearchParams(keyword, normalizedTag, filters, page, size)),
     enabled: Boolean(keyword),
   });
 
+  useEffect(() => {
+    if (!searchQuery.data) return;
+
+    setAccumulatedCards((current) => {
+      const nextCards = page === 0 ? searchQuery.data.results : [...current, ...searchQuery.data.results];
+      return dedupeByCardId(nextCards);
+    });
+  }, [page, searchQuery.data]);
+
   const results = useMemo(
-    () => mapCardsToSearchResults(searchQuery.data?.results ?? [], keyword, sort),
-    [searchQuery.data?.results, keyword, sort],
+    () => mapCardsToSearchResults(accumulatedCards, keyword, sort),
+    [accumulatedCards, keyword, sort],
   );
 
   return (
@@ -55,10 +85,12 @@ export function ResultPage() {
       keyword={keyword || '검색어 없음'}
       totalCount={searchQuery.data?.totalCount ?? results.length}
       results={results}
+      filters={filters}
       sort={sort}
       isPending={searchQuery.isPending && Boolean(keyword)}
       isError={searchQuery.isError}
       hasNext={searchQuery.data?.hasNext ?? false}
+      onFilterChange={setFilters}
       onSortChange={setSort}
       onLoadMore={() => setPage((current) => current + 1)}
     />
@@ -69,26 +101,28 @@ function SearchPage({
   keyword,
   totalCount,
   results,
+  filters,
   sort,
   isPending = false,
   isError = false,
   hasNext = false,
+  onFilterChange,
   onSortChange,
   onLoadMore,
-  onFilterClick,
 }: SearchPageProps) {
   return (
     <section className="flex w-full min-w-0 flex-col gap-dashboard-gap py-dashboard-gap text-text-primary">
       <SearchHeader keyword={keyword} totalCount={totalCount} />
 
       <SearchToolbar
+        filters={filters}
         sort={sort}
+        onFilterChange={onFilterChange}
         onSortChange={onSortChange}
-        onFilterClick={onFilterClick}
       />
 
       {isPending ? <StateMessage message="검색 결과를 불러오는 중입니다." /> : null}
-      {isError ? <StateMessage message="검색 결과를 불러올 수 없습니다." tone="error" /> : null}
+      {isError ? <StateMessage message="검색 결과를 불러오지 못했습니다." tone="error" /> : null}
       {!isPending && !isError && results.length === 0 ? (
         <StateMessage message="검색 결과가 없습니다." />
       ) : null}
@@ -136,26 +170,42 @@ function SearchHeader({
 }
 
 function SearchToolbar({
+  filters,
   sort,
+  onFilterChange,
   onSortChange,
-  onFilterClick,
 }: {
+  filters: SearchFilters;
   sort: SortKey;
+  onFilterChange?: (filters: SearchFilters) => void;
   onSortChange?: (sort: SortKey) => void;
-  onFilterClick?: () => void;
 }) {
   return (
     <div className="flex flex-col gap-md xl:flex-row xl:items-center xl:justify-between">
       <div className="flex min-w-0 flex-wrap items-center gap-md">
         <FilterGroup label="DATE">
-          <FilterPill active>최근</FilterPill>
-          <FilterPill>오래된 순</FilterPill>
+          <FilterInput
+            type="date"
+            ariaLabel="시작일"
+            value={filters.fromDate}
+            onChange={(value) => onFilterChange?.({ ...filters, fromDate: value })}
+          />
+          <FilterInput
+            type="date"
+            ariaLabel="종료일"
+            value={filters.toDate}
+            onChange={(value) => onFilterChange?.({ ...filters, toDate: value })}
+          />
         </FilterGroup>
 
-        <FilterGroup label="TAGS">
-          <FilterPill>#React</FilterPill>
-          <FilterPill>#Performance</FilterPill>
-          <FilterPill>#UI</FilterPill>
+        <FilterGroup label="TAG">
+          <FilterInput
+            type="text"
+            ariaLabel="태그"
+            placeholder="#Design"
+            value={filters.tag}
+            onChange={(value) => onFilterChange?.({ ...filters, tag: value })}
+          />
         </FilterGroup>
       </div>
 
@@ -175,14 +225,10 @@ function SearchToolbar({
           </SegmentButton>
         </div>
 
-        <button
-          type="button"
-          onClick={onFilterClick}
-          className="inline-flex items-center gap-sm rounded-leaf bg-surface-low p-sm text-caption-bold text-text-primary transition hover:bg-surface-container hover:glow-neon"
-        >
+        <div className="inline-flex items-center gap-sm rounded-leaf bg-surface-low p-sm text-caption-bold text-text-primary">
           <Filter size={20} className="text-text-secondary" />
           필터
-        </button>
+        </div>
       </div>
     </div>
   );
@@ -205,25 +251,28 @@ function FilterGroup({
   );
 }
 
-function FilterPill({
-  active = false,
-  children,
+function FilterInput({
+  type,
+  value,
+  onChange,
+  ariaLabel,
+  placeholder,
 }: {
-  active?: boolean;
-  children: ReactNode;
+  type: 'date' | 'text';
+  value: string;
+  onChange: (value: string) => void;
+  ariaLabel: string;
+  placeholder?: string;
 }) {
   return (
-    <button
-      type="button"
-      className={[
-        'rounded-leaf px-md py-xs text-caption transition hover:glow-neon',
-        active
-          ? 'bg-primary-signal text-background'
-          : 'border border-text-secondary/30 text-text-secondary hover:border-primary-signal/40',
-      ].join(' ')}
-    >
-      {children}
-    </button>
+    <input
+      type={type}
+      value={value}
+      aria-label={ariaLabel}
+      placeholder={placeholder}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-9 min-w-0 rounded-leaf border border-text-secondary/20 bg-background/70 px-md text-caption text-text-primary outline-none placeholder:text-text-ghost focus:border-primary-signal/50"
+    />
   );
 }
 
@@ -354,16 +403,41 @@ function StateMessage({ message, tone = 'default' }: { message: string; tone?: '
   );
 }
 
+function toSearchParams(
+  keyword: string,
+  normalizedTag: string,
+  filters: SearchFilters,
+  page: number,
+  size: number,
+): SearchParams {
+  return {
+    keyword,
+    page,
+    size,
+    ...(normalizedTag ? { tag: normalizedTag } : {}),
+    ...(filters.fromDate ? { fromDate: filters.fromDate } : {}),
+    ...(filters.toDate ? { toDate: filters.toDate } : {}),
+  };
+}
+
+function normalizeTag(tag: string) {
+  return tag.trim().replace(/^#/, '');
+}
+
+function dedupeByCardId(cards: SearchCardResult[]) {
+  return Array.from(new Map(cards.map((card) => [card.cardId, card])).values());
+}
+
 function mapCardsToSearchResults(cards: SearchCardResult[], keyword: string, sort: SortKey) {
   const results = cards.map((card) => ({
     id: card.cardId,
     category: 'KNOWLEDGE',
     title: card.title,
     highlightedKeyword: keyword,
-    description: card.summary ?? '아직 요약이 생성되지 않은 지식 카드입니다.',
+    description: card.summary ?? '요약이 아직 생성되지 않은 지식 카드입니다.',
     imageUrl: heroImage,
     similarity: calculateSimilarity(card, keyword),
-    createdLabel: '최근 수집',
+    createdLabel: '저장된 지식',
   }));
 
   return results.sort((a, b) => {
