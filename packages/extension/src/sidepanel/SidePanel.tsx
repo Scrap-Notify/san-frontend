@@ -9,7 +9,7 @@ import GlowBackground from './components/GlowBackground';
 import KnowledgeProgressCard from './components/KnowledgeProgressCard';
 import { KnowledgeSearchBar } from './components/KnowledgeSearchBar';
 import { RecentKnowledgeList } from './components/RecentKnowledgeList';
-import SidePanelHeader from './components/SidePanelHeader';
+import SidePanelNavbar from './components/SidePanelNavbar';
 import {
   loadPendingScrap,
   loadSavedInsights,
@@ -435,9 +435,9 @@ export default function SidePanel() {
   }, [isAuthenticated, knowledgeSearchQuery]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] p-4 text-text-primary">
-      <div className="custom-scrollbar relative flex-1 overflow-y-auto rounded-leaf">
-        <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
+    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] px-4 pb-4 text-text-primary">
+      <div className="custom-scrollbar relative flex-1 overflow-y-auto">
+        <SidePanelNavbar isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
         <div className="relative z-10 flex flex-col gap-4 pt-4">
           {isLoadingRelated ? (
