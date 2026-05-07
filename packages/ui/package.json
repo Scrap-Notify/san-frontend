@@ -7,7 +7,9 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./styles": "./src/styles/globals.css"
+    "./styles": "./src/styles/globals.css",
+    "./components/Button/CurvedButton": "./src/components/Button/CurvedButton.tsx",
+    "./assets/brand/*": "./src/assets/brand/*"
   },
   "peerDependencies": {
     "react": "^18.0.0",

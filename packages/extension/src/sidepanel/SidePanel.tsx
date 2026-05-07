@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { KnowledgeCardResponse, KnowledgeCardView } from '@san/shared';
-import { authTokenStorage, cardsApi } from '../api/client';
-import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
-import { ArchiveList } from './components/ArchiveList';
-import { DropZone } from './components/DropZone';
-import { EmptyState } from './components/EmptyState';
-import GlowBackground from './components/GlowBackground';
-import KnowledgeProgressCard from './components/KnowledgeProgressCard';
-import { KnowledgeSearchBar } from './components/KnowledgeSearchBar';
-import { RecentKnowledgeList } from './components/RecentKnowledgeList';
-import SidePanelHeader from './components/SidePanelHeader';
+import type { KnowledgeCardListResponse, KnowledgeCardResponse, KnowledgeCardView } from '@san/shared';
+import { authTokenStorage, cardsApi } from '@extension/api/client';
+import type { ExtensionMessage, PendingScrap, SavedInsight } from '@extension/types';
+import { ArchiveList } from '@sidepanel/components/archive/ArchiveList';
+import { DropZone } from '@sidepanel/components/capture/DropZone';
+import { EmptyState } from '@sidepanel/components/feedback/EmptyState';
+import GlowBackground from '@sidepanel/components/feedback/GlowBackground';
+import KnowledgeProgressCard from '@sidepanel/components/knowledge/KnowledgeProgressCard';
+import { KnowledgeSearchBar } from '@sidepanel/components/knowledge/KnowledgeSearchBar';
+import { RecentKnowledgeList } from '@sidepanel/components/knowledge/RecentKnowledgeList';
+import SidePanelNavbar from '@sidepanel/components/layout/SidePanelNavbar';
 import {
   loadPendingScrap,
   loadSavedInsights,
@@ -24,6 +24,77 @@ const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
 const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
+const USE_RECENT_CARDS_MOCK = true;
+const MOCK_RECENT_CARDS: KnowledgeCardResponse[] = [
+  {
+    cardId: 'mock-card-1',
+    title: 'Design system layering',
+    summary: 'Deep dark mode UI guide inspired by abyss tones. It uses subtle border shifts and soft blur effects to deliver structured information with depth.',
+    category: {
+      categoryId: 'mock-category-1',
+      categoryName: 'Design',
+    },
+    tags: [
+      { tagId: 'mock-tag-1', tagName: 'Bioluminescence' },
+    ],
+    createdAt: new Date().toISOString(),
+  },
+  {
+    cardId: 'mock-card-2',
+    title: 'Chrome Extension side panel UX',
+    summary: 'Patterns for keeping drag capture, manual input, and save feedback calm inside a compact side panel.',
+    category: {
+      categoryId: 'mock-category-2',
+      categoryName: 'Product',
+    },
+    tags: [
+      { tagId: 'mock-tag-2', tagName: 'Extension' },
+      { tagId: 'mock-tag-3', tagName: 'UX' },
+    ],
+    createdAt: new Date(Date.now() - 86_400_000).toISOString(),
+  },
+  {
+    cardId: 'mock-card-3',
+    title: 'Pretendard weight guide',
+    summary: 'Using 400, 500, 600, and 700 weights to keep interface hierarchy consistent without making text feel heavy.',
+    category: {
+      categoryId: 'mock-category-3',
+      categoryName: 'Typography',
+    },
+    tags: [
+      { tagId: 'mock-tag-4', tagName: 'Design System' },
+    ],
+    createdAt: new Date(Date.now() - 172_800_000).toISOString(),
+  },
+  {
+    cardId: 'mock-card-4',
+    title: 'Knowledge card response mapping',
+    summary: 'A response shape using cardId, category, tags, and createdAt keeps the side panel card renderer close to the server contract.',
+    category: {
+      categoryId: 'mock-category-4',
+      categoryName: 'API',
+    },
+    tags: [
+      { tagId: 'mock-tag-5', tagName: 'Response' },
+      { tagId: 'mock-tag-6', tagName: 'Cards' },
+    ],
+    createdAt: new Date(Date.now() - 259_200_000).toISOString(),
+  },
+  {
+    cardId: 'mock-card-5',
+    title: 'Compact panel scrolling',
+    summary: 'Keep the capture zone fixed and let only the card list scroll, so the side panel maintains a stable tool-like rhythm.',
+    category: {
+      categoryId: 'mock-category-5',
+      categoryName: 'Layout',
+    },
+    tags: [
+      { tagId: 'mock-tag-7', tagName: 'Scroll' },
+      { tagId: 'mock-tag-8', tagName: 'Panel' },
+    ],
+    createdAt: new Date(Date.now() - 345_600_000).toISOString(),
+  },
+];
 
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
@@ -164,7 +235,7 @@ export default function SidePanel() {
   const [hasRelatedResult, setHasRelatedResult] = useState(false);
   const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
   const [createdCard, setCreatedCard] = useState<KnowledgeCardView | null>(null);
-  const [recentCards, setRecentCards] = useState<KnowledgeCardView[]>([]);
+  const [recentCards, setRecentCards] = useState<KnowledgeCardResponse[]>([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(false);
   const [recentError, setRecentError] = useState<string | null>(null);
   const [knowledgeSearchQuery, setKnowledgeSearchQuery] = useState('');
@@ -174,10 +245,17 @@ export default function SidePanel() {
   const [hasKnowledgeSearchResult, setHasKnowledgeSearchResult] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
+    if (USE_RECENT_CARDS_MOCK) {
+      setRecentCards(MOCK_RECENT_CARDS);
+      setRecentError(null);
+      setIsLoadingRecent(false);
+      return;
+    }
+
     setIsLoadingRecent(true);
     setRecentError(null);
     try {
-      const response = await cardsApi.getAll({ page: 0, limit: 3 });
+      const response = await cardsApi.getAll({ page: 0, limit: 10 }) as unknown as KnowledgeCardListResponse;
       setRecentCards(response.cards);
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to load recent cards', error);
@@ -435,11 +513,11 @@ export default function SidePanel() {
   }, [isAuthenticated, knowledgeSearchQuery]);
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] p-4 text-text-primary">
-      <div className="custom-scrollbar relative flex-1 overflow-y-auto rounded-leaf">
-        <SidePanelHeader isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
+    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] px-4 pb-4 text-text-primary">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        <SidePanelNavbar isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
         <GlowBackground />
-        <div className="relative z-10 flex flex-col gap-4 pt-4">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pt-4">
           {isLoadingRelated ? (
             <KnowledgeProgressCard
               cards={relatedCards}
@@ -465,21 +543,6 @@ export default function SidePanel() {
               onLogin={!isAuthenticated ? openDashboardLogin : undefined}
             />
           )}
-          {isAuthenticated ? (
-            <KnowledgeSearchBar
-              value={knowledgeSearchQuery}
-              disabled={isSearchingKnowledge}
-              onChange={(value) => {
-                setKnowledgeSearchQuery(value);
-                if (!value.trim()) {
-                  setHasKnowledgeSearchResult(false);
-                  setKnowledgeSearchCards([]);
-                  setKnowledgeSearchError(null);
-                }
-              }}
-              onSubmit={handleKnowledgeSearch}
-            />
-          ) : null}
           {!isAuthenticated ? (
             pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
           ) : !isLoadingRelated && (hasKnowledgeResult || hasKnowledgeSearchResult) ? (
@@ -502,6 +565,21 @@ export default function SidePanel() {
               cards={recentCards}
               isLoading={isLoadingRecent}
               error={recentError}
+              action={
+                <KnowledgeSearchBar
+                  value={knowledgeSearchQuery}
+                  disabled={isSearchingKnowledge}
+                  onChange={(value) => {
+                    setKnowledgeSearchQuery(value);
+                    if (!value.trim()) {
+                      setHasKnowledgeSearchResult(false);
+                      setKnowledgeSearchCards([]);
+                      setKnowledgeSearchError(null);
+                    }
+                  }}
+                  onSubmit={handleKnowledgeSearch}
+                />
+              }
             />
           ) : null}
         </div>

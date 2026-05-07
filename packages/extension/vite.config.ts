@@ -26,6 +26,8 @@ export default defineConfig({
     alias: {
       '@san/shared': resolve(__dirname, '../shared/src'),
       '@san/ui':     resolve(__dirname, '../ui/src'),
+      '@extension':  resolve(__dirname, './src'),
+      '@sidepanel':  resolve(__dirname, './src/sidepanel'),
     },
   },
   build: {

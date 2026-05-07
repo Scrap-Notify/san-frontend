@@ -14,6 +14,13 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@extension/*": ["src/*"],
+      "@sidepanel/*": ["src/sidepanel/*"],
+      "@san/ui/*": ["../ui/src/*"],
+      "@san/shared/*": ["../shared/src/*"]
+    },
 
     /* Linting */
     "noUnusedLocals": true,

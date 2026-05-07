@@ -1,4 +1,4 @@
-import type { SavedInsight } from '../../types';
+import type { SavedInsight } from '@extension/types';
 import ArchiveItem from './ArchiveItem';
 
 interface CardListProps {

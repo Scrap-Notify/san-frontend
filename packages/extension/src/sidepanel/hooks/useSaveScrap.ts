@@ -5,8 +5,8 @@ import {
   type KnowledgeCardResponse,
   type KnowledgeCardView,
 } from '@san/shared';
-import { asyncJobsApi, cardsApi, scrapsApi } from '../../api/client';
-import type { PendingScrap, SavedInsight } from '../../types';
+import { asyncJobsApi, cardsApi, scrapsApi } from '@extension/api/client';
+import type { PendingScrap, SavedInsight } from '@extension/types';
 
 const STORAGE_KEY = 'san:saved-insights';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
