@@ -19,7 +19,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "noEmit": true
   },
+  "include": ["types/**/*.d.ts"],
   "exclude": ["node_modules", "dist", "build", "**/node_modules"]
 }
