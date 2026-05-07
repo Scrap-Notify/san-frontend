@@ -1,9 +1,13 @@
-import { useTilPageLogic } from '../hooks/useTilPageLogic';
+import type { UseQueryResult } from '@tanstack/react-query';
+import type { TilRecallCardsResponse, TilResponse } from '@san/shared';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
 
-export function CollectedDataPanel() {
-  const { recallCardsQuery, selectedTil } = useTilPageLogic();
+interface CollectedDataPanelProps {
+  recallCardsQuery: UseQueryResult<TilRecallCardsResponse>;
+  selectedTil: TilResponse | null;
+}
 
+export function CollectedDataPanel({ recallCardsQuery, selectedTil }: CollectedDataPanelProps) {
   const items: CollectedDataItem[] = recallCardsQuery.data?.recallCards.map((card) => ({
     id: card.cardId,
     type: 'text' as const,
@@ -14,8 +18,8 @@ export function CollectedDataPanel() {
   })) ?? [];
 
   return (
-    <aside className="flex min-h-0 w-full flex-col rounded-leaf bg-surface-low/50 shadow-neon-sm backdrop-blur-xl">
-      <header className="border-b border-text-secondary/20 p-lg">
+    <aside className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[8px] bg-background/80 shadow-neon-sm backdrop-blur-xl">
+      <header className="shrink-0 border-b border-text-secondary/20 p-lg">
         <h2 className="text-h1-bold uppercase leading-none text-text-primary">
           내가 수집한 데이터
         </h2>

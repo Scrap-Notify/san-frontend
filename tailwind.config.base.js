@@ -68,7 +68,7 @@ module.exports = {
   
         // 5. 기본 폰트 설정
         fontFamily: {
-          sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+          sans: ['Pretendard'],
         },
       },
     },

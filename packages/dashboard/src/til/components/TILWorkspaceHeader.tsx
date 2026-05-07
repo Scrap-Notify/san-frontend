@@ -1,4 +1,4 @@
-import { Calendar, SlidersHorizontal } from 'lucide-react';
+import { Calendar, Search } from 'lucide-react';
 import { TILModeTabs, type TILMode } from './TILModeTabs';
 
 interface TILWorkspaceHeaderProps {
@@ -15,7 +15,7 @@ export function TILWorkspaceHeader({
   onSearch,
 }: TILWorkspaceHeaderProps) {
   return (
-    <header className="flex min-h-16 items-center justify-between gap-dashboard-gap bg-background/50 backdrop-blur-xl">
+    <header className="grid min-h-16 w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-dashboard-gap bg-background/50 backdrop-blur-xl">
       <div className="flex min-w-0 items-center gap-dashboard-gap">
         <h1 className="shrink-0 text-h2-bold leading-none text-text-primary">
           TIL Workspace
@@ -24,25 +24,23 @@ export function TILWorkspaceHeader({
         <TILModeTabs activeTab={activeTab} onChange={onTabChange} />
       </div>
 
-      <div className="flex shrink-0 items-center gap-md rounded-leaf border border-text-primary/5 bg-surface-low/50 p-sm backdrop-blur-xl">
-        <div className="flex items-center gap-sm rounded-leaf bg-surface-container px-lg py-sm text-body-sm-bold text-text-primary">
-          <Calendar size={20} className="text-primary-signal" />
-          {dateLabel}
-        </div>
-
-        <label className="relative block">
-          <SlidersHorizontal
-            size={20}
-            className="pointer-events-none absolute left-md top-1/2 -translate-y-1/2 text-text-secondary"
-          />
-          <input
-            type="search"
-            placeholder="키워드로 검색..."
-            onChange={(event) => onSearch?.(event.target.value)}
-            className="h-11 w-60 rounded-leaf bg-background/50 pl-12 pr-md text-body-sm text-text-primary outline-none placeholder:text-text-ghost focus:ring-1 focus:ring-primary-signal/40"
-          />
-        </label>
+      <div className="flex min-w-fit items-center justify-center gap-sm rounded-[8px] border border-text-primary/5 bg-background/80 px-lg py-sm text-body-sm-bold text-text-primary backdrop-blur-xl">
+        <Calendar size={20} className="text-primary-signal" />
+        {dateLabel}
       </div>
+
+      <label className="ml-auto flex h-11 w-full max-w-80 min-w-0 items-center gap-md rounded-[8px] bg-background/80 px-md focus-within:ring-1 focus-within:ring-primary-signal/40">
+        <Search
+          size={20}
+          className="shrink-0 text-text-secondary"
+        />
+        <input
+          type="search"
+          placeholder="키워드로 검색..."
+          onChange={(event) => onSearch?.(event.target.value)}
+          className="h-full min-w-0 flex-1 bg-transparent text-body-sm text-text-primary outline-none placeholder:text-text-ghost"
+        />
+      </label>
     </header>
   );
 }
