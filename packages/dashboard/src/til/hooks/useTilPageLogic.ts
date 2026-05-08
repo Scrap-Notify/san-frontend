@@ -15,6 +15,7 @@ export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(() => getPreviousDate());
   const [selectedSummaryId, setSelectedSummaryId] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
   const [draft, setDraft] = useState('');
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [commitJobId, setCommitJobId] = useState<string | null>(null);
@@ -36,8 +37,9 @@ export function useTilPageLogic(): TilPageLogic {
   }, [selectedDate]);
 
   useEffect(() => {
+    setTitle(selectedTil?.title ?? '');
     setDraft(selectedTil?.content ?? '');
-  }, [selectedTil?.summaryId, selectedTil?.content]);
+  }, [selectedTil?.summaryId, selectedTil?.title, selectedTil?.content]);
 
   const sourcesQuery = useTilSources(
     isMockTilSummaryId(selectedTil?.summaryId) ? null : selectedTil?.summaryId,
@@ -97,6 +99,8 @@ export function useTilPageLogic(): TilPageLogic {
     setSelectedDate,
     selectedSummaryId,
     setSelectedSummaryId,
+    title,
+    setTitle,
     draft,
     setDraft,
     tilList,

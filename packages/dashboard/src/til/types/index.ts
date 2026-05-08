@@ -33,6 +33,8 @@ export interface TilPageLogic {
   setSelectedDate: (date: TilDateString) => void;
   selectedSummaryId: string | null;
   setSelectedSummaryId: (summaryId: string | null) => void;
+  title: string;
+  setTitle: (value: string) => void;
   draft: string;
   setDraft: (value: string) => void;
   tilList: TilResponse[];

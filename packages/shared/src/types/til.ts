@@ -21,8 +21,23 @@ export interface TilResponse {
   updatedAt: string;
 }
 
+export interface TilSourceContentResponse {
+  cardId: string;
+  scrapId: string;
+  title: string;
+  sourceType: 'LINK' | 'TEXT' | 'IMAGE';
+  rawContent: string;
+  sourceUrl: string | null;
+  imageUrl: string | null;
+  category: {
+    categoryId: string;
+    categoryName: string;
+  } | null;
+  createdAt: string;
+}
+
 export interface TilRecallCardsResponse {
-  recallCards: KnowledgeCardResponse[];
+  sources: TilSourceContentResponse[];
 }
 
 export interface TilSourceContentResponse {

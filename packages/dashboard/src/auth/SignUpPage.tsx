@@ -73,11 +73,19 @@ export function Signup() {
 
     setIsSubmitting(true);
     try {
+      // [임시 하드코딩] 무조건 가입/로그인 성공 처리 (메인 화면 이동용)
+      const mockTokens = { accessToken: 'fake_access_token', refreshToken: 'fake_refresh_token' };
+      await authTokenStorage.setTokens(mockTokens as any);
+      navigate('/');
+
+      // 기존 API 호출 코드 (잠시 주석)
+      /*
       await authApi.signup({ username: trimmed, password });
       const tokens = await authApi.login({ username: trimmed, password });
       await authTokenStorage.setTokens(tokens);
       await syncExtensionAuth(tokens);
       navigate('/');
+      */
     } catch (error) {
       let msg = getApiErrorMessage(error, '회원가입에 실패했습니다.');
       msg = msg.replace(/^(Password|아이디|비밀번호):\s*/i, '');
