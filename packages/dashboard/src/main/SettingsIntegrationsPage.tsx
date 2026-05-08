@@ -4,6 +4,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
 
+const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
+  A009: 'GitHub 계정이 연동되어 있지 않습니다.',
+  A011: '이미 다른 계정에 연결된 GitHub 계정입니다.',
+  A012: 'GitHub 로그인 계정은 연동을 해제할 수 없습니다.',
+};
+
 export function SettingsIntegrationsPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,6 +20,7 @@ export function SettingsIntegrationsPage() {
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUnlinking, setIsUnlinking] = useState(false);
 
   const statusText = useMemo(() => {
     if (connectedRepositories.length > 0) {
@@ -38,6 +45,7 @@ export function SettingsIntegrationsPage() {
 
   useEffect(() => {
     if (githubLinked) {
+      setMessage('GitHub 연동이 완료되었습니다.');
       setSearchParams({}, { replace: true });
     }
 
@@ -68,15 +76,20 @@ export function SettingsIntegrationsPage() {
   };
 
   const handleUnlinkGithub = async () => {
+    if (isUnlinking) return;
+
     setErrorMessage(null);
     setMessage(null);
+    setIsUnlinking(true);
 
     try {
       await githubApi.unlinkAccount();
       setConnectedRepositories([]);
-      setMessage('GitHub account disconnected');
+      setMessage('GitHub 연동이 해제되었습니다.');
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, 'Failed to disconnect GitHub account'));
+      setErrorMessage(getApiErrorMessage(error, 'GitHub 연동 해제에 실패했습니다.', GITHUB_LINK_ERROR_MESSAGE));
+    } finally {
+      setIsUnlinking(false);
     }
   };
 
@@ -111,7 +124,7 @@ export function SettingsIntegrationsPage() {
             className="inline-flex min-h-10 items-center justify-center gap-sm rounded-leaf bg-primary-signal px-md text-body-sm-bold text-background transition hover:glow-neon"
           >
             <LinkIcon size={20} />
-            Connect GitHub
+            GitHub 연동하기
           </button>
           <button
             type="button"
@@ -124,10 +137,11 @@ export function SettingsIntegrationsPage() {
           <button
             type="button"
             onClick={handleUnlinkGithub}
+            disabled={isUnlinking}
             className="inline-flex min-h-10 items-center justify-center gap-sm rounded-leaf border border-text-primary/10 bg-surface-container px-md text-body-sm-bold text-text-secondary transition hover:border-red-300/40 hover:text-red-200 hover:glow-neon"
           >
             <Unlink size={20} />
-            Disconnect
+            {isUnlinking ? '해제 중...' : '연동 해제하기'}
           </button>
         </div>
       </header>

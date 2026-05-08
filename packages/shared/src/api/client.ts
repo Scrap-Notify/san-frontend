@@ -127,10 +127,19 @@ export function unwrapApiResponse<T>(response: ApiResponse<T>): T {
   return response.data;
 }
 
-export function getApiErrorMessage(error: unknown, fallback = 'Request failed') {
+export function getApiErrorMessage(
+  error: unknown,
+  fallback = 'Request failed',
+  errorMessages: Record<string, string> = {}
+) {
   if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
     const response = error.response?.data;
-    return response?.message ?? response?.error ?? error.message ?? fallback;
+    const errorCode = response?.error;
+    return (errorCode ? errorMessages[errorCode] : undefined)
+      ?? response?.message
+      ?? errorCode
+      ?? error.message
+      ?? fallback;
   }
 
   if (error instanceof Error) {

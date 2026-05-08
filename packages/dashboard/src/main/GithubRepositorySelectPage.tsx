@@ -123,7 +123,7 @@ export function GithubRepositorySelectPage() {
           </div>
         ) : (
           <p className="rounded-leaf border border-text-primary/5 bg-background/70 px-md py-lg text-body-sm text-text-ghost">
-            이 GitHub 계정에서 가져올 수 있는 레포지토리가 없습니다.
+            GitHub 계정에서 가져올 수 있는 레포지토리가 없습니다.
           </p>
         )}
 
