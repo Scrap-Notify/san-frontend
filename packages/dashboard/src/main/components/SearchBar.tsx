@@ -23,34 +23,26 @@ export function SearchBar({
     <form
       onSubmit={handleSubmit}
       role="search"
-      className="inline-flex min-h-14 w-fit max-w-full min-w-0 items-center gap-4 rounded-[999px] border border-primary-signal bg-surface-low px-8 py-sm transition focus-within:bg-surface-container focus-within:glow-neon"
+      className="inline-flex h-11 w-72 items-center gap-3 rounded-md bg-white/5 px-4 transition focus-within:ring-1 focus-within:ring-primary-signal/30"
     >
-      <div className="flex min-h-14 min-w-0 items-center gap-4">
-        <Search size={20} aria-hidden="true" className="shrink-0 text-primary-signal" />
-        <input
-          type="search"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          placeholder={placeholder}
-          className="h-full flex-1 rounded-[999px] bg-transparent px-0 text-left text-body-sm leading-none text-text-primary caret-primary-signal outline-none placeholder:text-text-ghost focus:outline-none focus:ring-0 sm:min-w-80 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
-        />
-        {value ? (
-          <button
-            type="button"
-            onClick={() => setValue('')}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:text-primary-signal"
-            aria-label="Clear search"
-          >
-            <X size={20} />
-          </button>
-        ) : (
-          <X
-            size={20}
-            aria-hidden="true"
-            className="pointer-events-none shrink-0 text-text-secondary/40"
-          />
-        )}
-      </div>
+      <Search size={18} aria-hidden="true" className="shrink-0 text-text-secondary/80" />
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+        placeholder={placeholder}
+        className="h-full flex-1 bg-transparent px-0 text-sm tracking-wide text-white outline-none placeholder:text-text-secondary/50 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+      />
+      {value ? (
+        <button
+          type="button"
+          onClick={() => setValue('')}
+          className="flex shrink-0 items-center justify-center text-text-secondary transition hover:text-white"
+          aria-label="Clear search"
+        >
+          <X size={16} />
+        </button>
+      ) : null}
     </form>
   );
 }
