@@ -1,10 +1,11 @@
 // packages/shared/src/hooks/useCards.ts
 import { useQuery } from '@tanstack/react-query';
 import { useApiContext } from '@san/shared';
+import type { KnowledgeCardListParams } from '../types';
 
 export const cardKeys = {
   all: ['cards'] as const,
-  list: () => ['cards', 'list'] as const,
+  list: (params?: KnowledgeCardListParams) => ['cards', 'list', params ?? {}] as const,
 };
 
 // ----------------------------
@@ -12,11 +13,11 @@ export const cardKeys = {
 // const { data } = useCards()
 // ----------------------------
 
-export function useCards(options?: { enabled?: boolean }) {
+export function useCards(params?: KnowledgeCardListParams, options?: { enabled?: boolean }) {
   const { cardsApi } = useApiContext();
   return useQuery({
-    queryKey: cardKeys.list(),
-    queryFn: () => cardsApi.getAll(),
+    queryKey: cardKeys.list(params),
+    queryFn: () => cardsApi.getAll(params),
     enabled: options?.enabled ?? true,
     staleTime: 1000 * 30,
   });

@@ -11,6 +11,7 @@ interface RecentKnowledgeListProps {
   isLoading: boolean;
   error: string | null;
   action?: ReactNode;
+  isScrollable?: boolean;
 }
 
 function formatDate(value?: string) {
@@ -45,9 +46,10 @@ export function RecentKnowledgeList({
   isLoading,
   error,
   action,
+  isScrollable = true,
 }: RecentKnowledgeListProps) {
   return (
-    <section className="flex min-h-0 flex-1 flex-col">
+    <section className={['flex flex-col', isScrollable ? 'min-h-0 flex-1' : 'shrink-0'].join(' ')}>
       <div className="mb-3 flex h-11 shrink-0 items-center justify-between gap-3">
         <div className="shrink-0 text-body-sm font-medium text-text-secondary/85">
           {RECENT_TITLE}
@@ -59,7 +61,10 @@ export function RecentKnowledgeList({
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className={[
+        '[scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+        isScrollable ? 'min-h-0 flex-1 overflow-y-auto pr-1' : ''
+      ].join(' ')}>
         {isLoading ? (
           <p className="rounded-leaf border border-text-secondary/10 bg-surface-container/50 px-4 py-3 text-body-sm text-text-secondary">
             {LOADING_MESSAGE}

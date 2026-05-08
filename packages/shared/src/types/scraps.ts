@@ -16,7 +16,10 @@ export interface CreateScrapRequest {
   rawContent: string;
 }
 
-export type CreateScrapResponse = Scrap;
+export interface CreateScrapResponse extends Scrap {
+  jobId?: string | null;
+  cardId?: string | null;
+}
 
 export type AiStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 

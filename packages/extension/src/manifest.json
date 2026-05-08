@@ -33,7 +33,15 @@
       "suggested_key": {
         "default": "Alt+S",
         "mac": "Alt+S"
-      }
+      },
+      "description": "SAN 사이드패널 열기/닫기"
+    },
+    "capture_image": {
+      "suggested_key": {
+        "default": "Alt+Q",
+        "mac": "Alt+Q"
+      },
+      "description": "현재 탭(전체 화면)을 이미지로 캡처"
     }
   },
   "side_panel": {

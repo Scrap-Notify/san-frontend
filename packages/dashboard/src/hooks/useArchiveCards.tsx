@@ -1,4 +1,9 @@
-import { toKnowledgeCardView, useCards, type KnowledgeCardView } from '@san/shared';
+import {
+  toKnowledgeCardView,
+  useCards,
+  type KnowledgeCardListParams,
+  type KnowledgeCardView,
+} from '@san/shared';
 
 export interface ArchiveCardsParams {
   limit?: number;
@@ -94,7 +99,8 @@ interface UseArchiveCardsResult {
 const useMockCards = import.meta.env.VITE_USE_MOCK === 'true';
 
 export function useArchiveCards(params?: ArchiveCardsParams): UseArchiveCardsResult {
-  const query = useCards({ enabled: !useMockCards });
+  const serverParams = toKnowledgeCardListParams(params);
+  const query = useCards(serverParams, { enabled: !useMockCards });
 
   if (useMockCards) {
     return {
@@ -105,10 +111,34 @@ export function useArchiveCards(params?: ArchiveCardsParams): UseArchiveCardsRes
   }
 
   return {
-    cards: filterMockCards(query.data?.cards.map(toKnowledgeCardView) ?? [], params),
+    cards: filterMockCards(query.data?.cards.map(toKnowledgeCardView) ?? [], {
+      ...params,
+      limit: params?.search ? params.limit : undefined,
+    }),
     isPending: query.isPending,
     isError: query.isError,
   };
+}
+
+function toKnowledgeCardListParams(params?: ArchiveCardsParams): KnowledgeCardListParams | undefined {
+  if (!params) return undefined;
+
+  const selectedTags = normalizeTags(params.tags ?? (params.tag ? [params.tag] : []));
+
+  return compactParams({
+    tag: selectedTags[0],
+    fromDate: params.date ?? params.from,
+    toDate: params.date ?? params.to,
+    limit: params.search ? undefined : params.limit,
+  });
+}
+
+function compactParams(params: KnowledgeCardListParams): KnowledgeCardListParams | undefined {
+  const compacted = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
+  ) as KnowledgeCardListParams;
+
+  return Object.keys(compacted).length > 0 ? compacted : undefined;
 }
 
 function filterMockCards(cards: KnowledgeCardView[], params?: ArchiveCardsParams) {

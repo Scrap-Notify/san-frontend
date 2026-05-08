@@ -92,9 +92,8 @@ export const DropZone = ({
   const isImageCapture = Boolean(imagePreviewUrl);
 
   return (
-    <>
+    <div className="flex flex-col gap-3">
       <section
-        onClick={() => setIsEditing(true)}
         onDragOver={(event) => {
           event.preventDefault();
           setIsOver(true);
@@ -102,23 +101,27 @@ export const DropZone = ({
         onDragLeave={() => setIsOver(false)}
         onDrop={handleDrop}
         className={[
-          'relative flex h-[190px] w-full cursor-text items-center justify-center overflow-hidden rounded-leaf border-2 border-dashed bg-surface-container px-5 pb-4 pt-7 transition-all duration-300',
+          'relative flex h-[190px] w-full flex-col overflow-hidden rounded-leaf border-2 transition-all duration-300',
           isOver
-            ? 'border-primary-signal bg-primary-signal/10 shadow-neon glow-neon'
-            : 'border-primary-signal/30 hover:border-primary-signal/50 hover:bg-surface-container/80',
+            ? 'border-dashed border-primary-signal bg-primary-signal/10 shadow-neon glow-neon'
+            : pendingScrap
+              ? 'border-solid border-primary-signal/40 bg-surface-container/90 shadow-neon'
+              : 'border-dashed border-primary-signal/30 hover:border-primary-signal/50 hover:bg-surface-container/80',
+          !pendingScrap && !isEditing ? 'cursor-text items-center justify-center' : 'cursor-default',
         ].join(' ')}
+        onClick={() => !pendingScrap && setIsEditing(true)}
       >
         {isEditing ? (
-          <div className="flex h-full w-full flex-col gap-3" onClick={(event) => event.stopPropagation()}>
+          <div className="flex h-full w-full flex-col gap-3 p-5" onClick={(event) => event.stopPropagation()}>
             <textarea
               value={manualText}
               onChange={(event) => setManualText(event.target.value)}
               autoFocus
               placeholder="여기에 직접 입력하거나 텍스트, 이미지, 링크를 드래그하세요."
-              className="min-h-0 w-full flex-1 resize-none bg-transparent text-body-sm leading-6 text-text-primary outline-none placeholder:text-text-secondary/45"
+              className="w-full flex-1 resize-none bg-transparent text-body-sm leading-6 text-text-primary outline-none placeholder:text-text-secondary/45"
             />
 
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex items-center justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={handleCancelEdit}
@@ -135,8 +138,66 @@ export const DropZone = ({
               </button>
             </div>
           </div>
+        ) : pendingScrap ? (
+          <div className="flex h-full flex-col p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2">
+                <Sparkles size={18} className="text-primary-signal" aria-hidden="true" />
+                <span className="text-caption-bold uppercase tracking-wider text-text-secondary">
+                  Captured
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onClear(); }}
+                className="inline-flex items-center gap-1.5 text-caption-bold uppercase tracking-wider text-primary-signal transition hover:text-text-primary active:translate-y-px"
+              >
+                <RotateCcw size={12} aria-hidden="true" />
+                Clear
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-leaf border border-primary-signal/10 bg-background/40 p-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {isImageCapture ? (
+                <img
+                  src={imagePreviewUrl}
+                  alt={pendingScrap.title}
+                  className="max-h-24 w-full rounded-leaf object-cover mb-3"
+                />
+              ) : null}
+
+              {previewContent ? (
+                <p className="whitespace-pre-wrap text-body-sm leading-6 text-text-secondary">
+                  {previewContent}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="mt-4 shrink-0">
+              {canSave ? (
+                <CurvedButton
+                  onClick={(e) => { e.stopPropagation(); onSave(); }}
+                  disabled={isSaving}
+                  fullWidth
+                  size="md"
+                >
+                  {isSaving ? savingLabel : saveLabel}
+                </CurvedButton>
+              ) : authNotice ? (
+                <div className="rounded-leaf border border-primary-signal/20 bg-background/70 p-3 text-center">
+                  <p className="text-caption text-text-secondary">{authNotice}</p>
+                  {onLogin && (
+                    <CurvedButton onClick={(e) => { e.stopPropagation(); onLogin(); }} fullWidth size="md" className="mt-2">
+                      로그인
+                    </CurvedButton>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </div>
         ) : (
-          <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex flex-col items-center gap-3 p-5 text-center">
             <CloudUpload size={34} className="text-primary-signal" aria-hidden="true" />
             <p className="text-body-main font-medium text-text-primary">
               {isOver ? '여기에 놓아 지식 심기' : '여기로 드래그하여 지식 심기'}
@@ -148,90 +209,17 @@ export const DropZone = ({
         )}
       </section>
 
-      {error || saveError ? (
+      {(error || saveError) && (
         <p className="rounded-leaf border border-red-500/20 bg-red-500/10 px-4 py-3 text-caption text-red-300">
           {error ?? saveError}
         </p>
-      ) : null}
+      )}
 
-      {saveNotice ? (
+      {saveNotice && (
         <div className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-4 py-3 text-caption text-primary-signal">
           {saveNotice}
         </div>
-      ) : null}
-
-      {pendingScrap ? (
-        <section className="rounded-leaf border border-primary-signal/20 bg-surface-container p-4 shadow-neon">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Sparkles size={18} className="text-primary-signal" aria-hidden="true" />
-              <span className="text-caption-bold uppercase text-text-secondary">
-                Captured Source
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={onClear}
-              className="inline-flex items-center gap-1.5 text-caption-bold uppercase text-primary-signal transition hover:text-text-primary active:translate-y-px"
-              aria-label="Clear source"
-              title="Clear source"
-            >
-              <RotateCcw size={12} aria-hidden="true" />
-              Clear
-            </button>
-          </div>
-
-          <div className="max-h-[220px] overflow-y-auto rounded-leaf border border-primary-signal/10 bg-background/40 p-4">
-            {isImageCapture ? (
-              <img
-                src={imagePreviewUrl}
-                alt={pendingScrap.title}
-                className="max-h-44 w-full rounded-leaf object-cover"
-              />
-            ) : null}
-
-            {previewContent ? (
-              <p
-                className={[
-                  'whitespace-pre-wrap text-body-main text-text-secondary',
-                  isImageCapture ? 'mt-4' : '',
-                ].join(' ')}
-              >
-                {previewContent}
-              </p>
-            ) : null}
-          </div>
-
-          <p className="mt-3 text-caption leading-5 text-text-secondary/70">
-            저장하면 AI가 자료를 분석하고 관련 지식 카드를 함께 찾아줍니다.
-          </p>
-
-          {authNotice ? (
-            <div className="mt-4 rounded-leaf border border-primary-signal/20 bg-background/70 p-4">
-              <p className="text-caption text-text-secondary">{authNotice}</p>
-
-              {onLogin ? (
-                <CurvedButton onClick={onLogin} fullWidth size="md" className="mt-3">
-                  로그인하고 저장
-                </CurvedButton>
-              ) : null}
-            </div>
-          ) : null}
-
-          {canSave ? (
-            <CurvedButton
-              onClick={onSave}
-              disabled={isSaving}
-              fullWidth
-              size="md"
-              className="mt-4"
-            >
-              {isSaving ? savingLabel : saveLabel}
-            </CurvedButton>
-          ) : null}
-        </section>
-      ) : null}
-    </>
+      )}
+    </div>
   );
 };
