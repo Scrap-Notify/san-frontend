@@ -43,14 +43,15 @@ async function resolveCreatedCard(response: CreateScrapResponse) {
     await waitForCardAnalysis(response.jobId);
   }
 
-  if (response.cardId) {
-    return { cardId: response.cardId, card: null };
-  }
+  const cardResponse = response.cardId
+    ? { cardId: response.cardId }
+    : await cardsApi.getByScrapId(response.scrapId);
+  const cardsResponse = await cardsApi.getAll();
+  const card = cardsResponse.cards.find((item) => item.cardId === cardResponse.cardId) ?? null;
 
-  const cardResponse = await cardsApi.getByScrapId(response.scrapId);
   return {
     cardId: cardResponse.cardId,
-    card: cardResponse.card ?? null,
+    card,
   };
 }
 
@@ -67,6 +68,20 @@ function toSavedInsight(scrap: PendingScrap): SavedInsight {
 }
 
 function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
+  if (scrap.source_type === 'LINK') {
+    return {
+      sourceUrl: scrap.source_url,
+      rawContent: scrap.source_url ?? scrap.raw_content ?? scrap.title,
+    };
+  }
+
+  if (scrap.source_type === 'IMAGE') {
+    return {
+      sourceUrl: scrap.source_url,
+      rawContent: scrap.image_url ?? scrap.source_url ?? scrap.raw_content ?? scrap.title,
+    };
+  }
+
   return {
     sourceUrl: scrap.source_url,
     rawContent: scrap.raw_content ?? scrap.source_url ?? scrap.image_file_name ?? scrap.title,
@@ -166,13 +181,11 @@ export function useSaveScrap({
       }
 
       const request = toCreateScrapRequest(pendingScrap);
-      if (pendingScrap.source_type === 'IMAGE' && !pendingImageFile) {
-        throw new Error('Image file could not be restored. Please drop the image again.');
+      if (pendingScrap.source_type === 'IMAGE' && pendingImageFile && !pendingScrap.image_url) {
+        throw new Error('Image upload is not supported by the current API. Save a page or text scrap instead.');
       }
 
-      const response = pendingScrap.source_type === 'IMAGE' && pendingImageFile
-        ? await scrapsApi.createWithImage(request, pendingImageFile)
-        : await scrapsApi.create(request);
+      const response = await scrapsApi.create(request);
       const saved = {
         ...toSavedInsight(pendingScrap),
         id: response.scrapId,

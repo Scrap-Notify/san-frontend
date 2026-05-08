@@ -27,6 +27,16 @@ const isDebug = import.meta.env.DEV;
 const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
 
+function isUnauthorizedError(error: unknown) {
+  return (
+    typeof error === 'object'
+    && error !== null
+    && 'response' in error
+    && typeof (error as { response?: { status?: unknown } }).response?.status === 'number'
+    && (error as { response?: { status?: number } }).response?.status === 401
+  );
+}
+
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
   if (data === undefined) {
@@ -190,6 +200,19 @@ export default function SidePanel() {
       setRecentCards(response.cards.slice(0, 3));
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to load recent cards', error);
+      if (isUnauthorizedError(error)) {
+        await authTokenStorage.clearToken();
+        setIsAuthenticated(false);
+        setRecentCards([]);
+        setCreatedCard(null);
+        setRelatedCards([]);
+        setKnowledgeSearchCards([]);
+        setHasKnowledgeSearchResult(false);
+        setKnowledgeSearchError(null);
+        setRecentError(null);
+        void chrome.runtime.sendMessage({ type: 'SAN_AUTH_STATE_CHANGED', isAuthenticated: false });
+        return;
+      }
       setRecentError('Recent cards could not be loaded.');
     } finally {
       setIsLoadingRecent(false);
