@@ -17,6 +17,8 @@ interface TILEditorProps {
   commitMutation: TilGithubCommitMutation;
   generationStatusQuery: TilJobStatusQuery;
   commitStatusQuery: TilJobStatusQuery;
+  generationMessage: string | null;
+  commitMessage: string | null;
 }
 
 export function TILEditor({
@@ -28,6 +30,8 @@ export function TILEditor({
   commitMutation,
   generationStatusQuery,
   commitStatusQuery,
+  generationMessage,
+  commitMessage,
 }: TILEditorProps) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
@@ -39,6 +43,11 @@ export function TILEditor({
   };
 
   const displayedDraft = draft || (selectedTil?.content ?? '');
+
+  const handleGenerate = () => {
+    if (isGenerating) return;
+    generateMutation.mutate();
+  };
 
   const handleFormat = (action: 'bold' | 'italic' | 'list' | 'link') => {
     const editor = editorRef.current;
@@ -73,23 +82,31 @@ export function TILEditor({
         <div className="flex shrink-0 items-center justify-between border-b border-primary-signal/10 bg-background/70 px-8 py-4">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-4 text-text-secondary">
-              <button onClick={() => handleFormat('bold')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><Bold size={18} /></button>
-              <button onClick={() => handleFormat('italic')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><Italic size={18} /></button>
-              <button onClick={() => handleFormat('list')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><List size={18} /></button>
-              <button onClick={() => handleFormat('link')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><LinkIcon size={18} /></button>
+              <button type="button" onClick={() => handleFormat('bold')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><Bold size={18} /></button>
+              <button type="button" onClick={() => handleFormat('italic')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><Italic size={18} /></button>
+              <button type="button" onClick={() => handleFormat('list')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><List size={18} /></button>
+              <button type="button" onClick={() => handleFormat('link')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><LinkIcon size={18} /></button>
             </div>
             <div className="h-4 w-px bg-primary-signal/20" />
             <span className="font-mono text-caption text-text-secondary/50">UTF-8</span>
           </div>
 
           <button
-            onClick={() => generateMutation.mutate()}
-            className="flex items-center gap-2 rounded-leaf-reverse bg-background/60 px-md py-sm text-caption-bold text-primary-signal transition-opacity hover:opacity-80"
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="flex items-center gap-2 rounded-leaf-reverse bg-background/60 px-md py-sm text-caption-bold text-primary-signal transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
-            RETRY
+            {isGenerating ? 'GENERATING...' : 'RETRY'}
           </button>
         </div>
+
+        {(generationMessage || commitMessage) ? (
+          <div className="shrink-0 border-b border-primary-signal/10 bg-surface-low/60 px-8 py-2 text-caption text-text-secondary">
+            {generationMessage ?? commitMessage}
+          </div>
+        ) : null}
 
         <div className="relative min-h-0 flex-1 overflow-hidden">
           {activeTab === 'drafts' || activeTab === 'edit' ? (
@@ -209,6 +226,7 @@ export function TILEditor({
 
           <div className="absolute bottom-8 right-8">
             <button
+              type="button"
               onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
               disabled={isCommitting}
               className="flex items-center gap-3 rounded-leaf bg-primary-signal px-8 py-4 text-h2-bold text-background shadow-neon transition-all hover:scale-105 active:scale-95 disabled:opacity-50"

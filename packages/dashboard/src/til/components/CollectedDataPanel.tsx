@@ -1,5 +1,6 @@
 import type { TilResponse } from '@san/shared';
 import type { TilSourcesQuery } from '../types';
+import { getMockTilSources, isMockTilSummaryId } from '../tilMocks';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
 
 interface CollectedDataPanelProps {
@@ -8,7 +9,10 @@ interface CollectedDataPanelProps {
 }
 
 export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataPanelProps) {
-  const items: CollectedDataItem[] = sourcesQuery.data?.sources.map((source) => ({
+  const sources = sourcesQuery.data?.sources
+    ?? (isMockTilSummaryId(selectedTil?.summaryId) ? getMockTilSources().sources : []);
+
+  const items: CollectedDataItem[] = sources.map((source) => ({
     id: source.scrapId,
     type: toCollectedDataType(source.sourceType),
     title: source.title,
