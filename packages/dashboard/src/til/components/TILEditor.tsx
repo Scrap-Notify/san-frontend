@@ -119,8 +119,90 @@ export function TILEditor({
             </div>
           ) : (
             <div className="h-full overflow-y-auto px-12 py-10">
-              <article className="prose prose-invert max-w-none text-til-body prose-headings:text-primary-signal prose-strong:text-primary-signal">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayedDraft}</ReactMarkdown>
+              <article className="max-w-none text-til-body text-text-primary">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({ children }) => (
+                      <h1 className="mb-6 border-b border-primary-signal/20 pb-4 text-3xl font-bold leading-tight text-primary-signal">
+                        {children}
+                      </h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="mb-4 mt-8 text-2xl font-bold leading-tight text-primary-signal">
+                        {children}
+                      </h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="mb-3 mt-6 text-xl font-semibold leading-snug text-text-primary">
+                        {children}
+                      </h3>
+                    ),
+                    h4: ({ children }) => (
+                      <h4 className="mb-2 mt-5 text-lg font-semibold leading-snug text-text-primary">
+                        {children}
+                      </h4>
+                    ),
+                    p: ({ children }) => (
+                      <p className="mb-4 leading-7 text-text-primary/90">
+                        {children}
+                      </p>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="mb-5 list-disc space-y-2 pl-6 text-text-primary/90">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="mb-5 list-decimal space-y-2 pl-6 text-text-primary/90">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="pl-1 leading-7 marker:text-primary-signal">
+                        {children}
+                      </li>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-bold text-primary-signal">
+                        {children}
+                      </strong>
+                    ),
+                    em: ({ children }) => (
+                      <em className="text-text-secondary">
+                        {children}
+                      </em>
+                    ),
+                    blockquote: ({ children }) => (
+                      <blockquote className="mb-5 border-l-2 border-primary-signal/50 bg-primary-signal/5 py-3 pl-4 text-text-secondary">
+                        {children}
+                      </blockquote>
+                    ),
+                    code: ({ children }) => (
+                      <code className="rounded bg-surface-highest px-1.5 py-0.5 font-mono text-sm text-primary-signal">
+                        {children}
+                      </code>
+                    ),
+                    pre: ({ children }) => (
+                      <pre className="mb-5 overflow-x-auto rounded-[8px] border border-primary-signal/10 bg-surface-low p-4 text-sm leading-6">
+                        {children}
+                      </pre>
+                    ),
+                    a: ({ href, children }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary-signal underline decoration-primary-signal/40 underline-offset-4"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    hr: () => <hr className="my-8 border-primary-signal/20" />,
+                  }}
+                >
+                  {displayedDraft}
+                </ReactMarkdown>
               </article>
             </div>
           )}
