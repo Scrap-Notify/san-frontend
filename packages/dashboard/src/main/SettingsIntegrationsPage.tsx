@@ -2,7 +2,7 @@ import { CheckCircle2, GitBranch, LinkIcon, RefreshCw, Trash2, Unlink } from 'lu
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
-import { githubApi } from '@dashboard/api/client';
+import { githubApi } from '../api/client';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
   A009: 'GitHub 계정이 연동되어 있지 않습니다.',

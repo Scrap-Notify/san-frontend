@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import type { TilGenerationJobResponse, TilGithubCommitJobResponse } from '@san/shared';
-import { tilApi } from '@dashboard/api/client';
+import { tilApi } from '../../api/client';
 
 interface UseTilGenerateMutationOptions {
   targetDate: string;

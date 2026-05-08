@@ -1,7 +1,6 @@
 import { Link, Search } from 'lucide-react';
 import type { TilResponse } from '@san/shared';
 import type { TilSourcesQuery } from '../types';
-import { getMockTilSources, isMockTilSummaryId } from '../tilMocks';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
 
 interface CollectedDataPanelProps {
@@ -10,9 +9,7 @@ interface CollectedDataPanelProps {
 }
 
 export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataPanelProps) {
-    const sources =
-        sourcesQuery.data?.sources ??
-        (isMockTilSummaryId(selectedTil?.summaryId) ? getMockTilSources().sources : []);
+    const sources = sourcesQuery.data?.sources ?? [];
 
     const items: CollectedDataItem[] = sources.map((source) => ({
         id: source.scrapId,
@@ -47,15 +44,9 @@ export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataP
             </div>
 
             <div className="no-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-6">
-                {sourcesQuery.isPending && selectedTil && (
+                {sourcesQuery.isPending && selectedTil && !import.meta.env.DEV && (
                     <div className="py-10 text-center text-sm italic text-text-secondary opacity-50">
                         수집된 데이터를 불러오는 중...
-                    </div>
-                )}
-
-                {!selectedTil && (
-                    <div className="py-10 text-center text-sm italic text-text-secondary opacity-50">
-                        TIL을 선택해주세요
                     </div>
                 )}
 

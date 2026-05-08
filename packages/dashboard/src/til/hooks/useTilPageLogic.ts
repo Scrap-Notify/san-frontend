@@ -9,7 +9,6 @@ import {
   useTilByDate,
   useTilSources,
 } from './useTilQueries';
-import { createMockTil, isMockTilSummaryId, shouldUseTilMockFallback } from '../tilMocks';
 
 export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
@@ -22,9 +21,7 @@ export function useTilPageLogic(): TilPageLogic {
 
   const tilQuery = useTilByDate(selectedDate);
 
-  const tilList = tilQuery.isSuccess && shouldUseTilMockFallback(tilQuery.data)
-    ? [createMockTil(selectedDate)]
-    : tilQuery.data ?? [];
+  const tilList = tilQuery.data ?? [];
   const selectedTil = useMemo(
     () => tilList.find((item) => item.summaryId === selectedSummaryId) ?? tilList[0] ?? null,
     [selectedSummaryId, tilList],
@@ -41,9 +38,7 @@ export function useTilPageLogic(): TilPageLogic {
     setDraft(selectedTil?.content ?? '');
   }, [selectedTil?.summaryId, selectedTil?.title, selectedTil?.content]);
 
-  const sourcesQuery = useTilSources(
-    isMockTilSummaryId(selectedTil?.summaryId) ? null : selectedTil?.summaryId,
-  );
+  const sourcesQuery = useTilSources(selectedTil?.summaryId);
   const generationStatusQuery = useTilAsyncJobStatus(generationJobId);
   const commitStatusQuery = useTilAsyncJobStatus(commitJobId);
 
