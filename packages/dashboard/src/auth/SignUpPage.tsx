@@ -2,7 +2,7 @@ import { GitBranch, KeyRound, Sprout, UserRound } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage } from '../api/client';
+import { authApi, authTokenStorage, githubAuthApi } from '../api/client';
 import { syncExtensionAuth } from '../api/extensionAuth';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
@@ -20,7 +20,7 @@ export function Signup() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGithubLogin = () => {
-    window.location.href = authApi.getGithubAuthorizeUrl();
+    window.location.href = githubAuthApi.getGithubAuthorizeUrl();
   };
 
   const handleUsernameChange = (value: string) => {

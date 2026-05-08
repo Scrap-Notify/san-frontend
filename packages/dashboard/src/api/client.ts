@@ -17,6 +17,8 @@ const defaultBaseURL = import.meta.env.PROD
   : 'http://localhost:8080/api';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL;
+const githubAuthBaseURL = import.meta.env.VITE_GITHUB_AUTH_API_BASE_URL
+  ?? baseURL;
 
 const tokenProvider = {
   getToken: localAuthTokenStorage.getToken,
@@ -32,8 +34,10 @@ const tokenProvider = {
 };
 
 const apiClient = createApiClient(baseURL, tokenProvider);
+const githubAuthApiClient = createApiClient(githubAuthBaseURL, tokenProvider);
 
 export const authApi = createAuthApi(apiClient);
+export const githubAuthApi = createAuthApi(githubAuthApiClient);
 export const githubApi = createGithubApi(apiClient);
 export const searchApi = createSearchApi(apiClient);
 export const scrapsApi = createScrapsApi(apiClient);

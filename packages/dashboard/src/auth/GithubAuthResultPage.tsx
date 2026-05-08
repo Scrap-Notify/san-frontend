@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage } from '../api/client';
+import { authTokenStorage, githubAuthApi } from '../api/client';
 import { syncExtensionAuth } from '../api/extensionAuth';
 
 const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
@@ -31,11 +31,15 @@ export function GithubAuthResultPage() {
 
   useEffect(() => {
     if (githubLinked === 'true') {
-      navigate('/settings', { replace: true });
+      navigate('/settings/repositories', { replace: true });
       return;
     }
 
     if (error) {
+      navigate('/login', {
+        replace: true,
+        state: { authError: GITHUB_AUTH_ERROR_MESSAGE[error] ?? `GitHub authentication failed (${error})` },
+      });
       return;
     }
 
@@ -52,15 +56,15 @@ export function GithubAuthResultPage() {
     let ignore = false;
 
     const tokenRequest = ticket
-      ? authApi.exchangeGithubToken({ ticket })
-      : authApi.loginWithGithubCode({ code: code as string });
+      ? githubAuthApi.exchangeGithubToken({ ticket })
+      : githubAuthApi.loginWithGithubCode({ code: code as string });
 
     tokenRequest
       .then(async (tokens) => {
         if (ignore) return;
         await authTokenStorage.setTokens(tokens);
         await syncExtensionAuth(tokens);
-        navigate('/', { replace: true });
+        navigate('/settings/repositories', { replace: true });
       })
       .catch((exchangeError) => {
         if (ignore) return;
