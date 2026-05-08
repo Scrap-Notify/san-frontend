@@ -14,9 +14,16 @@ export interface GithubRepositoryConnectRequest {
   githubRepositoryId: number;
 }
 
+export interface GithubAuthorizeUrlResponse {
+  redirectUrl: string;
+}
+
 export function createGithubApi(apiClient: AxiosInstance) {
   return {
-    getLinkAuthorizeUrl: (): string => apiClient.getUri({ url: '/github/link/authorize' }),
+    getLinkAuthorizeUrl: (): Promise<string> =>
+      apiClient
+        .get<ApiResponse<GithubAuthorizeUrlResponse>>('/github/link/authorize-url')
+        .then((response) => unwrapApiResponse(response.data).redirectUrl),
 
     unlinkAccount: (): Promise<void> =>
       apiClient.delete<ApiResponse<void>>('/github/link').then(() => undefined),
