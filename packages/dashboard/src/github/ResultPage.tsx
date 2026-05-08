@@ -1,12 +1,9 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, Clock, ExternalLink, Filter } from 'lucide-react';
+import { ChevronDown, Filter, Search } from 'lucide-react';
 import type { SearchCardResult, SearchParams } from '@san/shared';
 import { searchApi } from '../api/client';
-import heroImage from '../assets/hero.png';
-
-type SortKey = 'latest' | 'relevance';
 
 interface SearchFilters {
   tag: string;
@@ -14,34 +11,20 @@ interface SearchFilters {
   toDate: string;
 }
 
-interface SearchResultItem {
-  id: string;
-  category: string;
-  title: string;
-  highlightedKeyword?: string;
-  description: string;
-  imageUrl: string;
-  similarity: number;
-  createdLabel: string;
-}
-
 interface SearchPageProps {
   keyword: string;
   totalCount: number;
-  results: SearchResultItem[];
+  results: SearchCardResult[];
   filters: SearchFilters;
-  sort: SortKey;
   isPending?: boolean;
   isError?: boolean;
   hasNext?: boolean;
   onFilterChange: (filters: SearchFilters) => void;
-  onSortChange: (sort: SortKey) => void;
   onLoadMore: () => void;
 }
 
 export function ResultPage() {
   const [searchParams] = useSearchParams();
-  const [sort, setSort] = useState<SortKey>('latest');
   const [filters, setFilters] = useState<SearchFilters>({
     tag: '',
     fromDate: '',
@@ -75,23 +58,16 @@ export function ResultPage() {
     });
   }, [page, searchQuery.data]);
 
-  const results = useMemo(
-    () => mapCardsToSearchResults(accumulatedCards, keyword, sort),
-    [accumulatedCards, keyword, sort],
-  );
-
   return (
     <SearchPage
-      keyword={keyword || '검색어 없음'}
-      totalCount={searchQuery.data?.totalCount ?? results.length}
-      results={results}
+      keyword={keyword}
+      totalCount={searchQuery.data?.totalCount ?? accumulatedCards.length}
+      results={accumulatedCards}
       filters={filters}
-      sort={sort}
       isPending={searchQuery.isPending && Boolean(keyword)}
       isError={searchQuery.isError}
       hasNext={searchQuery.data?.hasNext ?? false}
       onFilterChange={setFilters}
-      onSortChange={setSort}
       onLoadMore={() => setPage((current) => current + 1)}
     />
   );
@@ -102,12 +78,10 @@ function SearchPage({
   totalCount,
   results,
   filters,
-  sort,
   isPending = false,
   isError = false,
   hasNext = false,
   onFilterChange,
-  onSortChange,
   onLoadMore,
 }: SearchPageProps) {
   return (
@@ -116,36 +90,37 @@ function SearchPage({
 
       <SearchToolbar
         filters={filters}
-        sort={sort}
         onFilterChange={onFilterChange}
-        onSortChange={onSortChange}
       />
 
-      {isPending ? <StateMessage message="검색 결과를 불러오는 중입니다." /> : null}
-      {isError ? <StateMessage message="검색 결과를 불러오지 못했습니다." tone="error" /> : null}
-      {!isPending && !isError && results.length === 0 ? (
-        <StateMessage message="검색 결과가 없습니다." />
+      {!keyword ? <StateMessage message="Enter a keyword to search your knowledge cards." /> : null}
+      {isPending ? <StateMessage message="Searching knowledge cards..." /> : null}
+      {isError ? <StateMessage message="Search failed. Please try again." tone="error" /> : null}
+      {keyword && !isPending && !isError && results.length === 0 ? (
+        <StateMessage message="No matching knowledge cards found." />
       ) : null}
 
       {!isPending && !isError && results.length > 0 ? (
         <ResultGrid results={results} keyword={keyword} />
       ) : null}
 
-      <div className="flex flex-col items-center gap-md pt-xl">
-        <button
-          type="button"
-          onClick={onLoadMore}
-          disabled={!hasNext}
-          className="inline-flex items-center gap-sm rounded-leaf border border-text-secondary/30 bg-surface-low px-xl py-md text-body-lg-bold uppercase text-text-primary/80 transition hover:border-primary-signal/30 hover:glow-neon disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          더 보기
-          <ChevronDown size={20} className="text-primary-signal" />
-        </button>
+      {keyword && results.length > 0 ? (
+        <div className="flex flex-col items-center gap-md pt-xl">
+          <button
+            type="button"
+            onClick={onLoadMore}
+            disabled={!hasNext}
+            className="inline-flex items-center gap-sm rounded-leaf border border-text-secondary/30 bg-surface-low px-xl py-md text-body-lg-bold uppercase text-text-primary/80 transition hover:border-primary-signal/30 hover:glow-neon disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Load more
+            <ChevronDown size={20} className="text-primary-signal" />
+          </button>
 
-        <p className="text-caption uppercase tracking-wide text-text-secondary/40">
-          END OF DISCOVERED FRAGMENTS
-        </p>
-      </div>
+          <p className="text-caption uppercase tracking-wide text-text-secondary/40">
+            {hasNext ? 'More results available' : 'End of results'}
+          </p>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -159,11 +134,17 @@ function SearchHeader({
 }) {
   return (
     <header className="flex flex-col gap-sm">
-      <h1 className="text-h1-bold">검색 결과</h1>
+      <h1 className="text-h1-bold">Search Results</h1>
 
       <p className="text-body-main text-text-secondary">
-        '<span className="font-medium text-primary-signal">{keyword}</span>'에 대한{' '}
-        {totalCount}개의 지식 카드를 찾았습니다.
+        {keyword ? (
+          <>
+            <span className="font-medium text-primary-signal">{keyword}</span>
+            {' '}matched {totalCount} knowledge cards.
+          </>
+        ) : (
+          'Search your saved knowledge cards.'
+        )}
       </p>
     </header>
   );
@@ -171,14 +152,10 @@ function SearchHeader({
 
 function SearchToolbar({
   filters,
-  sort,
   onFilterChange,
-  onSortChange,
 }: {
   filters: SearchFilters;
-  sort: SortKey;
   onFilterChange?: (filters: SearchFilters) => void;
-  onSortChange?: (sort: SortKey) => void;
 }) {
   return (
     <div className="flex flex-col gap-md xl:flex-row xl:items-center xl:justify-between">
@@ -186,13 +163,13 @@ function SearchToolbar({
         <FilterGroup label="DATE">
           <FilterInput
             type="date"
-            ariaLabel="시작일"
+            ariaLabel="From date"
             value={filters.fromDate}
             onChange={(value) => onFilterChange?.({ ...filters, fromDate: value })}
           />
           <FilterInput
             type="date"
-            ariaLabel="종료일"
+            ariaLabel="To date"
             value={filters.toDate}
             onChange={(value) => onFilterChange?.({ ...filters, toDate: value })}
           />
@@ -201,7 +178,7 @@ function SearchToolbar({
         <FilterGroup label="TAG">
           <FilterInput
             type="text"
-            ariaLabel="태그"
+            ariaLabel="Tag"
             placeholder="#Design"
             value={filters.tag}
             onChange={(value) => onFilterChange?.({ ...filters, tag: value })}
@@ -209,26 +186,9 @@ function SearchToolbar({
         </FilterGroup>
       </div>
 
-      <div className="flex shrink-0 items-center gap-sm">
-        <div className="flex rounded-leaf bg-surface-low p-xs">
-          <SegmentButton
-            active={sort === 'latest'}
-            onClick={() => onSortChange?.('latest')}
-          >
-            최신순
-          </SegmentButton>
-          <SegmentButton
-            active={sort === 'relevance'}
-            onClick={() => onSortChange?.('relevance')}
-          >
-            관련도순
-          </SegmentButton>
-        </div>
-
-        <div className="inline-flex items-center gap-sm rounded-leaf bg-surface-low p-sm text-caption-bold text-text-primary">
-          <Filter size={20} className="text-text-secondary" />
-          필터
-        </div>
+      <div className="inline-flex w-fit items-center gap-sm rounded-leaf bg-surface-low p-sm text-caption-bold text-text-primary">
+        <Filter size={20} className="text-text-secondary" />
+        Filters
       </div>
     </div>
   );
@@ -276,40 +236,17 @@ function FilterInput({
   );
 }
 
-function SegmentButton({
-  active,
-  children,
-  onClick,
-}: {
-  active: boolean;
-  children: ReactNode;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'rounded-leaf px-md py-sm text-caption transition hover:glow-neon',
-        active ? 'bg-primary-signal text-background' : 'text-text-secondary',
-      ].join(' ')}
-    >
-      {children}
-    </button>
-  );
-}
-
 function ResultGrid({
   results,
   keyword,
 }: {
-  results: SearchResultItem[];
+  results: SearchCardResult[];
   keyword: string;
 }) {
   return (
     <div className="grid gap-dashboard-gap sm:grid-cols-2 xl:grid-cols-3">
       {results.map((item) => (
-        <SearchResultCard key={item.id} item={item} keyword={keyword} />
+        <SearchResultCard key={item.cardId} item={item} keyword={keyword} />
       ))}
     </div>
   );
@@ -319,72 +256,30 @@ function SearchResultCard({
   item,
   keyword,
 }: {
-  item: SearchResultItem;
+  item: SearchCardResult;
   keyword: string;
 }) {
   return (
-    <article className="group flex min-h-[480px] flex-col overflow-hidden rounded-leaf bg-surface-low transition hover:-translate-y-1 hover:glow-neon">
-      <div className="relative h-48 overflow-hidden">
-        <img
-          src={item.imageUrl}
-          alt=""
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-        />
-
-        <StatusBadge />
-        <SimilarityBadge value={item.similarity} />
-      </div>
-
-      <div className="flex flex-1 flex-col p-lg">
-        <div className="space-y-xs pb-md">
-          <p className="text-caption-bold uppercase text-primary-signal">
-            {item.category}
-          </p>
-
-          <h2 className="text-body-lg-bold text-text-primary">
-            {highlightText(item.title, item.highlightedKeyword ?? keyword)}
-          </h2>
+    <article className="group flex min-h-64 flex-col rounded-leaf border border-text-secondary/10 bg-surface-low p-lg transition hover:-translate-y-1 hover:border-primary-signal/30 hover:glow-neon">
+      <div className="flex items-start gap-md">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-leaf bg-primary-signal/10 text-primary-signal">
+          <Search size={20} />
         </div>
 
-        <p className="line-clamp-3 flex-1 text-body-sm text-text-secondary">
-          {item.description}
-        </p>
-
-        <footer className="mt-lg flex items-center justify-between border-t border-text-secondary/10 pt-lg">
-          <div className="flex items-center gap-sm text-caption text-text-secondary">
-            <Clock size={20} />
-            {item.createdLabel}
-          </div>
-
-          <button
-            type="button"
-            aria-label={`${item.title} 열기`}
-            className="text-primary-signal transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-          >
-            <ExternalLink size={20} />
-          </button>
-        </footer>
+        <div className="min-w-0 flex-1">
+          <h2 className="break-words text-body-lg-bold text-text-primary">
+            {highlightText(item.title, keyword)}
+          </h2>
+          <p className="mt-xs break-all font-mono text-caption text-text-secondary/50">
+            {item.cardId}
+          </p>
+        </div>
       </div>
+
+      <p className="mt-lg line-clamp-5 flex-1 break-words text-body-sm leading-6 text-text-secondary">
+        {item.summary ?? 'No summary provided.'}
+      </p>
     </article>
-  );
-}
-
-function StatusBadge() {
-  return (
-    <div className="absolute left-md top-md inline-flex items-center gap-sm rounded-leaf border border-text-secondary/30 bg-background/60 px-sm py-xs backdrop-blur-xl">
-      <span className="h-1 w-1 rounded-sm bg-primary-signal shadow-neon-sm" />
-      <span className="text-caption-bold uppercase text-primary-signal">
-        FIREFLY ACTIVE
-      </span>
-    </div>
-  );
-}
-
-function SimilarityBadge({ value }: { value: number }) {
-  return (
-    <div className="absolute bottom-md right-md rounded-leaf bg-primary-signal px-sm py-xs text-caption-bold text-background">
-      {value}% Similarity
-    </div>
   );
 }
 
@@ -426,39 +321,6 @@ function normalizeTag(tag: string) {
 
 function dedupeByCardId(cards: SearchCardResult[]) {
   return Array.from(new Map(cards.map((card) => [card.cardId, card])).values());
-}
-
-function mapCardsToSearchResults(cards: SearchCardResult[], keyword: string, sort: SortKey) {
-  const results = cards.map((card) => ({
-    id: card.cardId,
-    category: 'KNOWLEDGE',
-    title: card.title,
-    highlightedKeyword: keyword,
-    description: card.summary ?? '요약이 아직 생성되지 않은 지식 카드입니다.',
-    imageUrl: heroImage,
-    similarity: calculateSimilarity(card, keyword),
-    createdLabel: '저장된 지식',
-  }));
-
-  return results.sort((a, b) => {
-    if (sort === 'relevance') {
-      return b.similarity - a.similarity;
-    }
-    return 0;
-  });
-}
-
-function calculateSimilarity(card: SearchCardResult, keyword: string) {
-  const normalizedKeyword = keyword.toLowerCase();
-  if (!normalizedKeyword) {
-    return 0;
-  }
-
-  const values = [card.title, card.summary ?? ''].map((value) => value.toLowerCase());
-  const exactMatches = values.filter((value) => value.includes(normalizedKeyword)).length;
-  const titleBoost = card.title.toLowerCase().includes(normalizedKeyword) ? 25 : 0;
-
-  return Math.min(99, 55 + exactMatches * 8 + titleBoost);
 }
 
 function highlightText(text: string, keyword: string) {

@@ -3,7 +3,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@san/shared';
 import type { TilJobTone, TilPageLogic } from '../types';
 import { useTilGenerateMutation, useTilGithubCommitMutation } from './useTilMutations';
-import { tilKeys, useTilAsyncJobStatus, useTilByDate, useTilRecallCards } from './useTilQueries';
+import {
+  tilKeys,
+  useTilAsyncJobStatus,
+  useTilByDate,
+  useTilSources,
+} from './useTilQueries';
+import { createMockTil, isMockTilSummaryId, shouldUseTilMockFallback } from '../tilMocks';
 
 export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
@@ -15,7 +21,9 @@ export function useTilPageLogic(): TilPageLogic {
 
   const tilQuery = useTilByDate(selectedDate);
 
-  const tilList = tilQuery.data ?? [];
+  const tilList = tilQuery.isSuccess && shouldUseTilMockFallback(tilQuery.data)
+    ? [createMockTil(selectedDate)]
+    : tilQuery.data ?? [];
   const selectedTil = useMemo(
     () => tilList.find((item) => item.summaryId === selectedSummaryId) ?? tilList[0] ?? null,
     [selectedSummaryId, tilList],
@@ -31,7 +39,9 @@ export function useTilPageLogic(): TilPageLogic {
     setDraft(selectedTil?.content ?? '');
   }, [selectedTil?.summaryId, selectedTil?.content]);
 
-  const recallCardsQuery = useTilRecallCards(selectedTil?.summaryId);
+  const sourcesQuery = useTilSources(
+    isMockTilSummaryId(selectedTil?.summaryId) ? null : selectedTil?.summaryId,
+  );
   const generationStatusQuery = useTilAsyncJobStatus(generationJobId);
   const commitStatusQuery = useTilAsyncJobStatus(commitJobId);
 
@@ -92,7 +102,7 @@ export function useTilPageLogic(): TilPageLogic {
     tilList,
     selectedTil,
     tilQuery,
-    recallCardsQuery,
+    sourcesQuery,
     generationStatusQuery,
     commitStatusQuery,
     generateMutation,

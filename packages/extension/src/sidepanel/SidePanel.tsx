@@ -5,9 +5,9 @@ import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 import { DropZone } from './components/capture/DropZone';
 import { EmptyState } from './components/feedback/EmptyState';
 import GlowBackground from './components/feedback/GlowBackground';
-import KnowledgeProgressCard from './components/knowledge/KnowledgeProgressCard';
 import { KnowledgeSearchBar } from './components/knowledge/KnowledgeSearchBar';
 import { RecentKnowledgeList } from './components/knowledge/RecentKnowledgeList';
+import { SimilarKnowledgeList } from './components/knowledge/SimilarKnowledgeList';
 import {
   loadPendingScrap,
   loadSavedInsights,
@@ -26,6 +26,21 @@ const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
 const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
+const SEARCH_RESULT_TITLE = '\uAC80\uC0C9 \uACB0\uACFC';
+const RECENT_TAB_LABEL = '\uCD5C\uADFC \uC9C0\uC2DD';
+const SIMILAR_TAB_LABEL = '\uC720\uC0AC \uC9C0\uC2DD';
+
+type KnowledgeTab = 'recent' | 'similar';
+
+function isUnauthorizedError(error: unknown) {
+  return (
+    typeof error === 'object'
+    && error !== null
+    && 'response' in error
+    && typeof (error as { response?: { status?: unknown } }).response?.status === 'number'
+    && (error as { response?: { status?: number } }).response?.status === 401
+  );
+}
 
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
@@ -138,6 +153,44 @@ function toKnowledgeCardSearchResponse(card: SearchCardResult): KnowledgeCardRes
   };
 }
 
+interface KnowledgeListTabsProps {
+  activeTab: KnowledgeTab;
+  canOpenSimilarTab: boolean;
+  onChange: (tab: KnowledgeTab) => void;
+}
+
+function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: KnowledgeListTabsProps) {
+  const tabs: Array<{ id: KnowledgeTab; label: string; disabled?: boolean }> = [
+    { id: 'recent', label: RECENT_TAB_LABEL },
+    { id: 'similar', label: SIMILAR_TAB_LABEL, disabled: !canOpenSimilarTab },
+  ];
+
+  return (
+    <div className="grid h-9 w-[156px] shrink-0 grid-cols-2 rounded-md border border-text-secondary/10 bg-surface-highest/60 p-1">
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            disabled={tab.disabled}
+            onClick={() => onChange(tab.id)}
+            className={[
+              'rounded text-caption-bold transition',
+              isActive
+                ? 'bg-primary-signal/15 text-primary-signal shadow-neon-sm'
+                : 'text-text-secondary hover:bg-white/5 hover:text-text-primary',
+              tab.disabled ? 'cursor-not-allowed opacity-40 hover:bg-transparent hover:text-text-secondary' : '',
+            ].join(' ')}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 async function requestActiveTabMetadata(): Promise<PendingScrap | null> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) return null;
@@ -179,10 +232,21 @@ export default function SidePanel() {
   const [isSearchingKnowledge, setIsSearchingKnowledge] = useState(false);
   const [knowledgeSearchError, setKnowledgeSearchError] = useState<string | null>(null);
   const [hasKnowledgeSearchResult, setHasKnowledgeSearchResult] = useState(false);
+  const [activeKnowledgeTab, setActiveKnowledgeTab] = useState<KnowledgeTab>('recent');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
+    const requestToken = await authTokenStorage.getToken();
+    if (!requestToken) {
+      setIsAuthenticated(false);
+      setRecentCards([]);
+      setCreatedCard(null);
+      setRelatedCards([]);
+      setActiveKnowledgeTab('recent');
+      return;
+    }
+
     setIsLoadingRecent(true);
     setRecentError(null);
     try {
@@ -190,6 +254,26 @@ export default function SidePanel() {
       setRecentCards(response.cards.slice(0, 3));
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to load recent cards', error);
+      if (isUnauthorizedError(error)) {
+        const currentToken = await authTokenStorage.getToken();
+        if (currentToken && currentToken !== requestToken) {
+          debugLog('ignored stale unauthorized response after token rotation');
+          return;
+        }
+
+        await authTokenStorage.clearToken();
+        setIsAuthenticated(false);
+        setRecentCards([]);
+        setCreatedCard(null);
+        setRelatedCards([]);
+        setKnowledgeSearchCards([]);
+        setHasKnowledgeSearchResult(false);
+        setKnowledgeSearchError(null);
+        setActiveKnowledgeTab('recent');
+        setRecentError(null);
+        void chrome.runtime.sendMessage({ type: 'SAN_AUTH_STATE_CHANGED', isAuthenticated: false });
+        return;
+      }
       setRecentError('Recent cards could not be loaded.');
     } finally {
       setIsLoadingRecent(false);
@@ -229,6 +313,7 @@ export default function SidePanel() {
     setHasRelatedResult(false);
     setCreatedCard(null);
     setIsLoadingRelated(false);
+    setActiveKnowledgeTab('recent');
   }, [clearSaveFeedback]);
 
   const applyPendingScrap = useCallback(async (nextPendingScrap: PendingScrap) => {
@@ -388,6 +473,7 @@ export default function SidePanel() {
         setRecentCards([]);
         setCreatedCard(null);
         setRelatedCards([]);
+        setActiveKnowledgeTab('recent');
       }
     };
 
@@ -523,16 +609,23 @@ export default function SidePanel() {
       setKnowledgeSearchCards([]);
       setHasKnowledgeSearchResult(false);
       setKnowledgeSearchError(null);
+      setActiveKnowledgeTab('recent');
       setIsLogoutConfirmOpen(false);
       setIsLoggingOut(false);
       void chrome.runtime.sendMessage({ type: 'SAN_AUTH_STATE_CHANGED', isAuthenticated: false });
     }
   }, []);
 
-  const hasKnowledgeResult = isLoadingRelated || Boolean(createdCard) || relatedCards.length > 0 || Boolean(relatedError);
-  const displayedCards = hasKnowledgeSearchResult ? knowledgeSearchCards : relatedCards;
-  const isLoadingDisplayedCards = hasKnowledgeSearchResult ? isSearchingKnowledge : isLoadingRelated;
-  const displayedCardsError = hasKnowledgeSearchResult ? knowledgeSearchError : relatedError;
+  useEffect(() => {
+    if (isLoadingRelated) {
+      setActiveKnowledgeTab('recent');
+      return;
+    }
+
+    if (hasRelatedResult || relatedError) {
+      setActiveKnowledgeTab('similar');
+    }
+  }, [hasRelatedResult, isLoadingRelated, relatedError]);
 
   const handleKnowledgeSearch = useCallback(async () => {
     const search = knowledgeSearchQuery.trim();
@@ -566,6 +659,30 @@ export default function SidePanel() {
       setIsSearchingKnowledge(false);
     }
   }, [isAuthenticated, knowledgeSearchQuery]);
+
+  const canOpenSimilarTab = hasRelatedResult || relatedCards.length > 0 || Boolean(relatedError);
+  const knowledgeSearchAction = (
+    <KnowledgeSearchBar
+      value={knowledgeSearchQuery}
+      disabled={isSearchingKnowledge}
+      onChange={(value) => {
+        setKnowledgeSearchQuery(value);
+        if (!value.trim()) {
+          setHasKnowledgeSearchResult(false);
+          setKnowledgeSearchCards([]);
+          setKnowledgeSearchError(null);
+        }
+      }}
+      onSubmit={handleKnowledgeSearch}
+    />
+  );
+  const knowledgeTabs = (
+    <KnowledgeListTabs
+      activeTab={activeKnowledgeTab}
+      canOpenSimilarTab={canOpenSimilarTab}
+      onChange={setActiveKnowledgeTab}
+    />
+  );
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#101417] px-4 pb-4 text-text-primary">
@@ -644,32 +761,36 @@ export default function SidePanel() {
             {!isAuthenticated ? (
               !pendingScrap && <EmptyState onLogin={openDashboardLogin} />
             ) : (
-              <RecentKnowledgeList
-                // When we have search results, show them. 
-                // When we just created a card, show related cards at the top.
-                cards={hasKnowledgeSearchResult 
-                  ? knowledgeSearchCards 
-                  : (relatedCards.length > 0 ? relatedCards : recentCards)
-                }
-                isLoading={hasKnowledgeSearchResult ? isSearchingKnowledge : (isLoadingRecent && recentCards.length === 0)}
-                error={hasKnowledgeSearchResult ? knowledgeSearchError : (relatedError || recentError)}
-                isScrollable={false}
-                action={
-                  <KnowledgeSearchBar
-                    value={knowledgeSearchQuery}
-                    disabled={isSearchingKnowledge}
-                    onChange={(value) => {
-                      setKnowledgeSearchQuery(value);
-                      if (!value.trim()) {
-                        setHasKnowledgeSearchResult(false);
-                        setKnowledgeSearchCards([]);
-                        setKnowledgeSearchError(null);
-                      }
-                    }}
-                    onSubmit={handleKnowledgeSearch}
+              <>
+                {hasKnowledgeSearchResult ? (
+                  <RecentKnowledgeList
+                    cards={knowledgeSearchCards}
+                    isLoading={isSearchingKnowledge}
+                    error={knowledgeSearchError}
+                    isScrollable={false}
+                    title={SEARCH_RESULT_TITLE}
+                    action={knowledgeSearchAction}
                   />
-                }
-              />
+                ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
+                  <SimilarKnowledgeList
+                    cards={relatedCards}
+                    isLoading={false}
+                    error={relatedError}
+                    isScrollable={false}
+                    title={knowledgeTabs}
+                    action={knowledgeSearchAction}
+                  />
+                ) : (
+                  <RecentKnowledgeList
+                    cards={recentCards}
+                    isLoading={isLoadingRecent && recentCards.length === 0}
+                    error={recentError}
+                    isScrollable={false}
+                    title={knowledgeTabs}
+                    action={knowledgeSearchAction}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>

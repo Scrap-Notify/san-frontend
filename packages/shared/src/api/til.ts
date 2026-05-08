@@ -6,23 +6,29 @@ import type {
   TilGithubCommitJobResponse,
   TilRecallCardsResponse,
   TilResponse,
+  TilSourcesResponse,
 } from '../types';
 
 export function createTilApi(apiClient: AxiosInstance) {
   return {
     generate: (payload: TilGenerateRequest): Promise<TilGenerationJobResponse> =>
       apiClient
-        .post<ApiResponse<TilGenerationJobResponse>>('/til', payload)
+        .post<ApiResponse<TilGenerationJobResponse>>('/tils', payload)
         .then((response) => unwrapApiResponse(response.data)),
 
     getByDate: (date: string): Promise<TilResponse[]> =>
       apiClient
-        .get<ApiResponse<TilResponse[]>>('/til', { params: { date } })
+        .get<ApiResponse<TilResponse[]>>('/tils', { params: { date } })
         .then((response) => unwrapApiResponse(response.data)),
 
     getRecallCards: (summaryId: string): Promise<TilRecallCardsResponse> =>
       apiClient
-        .get<ApiResponse<TilRecallCardsResponse>>(`/til/${summaryId}/recall-cards`)
+        .get<ApiResponse<TilRecallCardsResponse>>(`/tils/${summaryId}/recall-cards`)
+        .then((response) => unwrapApiResponse(response.data)),
+
+    getSources: (summaryId: string): Promise<TilSourcesResponse> =>
+      apiClient
+        .get<ApiResponse<TilSourcesResponse>>(`/tils/${summaryId}/source`)
         .then((response) => unwrapApiResponse(response.data)),
 
     commitToGithub: (summaryId: string): Promise<TilGithubCommitJobResponse> =>

@@ -6,7 +6,6 @@ import type {
   KnowledgeCardCreateRequest,
   KnowledgeCardListResponse,
   KnowledgeCardListParams,
-  KnowledgeCardResponse,
   KnowledgeCardSimilarCardsResponse,
 } from '../types';
 
@@ -24,32 +23,14 @@ export function createCardsApi(apiClient: AxiosInstance) {
 
     getByScrapId: (scrapId: string): Promise<KnowledgeCardByScrapResponse> =>
       apiClient
-        .get<ApiResponse<KnowledgeCardByScrapResponse | KnowledgeCardResponse>>(`/cards/${scrapId}`)
-        .then((response) => normalizeCardByScrapResponse(unwrapApiResponse(response.data))),
+        .get<ApiResponse<KnowledgeCardByScrapResponse>>(`/cards/${scrapId}`)
+        .then((response) => unwrapApiResponse(response.data)),
 
     getSimilarByCardId: (cardId: string): Promise<KnowledgeCardSimilarCardsResponse> =>
       apiClient
         .get<ApiResponse<KnowledgeCardSimilarCardsResponse>>(`/cards/${cardId}/similar-cards`)
         .then((response) => unwrapApiResponse(response.data)),
 
-    getSimilarByJob: (jobId: string): Promise<KnowledgeCardSimilarCardsResponse> =>
-      apiClient
-        .get<ApiResponse<KnowledgeCardSimilarCardsResponse>>(`/cards/jobs/${jobId}/similar-cards`)
-        .then((response) => unwrapApiResponse(response.data)),
-
-  };
-}
-
-function normalizeCardByScrapResponse(
-  response: KnowledgeCardByScrapResponse | KnowledgeCardResponse
-): KnowledgeCardByScrapResponse {
-  if ('cardId' in response && !('title' in response)) {
-    return response;
-  }
-
-  return {
-    cardId: response.cardId,
-    card: response,
   };
 }
 

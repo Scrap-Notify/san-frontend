@@ -1,4 +1,6 @@
 import type { KnowledgeCardResponse } from './knowledge';
+import type { CategoryResponse } from './knowledge';
+import type { SourceType } from './scraps';
 
 export interface TilGenerateRequest {
   targetDate: string;
@@ -21,6 +23,22 @@ export interface TilResponse {
 
 export interface TilRecallCardsResponse {
   recallCards: KnowledgeCardResponse[];
+}
+
+export interface TilSourceContentResponse {
+  cardId: string;
+  scrapId: string;
+  title: string;
+  sourceType: SourceType;
+  rawContent: string | null;
+  sourceUrl: string | null;
+  imageUrl: string | null;
+  category: CategoryResponse | null;
+  createdAt: string;
+}
+
+export interface TilSourcesResponse {
+  sources: TilSourceContentResponse[];
 }
 
 export type TilGithubCommitStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
