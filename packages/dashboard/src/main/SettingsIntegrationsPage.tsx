@@ -1,4 +1,4 @@
-import { GitBranch, LinkIcon, RefreshCw, Trash2, Unlink } from 'lucide-react';
+import { CheckCircle2, GitBranch, LinkIcon, RefreshCw, Trash2, Unlink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
@@ -23,13 +23,11 @@ export function SettingsIntegrationsPage() {
   const [isUnlinking, setIsUnlinking] = useState(false);
 
   const statusText = useMemo(() => {
-    if (!isGithubLinked) {
-      return 'GitHub account not connected';
-    }
+    if (!isGithubLinked) return 'SAN에서 사용할 레포지토리를 가져오려면 GitHub 계정을 연동해주세요.';
     if (connectedRepositories.length > 0) {
-      return `${connectedRepositories.length} repositories connected`;
+      return `${connectedRepositories.length}개의 레포지토리가 SAN에 연결되어 있습니다.`;
     }
-    return 'GitHub connected, no repositories selected';
+    return 'GitHub 계정이 연동되었습니다. 사용할 레포지토리를 선택해주세요.';
   }, [connectedRepositories.length, isGithubLinked]);
 
   const loadConnectedRepositories = async () => {
@@ -43,7 +41,7 @@ export function SettingsIntegrationsPage() {
     } catch (error) {
       setConnectedRepositories([]);
       setIsGithubLinked(false);
-      setErrorMessage(getApiErrorMessage(error, 'Failed to load connected repositories', GITHUB_LINK_ERROR_MESSAGE));
+      setErrorMessage(getApiErrorMessage(error, '연결된 레포지토리를 불러오지 못했습니다.', GITHUB_LINK_ERROR_MESSAGE));
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +64,7 @@ export function SettingsIntegrationsPage() {
         if (ignore) return;
         setConnectedRepositories([]);
         setIsGithubLinked(false);
-        setErrorMessage(getApiErrorMessage(error, 'Failed to load connected repositories', GITHUB_LINK_ERROR_MESSAGE));
+        setErrorMessage(getApiErrorMessage(error, '연결된 레포지토리를 불러오지 못했습니다.', GITHUB_LINK_ERROR_MESSAGE));
       })
       .finally(() => {
         if (ignore) return;
@@ -107,7 +105,7 @@ export function SettingsIntegrationsPage() {
   const handleUnlinkGithub = async () => {
     if (isUnlinking) return;
 
-    const confirmed = window.confirm('GitHub 연동을 해제할까요? 연결된 레포지토리도 함께 사용할 수 없게 됩니다.');
+    const confirmed = window.confirm('GitHub 연동을 해제할까요? 연결된 레포지토리도 더 이상 SAN에서 사용할 수 없습니다.');
     if (!confirmed) return;
 
     setErrorMessage(null);
@@ -135,13 +133,13 @@ export function SettingsIntegrationsPage() {
       await loadConnectedRepositories();
       setMessage('레포지토리 연결이 해제되었습니다.');
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, 'Failed to disconnect repository'));
+      setErrorMessage(getApiErrorMessage(error, '레포지토리 연결 해제에 실패했습니다.'));
     }
   };
 
   return (
     <section className="w-full min-w-0 space-y-dashboard-gap py-dashboard-gap text-text-primary">
-      <header className="grid gap-md sm:grid-cols-[1fr_auto] sm:items-end">
+      <header className="grid gap-md rounded-leaf border border-text-secondary/20 bg-surface-low/45 p-lg shadow-neon-sm backdrop-blur-xl lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="min-w-0">
           <p className="text-caption-bold uppercase tracking-wide text-primary-signal">
             Integrations
@@ -150,16 +148,17 @@ export function SettingsIntegrationsPage() {
             <h1 className="text-h1-bold">GitHub</h1>
             <span
               className={[
-                'inline-flex min-h-7 items-center rounded-leaf border px-sm text-caption-bold uppercase tracking-wide',
+                'inline-flex min-h-7 items-center gap-xs rounded-leaf border px-sm text-caption-bold uppercase tracking-wide',
                 isGithubLinked
                   ? 'border-primary-signal/30 bg-primary-signal/10 text-primary-signal'
                   : 'border-text-secondary/20 bg-surface-container text-text-secondary',
               ].join(' ')}
             >
-              {isGithubLinked ? 'Connected' : 'Not connected'}
+              {isGithubLinked ? <CheckCircle2 size={14} /> : null}
+              {isGithubLinked ? '연동됨' : '미연동'}
             </span>
           </div>
-          <p className="mt-sm text-body-sm text-text-ghost">{statusText}</p>
+          <p className="mt-sm max-w-2xl text-body-sm text-text-ghost">{statusText}</p>
         </div>
 
         <div className="grid gap-sm sm:flex sm:flex-wrap sm:justify-end">
@@ -179,7 +178,7 @@ export function SettingsIntegrationsPage() {
             className="inline-flex min-h-10 items-center justify-center gap-sm rounded-leaf border border-primary-signal/30 bg-surface-container px-md text-body-sm-bold text-text-primary transition hover:border-primary-signal/60 hover:glow-neon disabled:cursor-not-allowed disabled:border-text-primary/10 disabled:text-text-secondary/50"
           >
             <GitBranch size={20} />
-            Choose Repository
+            레포지토리 선택
           </button>
           <button
             type="button"
@@ -188,7 +187,7 @@ export function SettingsIntegrationsPage() {
             className="inline-flex min-h-10 items-center justify-center gap-sm rounded-leaf border border-text-primary/10 bg-surface-container px-md text-body-sm-bold text-text-secondary transition hover:border-red-300/40 hover:text-red-200 hover:glow-neon disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Unlink size={20} />
-            {isUnlinking ? '해제 중...' : '연동 해제하기'}
+            {isUnlinking ? '해제 중...' : '연동 해제'}
           </button>
         </div>
       </header>
@@ -204,17 +203,22 @@ export function SettingsIntegrationsPage() {
         </p>
       ) : null}
 
-      <div className="rounded-leaf border border-text-secondary/30 bg-surface-low/50 p-lg">
+      <div className="rounded-leaf border border-text-secondary/20 bg-surface-low/45 p-lg shadow-neon-sm backdrop-blur-xl">
         <div className="mb-lg flex items-center justify-between gap-sm">
-          <h2 className="text-body-lg-bold">Connected repositories</h2>
+          <div>
+            <h2 className="text-body-lg-bold">연결된 레포지토리</h2>
+            <p className="mt-xs text-caption text-text-ghost">
+              여기에서 선택한 레포지토리는 SAN의 GitHub 기능에서 사용됩니다.
+            </p>
+          </div>
           <button
             type="button"
             onClick={loadConnectedRepositories}
             disabled={isLoading}
-            className="flex h-9 w-9 items-center justify-center rounded-leaf border border-text-primary/10 bg-surface-container text-text-secondary transition hover:border-primary-signal/30 hover:text-text-primary hover:glow-neon disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-leaf border border-text-primary/10 bg-surface-container text-text-secondary transition hover:border-primary-signal/30 hover:text-text-primary hover:glow-neon disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Refresh repositories"
           >
-            <RefreshCw size={20} />
+            <RefreshCw size={20} className={isLoading ? 'animate-spin' : ''} />
           </button>
         </div>
 
@@ -223,11 +227,11 @@ export function SettingsIntegrationsPage() {
             {connectedRepositories.map((repository) => (
               <article
                 key={repository.githubRepositoryId}
-                className="grid min-w-0 gap-md rounded-leaf border border-text-primary/5 bg-background/70 p-md sm:grid-cols-[1fr_auto] sm:items-center"
+                className="grid min-w-0 gap-md rounded-leaf border border-text-primary/5 bg-background/70 p-md transition hover:border-primary-signal/20 sm:grid-cols-[1fr_auto] sm:items-center"
               >
                 <div className="flex min-w-0 items-center gap-sm">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-leaf bg-misty-teal text-primary-signal">
-                    <GitBranch size={20} />
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-leaf bg-misty-teal text-primary-signal">
+                    <GitBranch size={21} />
                   </span>
                   <div className="min-w-0">
                     <a
@@ -255,11 +259,19 @@ export function SettingsIntegrationsPage() {
             ))}
           </div>
         ) : (
-          <p className="rounded-leaf border border-text-primary/5 bg-background/70 px-md py-lg text-body-sm text-text-ghost">
-            {isGithubLinked
-              ? '아직 연결된 레포지토리가 없습니다. 사용할 레포지토리를 선택해주세요.'
-              : 'GitHub 계정을 연동한 뒤 사용할 레포지토리를 선택할 수 있습니다.'}
-          </p>
+          <div className="grid min-h-40 place-items-center rounded-leaf border border-text-primary/5 bg-background/70 px-md py-xl text-center">
+            <div className="max-w-md">
+              <GitBranch size={28} className="mx-auto text-primary-signal" />
+              <p className="mt-md text-body-sm-bold text-text-primary">
+                {isGithubLinked ? '아직 선택된 레포지토리가 없습니다' : 'GitHub 계정이 연동되지 않았습니다'}
+              </p>
+              <p className="mt-xs text-body-sm text-text-ghost">
+                {isGithubLinked
+                  ? 'GitHub 설정을 마치려면 사용할 레포지토리를 선택해주세요.'
+                  : '먼저 GitHub 계정을 연동한 뒤 SAN에서 사용할 레포지토리를 선택할 수 있습니다.'}
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </section>

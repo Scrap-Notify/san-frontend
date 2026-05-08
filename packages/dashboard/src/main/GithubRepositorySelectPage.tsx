@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GitBranch, Loader2 } from 'lucide-react';
+import { CheckCircle2, GitBranch, Loader2 } from 'lucide-react';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
 
@@ -53,7 +53,10 @@ export function GithubRepositorySelectPage() {
       await githubApi.connectRepository({
         githubRepositoryId: selectedRepository.githubRepositoryId,
       });
-      navigate('/', { replace: true });
+      navigate('/', {
+        replace: true,
+        state: { notice: `${selectedRepository.fullName} 레포지토리가 연결되었습니다.` },
+      });
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, '레포지토리 연결에 실패했습니다.'));
     } finally {
@@ -63,19 +66,24 @@ export function GithubRepositorySelectPage() {
 
   return (
     <section className="grid min-h-[calc(100vh-12rem)] w-full place-items-center py-dashboard-gap text-text-primary">
-      <div className="grid w-full max-w-2xl gap-lg rounded-leaf border border-text-secondary/20 bg-surface-low/50 p-xl shadow-neon-sm backdrop-blur-xl">
-        <header className="grid gap-sm">
-          <p className="text-caption-bold uppercase tracking-wide text-primary-signal">
+      <div className="grid w-full max-w-3xl gap-lg rounded-leaf border border-text-secondary/20 bg-surface-low/45 p-xl shadow-neon-sm backdrop-blur-xl">
+        <header className="grid gap-md sm:grid-cols-[1fr_auto] sm:items-start">
+          <div className="min-w-0">
+            <p className="text-caption-bold uppercase tracking-wide text-primary-signal">
             GitHub Repository
-          </p>
-          <h1 className="text-h1-bold leading-tight">레포지토리 선택</h1>
-          <p className="text-body-main text-text-secondary">
-            SAN에서 사용할 GitHub 레포지토리를 선택해주세요.
-          </p>
+            </p>
+            <h1 className="mt-sm text-h1-bold leading-tight">레포지토리 선택</h1>
+            <p className="mt-sm max-w-2xl text-body-main text-text-secondary">
+              SAN의 GitHub 기능에서 사용할 레포지토리를 선택해주세요.
+            </p>
+          </div>
+          <span className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-leaf bg-misty-teal text-primary-signal sm:flex">
+            <GitBranch size={24} />
+          </span>
         </header>
 
         {isLoading ? (
-          <div className="flex min-h-40 items-center justify-center gap-sm rounded-leaf border border-text-primary/5 bg-background/70 text-body-sm-bold text-text-secondary">
+          <div className="flex min-h-44 items-center justify-center gap-sm rounded-leaf border border-text-primary/5 bg-background/70 text-body-sm-bold text-text-secondary">
             <Loader2 size={20} className="animate-spin text-primary-signal" />
             레포지토리를 불러오는 중입니다...
           </div>
@@ -99,10 +107,10 @@ export function GithubRepositorySelectPage() {
             </label>
 
             {selectedRepository ? (
-              <article className="grid gap-sm rounded-leaf border border-text-primary/5 bg-background/70 p-md">
+              <article className="grid gap-md rounded-leaf border border-primary-signal/15 bg-background/75 p-md sm:grid-cols-[1fr_auto] sm:items-center">
                 <div className="flex min-w-0 items-center gap-sm">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-leaf bg-misty-teal text-primary-signal">
-                    <GitBranch size={20} />
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-leaf bg-misty-teal text-primary-signal">
+                    <CheckCircle2 size={21} />
                   </span>
                   <div className="min-w-0">
                     <a
@@ -118,13 +126,22 @@ export function GithubRepositorySelectPage() {
                     </p>
                   </div>
                 </div>
+                <span className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-sm py-xs text-caption-bold uppercase tracking-wide text-primary-signal sm:justify-self-end">
+                  선택됨
+                </span>
               </article>
             ) : null}
           </div>
         ) : (
-          <p className="rounded-leaf border border-text-primary/5 bg-background/70 px-md py-lg text-body-sm text-text-ghost">
-            GitHub 계정에서 가져올 수 있는 레포지토리가 없습니다.
-          </p>
+          <div className="grid min-h-44 place-items-center rounded-leaf border border-text-primary/5 bg-background/70 px-md py-xl text-center">
+            <div className="max-w-md">
+              <GitBranch size={28} className="mx-auto text-primary-signal" />
+              <p className="mt-md text-body-sm-bold text-text-primary">가져올 수 있는 레포지토리가 없습니다</p>
+              <p className="mt-xs text-body-sm text-text-ghost">
+                GitHub 권한 또는 repository 접근 범위를 확인해주세요.
+              </p>
+            </div>
+          </div>
         )}
 
         {errorMessage ? (
