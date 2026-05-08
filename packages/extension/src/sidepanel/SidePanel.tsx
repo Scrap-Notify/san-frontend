@@ -8,6 +8,7 @@ import GlowBackground from './components/feedback/GlowBackground';
 import KnowledgeProgressCard from './components/knowledge/KnowledgeProgressCard';
 import { KnowledgeSearchBar } from './components/knowledge/KnowledgeSearchBar';
 import { RecentKnowledgeList } from './components/knowledge/RecentKnowledgeList';
+import { SimilarKnowledgeList } from './components/knowledge/SimilarKnowledgeList';
 import {
   loadPendingScrap,
   loadSavedInsights,
@@ -26,6 +27,7 @@ const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
 const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
+const SEARCH_RESULT_TITLE = '\uAC80\uC0C9 \uACB0\uACFC';
 
 function isUnauthorizedError(error: unknown) {
   return (
@@ -567,10 +569,8 @@ export default function SidePanel() {
     }
   }, []);
 
-  const hasKnowledgeResult = isLoadingRelated || Boolean(createdCard) || relatedCards.length > 0 || Boolean(relatedError);
-  const displayedCards = hasKnowledgeSearchResult ? knowledgeSearchCards : relatedCards;
-  const isLoadingDisplayedCards = hasKnowledgeSearchResult ? isSearchingKnowledge : isLoadingRelated;
-  const displayedCardsError = hasKnowledgeSearchResult ? knowledgeSearchError : relatedError;
+  const isShowingRelatedCards = !hasKnowledgeSearchResult
+    && (isLoadingRelated || hasRelatedResult || relatedCards.length > 0 || Boolean(relatedError));
 
   const handleKnowledgeSearch = useCallback(async () => {
     const search = knowledgeSearchQuery.trim();
@@ -681,16 +681,56 @@ export default function SidePanel() {
           <div className="flex shrink-0 flex-col">
             {!isAuthenticated ? (
               !pendingScrap && <EmptyState onLogin={openDashboardLogin} />
+            ) : hasKnowledgeSearchResult ? (
+              <RecentKnowledgeList
+                cards={knowledgeSearchCards}
+                isLoading={isSearchingKnowledge}
+                error={knowledgeSearchError}
+                isScrollable={false}
+                title={SEARCH_RESULT_TITLE}
+                action={
+                  <KnowledgeSearchBar
+                    value={knowledgeSearchQuery}
+                    disabled={isSearchingKnowledge}
+                    onChange={(value) => {
+                      setKnowledgeSearchQuery(value);
+                      if (!value.trim()) {
+                        setHasKnowledgeSearchResult(false);
+                        setKnowledgeSearchCards([]);
+                        setKnowledgeSearchError(null);
+                      }
+                    }}
+                    onSubmit={handleKnowledgeSearch}
+                  />
+                }
+              />
+            ) : isShowingRelatedCards ? (
+              <SimilarKnowledgeList
+                cards={relatedCards}
+                isLoading={isLoadingRelated}
+                error={relatedError}
+                isScrollable={false}
+                action={
+                  <KnowledgeSearchBar
+                    value={knowledgeSearchQuery}
+                    disabled={isSearchingKnowledge}
+                    onChange={(value) => {
+                      setKnowledgeSearchQuery(value);
+                      if (!value.trim()) {
+                        setHasKnowledgeSearchResult(false);
+                        setKnowledgeSearchCards([]);
+                        setKnowledgeSearchError(null);
+                      }
+                    }}
+                    onSubmit={handleKnowledgeSearch}
+                  />
+                }
+              />
             ) : (
               <RecentKnowledgeList
-                // When we have search results, show them. 
-                // When we just created a card, show related cards at the top.
-                cards={hasKnowledgeSearchResult 
-                  ? knowledgeSearchCards 
-                  : (relatedCards.length > 0 ? relatedCards : recentCards)
-                }
-                isLoading={hasKnowledgeSearchResult ? isSearchingKnowledge : (isLoadingRecent && recentCards.length === 0)}
-                error={hasKnowledgeSearchResult ? knowledgeSearchError : (relatedError || recentError)}
+                cards={recentCards}
+                isLoading={isLoadingRecent && recentCards.length === 0}
+                error={recentError}
                 isScrollable={false}
                 action={
                   <KnowledgeSearchBar
