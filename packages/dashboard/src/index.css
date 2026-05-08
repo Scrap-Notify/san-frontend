@@ -16,10 +16,8 @@
   --dashboard-layout-gap: clamp(var(--space-3), 4vw, var(--space-5));
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html,
