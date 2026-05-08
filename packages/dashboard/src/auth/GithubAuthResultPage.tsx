@@ -31,11 +31,15 @@ export function GithubAuthResultPage() {
 
   useEffect(() => {
     if (githubLinked === 'true') {
-      navigate('/settings', { replace: true });
+      navigate('/settings/repositories', { replace: true });
       return;
     }
 
     if (error) {
+      navigate('/login', {
+        replace: true,
+        state: { authError: GITHUB_AUTH_ERROR_MESSAGE[error] ?? `GitHub authentication failed (${error})` },
+      });
       return;
     }
 

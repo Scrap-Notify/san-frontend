@@ -12,7 +12,7 @@ const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
 
 export function SettingsIntegrationsPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const githubLinked = searchParams.get('githubLinked') === 'true';
   const [connectedRepositories, setConnectedRepositories] = useState<GithubRepository[]>([]);
   const [message, setMessage] = useState<string | null>(
@@ -45,8 +45,8 @@ export function SettingsIntegrationsPage() {
 
   useEffect(() => {
     if (githubLinked) {
-      setMessage('GitHub 연동이 완료되었습니다.');
-      setSearchParams({}, { replace: true });
+      navigate('/settings/repositories', { replace: true });
+      return;
     }
 
     let ignore = false;
