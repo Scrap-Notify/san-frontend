@@ -193,6 +193,15 @@ export default function SidePanel() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
+    const requestToken = await authTokenStorage.getToken();
+    if (!requestToken) {
+      setIsAuthenticated(false);
+      setRecentCards([]);
+      setCreatedCard(null);
+      setRelatedCards([]);
+      return;
+    }
+
     setIsLoadingRecent(true);
     setRecentError(null);
     try {
@@ -201,6 +210,12 @@ export default function SidePanel() {
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to load recent cards', error);
       if (isUnauthorizedError(error)) {
+        const currentToken = await authTokenStorage.getToken();
+        if (currentToken && currentToken !== requestToken) {
+          debugLog('ignored stale unauthorized response after token rotation');
+          return;
+        }
+
         await authTokenStorage.clearToken();
         setIsAuthenticated(false);
         setRecentCards([]);
