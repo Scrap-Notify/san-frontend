@@ -23,8 +23,20 @@ export interface KnowledgeCardListResponse {
   cards: KnowledgeCardResponse[];
 }
 
+export interface KnowledgeCardListParams {
+  tag?: string;
+  fromDate?: string;
+  toDate?: string;
+  limit?: number;
+}
+
 export interface KnowledgeCardCreateRequest {
   scrapId: string;
+}
+
+export interface KnowledgeCardByScrapResponse {
+  cardId: string;
+  card?: KnowledgeCardResponse;
 }
 
 export interface KnowledgeCardAnalysisJobResponse {

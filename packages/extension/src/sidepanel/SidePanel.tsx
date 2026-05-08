@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
-import { authTokenStorage, cardsApi, searchApi } from '../api/client';
+import { authApi, authTokenStorage, cardsApi, searchApi } from '../api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
 import { DropZone } from './components/capture/DropZone';
 import { EmptyState } from './components/feedback/EmptyState';
@@ -15,9 +15,12 @@ import {
   useSaveScrap,
 } from './hooks/useSaveScrap';
 import SidePanelNavbar from './components/layout/SidePanelNavbar';
+import { CreatedKnowledgeCard } from './components/knowledge/CreatedKnowledgeCard';
+import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCard';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
+const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const IMAGE_DB_NAME = 'san-extension-images';
 const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
@@ -46,6 +49,19 @@ function fileToDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function dataUrlToFile(dataUrl: string, fileName: string): File {
+  const [header, base64Data = ''] = dataUrl.split(',');
+  const mimeType = header.match(/^data:(.*?);base64$/)?.[1] ?? 'image/png';
+  const binary = atob(base64Data);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new File([bytes], fileName, { type: mimeType });
 }
 
 function openImageDb(): Promise<IDBDatabase> {
@@ -163,6 +179,8 @@ export default function SidePanel() {
   const [isSearchingKnowledge, setIsSearchingKnowledge] = useState(false);
   const [knowledgeSearchError, setKnowledgeSearchError] = useState<string | null>(null);
   const [hasKnowledgeSearchResult, setHasKnowledgeSearchResult] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
     setIsLoadingRecent(true);
@@ -213,6 +231,68 @@ export default function SidePanel() {
     setIsLoadingRelated(false);
   }, [clearSaveFeedback]);
 
+  const applyPendingScrap = useCallback(async (nextPendingScrap: PendingScrap) => {
+    clearResultState();
+    setPendingScrap(nextPendingScrap);
+
+    if (
+      nextPendingScrap.source_type === 'IMAGE'
+      && nextPendingScrap.image_preview_url?.startsWith('data:')
+      && !nextPendingScrap.image_blob_id
+    ) {
+      try {
+        const file = dataUrlToFile(
+          nextPendingScrap.image_preview_url,
+          `${nextPendingScrap.title || 'captured-image'}.png`
+        );
+        const imageBlobId = await savePendingImageFile(file);
+        const nextPendingImageScrap: PendingScrap = {
+          ...nextPendingScrap,
+          image_file_name: file.name,
+          image_mime_type: file.type,
+          image_blob_id: imageBlobId,
+        };
+
+        setPendingImageFile(file);
+        setPendingScrap(nextPendingImageScrap);
+        await savePendingScrap(nextPendingImageScrap);
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to prepare captured image file', error);
+        setPendingImageFile(null);
+        setSaveError('Captured image could not be prepared. Please try capture again.');
+      }
+      return;
+    }
+
+    if (nextPendingScrap.source_type === 'IMAGE' && nextPendingScrap.image_blob_id) {
+      setIsRestoringPendingImage(true);
+      try {
+        const file = await loadPendingImageFile(
+          nextPendingScrap.image_blob_id,
+          nextPendingScrap.image_file_name ?? nextPendingScrap.title,
+          nextPendingScrap.image_mime_type ?? undefined
+        );
+
+        if (file) {
+          setPendingImageFile(file);
+          return;
+        }
+
+        setPendingImageFile(null);
+        setSaveError('Pending image could not be restored. Please capture the image again.');
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to restore pending image file', error);
+        setPendingImageFile(null);
+        setSaveError('Pending image could not be restored. Please capture the image again.');
+      } finally {
+        setIsRestoringPendingImage(false);
+      }
+      return;
+    }
+
+    setPendingImageFile(null);
+  }, [clearResultState, setSaveError]);
+
   useEffect(() => {
     debugLog('side panel mounted');
 
@@ -257,13 +337,39 @@ export default function SidePanel() {
     const handleMessage = (msg: ExtensionMessage) => {
       debugLog('runtime message received', msg);
       if (msg.type === 'PUSH_TO_SIDEPANEL' && isPendingScrap(msg.payload)) {
-        setPendingScrap(msg.payload);
+        void applyPendingScrap(msg.payload);
       }
     };
 
     chrome.runtime.onMessage.addListener(handleMessage);
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, [setSaveError]);
+  }, [applyPendingScrap, setSaveError]);
+
+  useEffect(() => {
+    const handlePendingScrapChange = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string
+    ) => {
+      if (areaName !== 'local') return;
+
+      const pendingScrapChange = changes[PENDING_STORAGE_KEY];
+      if (!pendingScrapChange) return;
+
+      const nextPendingScrap = pendingScrapChange.newValue;
+      if (isPendingScrap(nextPendingScrap)) {
+        void applyPendingScrap(nextPendingScrap);
+        return;
+      }
+
+      if (pendingScrapChange.newValue === undefined) {
+        setPendingScrap(null);
+        setPendingImageFile(null);
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handlePendingScrapChange);
+    return () => chrome.storage.onChanged.removeListener(handlePendingScrapChange);
+  }, [applyPendingScrap]);
 
   useEffect(() => {
     let ignore = false;
@@ -387,6 +493,42 @@ export default function SidePanel() {
     chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : `${dashboardBaseUrl}/login` });
   }, [isAuthenticated]);
 
+  const handleAuthButtonClick = useCallback(() => {
+    if (!isAuthenticated) {
+      openDashboardLogin();
+      return;
+    }
+
+    setIsLogoutConfirmOpen(true);
+  }, [isAuthenticated, openDashboardLogin]);
+
+  const handleCancelLogout = useCallback(() => {
+    if (isLoggingOut) return;
+    setIsLogoutConfirmOpen(false);
+  }, [isLoggingOut]);
+
+  const handleConfirmLogout = useCallback(async () => {
+    setIsLoggingOut(true);
+
+    try {
+      await authApi.logout();
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to logout on server', error);
+    } finally {
+      await authTokenStorage.clearToken();
+      setIsAuthenticated(false);
+      setRecentCards([]);
+      setCreatedCard(null);
+      setRelatedCards([]);
+      setKnowledgeSearchCards([]);
+      setHasKnowledgeSearchResult(false);
+      setKnowledgeSearchError(null);
+      setIsLogoutConfirmOpen(false);
+      setIsLoggingOut(false);
+      void chrome.runtime.sendMessage({ type: 'SAN_AUTH_STATE_CHANGED', isAuthenticated: false });
+    }
+  }, []);
+
   const hasKnowledgeResult = isLoadingRelated || Boolean(createdCard) || relatedCards.length > 0 || Boolean(relatedError);
   const displayedCards = hasKnowledgeSearchResult ? knowledgeSearchCards : relatedCards;
   const isLoadingDisplayedCards = hasKnowledgeSearchResult ? isSearchingKnowledge : isLoadingRelated;
@@ -428,73 +570,108 @@ export default function SidePanel() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-[#101417] px-4 pb-4 text-text-primary">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <SidePanelNavbar isAuthenticated={isAuthenticated} onOpenDashboard={openDashboard} />
+        <SidePanelNavbar
+          isAuthenticated={isAuthenticated}
+          onOpenDashboard={openDashboard}
+          onAuthButtonClick={handleAuthButtonClick}
+        />
+        {isLogoutConfirmOpen && (
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="logout-confirm-title"
+              className="w-full max-w-[280px] rounded-lg border border-white/10 bg-surface-container p-4 text-text-primary shadow-2xl"
+            >
+              <h2 id="logout-confirm-title" className="text-sm font-semibold">
+                로그아웃 하시겠습니까?
+              </h2>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelLogout}
+                  disabled={isLoggingOut}
+                  className="h-9 rounded-md border border-white/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLogout}
+                  disabled={isLoggingOut}
+                  className="h-9 rounded-md border border-primary-signal/35 bg-primary-signal/15 text-sm font-semibold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isLoggingOut ? '처리 중' : '확인'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <GlowBackground />
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-hidden pt-4">
-          {isLoadingRelated ? (
-            <KnowledgeProgressCard
-              cards={relatedCards}
-              isLoading={isLoadingRelated}
-              error={relatedError}
-              hasScrapContext
-              createdCard={createdCard}
-            />
-          ) : (
-            <DropZone
-              pendingScrap={pendingScrap}
-              onTextDrop={handleTextDrop}
-              onImageDrop={handleImageDrop}
-              onSave={handleSave}
-              onClear={handleClearPending}
-              isSaving={isSaving}
-              savingLabel={savingLabel}
-              saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
-              saveError={saveError}
-              saveNotice={saveNotice}
-              canSave={isAuthenticated}
-              authNotice={!isAuthenticated && pendingScrap ? '' : null}
-              onLogin={!isAuthenticated ? openDashboardLogin : undefined}
-            />
-          )}
-          {!isAuthenticated ? (
-            pendingScrap ? null : <EmptyState onLogin={openDashboardLogin} />
-          ) : !isLoadingRelated && (hasKnowledgeResult || hasKnowledgeSearchResult) ? (
-            <>
-              <KnowledgeProgressCard
-                cards={displayedCards}
-                isLoading={isLoadingDisplayedCards}
-                error={displayedCardsError}
-                hasScrapContext={hasKnowledgeResult || hasKnowledgeSearchResult}
-                createdCard={hasKnowledgeSearchResult ? null : createdCard}
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
+          <div className="shrink-0">
+            {isSaving || (isLoadingRelated && !createdCard) ? (
+              <KnowledgeLoadingCard />
+            ) : (
+              <DropZone
+                pendingScrap={pendingScrap}
+                onTextDrop={handleTextDrop}
+                onImageDrop={handleImageDrop}
+                onSave={handleSave}
+                onClear={handleClearPending}
+                isSaving={isSaving}
+                savingLabel={savingLabel}
+                saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+                saveError={saveError}
+                saveNotice={saveNotice}
+                canSave={isAuthenticated}
+                authNotice={!isAuthenticated && pendingScrap ? '' : null}
+                onLogin={!isAuthenticated ? openDashboardLogin : undefined}
               />
-            </>
-          ) : pendingScrap ? (
-            null
-          ) : (
-            null
+            )}
+          </div>
+
+          {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
+          {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
+            <div className="shrink-0">
+              <CreatedKnowledgeCard card={createdCard} />
+            </div>
           )}
-          {isAuthenticated && !hasKnowledgeResult && !hasKnowledgeSearchResult ? (
-            <RecentKnowledgeList
-              cards={recentCards}
-              isLoading={isLoadingRecent}
-              error={recentError}
-              action={
-                <KnowledgeSearchBar
-                  value={knowledgeSearchQuery}
-                  disabled={isSearchingKnowledge}
-                  onChange={(value) => {
-                    setKnowledgeSearchQuery(value);
-                    if (!value.trim()) {
-                      setHasKnowledgeSearchResult(false);
-                      setKnowledgeSearchCards([]);
-                      setKnowledgeSearchError(null);
-                    }
-                  }}
-                  onSubmit={handleKnowledgeSearch}
-                />
-              }
-            />
-          ) : null}
+
+          {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
+          <div className="flex shrink-0 flex-col">
+            {!isAuthenticated ? (
+              !pendingScrap && <EmptyState onLogin={openDashboardLogin} />
+            ) : (
+              <RecentKnowledgeList
+                // When we have search results, show them. 
+                // When we just created a card, show related cards at the top.
+                cards={hasKnowledgeSearchResult 
+                  ? knowledgeSearchCards 
+                  : (relatedCards.length > 0 ? relatedCards : recentCards)
+                }
+                isLoading={hasKnowledgeSearchResult ? isSearchingKnowledge : (isLoadingRecent && recentCards.length === 0)}
+                error={hasKnowledgeSearchResult ? knowledgeSearchError : (relatedError || recentError)}
+                isScrollable={false}
+                action={
+                  <KnowledgeSearchBar
+                    value={knowledgeSearchQuery}
+                    disabled={isSearchingKnowledge}
+                    onChange={(value) => {
+                      setKnowledgeSearchQuery(value);
+                      if (!value.trim()) {
+                        setHasKnowledgeSearchResult(false);
+                        setKnowledgeSearchCards([]);
+                        setKnowledgeSearchError(null);
+                      }
+                    }}
+                    onSubmit={handleKnowledgeSearch}
+                  />
+                }
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
