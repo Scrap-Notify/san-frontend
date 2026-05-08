@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { TopNavBar } from '../main/components/GNB';
+import { TopNavBar } from '@dashboard/main/components/GNB';
 
 export function MainLayout() {
   const location = useLocation();

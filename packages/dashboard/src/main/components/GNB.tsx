@@ -1,9 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, User, X } from 'lucide-react';
-import { authTokenStorage } from '../../api/client';
+import { authTokenStorage } from '@dashboard/api/client';
 import { SearchBar } from './SearchBar';
-import githubSvg from '../../assets/github.svg';
+import githubSvg from '@dashboard/assets/github.svg';
 
 interface TopNavBarProps {
   activeMenu?: string;

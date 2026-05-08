@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
-import { authTokenStorage, githubAuthApi } from '../api/client';
-import { syncExtensionAuth } from '../api/extensionAuth';
+import { authTokenStorage, githubAuthApi } from '@dashboard/api/client';
+import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
 
 const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
   A008: 'GitHub authentication failed. Please try again.',

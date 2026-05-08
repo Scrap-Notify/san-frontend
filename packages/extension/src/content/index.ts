@@ -1,6 +1,6 @@
 // packages/extension/src/content/index.ts
-import type { ExtensionMessage, PendingScrap } from '../types/index';
-import { extractMetadataFromDocument } from './metadata';
+import type { ExtensionMessage, PendingScrap } from '@extension/types/index';
+import { extractMetadataFromDocument } from '@extension/content/metadata';
 
 const DEBUG_PREFIX = '[SAN:content]';
 const DASHBOARD_MESSAGE_SOURCE = 'SAN_DASHBOARD';

@@ -4,9 +4,9 @@ import type * as monaco from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Bold, Italic, List, Link as LinkIcon, RotateCcw, ArrowRight } from 'lucide-react';
-import type { TILMode } from './TILModeTabs';
+import type { TILMode } from '@dashboard/til/components/TILModeTabs';
 import type { TilResponse } from '@san/shared';
-import type { TilGenerateMutation, TilGithubCommitMutation, TilJobStatusQuery } from '../types';
+import type { TilGenerateMutation, TilGithubCommitMutation, TilJobStatusQuery } from '@dashboard/til/types';
 
 interface TILEditorProps {
   activeTab: TILMode;

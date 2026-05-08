@@ -2,8 +2,8 @@ import { GitBranch, KeyRound, Sprout, UserRound } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage, githubAuthApi } from '../api/client';
-import { syncExtensionAuth } from '../api/extensionAuth';
+import { authApi, authTokenStorage, githubAuthApi } from '@dashboard/api/client';
+import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 

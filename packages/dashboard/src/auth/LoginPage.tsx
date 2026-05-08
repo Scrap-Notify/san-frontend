@@ -2,9 +2,9 @@ import { GitBranch, KeyRound, Mail, Sprout } from 'lucide-react';
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage, githubAuthApi } from '../api/client';
-import { syncExtensionAuth } from '../api/extensionAuth';
-import loginTreeImage from '../assets/login-tree.png';
+import { authApi, authTokenStorage, githubAuthApi } from '@dashboard/api/client';
+import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
+import loginTreeImage from '@dashboard/assets/login-tree.png';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -160,10 +160,10 @@ function Field({
 }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-3 flex items-center justify-between gap-3 text-sm font-bold uppercase tracking-wide text-[#b9cbc1] sm:text-base">
+      <span className="mb-3 flex items-center justify-between gap-3 text-sm font-bold uppercase tracking-wide text-text-secondary sm:text-base">
         <span>{label}</span>
         {action ? (
-          <span className="text-xs font-medium tracking-wide text-[#00ffc2]/75 transition hover:text-[#00ffc2] sm:text-sm">
+          <span className="text-xs font-medium tracking-wide text-primary-signal/75 transition hover:text-primary-signal sm:text-sm">
             {action}
           </span>
         ) : null}
@@ -175,9 +175,9 @@ function Field({
           placeholder={placeholder}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-h-14 w-full bg-[#0b0f12] px-5 py-4 pr-14 text-base text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/30 focus:ring-1 focus:ring-[#00ffc2]/60 sm:text-lg"
+          className="min-h-14 w-full bg-background px-5 py-4 pr-14 text-base text-text-primary outline-none placeholder:text-text-secondary/30 focus:ring-1 focus:ring-primary-signal/60 sm:text-lg"
         />
-        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[#b9cbc1]/40">
+        <span className="absolute right-5 top-1/2 -translate-y-1/2 text-text-secondary/40">
           {icon}
         </span>
       </div>

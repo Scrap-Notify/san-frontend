@@ -1,5 +1,5 @@
 // packages/extension/src/background/index.ts
-import type { ExtensionMessage, PendingScrap } from '../types/index';
+import type { ExtensionMessage, PendingScrap } from '@extension/types/index';
 
 const DEBUG_PREFIX = '[SAN:background]';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';

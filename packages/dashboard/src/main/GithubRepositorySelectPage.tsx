@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, GitBranch, Loader2 } from 'lucide-react';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
-import { githubApi } from '../api/client';
+import { githubApi } from '@dashboard/api/client';
 
 export function GithubRepositorySelectPage() {
   const navigate = useNavigate();
