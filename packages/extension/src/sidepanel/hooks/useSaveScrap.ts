@@ -14,6 +14,7 @@ const STORAGE_KEY = 'san:saved-insights';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const JOB_POLL_INTERVAL_MS = 1500;
 const JOB_POLL_MAX_ATTEMPTS = 40;
+const DUPLICATE_SCRAP_NOTICE = '\uC774\uBBF8 \uAC19\uC740 \uB370\uC774\uD130\uAC00 \uC218\uC9D1\uB418\uC5C8\uC5B4\uC694.';
 
 function isPendingScrap(value: unknown): value is PendingScrap {
   if (!value || typeof value !== 'object') return false;
@@ -191,13 +192,16 @@ export function useSaveScrap({
         id: response.scrapId,
         created_at: response.createdAt,
       };
-      const nextCards = [saved, ...cards];
+      const nextCards = response.duplicated ? cards : [saved, ...cards];
       setCards(nextCards);
       setPendingScrap(null);
       setPendingImageFile(null);
       await savePendingScrap(null);
       await saveInsights(nextCards);
       await deletePendingImageFile(pendingScrap.image_blob_id);
+      if (response.duplicated) {
+        setSaveNotice(DUPLICATE_SCRAP_NOTICE);
+      }
 
       setSavingLabel(response.jobId ? 'Creating card...' : 'Loading card...');
       setIsLoadingRelated(true);
