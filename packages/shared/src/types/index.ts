@@ -34,5 +34,7 @@ export type {
   TilGithubCommitStatus,
   TilRecallCardsResponse,
   TilResponse,
+  TilSourceContentResponse,
+  TilSourcesResponse,
 } from './til';
 export { toKnowledgeCardView } from './knowledge';

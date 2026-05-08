@@ -11,7 +11,7 @@ export function TilPage() {
     draft,
     setDraft,
     selectedTil,
-    recallCardsQuery,
+    sourcesQuery,
     generationStatusQuery,
     commitStatusQuery,
     generateMutation,
@@ -43,7 +43,7 @@ export function TilPage() {
         />
 
         <div className="hidden min-h-0 overflow-hidden lg:block">
-          <CollectedDataPanel recallCardsQuery={recallCardsQuery} selectedTil={selectedTil} />
+          <CollectedDataPanel sourcesQuery={sourcesQuery} selectedTil={selectedTil} />
         </div>
       </div>
     </section>

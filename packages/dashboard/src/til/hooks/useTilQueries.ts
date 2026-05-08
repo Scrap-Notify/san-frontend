@@ -5,6 +5,7 @@ export const tilKeys = {
   all: ['til'] as const,
   byDate: (date: string) => [...tilKeys.all, date] as const,
   recallCards: (summaryId: string | null | undefined) => [...tilKeys.all, 'recall-cards', summaryId] as const,
+  sources: (summaryId: string | null | undefined) => [...tilKeys.all, 'sources', summaryId] as const,
   asyncJob: (jobId: string | null | undefined) => ['async-job', jobId] as const,
 };
 
@@ -19,6 +20,14 @@ export function useTilRecallCards(summaryId: string | null | undefined) {
   return useQuery({
     queryKey: tilKeys.recallCards(summaryId),
     queryFn: () => tilApi.getRecallCards(summaryId ?? ''),
+    enabled: Boolean(summaryId),
+  });
+}
+
+export function useTilSources(summaryId: string | null | undefined) {
+  return useQuery({
+    queryKey: tilKeys.sources(summaryId),
+    queryFn: () => tilApi.getSources(summaryId ?? ''),
     enabled: Boolean(summaryId),
   });
 }

@@ -3,7 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@san/shared';
 import type { TilJobTone, TilPageLogic } from '../types';
 import { useTilGenerateMutation, useTilGithubCommitMutation } from './useTilMutations';
-import { tilKeys, useTilAsyncJobStatus, useTilByDate, useTilRecallCards } from './useTilQueries';
+import {
+  tilKeys,
+  useTilAsyncJobStatus,
+  useTilByDate,
+  useTilSources,
+} from './useTilQueries';
 
 export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
@@ -31,7 +36,7 @@ export function useTilPageLogic(): TilPageLogic {
     setDraft(selectedTil?.content ?? '');
   }, [selectedTil?.summaryId, selectedTil?.content]);
 
-  const recallCardsQuery = useTilRecallCards(selectedTil?.summaryId);
+  const sourcesQuery = useTilSources(selectedTil?.summaryId);
   const generationStatusQuery = useTilAsyncJobStatus(generationJobId);
   const commitStatusQuery = useTilAsyncJobStatus(commitJobId);
 
@@ -92,7 +97,7 @@ export function useTilPageLogic(): TilPageLogic {
     tilList,
     selectedTil,
     tilQuery,
-    recallCardsQuery,
+    sourcesQuery,
     generationStatusQuery,
     commitStatusQuery,
     generateMutation,
