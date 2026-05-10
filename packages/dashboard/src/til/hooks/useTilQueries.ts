@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { asyncJobsApi, tilApi } from '../../api/client';
+import { asyncJobsApi, tilApi } from '@dashboard/api/client';
 
 export const tilKeys = {
   all: ['til'] as const,

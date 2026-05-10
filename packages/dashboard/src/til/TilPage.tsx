@@ -49,23 +49,18 @@ export function TilPage() {
         commitStatusQuery.data?.status === 'PROCESSING';
 
     return (
-        <section className="flex h-[calc(100vh-80px)] w-full min-w-[900px] overflow-hidden bg-background text-text-primary"
-        >
-            <div className="no-scrollbar flex min-w-0 flex-1 flex-col overflow-y-auto px-6 pb-6 pt-3">
+        <section className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-80px)] w-full overflow-hidden bg-background text-text-primary">
+            <div className="no-scrollbar flex min-w-0 flex-1 flex-col overflow-y-auto px-4 md:px-6 pb-6 pt-3 order-1 lg:order-1">
                 <header className="mb-6 flex flex-col gap-3">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
                         <span className="text-primary-signal">T</span>
-                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">
-              oday
-            </span>
+                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">oday</span>
                         <span className="ml-2 text-primary-signal">I</span>
                         <span className="ml-2 text-primary-signal">L</span>
-                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">
-              earned
-            </span>
+                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">earned</span>
                     </h1>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1 rounded-xl border border-white/5 bg-white/5 px-2 py-1.5">
                                 <button
@@ -90,17 +85,17 @@ export function TilPage() {
                                 </button>
                             </div>
 
-                            <div className="h-4 w-px bg-white/10" />
+                            <div className="hidden md:block h-4 w-px bg-white/10" />
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <TILModeTabs activeTab={activeTab} onChange={setActiveTab} />
 
                             <button
                                 type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
-                                className="flex h-11 w-30 items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md bg-[#238636] px-4 text-sm font-medium text-white shadow-lg transition-all hover:bg-[#2ea043] hover:shadow-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex h-10 md:h-11 flex-1 md:flex-none items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md bg-[#238636] px-4 text-sm font-medium text-white shadow-lg transition-all hover:bg-[#2ea043] hover:shadow-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                 <GitCommitHorizontal size={16} />
                                 {isCommitting ? 'Committing...' : 'Commit'}
@@ -125,7 +120,7 @@ export function TilPage() {
                         />
                     </div>
 
-                    <div className="flex min-h-[600px] flex-1 flex-col rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl">
+                    <div className="flex min-h-[500px] flex-1 flex-col rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl overflow-hidden">
                         <TILEditor
                             activeTab={activeTab}
                             draft={draft}
@@ -143,7 +138,7 @@ export function TilPage() {
                 </div>
             </div>
 
-            <aside className="no-scrollbar w-[360px] shrink-0 border-l border-white/10 bg-transparent">
+            <aside className="no-scrollbar w-full lg:w-[360px] shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 bg-transparent order-2 lg:order-2">
                 <CollectedDataPanel sourcesQuery={sourcesQuery} selectedTil={selectedTil} />
             </aside>
         </section>

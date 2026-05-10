@@ -1,16 +1,33 @@
-import { useRef } from 'react';
-import { ArrowLeft, ArrowRight, Brain, FlaskConical, NotebookText } from 'lucide-react';
-import { IconBox, TagBadge } from '@san/ui';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useArchiveCards } from '@dashboard/hooks/useArchiveCards';
 
 export function ArchiveSection() {
+  const navigate = useNavigate();
   const carouselRef = useRef<HTMLDivElement>(null);
   const { cards, isPending, isError } = useArchiveCards({ limit: 12 });
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    const carousel = carouselRef.current;
+    if (!carousel || cards.length === 0) return;
+    const pageIndex = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    setActiveIndex(pageIndex);
+  }, [cards.length]);
 
   const scrollCarousel = (direction: 'previous' | 'next') => {
     const carousel = carouselRef.current;
+    if (!carousel) return;
 
-    if (!carousel) {
+    if (direction === 'next' && carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 10) {
+      carousel.scrollTo({ left: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (direction === 'previous' && carousel.scrollLeft <= 0) {
       return;
     }
 
@@ -20,6 +37,17 @@ export function ArchiveSection() {
     });
   };
 
+  // Autoplay
+  useEffect(() => {
+    if (isPending || isError || cards.length === 0 || isHovered || !isPlaying) return;
+    const interval = setInterval(() => {
+      scrollCarousel('next');
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [isPending, isError, cards.length, isHovered, isPlaying]);
+
+  const totalPages = Math.max(1, Math.ceil(cards.length / 3));
+
   return (
     <section className="w-full min-w-0 overflow-hidden pb-xl">
       <div className="flex flex-col gap-dashboard-gap">
@@ -28,25 +56,69 @@ export function ArchiveSection() {
             <h2 className="text-h1-bold text-text-primary">나의 지식 아카이브</h2>
           </div>
 
-          <div className="flex shrink-0 gap-dashboard-gap">
-            {[ArrowLeft, ArrowRight].map((Icon, index) => (
+          <div className="flex shrink-0 items-center gap-3 rounded-full border border-white/5 bg-[#121212] px-3 py-1.5 shadow-sm">
+            <button
+              type="button"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white"
+              onClick={() => setIsPlaying(!isPlaying)}
+              aria-label={isPlaying ? '일시정지' : '재생'}
+            >
+              {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
+            </button>
+            <div className="h-3 w-[1px] bg-white/10" />
+            
+            <div className="flex items-center gap-1">
               <button
-                key={index}
                 type="button"
-                className="flex h-12 w-12 items-center justify-center rounded-full border border-text-secondary/30 bg-surface-low/40 text-text-secondary transition hover:border-primary-signal/60 hover:text-primary-signal hover:glow-neon"
-                onClick={() => scrollCarousel(index === 0 ? 'previous' : 'next')}
-                aria-label={index === 0 ? '이전 아카이브 페이지' : '다음 아카이브 페이지'}
+                onClick={() => scrollCarousel('previous')}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+                disabled={activeIndex === 0}
               >
-                <Icon size={20} />
+                <ChevronLeft size={14} />
               </button>
-            ))}
+
+              <div className="flex items-center gap-2 px-1">
+                {!isPending && !isError && Array.from({ length: totalPages }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      const carousel = carouselRef.current;
+                      if (!carousel) return;
+                      // 페이지 인덱스에 따라 정확한 위치로 스크롤
+                      const scrollTarget = carousel.clientWidth * index;
+                      carousel.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+                    }}
+                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                      index === activeIndex 
+                        ? 'w-5 bg-[#4ade80] shadow-[0_0_10px_rgba(74,222,128,0.5)]' 
+                        : 'w-2.5 bg-white/20 hover:bg-white/40'
+                    }`}
+                    aria-label={`${index + 1}번째 페이지로 이동`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => scrollCarousel('next')}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+                disabled={activeIndex === totalPages - 1}
+              >
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="min-w-0 rounded-leaf bg-primary-signal/5">
+        <div 
+          className="min-w-0"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           <div
             ref={carouselRef}
-            className="flex w-full min-w-0 snap-x snap-mandatory gap-dashboard-gap overflow-x-auto scroll-smooth px-xs pb-lg"
+            onScroll={handleScroll}
+            className="flex w-full min-w-0 snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           >
             {isPending ? (
               <StatusCard message="아카이브 카드를 불러오는 중..." />
@@ -61,36 +133,39 @@ export function ArchiveSection() {
             ) : null}
 
             {!isPending && !isError ? cards.map((card) => {
-              const Icon = getCardIcon(card.category_name ?? card.tags[0]?.name);
-              const date = formatDate(card.created_at);
+              const date = formatRelativeDate(card.created_at);
+              const categoryName = card.category_name ?? card.tags[0]?.name ?? 'Uncategorized';
 
               return (
                 <article
                   key={card.card_id}
-                  className="flex min-h-80 w-[min(88vw,28rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-leaf border border-text-ghost/10 bg-surface-container/60 p-lg shadow-neon-sm backdrop-blur-xl md:w-[calc((100%-theme(spacing.dashboard-gap))/2)] xl:w-[calc((100%-2*theme(spacing.dashboard-gap))/3)]"
+                  onClick={() => navigate(`/result?query=${encodeURIComponent(card.title)}`)}
+                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-[#131718] p-6 shadow-md transition-all hover:bg-[#161a1b] md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
-                    <div className="mb-dashboard-gap flex items-center justify-between gap-dashboard-gap">
-                      <IconBox variant="leaf" size="md" className="text-primary-signal">
-                        <Icon size={20} />
-                      </IconBox>
+                    <div className="mb-6 flex items-center justify-between">
+                      <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-[#4ade80]/20 bg-[#4ade80]/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#4ade80]">
+                        {categoryName}
+                      </span>
 
-                      <time className="text-caption-bold uppercase tracking-wide text-text-secondary">
+                      <time className="text-[11px] font-medium text-white/40">
                         {date}
                       </time>
                     </div>
 
-                    <h3 className="text-body-lg-bold text-text-primary">{card.title}</h3>
+                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-white">
+                      {card.title}
+                    </h3>
 
-                    <p className="mt-dashboard-gap text-body-sm text-text-secondary">
-                      {card.summary ?? 'No summary has been generated yet.'}
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/50">
+                      {card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}
                     </p>
                   </div>
 
-                  <div className="mt-dashboard-gap flex flex-wrap gap-dashboard-gap">
-                    {card.tags.map((tag) => (
-                      <TagBadge key={tag.tag_id} label={tag.name} />
-                    ))}
+                  <div className="flex justify-end">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-white/5 text-white/60 transition-colors group-hover:bg-[#4ade80]/10 group-hover:text-[#4ade80]">
+                      <ArrowRight size={18} />
+                    </div>
                   </div>
                 </article>
               );
@@ -102,31 +177,30 @@ export function ArchiveSection() {
   );
 }
 
-function getCardIcon(seed?: string | null) {
-  const normalized = seed?.toLowerCase() ?? '';
-
-  if (normalized.includes('design') || normalized.includes('color') || normalized.includes('system')) {
-    return FlaskConical;
-  }
-
-  if (normalized.includes('research') || normalized.includes('cognition')) {
-    return Brain;
-  }
-
-  return NotebookText;
-}
-
-function formatDate(value: string) {
+function formatRelativeDate(value: string) {
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
 
-  if (Number.isNaN(date.getTime())) {
-    return value;
+  const now = new Date();
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+
+  if (diffInHours < 1) {
+    const diffInMins = Math.floor(diffInMs / (1000 * 60));
+    return diffInMins <= 0 ? '방금 전' : `${diffInMins}분 전`;
+  }
+  if (diffInHours < 24) {
+    return `${diffInHours}시간 전`;
+  }
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) {
+    return `${diffInDays}일 전`;
   }
 
-  return new Intl.DateTimeFormat('en', {
+  return new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    month: 'short',
+    day: 'numeric',
   }).format(date);
 }
 
@@ -134,8 +208,8 @@ function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'de
   return (
     <div
       className={[
-        'flex min-h-80 w-[min(88vw,28rem)] shrink-0 snap-start items-center justify-center rounded-leaf border bg-surface-container/60 p-xl text-center text-body-sm backdrop-blur-xl md:w-[calc((100%-theme(spacing.dashboard-gap))/2)] xl:w-[calc((100%-2*theme(spacing.dashboard-gap))/3)]',
-        tone === 'error' ? 'border-red-400/20 text-red-300' : 'border-text-ghost/10 text-text-secondary',
+        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-[#131718] p-xl text-center text-body-sm md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
+        tone === 'error' ? 'text-red-400' : 'text-white/40',
       ].join(' ')}
     >
       {message}

@@ -8,6 +8,7 @@ import { GithubAuthResultPage } from './auth/GithubAuthResultPage';
 import { SettingsIntegrationsPage } from './main/SettingsIntegrationsPage';
 import { TilPage } from './til/TilPage';
 import { GithubRepositorySelectPage } from './main/GithubRepositorySelectPage';
+import { ProfilePage } from './main/ProfilePage';
 
 export const router = createBrowserRouter([
   {
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
       {
         path: '/til',
         element: <TilPage />,
+      },
+      {
+        path: '/profile',
+        element: <ProfilePage />,
       },
       {
         path: '/settings',

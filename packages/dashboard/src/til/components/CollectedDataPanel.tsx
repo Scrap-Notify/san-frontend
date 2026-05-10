@@ -1,3 +1,4 @@
+import { useState, useMemo, useEffect } from 'react';
 import { Link, Search } from 'lucide-react';
 import type { TilResponse } from '@san/shared';
 import type { TilSourcesQuery } from '../types';
@@ -9,21 +10,34 @@ interface CollectedDataPanelProps {
 }
 
 export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataPanelProps) {
+    const [searchQuery, setSearchQuery] = useState('');
+    const debouncedSearch = useDebounce(searchQuery, 300);
     const sources = sourcesQuery.data?.sources ?? [];
 
-    const items: CollectedDataItem[] = sources.map((source) => ({
-        id: source.scrapId,
-        type: toCollectedDataType(source.sourceType),
-        title: source.title,
-        timeLabel: new Date(source.createdAt).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-        }),
-        excerpt: source.rawContent || source.sourceUrl || '',
-        tag: source.category?.categoryName ? `#${source.category.categoryName}` : '',
-        imageUrl: source.imageUrl ?? undefined,
-        href: source.sourceUrl ?? undefined,
-    }));
+    const items: CollectedDataItem[] = useMemo(() => {
+        const baseItems = sources.map((source) => ({
+            id: source.scrapId,
+            type: toCollectedDataType(source.sourceType),
+            title: source.title,
+            timeLabel: new Date(source.createdAt).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+            }),
+            excerpt: source.rawContent || source.sourceUrl || '',
+            tag: source.category?.categoryName ? `#${source.category.categoryName}` : '',
+            imageUrl: source.imageUrl ?? undefined,
+            href: source.sourceUrl ?? undefined,
+        }));
+
+        if (!debouncedSearch) return baseItems;
+        
+        const lowerSearch = debouncedSearch.toLowerCase();
+        return baseItems.filter(item => 
+            item.title.toLowerCase().includes(lowerSearch) || 
+            item.excerpt.toLowerCase().includes(lowerSearch) ||
+            item.tag.toLowerCase().includes(lowerSearch)
+        );
+    }, [sources, debouncedSearch]);
 
     return (
         <aside className="flex h-full w-full flex-col overflow-hidden bg-transparent">
@@ -38,6 +52,8 @@ export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataP
                     <input
                         type="search"
                         placeholder="검색..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-transparent text-sm text-white outline-none placeholder:text-text-secondary/60"
                     />
                 </label>
@@ -56,12 +72,23 @@ export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataP
 
                 {selectedTil && !sourcesQuery.isPending && items.length === 0 && (
                     <div className="py-10 text-center text-sm italic text-text-secondary opacity-50">
-                        수집된 데이터가 없습니다.
+                        {debouncedSearch ? '검색 결과가 없습니다.' : '수집된 데이터가 없습니다.'}
                     </div>
                 )}
             </div>
         </aside>
     );
+}
+
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => clearTimeout(handler);
+    }, [value, delay]);
+    return debouncedValue;
 }
 
 function toCollectedDataType(sourceType: string): CollectedDataItem['type'] {

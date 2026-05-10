@@ -199,13 +199,24 @@ export function TILEditor({
 
                 <div className="relative w-full pt-2">
                     {activeTab === 'drafts' || activeTab === 'edit' ? (
-                        <div style={{ height: editorHeight }} className="w-full">
+                        <div style={{ height: editorHeight }} className="relative w-full overflow-hidden rounded-lg bg-[#1e1e1e]/30 border border-white/5 transition-all">
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="markdown"
                                 value={displayedDraft}
                                 onChange={(v) => setDraft(v ?? '')}
                                 onMount={handleEditorMount}
+                                loading={
+                                    <div className="flex h-full w-full flex-col gap-4 p-6 animate-pulse">
+                                        <div className="h-6 w-3/4 rounded bg-white/5" />
+                                        <div className="h-4 w-full rounded bg-white/5" />
+                                        <div className="h-4 w-full rounded bg-white/5" />
+                                        <div className="h-4 w-2/3 rounded bg-white/5" />
+                                        <div className="mt-4 h-6 w-1/2 rounded bg-white/5" />
+                                        <div className="h-4 w-full rounded bg-white/5" />
+                                        <div className="h-4 w-5/6 rounded bg-white/5" />
+                                    </div>
+                                }
                                 options={{
                                     fontSize: 15,
                                     fontFamily: 'Pretendard, ui-monospace, monospace',
@@ -221,6 +232,9 @@ export function TILEditor({
                                     scrollBeyondLastLine: false,
                                     readOnly: false,
                                     overviewRulerLanes: 0,
+                                    fontLigatures: true,
+                                    cursorSmoothCaretAnimation: 'on',
+                                    smoothScrolling: true,
                                 }}
                             />
                         </div>

@@ -12,7 +12,7 @@ import {
 
 export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState(() => getPreviousDate());
+  const [selectedDate, setSelectedDate] = useState(() => getCurrentDate());
   const [selectedSummaryId, setSelectedSummaryId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [draft, setDraft] = useState('');
@@ -117,9 +117,8 @@ export function useTilPageLogic(): TilPageLogic {
   };
 }
 
-function getPreviousDate() {
+function getCurrentDate() {
   const date = new Date();
-  date.setDate(date.getDate() - 1);
   return formatDate(date);
 }
 

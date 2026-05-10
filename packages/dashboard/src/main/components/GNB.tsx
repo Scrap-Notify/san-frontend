@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, User, X } from 'lucide-react';
-import { authTokenStorage } from '../../api/client';
+import { authTokenStorage } from '@dashboard/api/client';
 import { SearchBar } from './SearchBar';
 import githubSvg from '@dashboard/assets/github.svg';
-import sanLogoSvg from '../../../../ui/src/assets/brand/SAN_LOGO.svg';
-import sanTypoSvg from '../../../../ui/src/assets/brand/SAN_TYPO.svg';
+import sanLogoSvg from '@ui/assets/brand/SAN_LOGO.svg';
+import sanTypoSvg from '@ui/assets/brand/SAN_TYPO.svg';
 
 interface TopNavBarProps {
   activeMenu?: string;
@@ -57,9 +57,8 @@ export function TopNavBar({
   };
 
   const handleUserClick = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    }
+    // Navigate directly to profile for now so user can see it
+    navigate('/profile');
     setIsMenuOpen(false);
   };
 
@@ -122,8 +121,8 @@ export function TopNavBar({
             TIL
           </button>
           <button
-            onClick={() => navigate('/archive')}
-            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'Archive' ? 'text-primary-signal' : 'text-text-secondary'}`}
+            onClick={() => navigate('/result')}
+            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}
           >
             Archive
           </button>
@@ -151,7 +150,7 @@ export function TopNavBar({
         <div className="absolute left-0 top-full flex w-full flex-col gap-4 border-b border-white/5 bg-[#0B0D0F] p-4 lg:hidden">
           <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-primary-signal' : 'text-text-secondary'}`}>Home</button>
           <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'TIL' ? 'text-primary-signal' : 'text-text-secondary'}`}>TIL</button>
-          <button onClick={() => { navigate('/archive'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Archive' ? 'text-primary-signal' : 'text-text-secondary'}`}>Archive</button>
+          <button onClick={() => { navigate('/result'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}>Archive</button>
           <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
             {navActions}
           </div>
