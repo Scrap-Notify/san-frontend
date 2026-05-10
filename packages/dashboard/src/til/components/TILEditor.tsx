@@ -219,7 +219,7 @@ export function TILEditor({
                                     quickSuggestions: false,
                                     automaticLayout: true,
                                     scrollBeyondLastLine: false,
-                                    readOnly: activeTab === 'preview',
+                                    readOnly: false,
                                     overviewRulerLanes: 0,
                                 }}
                             />

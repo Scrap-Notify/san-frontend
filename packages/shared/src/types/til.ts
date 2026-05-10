@@ -25,31 +25,16 @@ export interface TilSourceContentResponse {
   cardId: string;
   scrapId: string;
   title: string;
-  sourceType: 'LINK' | 'TEXT' | 'IMAGE';
-  rawContent: string;
-  sourceUrl: string | null;
-  imageUrl: string | null;
-  category: {
-    categoryId: string;
-    categoryName: string;
-  } | null;
-  createdAt: string;
-}
-
-export interface TilRecallCardsResponse {
-  sources: TilSourceContentResponse[];
-}
-
-export interface TilSourceContentResponse {
-  cardId: string;
-  scrapId: string;
-  title: string;
   sourceType: SourceType;
   rawContent: string | null;
   sourceUrl: string | null;
   imageUrl: string | null;
   category: CategoryResponse | null;
   createdAt: string;
+}
+
+export interface TilRecallCardsResponse {
+  sources: TilSourceContentResponse[];
 }
 
 export interface TilSourcesResponse {
