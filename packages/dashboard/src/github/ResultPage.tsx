@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, Filter, Search } from 'lucide-react';
@@ -32,16 +32,19 @@ export function ResultPage() {
   });
   const [page, setPage] = useState(0);
   const [accumulatedCards, setAccumulatedCards] = useState<SearchCardResult[]>([]);
+  const [prevFilterKey, setPrevFilterKey] = useState<string>('');
+  const [lastProcessedData, setLastProcessedData] = useState<unknown>(null);
 
   const size = 12;
   const keyword = searchParams.get('query')?.trim() ?? '';
   const normalizedTag = normalizeTag(filters.tag);
   const filterKey = `${keyword}|${normalizedTag}|${filters.fromDate}|${filters.toDate}`;
 
-  useEffect(() => {
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
     setPage(0);
     setAccumulatedCards([]);
-  }, [filterKey]);
+  }
 
   const searchQuery = useQuery({
     queryKey: ['knowledge-search', keyword, normalizedTag, filters.fromDate, filters.toDate, page, size],
@@ -49,14 +52,13 @@ export function ResultPage() {
     enabled: Boolean(keyword),
   });
 
-  useEffect(() => {
-    if (!searchQuery.data) return;
-
+  if (searchQuery.data && searchQuery.data !== lastProcessedData) {
+    setLastProcessedData(searchQuery.data);
     setAccumulatedCards((current) => {
       const nextCards = page === 0 ? searchQuery.data.results : [...current, ...searchQuery.data.results];
       return dedupeByCardId(nextCards);
     });
-  }, [page, searchQuery.data]);
+  }
 
   return (
     <SearchPage

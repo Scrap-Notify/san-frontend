@@ -56,11 +56,6 @@ export function TopNavBar({
     setIsMenuOpen(false);
   };
 
-  const handleTilClick = () => {
-    navigate('/til');
-    setIsMenuOpen(false);
-  };
-
   const handleUserClick = () => {
     if (!isAuthenticated) {
       navigate('/login');

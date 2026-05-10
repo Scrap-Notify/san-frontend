@@ -18,6 +18,8 @@ export function useTilPageLogic(): TilPageLogic {
   const [draft, setDraft] = useState('');
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [commitJobId, setCommitJobId] = useState<string | null>(null);
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
+  const [prevSelectedSummaryId, setPrevSelectedSummaryId] = useState<string | null | undefined>(null);
 
   const tilQuery = useTilByDate(selectedDate);
 
@@ -27,16 +29,18 @@ export function useTilPageLogic(): TilPageLogic {
     [selectedSummaryId, tilList],
   );
 
-  useEffect(() => {
+  if (selectedDate !== prevSelectedDate) {
+    setPrevSelectedDate(selectedDate);
     setSelectedSummaryId(null);
     setGenerationJobId(null);
     setCommitJobId(null);
-  }, [selectedDate]);
+  }
 
-  useEffect(() => {
+  if (selectedTil?.summaryId !== prevSelectedSummaryId) {
+    setPrevSelectedSummaryId(selectedTil?.summaryId);
     setTitle(selectedTil?.title ?? '');
     setDraft(selectedTil?.content ?? '');
-  }, [selectedTil?.summaryId, selectedTil?.title, selectedTil?.content]);
+  }
 
   const sourcesQuery = useTilSources(selectedTil?.summaryId);
   const generationStatusQuery = useTilAsyncJobStatus(generationJobId);

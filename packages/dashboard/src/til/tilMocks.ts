@@ -1,4 +1,4 @@
-import type { TilResponse, TilSourceContentResponse, TilSourcesResponse } from '@san/shared';
+import type { TilResponse, TilSourcesResponse } from '@san/shared';
 
 export const MOCK_TIL_SUMMARY_ID = '11111111-1111-4111-8111-111111111111';
 

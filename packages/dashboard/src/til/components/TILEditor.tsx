@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
@@ -44,7 +45,6 @@ export function TILEditor({
     const [editorHeight, setEditorHeight] = useState(500);
 
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
-    const isCommitting = commitMutation.isPending || isRunning(commitStatusQuery.data?.status);
 
     const displayedDraft = draft || (selectedTil?.content ?? '');
 
@@ -65,10 +65,7 @@ export function TILEditor({
         generateMutation.mutate();
     };
 
-    const handleCommit = () => {
-        if (!selectedTil || isCommitting) return;
-        commitMutation.mutate(selectedTil.summaryId);
-    };
+
 
     const handleFormat = (action: 'heading' | 'bold' | 'italic' | 'quote' | 'code' | 'link' | 'ordered-list' | 'list' | 'task') => {
         const editor = editorRef.current;
