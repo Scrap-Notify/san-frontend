@@ -2,9 +2,9 @@ import { type FormEvent, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage } from '../api/client';
-import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
+import { authApi } from '../api/client';
 import { getAuthClientType, withAuthClientType } from './clientType';
+import { completeAuth } from './completeAuth';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
@@ -78,8 +78,7 @@ export function Signup() {
     try {
       await authApi.signup({ username: trimmed, password });
       const tokens = await authApi.login({ username: trimmed, password, clientType });
-      await authTokenStorage.setTokens(tokens);
-      await syncExtensionAuth(tokens);
+      await completeAuth(tokens, clientType);
       navigate('/');
     } catch (error) {
       let msg = getApiErrorMessage(error, '회원가입에 실패했습니다.');

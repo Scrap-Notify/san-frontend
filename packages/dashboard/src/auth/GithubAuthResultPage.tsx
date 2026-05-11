@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
-import { authTokenStorage, githubAuthApi } from '../api/client';
-import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
-import { getAuthClientType, withAuthClientType } from './clientType';
+import { githubAuthApi } from '../api/client';
+import { consumeRememberedAuthClientType, getAuthClientType, withAuthClientType } from './clientType';
+import { completeAuth } from './completeAuth';
 
 const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
   A008: 'GitHub authentication failed. Please try again.',
@@ -14,13 +14,14 @@ export function GithubAuthResultPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [exchangeErrorMessage, setExchangeErrorMessage] = useState<string | null>(null);
+  const [rememberedClientType] = useState(consumeRememberedAuthClientType);
   const processedAuthKeyRef = useRef<string | null>(null);
 
   const ticket = searchParams.get('ticket');
   const code = searchParams.get('code');
   const error = searchParams.get('error');
   const githubLinked = searchParams.get('githubLinked');
-  const clientType = getAuthClientType(searchParams);
+  const clientType = getAuthClientType(searchParams, rememberedClientType ?? undefined);
 
   const message = exchangeErrorMessage
     ?? (githubLinked === 'true'
@@ -64,9 +65,8 @@ export function GithubAuthResultPage() {
     tokenRequest
       .then(async (tokens) => {
         if (ignore) return;
-        await authTokenStorage.setTokens(tokens);
-        await syncExtensionAuth(tokens);
-        navigate('/settings/repositories', { replace: true });
+        await completeAuth(tokens, clientType);
+        navigate(clientType === 'EXTENSION' ? '/' : '/settings/repositories', { replace: true });
       })
       .catch((exchangeError) => {
         if (ignore) return;

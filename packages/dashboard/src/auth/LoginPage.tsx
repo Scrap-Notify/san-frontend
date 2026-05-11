@@ -3,9 +3,9 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { Eye, EyeOff } from 'lucide-react';
 import githubSvg from '@dashboard/assets/github.svg';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage, githubAuthApi } from '../api/client';
-import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
-import { getAuthClientType, withAuthClientType } from './clientType';
+import { authApi, githubAuthApi } from '../api/client';
+import { getAuthClientType, rememberAuthClientType, withAuthClientType } from './clientType';
+import { completeAuth } from './completeAuth';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGithubLogin = () => {
+    rememberAuthClientType(clientType);
     window.location.href = githubAuthApi.getGithubAuthorizeUrl(clientType);
   };
 
@@ -53,8 +54,7 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       const tokens = await authApi.login({ username, password, clientType });
-      await authTokenStorage.setTokens(tokens);
-      await syncExtensionAuth(tokens);
+      await completeAuth(tokens, clientType);
       navigate('/');
     } catch (err) {
       let msg = getApiErrorMessage(err, '로그인에 실패했습니다.');

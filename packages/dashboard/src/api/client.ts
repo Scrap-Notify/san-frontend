@@ -9,7 +9,7 @@ import {
   createTilApi,
   type AuthTokens,
 } from '@san/shared';
-import { clearExtensionAuth, syncExtensionAuth } from './extensionAuth';
+import { clearExtensionAuth } from './extensionAuth';
 import { authTokenStorage as localAuthTokenStorage } from './tokenStorage';
 
 const defaultBaseURL = import.meta.env.PROD
@@ -25,7 +25,6 @@ const tokenProvider = {
   getRefreshToken: localAuthTokenStorage.getRefreshToken,
   setTokens: async (tokens: AuthTokens) => {
     await localAuthTokenStorage.setTokens(tokens);
-    void syncExtensionAuth(tokens);
   },
   clearToken: async () => {
     await localAuthTokenStorage.clearToken();
