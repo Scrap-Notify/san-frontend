@@ -186,6 +186,26 @@ function SearchPage({
   onLoadMore,
   onSearchChange,
 }: SearchPageProps) {
+  const searchDebounceRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current !== null) {
+        window.clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
+
+  const handleKeywordInputChange = (value: string) => {
+    if (searchDebounceRef.current !== null) {
+      window.clearTimeout(searchDebounceRef.current);
+    }
+
+    searchDebounceRef.current = window.setTimeout(() => {
+      onSearchChange(value);
+    }, 300);
+  };
+
   return (
     <section className="flex w-full min-w-0 flex-col gap-12 py-12 text-white">
       <header className="flex flex-col gap-3">
@@ -244,11 +264,12 @@ function SearchPage({
             <Search className="h-4 w-4 text-white/20" />
           </div>
           <input
+            key={keyword}
             type="text"
             className="block w-full pl-11 pr-4 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-sm font-medium outline-none focus:border-[#4ade80]/30 transition-all placeholder:text-white/10"
             placeholder="Search keywords in knowledge cards..."
-            value={keyword}
-            onChange={(e) => onSearchChange(e.target.value)}
+            defaultValue={keyword}
+            onChange={(e) => handleKeywordInputChange(e.target.value)}
           />
         </div>
       </div>
