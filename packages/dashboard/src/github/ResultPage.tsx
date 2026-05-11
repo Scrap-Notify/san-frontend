@@ -22,6 +22,7 @@ interface SearchPageProps {
   totalCount: number;
   results: ExtendedSearchCardResult[];
   filters: SearchFilters;
+  hasKeyword: boolean;
   isPending?: boolean;
   isError?: boolean;
   hasNext?: boolean;
@@ -143,27 +144,32 @@ export function ResultPage() {
   const normalizedTag = normalizeTag(filters.tag);
   const filterKey = `${keyword}|${normalizedTag}|${filters.fromDate}|${filters.toDate}`;
 
-  if (filterKey !== prevFilterKey) {
-    setPrevFilterKey(filterKey);
-    setPage(0);
-    setAccumulatedCards([]);
-  }
+  useEffect(() => {
+    if (filterKey !== prevFilterKey) {
+      setPrevFilterKey(filterKey);
+      setPage(0);
+      setAccumulatedCards([]);
+      setLastProcessedData(null);
+    }
+  }, [filterKey, prevFilterKey]);
 
   const searchQuery = useQuery({
     queryKey: ['knowledge-search', keyword, normalizedTag, filters.fromDate, filters.toDate, page, size],
     queryFn: () => searchApi.search(toSearchParams(keyword, normalizedTag, filters, page, size)),
-    enabled: true,
+    enabled: Boolean(keyword),
   });
 
   const displayedResults = accumulatedCards;
 
-  if (searchQuery.data && searchQuery.data !== lastProcessedData) {
-    setLastProcessedData(searchQuery.data);
-    setAccumulatedCards((current) => {
-      const nextCards = page === 0 ? searchQuery.data.results : [...current, ...searchQuery.data.results];
-      return dedupeByCardId(nextCards) as ExtendedSearchCardResult[];
-    });
-  }
+  useEffect(() => {
+    if (searchQuery.data && searchQuery.data !== lastProcessedData) {
+      setLastProcessedData(searchQuery.data);
+      setAccumulatedCards((current) => {
+        const nextCards = page === 0 ? searchQuery.data.results : [...current, ...searchQuery.data.results];
+        return dedupeByCardId(nextCards) as ExtendedSearchCardResult[];
+      });
+    }
+  }, [lastProcessedData, page, searchQuery.data]);
 
   const handleSearchChange = (newKeyword: string) => {
     setSearchParams({ query: newKeyword });
@@ -175,6 +181,7 @@ export function ResultPage() {
       totalCount={searchQuery.data?.totalCount ?? displayedResults.length}
       results={displayedResults}
       filters={filters}
+      hasKeyword={Boolean(keyword)}
       isPending={searchQuery.isPending && !displayedResults.length}
       isError={searchQuery.isError}
       hasNext={searchQuery.data?.hasNext ?? false}
@@ -190,6 +197,7 @@ function SearchPage({
   totalCount,
   results,
   filters,
+  hasKeyword,
   isPending = false,
   isError = false,
   hasNext = false,
@@ -264,7 +272,14 @@ function SearchPage({
         </div>
       </div>
 
-      {isPending ? (
+      {!hasKeyword ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-[#4ade80]">
+            <Search size={24} />
+          </div>
+          <p className="text-sm font-medium text-white/40">검색어를 입력하면 아카이브에서 관련 지식 카드를 찾아드릴게요.</p>
+        </div>
+      ) : isPending ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="h-10 w-10 border-2 border-[#4ade80]/20 border-t-[#4ade80] rounded-full animate-spin" />
           <p className="text-sm font-medium text-white/40">검색 결과를 불러오는 중입니다...</p>
