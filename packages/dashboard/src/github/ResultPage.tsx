@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, Filter, Search, ExternalLink, Quote as QuoteIcon, MessageSquare, Clock, Globe, ArrowRight, Share2, Bookmark, Calendar, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import type { SearchCardResult, SearchParams } from '@san/shared';
 import { searchApi } from '../api/client';
@@ -134,42 +134,23 @@ export function ResultPage() {
     fromDate: '',
     toDate: '',
   });
-  const [page, setPage] = useState(0);
-  const [accumulatedCards, setAccumulatedCards] = useState<ExtendedSearchCardResult[]>([]);
-  const [prevFilterKey, setPrevFilterKey] = useState<string>('');
-  const [lastProcessedData, setLastProcessedData] = useState<unknown>(null);
 
   const size = 12;
   const keyword = searchParams.get('query')?.trim() ?? '';
   const normalizedTag = normalizeTag(filters.tag);
-  const filterKey = `${keyword}|${normalizedTag}|${filters.fromDate}|${filters.toDate}`;
 
-  useEffect(() => {
-    if (filterKey !== prevFilterKey) {
-      setPrevFilterKey(filterKey);
-      setPage(0);
-      setAccumulatedCards([]);
-      setLastProcessedData(null);
-    }
-  }, [filterKey, prevFilterKey]);
-
-  const searchQuery = useQuery({
-    queryKey: ['knowledge-search', keyword, normalizedTag, filters.fromDate, filters.toDate, page, size],
-    queryFn: () => searchApi.search(toSearchParams(keyword, normalizedTag, filters, page, size)),
+  const searchQuery = useInfiniteQuery({
+    queryKey: ['knowledge-search', keyword, normalizedTag, filters.fromDate, filters.toDate, size],
+    queryFn: ({ pageParam }) => searchApi.search(toSearchParams(keyword, normalizedTag, filters, pageParam, size)),
     enabled: Boolean(keyword),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => (lastPage.hasNext ? allPages.length : undefined),
   });
 
-  const displayedResults = accumulatedCards;
-
-  useEffect(() => {
-    if (searchQuery.data && searchQuery.data !== lastProcessedData) {
-      setLastProcessedData(searchQuery.data);
-      setAccumulatedCards((current) => {
-        const nextCards = page === 0 ? searchQuery.data.results : [...current, ...searchQuery.data.results];
-        return dedupeByCardId(nextCards) as ExtendedSearchCardResult[];
-      });
-    }
-  }, [lastProcessedData, page, searchQuery.data]);
+  const displayedResults = useMemo(
+    () => dedupeByCardId(searchQuery.data?.pages.flatMap((page) => page.results) ?? []) as ExtendedSearchCardResult[],
+    [searchQuery.data],
+  );
 
   const handleSearchChange = (newKeyword: string) => {
     setSearchParams({ query: newKeyword });
@@ -178,15 +159,15 @@ export function ResultPage() {
   return (
     <SearchPage
       keyword={keyword}
-      totalCount={searchQuery.data?.totalCount ?? displayedResults.length}
+      totalCount={searchQuery.data?.pages[0]?.totalCount ?? displayedResults.length}
       results={displayedResults}
       filters={filters}
       hasKeyword={Boolean(keyword)}
       isPending={searchQuery.isPending && !displayedResults.length}
       isError={searchQuery.isError}
-      hasNext={searchQuery.data?.hasNext ?? false}
+      hasNext={searchQuery.hasNextPage}
       onFilterChange={setFilters}
-      onLoadMore={() => setPage((current) => current + 1)}
+      onLoadMore={() => void searchQuery.fetchNextPage()}
       onSearchChange={handleSearchChange}
     />
   );
