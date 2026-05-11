@@ -1,4 +1,4 @@
-import type { PendingScrap } from '../types/index';
+import type { PendingScrap } from '@extension/types/index';
 
 interface MetaElementLike {
   content?: string;

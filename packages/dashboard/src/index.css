@@ -16,10 +16,8 @@
   --dashboard-layout-gap: clamp(var(--space-3), 4vw, var(--space-5));
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html,
@@ -66,10 +64,18 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e5056;
+  background: var(--color-teal);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary-signal);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

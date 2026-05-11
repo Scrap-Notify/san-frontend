@@ -9,39 +9,40 @@ import {
   useTilByDate,
   useTilSources,
 } from './useTilQueries';
-import { createMockTil, isMockTilSummaryId, shouldUseTilMockFallback } from '../tilMocks';
 
 export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState(() => getPreviousDate());
+  const [selectedDate, setSelectedDate] = useState(() => getCurrentDate());
   const [selectedSummaryId, setSelectedSummaryId] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
   const [draft, setDraft] = useState('');
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [commitJobId, setCommitJobId] = useState<string | null>(null);
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
+  const [prevSelectedSummaryId, setPrevSelectedSummaryId] = useState<string | null | undefined>(null);
 
   const tilQuery = useTilByDate(selectedDate);
 
-  const tilList = tilQuery.isSuccess && shouldUseTilMockFallback(tilQuery.data)
-    ? [createMockTil(selectedDate)]
-    : tilQuery.data ?? [];
+  const tilList = tilQuery.data ?? [];
   const selectedTil = useMemo(
     () => tilList.find((item) => item.summaryId === selectedSummaryId) ?? tilList[0] ?? null,
     [selectedSummaryId, tilList],
   );
 
-  useEffect(() => {
+  if (selectedDate !== prevSelectedDate) {
+    setPrevSelectedDate(selectedDate);
     setSelectedSummaryId(null);
     setGenerationJobId(null);
     setCommitJobId(null);
-  }, [selectedDate]);
+  }
 
-  useEffect(() => {
+  if (selectedTil?.summaryId !== prevSelectedSummaryId) {
+    setPrevSelectedSummaryId(selectedTil?.summaryId);
+    setTitle(selectedTil?.title ?? '');
     setDraft(selectedTil?.content ?? '');
-  }, [selectedTil?.summaryId, selectedTil?.content]);
+  }
 
-  const sourcesQuery = useTilSources(
-    isMockTilSummaryId(selectedTil?.summaryId) ? null : selectedTil?.summaryId,
-  );
+  const sourcesQuery = useTilSources(selectedTil?.summaryId);
   const generationStatusQuery = useTilAsyncJobStatus(generationJobId);
   const commitStatusQuery = useTilAsyncJobStatus(commitJobId);
 
@@ -97,6 +98,8 @@ export function useTilPageLogic(): TilPageLogic {
     setSelectedDate,
     selectedSummaryId,
     setSelectedSummaryId,
+    title,
+    setTitle,
     draft,
     setDraft,
     tilList,
@@ -114,9 +117,8 @@ export function useTilPageLogic(): TilPageLogic {
   };
 }
 
-function getPreviousDate() {
+function getCurrentDate() {
   const date = new Date();
-  date.setDate(date.getDate() - 1);
   return formatDate(date);
 }
 

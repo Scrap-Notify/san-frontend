@@ -1,9 +1,11 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, User, X } from 'lucide-react';
-import { authTokenStorage } from '../../api/client';
+import { authTokenStorage } from '@dashboard/api/client';
 import { SearchBar } from './SearchBar';
-import githubSvg from '../../assets/github.svg';
+import githubSvg from '@dashboard/assets/github.svg';
+import sanLogoSvg from '@ui/assets/brand/SAN_LOGO.svg';
+import sanTypoSvg from '@ui/assets/brand/SAN_TYPO.svg';
 
 interface TopNavBarProps {
   activeMenu?: string;
@@ -13,8 +15,9 @@ interface TopNavBarProps {
 }
 
 export function TopNavBar({
-  searchPlaceholder = 'Search knowledge cards...',
+  searchPlaceholder = 'Search the archive...',
   userAvatarUrl,
+  activeMenu,
   onSettingsClick,
 }: TopNavBarProps) {
   const navigate = useNavigate();
@@ -53,15 +56,9 @@ export function TopNavBar({
     setIsMenuOpen(false);
   };
 
-  const handleTilClick = () => {
-    navigate('/til');
-    setIsMenuOpen(false);
-  };
-
-  const handleUserClick = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    }
+  const handleUserClick = async () => {
+    const token = await authTokenStorage.getToken();
+    navigate(token ? '/profile' : '/login');
     setIsMenuOpen(false);
   };
 
@@ -75,130 +72,90 @@ export function TopNavBar({
     <>
       <SearchBar placeholder={searchPlaceholder} onSearch={handleSearch} />
 
-      <IconButton ariaLabel="GitHub settings" tooltip="깃허브 연동하기" onClick={handleGithubClick}>
-        <GithubIcon />
-      </IconButton>
+      <button
+        onClick={handleGithubClick}
+        aria-label="GitHub settings"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-white/5 hover:text-white"
+      >
+        <img src={githubSvg} alt="" aria-hidden="true" className="h-[22px] w-[22px] opacity-70 transition hover:opacity-100" style={{ filter: 'invert(1)' }} />
+      </button>
 
-      <UserButton
-        src={userAvatarUrl}
-        isAuthenticated={isAuthenticated}
+      <button
         onClick={handleUserClick}
-      />
+        aria-label="User profile"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-white/5 hover:text-white"
+      >
+        {userAvatarUrl && isAuthenticated ? (
+          <img src={userAvatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+        ) : (
+          <User size={22} strokeWidth={1.5} />
+        )}
+      </button>
     </>
   );
 
   return (
-    <header className="flex w-full flex-col gap-dashboard-gap rounded-leaf bg-background/60 px-lg py-lg text-text-primary backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between lg:px-xl">
-      <div className="flex min-w-0 items-center justify-between gap-md lg:shrink-0">
-        <div className="flex min-w-0 items-center gap-md sm:gap-dashboard-gap">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="shrink-0 text-h1-bold leading-none transition hover:text-primary-signal"
-          >
-            SAN
-          </button>
+    <header className="flex w-full items-center justify-between border-b border-white/5 bg-[#0B0D0F] px-4 py-4 md:px-8">
+      {/* Left side */}
+      <div className="flex items-center gap-10">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2.5 transition hover:opacity-80"
+        >
+          <img src={sanLogoSvg} alt="SAN Logo" className="h-[26px] w-[26px]" />
+          <img src={sanTypoSvg} alt="SAN" className="h-[15px]" />
+        </button>
 
+        <div className="hidden items-center gap-8 lg:flex">
           <button
-            type="button"
-            onClick={handleTilClick}
-            className="shrink-0 border-b border-primary-signal text-body-lg-bold text-primary-signal transition hover:glow-neon"
+            onClick={() => navigate('/')}
+            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'Dashboard' ? 'text-primary-signal' : 'text-text-secondary'}`}
+          >
+            Home
+          </button>
+          <button
+            onClick={() => navigate('/til')}
+            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'TIL' ? 'text-primary-signal' : 'text-text-secondary'}`}
           >
             TIL
           </button>
+          <button
+            onClick={() => navigate('/result')}
+            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}
+          >
+            Archive
+          </button>
         </div>
+      </div>
 
+      {/* Right side Desktop */}
+      <div className="hidden items-center gap-5 lg:flex">
+        {navActions}
+      </div>
+
+      {/* Mobile Menu Toggle */}
+      <div className="flex lg:hidden">
         <button
           type="button"
           onClick={() => setIsMenuOpen((current) => !current)}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-leaf border border-text-primary/10 bg-surface-low text-text-secondary transition hover:border-primary-signal/40 hover:text-primary-signal hover:glow-neon lg:hidden"
-          aria-label={isMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          aria-expanded={isMenuOpen}
+          className="p-2 text-text-secondary transition hover:text-white"
         >
-          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      <div className="hidden min-w-0 justify-end lg:flex lg:flex-1">
-        <div className="flex min-w-0 items-center gap-dashboard-gap">
-          {navActions}
-        </div>
-      </div>
-
-      {isMenuOpen ? (
-        <div className="grid min-w-0 gap-dashboard-gap border-t border-text-primary/5 pt-lg lg:hidden">
-          {navActions}
-        </div>
-      ) : null}
-    </header>
-  );
-}
-
-interface IconButtonProps {
-  children: ReactNode;
-  ariaLabel: string;
-  tooltip?: string;
-  onClick?: () => void;
-}
-
-function IconButton({ children, ariaLabel, tooltip, onClick }: IconButtonProps) {
-  return (
-    <div className="group grid justify-items-center lg:relative">
-      <button
-        type="button"
-        aria-label={ariaLabel}
-        onClick={onClick}
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-primary-signal/20 bg-primary-signal transition hover:glow-neon"
-      >
-        {children}
-      </button>
-      {tooltip ? (
-        <span className="mt-sm hidden whitespace-nowrap rounded-leaf border border-primary-signal/50 bg-surface-low/95 px-md py-sm text-body-sm-bold text-primary-signal shadow-neon-sm group-hover:inline-flex lg:absolute lg:top-full">
-          {tooltip}
-        </span>
-      ) : null}
-    </div>
-  );
-}
-
-function UserButton({
-  src,
-  isAuthenticated,
-  onClick,
-}: {
-  src?: string;
-  isAuthenticated: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border transition hover:glow-neon',
-        isAuthenticated
-          ? 'border-primary-signal/60 bg-primary-signal/15 text-primary-signal shadow-neon-sm hover:bg-primary-signal/20'
-          : 'border-text-primary/10 bg-surface-container text-text-ghost hover:border-text-ghost/60 hover:text-text-secondary',
-      ].join(' ')}
-      aria-label={isAuthenticated ? 'User profile' : 'Go to login'}
-      title={isAuthenticated ? 'User profile' : 'Login'}
-    >
-      {src && isAuthenticated ? (
-        <span className="grid h-full w-full place-items-center">
-          <img src={src} alt="" className="col-start-1 row-start-1 h-full w-full object-cover opacity-45" />
-          <span className="col-start-1 row-start-1">
-            <User size={20} />
-          </span>
-        </span>
-      ) : (
-        <div className="flex h-full w-full items-center justify-center">
-          <User size={20} />
+      {/* Mobile Menu Content */}
+      {isMenuOpen && (
+        <div className="absolute left-0 top-full flex w-full flex-col gap-4 border-b border-white/5 bg-[#0B0D0F] p-4 lg:hidden">
+          <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-primary-signal' : 'text-text-secondary'}`}>Home</button>
+          <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'TIL' ? 'text-primary-signal' : 'text-text-secondary'}`}>TIL</button>
+          <button onClick={() => { navigate('/result'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}>Archive</button>
+          <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
+            {navActions}
+          </div>
         </div>
       )}
-    </button>
+    </header>
   );
-}
-
-function GithubIcon() {
-  return <img src={githubSvg} alt="" aria-hidden="true" className="h-7 w-7" />;
 }

@@ -21,10 +21,6 @@ export interface TilResponse {
   updatedAt: string;
 }
 
-export interface TilRecallCardsResponse {
-  recallCards: KnowledgeCardResponse[];
-}
-
 export interface TilSourceContentResponse {
   cardId: string;
   scrapId: string;
@@ -35,6 +31,10 @@ export interface TilSourceContentResponse {
   imageUrl: string | null;
   category: CategoryResponse | null;
   createdAt: string;
+}
+
+export interface TilRecallCardsResponse {
+  recallCards: KnowledgeCardResponse[];
 }
 
 export interface TilSourcesResponse {

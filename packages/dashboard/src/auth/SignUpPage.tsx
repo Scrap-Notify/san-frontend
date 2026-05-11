@@ -1,9 +1,9 @@
-import { GitBranch, KeyRound, Sprout, UserRound } from 'lucide-react';
-import { type FormEvent, type ReactNode, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage, githubAuthApi } from '../api/client';
-import { syncExtensionAuth } from '../api/extensionAuth';
+import { authApi, authTokenStorage } from '../api/client';
+import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
@@ -11,17 +11,15 @@ export function Signup() {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [agreed, setAgreed] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [checkedUsername, setCheckedUsername] = useState('');
   const [usernameCheckStatus, setUsernameCheckStatus] = useState<UsernameCheckStatus>('idle');
   const [usernameMessage, setUsernameMessage] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleGithubLogin = () => {
-    window.location.href = githubAuthApi.getGithubAuthorizeUrl();
-  };
 
   const handleUsernameChange = (value: string) => {
     setUsername(value);
@@ -31,231 +29,220 @@ export function Signup() {
   };
 
   const handleCheckUsername = async () => {
-    const trimmedUsername = username.trim();
+    const trimmed = username.trim();
     setErrorMessage(null);
     setUsernameMessage(null);
-
-    if (!trimmedUsername) {
+    setConfirmPasswordError(null);
+    if (!trimmed) {
       setUsernameCheckStatus('unavailable');
-      setUsernameMessage('Archive ID is required');
+      setUsernameMessage('아이디를 입력해주세요.');
       return;
     }
-
     setUsernameCheckStatus('checking');
-
     try {
-      await authApi.checkUsername(trimmedUsername);
-      setCheckedUsername(trimmedUsername);
+      await authApi.checkUsername(trimmed);
+      setCheckedUsername(trimmed);
       setUsernameCheckStatus('available');
-      setUsernameMessage('Archive ID is available');
+      setUsernameMessage('사용 가능한 아이디입니다.');
     } catch (error) {
       setCheckedUsername('');
       setUsernameCheckStatus('unavailable');
-      setUsernameMessage(getApiErrorMessage(error, 'Archive ID is unavailable'));
+      setUsernameMessage(getApiErrorMessage(error, '사용할 수 없는 아이디입니다.'));
     }
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setErrorMessage(null);
-    const trimmedUsername = username.trim();
+    setConfirmPasswordError(null);
 
-    if (checkedUsername !== trimmedUsername || usernameCheckStatus !== 'available') {
-      setErrorMessage('Please check Archive ID availability');
-      return;
+    let hasError = false;
+    const trimmed = username.trim();
+
+    if (checkedUsername !== trimmed || usernameCheckStatus !== 'available') {
+      setUsernameCheckStatus('unavailable');
+      setUsernameMessage('아이디 중복 확인을 해주세요.');
+      hasError = true;
     }
-
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
-      return;
+      setConfirmPasswordError('비밀번호가 일치하지 않습니다.');
+      hasError = true;
     }
 
-    if (!agreed) {
-      setErrorMessage('Please agree to the terms');
-      return;
-    }
+    if (hasError) return;
 
     setIsSubmitting(true);
-
     try {
-      await authApi.signup({ username: trimmedUsername, password });
-      const tokens = await authApi.login({ username: trimmedUsername, password });
+      await authApi.signup({ username: trimmed, password });
+      const tokens = await authApi.login({ username: trimmed, password });
       await authTokenStorage.setTokens(tokens);
       await syncExtensionAuth(tokens);
       navigate('/');
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, 'Sign up failed'));
+      let msg = getApiErrorMessage(error, '회원가입에 실패했습니다.');
+      msg = msg.replace(/^(Password|아이디|비밀번호):\s*/i, '');
+      setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const inputClass =
+    'block h-12 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+
   return (
-    <main className="auth-shell flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-background text-text-primary">
-      <section className="w-full max-w-2xl min-w-0">
-        <div className="rounded-leaf border border-text-secondary/20 bg-surface-low/50 p-xl shadow-neon-sm backdrop-blur-xl">
-          <div className="mb-xl grid min-w-0 gap-dashboard-gap sm:grid-cols-[1fr_auto] sm:items-start">
-            <div className="min-w-0">
-              <p className="mb-sm text-caption-bold uppercase tracking-wide text-primary-signal">
-                Create Account
-              </p>
-              <h1 className="text-h1-bold leading-tight">
-                Create your archive
-              </h1>
-              <p className="mt-sm text-body-main text-text-secondary">
-                Set up a SAN account for your knowledge workspace.
-              </p>
-            </div>
+    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background">
 
-            <div className="hidden aspect-square w-14 shrink-0 items-center justify-center rounded-leaf bg-misty-teal text-primary-signal sm:flex">
-              <Sprout size={20} />
-            </div>
-          </div>
+      {/* 왼쪽 브랜딩 — lg 이상에서만 표시 (로그인과 완전 동일) */}
+      <div className="relative z-10 hidden w-1/2 flex-col justify-end p-16 lg:flex">
+        <h1 className="text-6xl font-bold text-text-primary">SAN</h1>
+        <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-text-secondary">
+          지식 아카이브를 정밀하고 고요하게 키워나가세요.
+        </p>
+        <p className="mt-8 text-[11px] tracking-widest text-text-secondary/30">
+          © 2026 SAN DIGITAL ARTIFACTS
+        </p>
+      </div>
 
-          <button
-            type="button"
-            onClick={handleGithubLogin}
-            className="flex min-h-14 w-full items-center justify-center gap-sm rounded-leaf border border-text-secondary/30 px-lg py-md text-body-main-bold text-text-primary transition hover:border-primary-signal/50 hover:text-primary-signal hover:glow-neon"
-          >
-            <GitBranch size={20} />
-            Continue with GitHub
-          </button>
+      {/* 오른쪽 카드 */}
+      <div className="relative z-10 flex w-full items-center justify-center px-4 py-10 sm:px-8 lg:w-1/2 lg:px-16">
+        <div
+          className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
+          style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%)', padding: '32px', height: '600px' }}
+        >
+          {/* 헤더 */}
+          <h2 className="text-2xl font-bold text-text-primary sm:text-[32px]">회원가입</h2>
+          <p className="mb-5 mt-2 text-sm leading-relaxed text-text-secondary">
+            나만의 지식 아카이브 공간을 만들어보세요.
+          </p>
 
-          <div className="my-xl flex items-center gap-md">
-            <div className="h-px flex-1 bg-text-secondary/20" />
-            <span className="text-caption-bold uppercase tracking-wide text-text-secondary">
-              OR EMAIL
-            </span>
-            <div className="h-px flex-1 bg-text-secondary/20" />
-          </div>
+          {/* 폼 */}
+          <form className="space-y-3" onSubmit={handleSubmit}>
 
-          <form className="space-y-dashboard-gap" onSubmit={handleSubmit}>
-            <Field
-              label="Archive ID"
-              type="text"
-              placeholder="archive"
-              icon={<UserRound className="h-5 w-5" />}
-              value={username}
-              onChange={handleUsernameChange}
-              action={
+            {/* 아이디 */}
+            <div className="shrink-0">
+              <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+                아이디
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="아이디 입력"
+                  value={username}
+                  autoComplete="username"
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  className={`${inputClass} flex-1`}
+                />
                 <button
                   type="button"
                   onClick={handleCheckUsername}
                   disabled={usernameCheckStatus === 'checking'}
-                  className="text-caption-bold uppercase tracking-wide text-primary-signal transition hover:text-text-primary disabled:cursor-not-allowed disabled:text-text-secondary/50"
+                  className="h-12 shrink-0 rounded-xl border border-primary-signal/40 px-4 text-[11px] font-bold text-primary-signal transition hover:bg-primary-signal/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {usernameCheckStatus === 'checking' ? 'Checking...' : 'Check'}
+                  {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                 </button>
-              }
-            />
-            {usernameMessage ? (
+              </div>
               <p
                 className={[
-                  '-mt-sm text-body-sm-bold',
-                  usernameCheckStatus === 'available' ? 'text-primary-signal' : 'text-red-300',
+                  'mt-1.5 min-h-[16px] text-[11px] font-medium',
+                  usernameCheckStatus === 'available' ? 'text-primary-signal' : 'text-red-400',
                 ].join(' ')}
               >
-                {usernameMessage}
+                {usernameMessage || ''}
               </p>
-            ) : null}
-            <Field
-              label="Password"
-              type="password"
-              placeholder="********"
-              icon={<KeyRound className="h-5 w-5" />}
-              value={password}
-              onChange={setPassword}
-            />
-            <Field
-              label="Confirm Password"
-              type="password"
-              placeholder="********"
-              icon={<KeyRound className="h-5 w-5" />}
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-            />
+            </div>
 
-            <label className="flex items-start gap-sm pt-sm text-body-sm text-text-secondary">
-              <input
-                type="checkbox"
-                checked={agreed}
-                onChange={(event) => setAgreed(event.target.checked)}
-                className="mt-1 h-5 w-5 shrink-0 accent-primary-signal"
-              />
-              <span>
-                I agree to the{' '}
-                <a href="#" className="text-primary-signal hover:text-text-primary">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-primary-signal hover:text-text-primary">
-                  Privacy Policy
-                </a>
-                .
-              </span>
-            </label>
+            {/* 비밀번호 */}
+            <div className="shrink-0">
+              <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+                비밀번호
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="비밀번호 입력"
+                  value={password}
+                  autoComplete="new-password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${inputClass} pr-12`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/45 transition hover:text-text-secondary"
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </div>
 
-            {errorMessage ? (
-              <p className="text-body-sm-bold text-red-300">{errorMessage}</p>
-            ) : null}
+            {/* 비밀번호 확인 */}
+            <div className="shrink-0">
+              <label className="mb-1.5 block text-xs font-bold text-text-secondary">
+                비밀번호 확인
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="비밀번호 확인"
+                  value={confirmPassword}
+                  autoComplete="new-password"
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`${inputClass} pr-12`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((v) => !v)}
+                  aria-label={showConfirmPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary/45 transition hover:text-text-secondary"
+                >
+                  {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+              <p className="mt-1.5 min-h-[16px] text-[11px] text-red-400">
+                {confirmPasswordError || ''}
+              </p>
+            </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="!mt-xl flex min-h-14 w-full items-center justify-center rounded-leaf bg-primary-signal px-lg py-md text-body-lg-bold text-background shadow-neon transition hover:glow-neon"
-            >
-              {isSubmitting ? 'Signing up...' : 'Sign up'}
-            </button>
+            <div className="pt-2 shrink-0">
+              {/* 에러 메시지 (API 호출 실패, 비밀번호 불일치, 약관 미동의 등) */}
+              <p className="mb-2 min-h-[16px] text-center text-[11px] text-red-400">
+                {errorMessage || ''}
+              </p>
+
+              {/* 가입 버튼 */}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-12 w-full rounded-xl bg-primary-signal text-sm font-bold text-background outline-none transition hover:brightness-110 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.28)' }}
+              >
+                {isSubmitting ? '가입 중...' : '회원가입'}
+              </button>
+            </div>
           </form>
 
-          <p className="mt-xl text-center text-body-sm text-text-secondary">
-            Already have an account?{' '}
-            <Link to="/login" className="font-bold text-primary-signal hover:underline">
-              Login
-            </Link>
-          </p>
+          {/* 로그인 링크 */}
+          <div className="mt-6">
+            <p className="text-center text-sm text-text-secondary">
+              이미 계정이 있으신가요?{' '}
+              <Link to="/login" className="font-bold text-primary-signal hover:underline">
+                로그인
+              </Link>
+            </p>
+          </div>
         </div>
-      </section>
-    </main>
-  );
-}
-
-function Field({
-  label,
-  type,
-  placeholder,
-  icon,
-  value,
-  onChange,
-  action,
-}: {
-  label: string;
-  type: string;
-  placeholder: string;
-  icon: ReactNode;
-  value: string;
-  onChange: (value: string) => void;
-  action?: ReactNode;
-}) {
-  return (
-    <label className="block min-w-0">
-      <span className="mb-sm flex items-center justify-between gap-sm text-body-sm-bold uppercase tracking-wide text-text-secondary">
-        {label}
-        {action ? <span>{action}</span> : null}
-      </span>
-
-      <div className="flex min-w-0 items-center gap-sm border-b-2 border-text-secondary/30 px-xs py-md focus-within:border-primary-signal/70">
-        <input
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="min-h-6 min-w-0 flex-1 bg-transparent text-body-main text-text-primary outline-none placeholder:text-text-secondary/40"
-        />
-        <span className="shrink-0 text-text-secondary/40">
-          {icon}
-        </span>
       </div>
-    </label>
+
+      {/* 하단 바 — 모바일에선 숨김 */}
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 hidden items-center justify-between px-8 py-4 lg:flex">
+        <span className="text-[10px] tracking-widest text-text-secondary/30">© 2024 SAN DIGITAL ARTIFACTS</span>
+        <div className="flex gap-5">
+          <span className="text-[10px] tracking-widest text-text-secondary/30">개인정보 처리방침</span>
+          <span className="text-[10px] tracking-widest text-text-secondary/30">이용약관</span>
+        </div>
+      </div>
+    </div>
   );
 }

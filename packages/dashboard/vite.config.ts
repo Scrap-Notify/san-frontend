@@ -14,6 +14,8 @@ export default defineConfig({
       { find: '@san/shared/utils', replacement: resolve(__dirname, '../shared/src/utils/format.ts') },
       { find: '@san/shared', replacement: resolve(__dirname, '../shared/src/index.ts') },
       { find: '@san/ui', replacement: resolve(__dirname, '../ui/src/index.ts') },
+      { find: '@ui', replacement: resolve(__dirname, '../ui/src') },
+      { find: '@dashboard', replacement: resolve(__dirname, './src') },
     ],
   },
   server: {

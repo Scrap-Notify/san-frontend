@@ -1,246 +1,330 @@
-import { useRef } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Bold, Italic, List, Link as LinkIcon, RotateCcw, ArrowRight } from 'lucide-react';
-import type { TILMode } from './TILModeTabs';
+import { Bold, Italic, List, Link as LinkIcon, RotateCcw, Heading, Quote, Code, ListOrdered, ListChecks } from 'lucide-react';
+import type { TILMode } from '@dashboard/til/components/TILModeTabs';
 import type { TilResponse } from '@san/shared';
-import type { TilGenerateMutation, TilGithubCommitMutation, TilJobStatusQuery } from '../types';
+import type {
+    TilGenerateMutation,
+    TilGithubCommitMutation,
+    TilJobStatusQuery,
+    TilJobTone,
+} from '@dashboard/til/types';
 
 interface TILEditorProps {
-  activeTab: TILMode;
-  draft: string;
-  setDraft: (value: string) => void;
-  selectedTil: TilResponse | null;
-  generateMutation: TilGenerateMutation;
-  commitMutation: TilGithubCommitMutation;
-  generationStatusQuery: TilJobStatusQuery;
-  commitStatusQuery: TilJobStatusQuery;
-  generationMessage: string | null;
-  commitMessage: string | null;
+    activeTab: TILMode;
+    draft: string;
+    setDraft: (value: string) => void;
+    selectedTil: TilResponse | null;
+    generateMutation: TilGenerateMutation;
+    commitMutation: TilGithubCommitMutation;
+    generationStatusQuery: TilJobStatusQuery;
+    commitStatusQuery: TilJobStatusQuery;
+    generationTone: TilJobTone;
+    generationMessage: string | null;
+    commitMessage: string | null;
 }
 
 export function TILEditor({
-  activeTab,
-  draft,
-  setDraft,
-  selectedTil,
-  generateMutation,
-  commitMutation,
-  generationStatusQuery,
-  commitStatusQuery,
-  generationMessage,
-  commitMessage,
-}: TILEditorProps) {
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+                              activeTab,
+                              draft,
+                              setDraft,
+                              selectedTil,
+                              generateMutation,
+                              commitMutation,
+                              generationStatusQuery,
+                              commitStatusQuery,
+                              generationTone,
+                              generationMessage,
+                              commitMessage,
+                          }: TILEditorProps) {
+    const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+    const [editorHeight, setEditorHeight] = useState(500);
 
-  const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
-  const isCommitting = commitMutation.isPending || isRunning(commitStatusQuery.data?.status);
+    const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
-  const handleEditorMount: OnMount = (editor) => {
-    editorRef.current = editor;
-  };
+    const displayedDraft = draft || (selectedTil?.content ?? '');
 
-  const displayedDraft = draft || (selectedTil?.content ?? '');
+    const handleEditorMount: OnMount = (editor) => {
+        editorRef.current = editor;
+        // 초기 높이 계산
+        const lineCount = editor.getModel()?.getLineCount() ?? 20;
+        setEditorHeight(Math.max(500, lineCount * 24 + 80));
+        // 컨텐츠 변경 시 높이 자동 조정
+        editor.onDidContentSizeChange((e) => {
+            const newHeight = Math.max(500, e.contentHeight + 80);
+            setEditorHeight(newHeight);
+        });
+    };
 
-  const handleGenerate = () => {
-    if (isGenerating) return;
-    generateMutation.mutate();
-  };
+    const handleGenerate = () => {
+        if (isGenerating) return;
+        generateMutation.mutate();
+    };
 
-  const handleFormat = (action: 'bold' | 'italic' | 'list' | 'link') => {
-    const editor = editorRef.current;
-    if (!editor) return;
-    const model = editor.getModel();
-    const selection = editor.getSelection();
-    if (!model || !selection) return;
 
-    const selectedText = model.getValueInRange(selection);
-    let replacement = selectedText;
-    switch (action) {
-      case 'bold':
-        replacement = `**${selectedText || 'text'}**`;
-        break;
-      case 'italic':
-        replacement = `*${selectedText || 'text'}*`;
-        break;
-      case 'list':
-        replacement = `\n- ${selectedText || 'item'}`;
-        break;
-      case 'link':
-        replacement = `[${selectedText || 'link'}](url)`;
-        break;
-    }
-    editor.executeEdits('toolbar', [{ range: selection, text: replacement, forceMoveMarkers: true }]);
-    setDraft(model.getValue());
-  };
 
-  return (
-    <div className="flex h-full min-h-0 min-w-0">
-      <main className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[8px] border border-primary-signal/10 bg-background/80 shadow-2xl">
-        <div className="flex shrink-0 items-center justify-between border-b border-primary-signal/10 bg-background/70 px-8 py-4">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4 text-text-secondary">
-              <button type="button" onClick={() => handleFormat('bold')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><Bold size={18} /></button>
-              <button type="button" onClick={() => handleFormat('italic')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><Italic size={18} /></button>
-              <button type="button" onClick={() => handleFormat('list')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><List size={18} /></button>
-              <button type="button" onClick={() => handleFormat('link')} className="rounded-leaf-reverse bg-background/60 p-sm transition-colors hover:text-primary-signal"><LinkIcon size={18} /></button>
-            </div>
-            <div className="h-4 w-px bg-primary-signal/20" />
-            <span className="font-mono text-caption text-text-secondary/50">UTF-8</span>
-          </div>
+    const handleFormat = (action: 'heading' | 'bold' | 'italic' | 'quote' | 'code' | 'link' | 'ordered-list' | 'list' | 'task') => {
+        const editor = editorRef.current;
+        if (!editor) return;
 
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="flex items-center gap-2 rounded-leaf-reverse bg-background/60 px-md py-sm text-caption-bold text-primary-signal transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
-            {isGenerating ? 'GENERATING...' : 'RETRY'}
-          </button>
-        </div>
+        const model = editor.getModel();
+        const selection = editor.getSelection();
+        if (!model || !selection) return;
 
-        {(generationMessage || commitMessage) ? (
-          <div className="shrink-0 border-b border-primary-signal/10 bg-surface-low/60 px-8 py-2 text-caption text-text-secondary">
-            {generationMessage ?? commitMessage}
-          </div>
-        ) : null}
+        const selectedText = model.getValueInRange(selection);
 
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          {activeTab === 'drafts' || activeTab === 'edit' ? (
-            <div className="h-full w-full p-2">
-              <Editor
-                theme="vs-dark"
-                defaultLanguage="markdown"
-                value={displayedDraft}
-                onChange={(v) => setDraft(v ?? '')}
-                onMount={handleEditorMount}
-                options={{
-                  fontSize: 16,
-                  fontFamily: 'Pretendard',
-                  lineHeight: 24,
-                  wordWrap: 'on',
-                  minimap: { enabled: false },
-                  scrollbar: { vertical: 'auto' },
-                  padding: { top: 40, bottom: 100 },
-                  lineNumbers: 'on',
-                  renderLineHighlight: 'none',
-                  quickSuggestions: false,
-                  automaticLayout: true,
-                  scrollBeyondLastLine: false,
-                  readOnly: activeTab === 'drafts',
-                }}
-              />
-            </div>
-          ) : (
-            <div className="h-full overflow-y-auto px-12 py-10">
-              <article className="max-w-none text-til-body text-text-primary">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    h1: ({ children }) => (
-                      <h1 className="mb-6 border-b border-primary-signal/20 pb-4 text-3xl font-bold leading-tight text-primary-signal">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="mb-4 mt-8 text-2xl font-bold leading-tight text-primary-signal">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="mb-3 mt-6 text-xl font-semibold leading-snug text-text-primary">
-                        {children}
-                      </h3>
-                    ),
-                    h4: ({ children }) => (
-                      <h4 className="mb-2 mt-5 text-lg font-semibold leading-snug text-text-primary">
-                        {children}
-                      </h4>
-                    ),
-                    p: ({ children }) => (
-                      <p className="mb-4 leading-7 text-text-primary/90">
-                        {children}
-                      </p>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="mb-5 list-disc space-y-2 pl-6 text-text-primary/90">
-                        {children}
-                      </ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="mb-5 list-decimal space-y-2 pl-6 text-text-primary/90">
-                        {children}
-                      </ol>
-                    ),
-                    li: ({ children }) => (
-                      <li className="pl-1 leading-7 marker:text-primary-signal">
-                        {children}
-                      </li>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="font-bold text-primary-signal">
-                        {children}
-                      </strong>
-                    ),
-                    em: ({ children }) => (
-                      <em className="text-text-secondary">
-                        {children}
-                      </em>
-                    ),
-                    blockquote: ({ children }) => (
-                      <blockquote className="mb-5 border-l-2 border-primary-signal/50 bg-primary-signal/5 py-3 pl-4 text-text-secondary">
-                        {children}
-                      </blockquote>
-                    ),
-                    code: ({ children }) => (
-                      <code className="rounded bg-surface-highest px-1.5 py-0.5 font-mono text-sm text-primary-signal">
-                        {children}
-                      </code>
-                    ),
-                    pre: ({ children }) => (
-                      <pre className="mb-5 overflow-x-auto rounded-[8px] border border-primary-signal/10 bg-surface-low p-4 text-sm leading-6">
+        let replacement = selectedText;
+        switch (action) {
+            case 'heading':
+                replacement = `### ${selectedText || 'Heading'}`;
+                break;
+            case 'bold':
+                replacement = `**${selectedText || 'text'}**`;
+                break;
+            case 'italic':
+                replacement = `*${selectedText || 'text'}*`;
+                break;
+            case 'quote':
+                replacement = `\n> ${selectedText || 'quote'}`;
+                break;
+            case 'code':
+                replacement = selectedText.includes('\n')
+                    ? `\`\`\`\n${selectedText || 'code'}\n\`\`\``
+                    : `\`${selectedText || 'code'}\``;
+                break;
+            case 'link':
+                replacement = `[${selectedText || 'link'}](url)`;
+                break;
+            case 'ordered-list':
+                replacement = `\n1. ${selectedText || 'item'}`;
+                break;
+            case 'list':
+                replacement = `\n- ${selectedText || 'item'}`;
+                break;
+            case 'task':
+                replacement = `\n- [ ] ${selectedText || 'task'}`;
+                break;
+        }
+
+        editor.executeEdits('toolbar', [
+            { range: selection, text: replacement, forceMoveMarkers: true },
+        ]);
+
+        setDraft(model.getValue());
+    };
+
+    const statusMessage = generationMessage ?? commitMessage;
+
+    return (
+        <div className="flex min-h-0 w-full flex-col">
+            <main className="relative flex w-full flex-col bg-transparent">
+                <div className="flex shrink-0 items-center justify-between border-b border-white/5 px-4 py-2.5">
+                    <div className="flex items-center gap-3 text-text-secondary">
+                        {/* 그룹 1: 텍스트 서식 */}
+                        <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => handleFormat('heading')} title="Heading" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <Heading size={13} strokeWidth={2} />
+                            </button>
+                            <button type="button" onClick={() => handleFormat('bold')} title="Bold" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <Bold size={13} strokeWidth={2.5} />
+                            </button>
+                            <button type="button" onClick={() => handleFormat('italic')} title="Italic" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <Italic size={13} strokeWidth={2.5} />
+                            </button>
+                            <button type="button" onClick={() => handleFormat('quote')} title="Quote" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <Quote size={13} strokeWidth={2} />
+                            </button>
+                            <button type="button" onClick={() => handleFormat('code')} title="Code" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <Code size={13} strokeWidth={2} />
+                            </button>
+                            <button type="button" onClick={() => handleFormat('link')} title="Link" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <LinkIcon size={13} strokeWidth={2} />
+                            </button>
+                        </div>
+
+                        <div className="h-3 w-px bg-white/10" />
+
+                        {/* 그룹 2: 리스트 */}
+                        <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => handleFormat('ordered-list')} title="Ordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <ListOrdered size={13} strokeWidth={2} />
+                            </button>
+                            <button type="button" onClick={() => handleFormat('list')} title="Unordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <List size={13} strokeWidth={2} />
+                            </button>
+                            <button type="button" onClick={() => handleFormat('task')} title="Task List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                                <ListChecks size={13} strokeWidth={2} />
+                            </button>
+                        </div>
+
+                        <div className="h-4 w-px bg-white/10" />
+
+                        {statusMessage ? (
+                            <div
+                                className={`flex items-center gap-2 rounded-full border px-3 py-1 ${
+                                    generationTone === 'success'
+                                        ? 'border-primary-signal/30 bg-primary-signal/10 text-primary-signal'
+                                        : generationTone === 'error'
+                                            ? 'border-error/30 bg-error/10 text-error'
+                                            : generationTone === 'pending'
+                                                ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-500'
+                                                : 'border-white/10 bg-white/5 text-text-secondary'
+                                }`}
+                            >
+                                <span className="text-xs font-bold">{statusMessage}</span>
+                            </div>
+                        ) : null}
+                    </div>
+
+                    <div className="flex items-center gap-4 text-xs font-medium text-text-secondary">
+                        <span>UTF-8</span>
+
+                        <div className="h-4 w-px bg-white/10" />
+
+                        <button
+                            type="button"
+                            onClick={handleGenerate}
+                            disabled={isGenerating}
+                            className="flex items-center gap-1.5 font-bold text-primary-signal transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
+                            {isGenerating ? 'GENERATING...' : 'REGENERATE'}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="relative w-full pt-2">
+                    {activeTab === 'drafts' || activeTab === 'edit' ? (
+                        <div style={{ height: editorHeight }} className="relative w-full overflow-hidden rounded-lg bg-[#1e1e1e]/30 border border-white/5 transition-all">
+                            <Editor
+                                theme="vs-dark"
+                                defaultLanguage="markdown"
+                                value={displayedDraft}
+                                onChange={(v) => setDraft(v ?? '')}
+                                onMount={handleEditorMount}
+                                loading={
+                                    <div className="flex h-full w-full flex-col gap-4 p-6 animate-pulse">
+                                        <div className="h-6 w-3/4 rounded bg-white/5" />
+                                        <div className="h-4 w-full rounded bg-white/5" />
+                                        <div className="h-4 w-full rounded bg-white/5" />
+                                        <div className="h-4 w-2/3 rounded bg-white/5" />
+                                        <div className="mt-4 h-6 w-1/2 rounded bg-white/5" />
+                                        <div className="h-4 w-full rounded bg-white/5" />
+                                        <div className="h-4 w-5/6 rounded bg-white/5" />
+                                    </div>
+                                }
+                                options={{
+                                    fontSize: 15,
+                                    fontFamily: 'Pretendard, ui-monospace, monospace',
+                                    lineHeight: 26,
+                                    wordWrap: 'on',
+                                    minimap: { enabled: false },
+                                    scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
+                                    padding: { top: 16, bottom: 40 },
+                                    lineNumbers: 'on',
+                                    renderLineHighlight: 'all',
+                                    quickSuggestions: false,
+                                    automaticLayout: true,
+                                    scrollBeyondLastLine: false,
+                                    readOnly: false,
+                                    overviewRulerLanes: 0,
+                                    fontLigatures: true,
+                                    cursorSmoothCaretAnimation: 'on',
+                                    smoothScrolling: true,
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div className="h-full overflow-y-auto px-10 py-8 no-scrollbar">
+                            <article className="max-w-none leading-relaxed text-text-primary">
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                        h1: ({ children }) => (
+                                            <h1 className="mb-6 border-b border-primary-signal/20 pb-4 text-3xl font-bold leading-tight text-primary-signal">
+                                                {children}
+                                            </h1>
+                                        ),
+                                        h2: ({ children }) => (
+                                            <h2 className="mb-4 mt-8 text-2xl font-bold leading-tight text-primary-signal">
+                                                {children}
+                                            </h2>
+                                        ),
+                                        h3: ({ children }) => (
+                                            <h3 className="mb-3 mt-6 text-xl font-semibold leading-snug text-text-primary">
+                                                {children}
+                                            </h3>
+                                        ),
+                                        h4: ({ children }) => (
+                                            <h4 className="mb-2 mt-5 text-lg font-semibold leading-snug text-text-primary">
+                                                {children}
+                                            </h4>
+                                        ),
+                                        p: ({ children }) => (
+                                            <p className="mb-4 leading-7 text-text-primary/90">{children}</p>
+                                        ),
+                                        ul: ({ children }) => (
+                                            <ul className="mb-5 list-disc space-y-2 pl-6 text-text-primary/90">
+                                                {children}
+                                            </ul>
+                                        ),
+                                        ol: ({ children }) => (
+                                            <ol className="mb-5 list-decimal space-y-2 pl-6 text-text-primary/90">
+                                                {children}
+                                            </ol>
+                                        ),
+                                        li: ({ children }) => (
+                                            <li className="pl-1 leading-7 marker:text-primary-signal">{children}</li>
+                                        ),
+                                        strong: ({ children }) => (
+                                            <strong className="font-bold text-primary-signal">{children}</strong>
+                                        ),
+                                        em: ({ children }) => (
+                                            <em className="text-text-secondary">{children}</em>
+                                        ),
+                                        blockquote: ({ children }) => (
+                                            <blockquote className="mb-5 border-l-2 border-primary-signal/50 bg-primary-signal/5 py-3 pl-4 text-text-secondary">
+                                                {children}
+                                            </blockquote>
+                                        ),
+                                        code: ({ children }) => (
+                                            <code className="rounded bg-surface-highest px-1.5 py-0.5 font-mono text-sm text-primary-signal">
+                                                {children}
+                                            </code>
+                                        ),
+                                        pre: ({ children }) => (
+                                            <pre className="mb-5 overflow-x-auto rounded-[8px] border border-primary-signal/10 bg-surface-low p-4 text-sm leading-6">
                         {children}
                       </pre>
-                    ),
-                    a: ({ href, children }) => (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary-signal underline decoration-primary-signal/40 underline-offset-4"
-                      >
-                        {children}
-                      </a>
-                    ),
-                    hr: () => <hr className="my-8 border-primary-signal/20" />,
-                  }}
-                >
-                  {displayedDraft}
-                </ReactMarkdown>
-              </article>
-            </div>
-          )}
-
-          <div className="absolute bottom-8 right-8">
-            <button
-              type="button"
-              onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
-              disabled={isCommitting}
-              className="flex items-center gap-3 rounded-leaf bg-primary-signal px-8 py-4 text-h2-bold text-background shadow-neon transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-            >
-              {isCommitting ? 'Committing...' : 'Commit'}
-              <ArrowRight size={20} />
-            </button>
-          </div>
+                                        ),
+                                        a: ({ href, children }) => (
+                                            <a
+                                                href={href}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-primary-signal underline decoration-primary-signal/40 underline-offset-4"
+                                            >
+                                                {children}
+                                            </a>
+                                        ),
+                                        hr: () => <hr className="my-8 border-primary-signal/20" />,
+                                    }}
+                                >
+                                    {displayedDraft}
+                                </ReactMarkdown>
+                            </article>
+                        </div>
+                    )}
+                </div>
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
 }
 
 function isRunning(status?: string) {
-  return status === 'PENDING' || status === 'PROCESSING';
+    return status === 'PENDING' || status === 'PROCESSING';
 }

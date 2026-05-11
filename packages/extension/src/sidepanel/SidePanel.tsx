@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
-import { authApi, authTokenStorage, cardsApi, searchApi } from '../api/client';
-import type { ExtensionMessage, PendingScrap, SavedInsight } from '../types';
+import { authApi, authTokenStorage, cardsApi, searchApi } from '@extension/api/client';
+import type { ExtensionMessage, PendingScrap, SavedInsight } from '@extension/types';
 import { DropZone } from './components/capture/DropZone';
 import { EmptyState } from './components/feedback/EmptyState';
 import GlowBackground from './components/feedback/GlowBackground';
@@ -685,7 +685,7 @@ export default function SidePanel() {
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#101417] px-4 pb-4 text-text-primary">
+    <div className="flex h-screen flex-col overflow-hidden bg-background px-4 pb-4 text-text-primary">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <SidePanelNavbar
           isAuthenticated={isAuthenticated}

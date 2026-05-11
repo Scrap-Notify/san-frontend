@@ -18,8 +18,8 @@ export function HomePage() {
           {notice}
         </p>
       ) : null}
-      <GraphSection />
       <ArchiveSection />
+      <GraphSection />
     </div>
   );
 }
