@@ -15,6 +15,7 @@ export interface ArchiveCardsParams {
   to?: string;
 }
 
+/*
 const MOCK_CARDS: KnowledgeCardView[] = [
   {
     card_id: '1',
@@ -187,6 +188,7 @@ const MOCK_CARDS: KnowledgeCardView[] = [
     is_deleted: false,
   },
 ];
+*/
 
 interface UseArchiveCardsResult {
   cards: KnowledgeCardView[];
@@ -194,22 +196,25 @@ interface UseArchiveCardsResult {
   isError: boolean;
 }
 
-const useMockCards = true; // 무조건 mock 데이터 사용하도록 강제
+// const useMockCards = true; // Mock data toggle kept for local UI checks.
 
 export function useArchiveCards(params?: ArchiveCardsParams): UseArchiveCardsResult {
   const serverParams = toKnowledgeCardListParams(params);
-  const query = useCards(serverParams, { enabled: !useMockCards });
+  const query = useCards(serverParams);
 
+  /*
+  const useMockCards = true;
   if (useMockCards) {
     return {
-      cards: filterMockCards(MOCK_CARDS, params),
+      cards: filterArchiveCards(MOCK_CARDS, params),
       isPending: false,
       isError: false,
     };
   }
+  */
 
   return {
-    cards: filterMockCards(query.data?.cards.map(toKnowledgeCardView) ?? [], {
+    cards: filterArchiveCards(query.data?.cards.map(toKnowledgeCardView) ?? [], {
       ...params,
       limit: params?.search ? params.limit : undefined,
     }),
@@ -239,7 +244,7 @@ function compactParams(params: KnowledgeCardListParams): KnowledgeCardListParams
   return Object.keys(compacted).length > 0 ? compacted : undefined;
 }
 
-function filterMockCards(cards: KnowledgeCardView[], params?: ArchiveCardsParams) {
+function filterArchiveCards(cards: KnowledgeCardView[], params?: ArchiveCardsParams) {
   if (!params) return cards;
 
   const search = params.search?.trim().toLowerCase();
