@@ -56,9 +56,9 @@ export function TopNavBar({
     setIsMenuOpen(false);
   };
 
-  const handleUserClick = () => {
-    // Navigate directly to profile for now so user can see it
-    navigate('/profile');
+  const handleUserClick = async () => {
+    const token = await authTokenStorage.getToken();
+    navigate(token ? '/profile' : '/login');
     setIsMenuOpen(false);
   };
 
