@@ -54,7 +54,7 @@ export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataP
                     <Search size={16} className="text-text-secondary" />
                     <input
                         type="search"
-                        placeholder="검색..."
+                        placeholder="키워드로 검색..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full bg-transparent text-sm text-white outline-none placeholder:text-text-secondary/60"
