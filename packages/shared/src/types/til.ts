@@ -34,7 +34,7 @@ export interface TilSourceContentResponse {
 }
 
 export interface TilRecallCardsResponse {
-  sources: TilSourceContentResponse[];
+  recallCards: KnowledgeCardResponse[];
 }
 
 export interface TilSourcesResponse {
