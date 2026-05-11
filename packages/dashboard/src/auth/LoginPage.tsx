@@ -1,14 +1,17 @@
 import { type FormEvent, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import githubSvg from '@dashboard/assets/github.svg';
 import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage, githubAuthApi } from '../api/client';
 import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
+import { getAuthClientType, withAuthClientType } from './clientType';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const clientType = getAuthClientType(searchParams);
   const initialAuthError =
     typeof location.state === 'object' && location.state && 'authError' in location.state
       ? (location.state as { authError: string }).authError
@@ -23,7 +26,7 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGithubLogin = () => {
-    window.location.href = githubAuthApi.getGithubAuthorizeUrl();
+    window.location.href = githubAuthApi.getGithubAuthorizeUrl(clientType);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -49,7 +52,7 @@ export function LoginPage() {
     setGeneralError(null);
     setIsSubmitting(true);
     try {
-      const tokens = await authApi.login({ username, password });
+      const tokens = await authApi.login({ username, password, clientType });
       await authTokenStorage.setTokens(tokens);
       await syncExtensionAuth(tokens);
       navigate('/');
@@ -191,7 +194,7 @@ export function LoginPage() {
           <div className="mt-6">
             <p className="text-center text-sm text-text-secondary">
               계정이 없으신가요?{' '}
-              <Link to="/signup" className="font-bold text-primary-signal hover:underline">
+              <Link to={withAuthClientType('/signup', clientType)} className="font-bold text-primary-signal hover:underline">
                 회원가입
               </Link>
             </p>

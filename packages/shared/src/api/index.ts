@@ -4,6 +4,7 @@ export type { ApiResponse, AuthTokens, TokenProvider, TokenResponse } from './cl
 export { createAuthApi } from './auth';
 export type {
   AuthApi,
+  ClientType,
   GithubLoginRequest,
   GithubTokenExchangeRequest,
   LoginRequest,
