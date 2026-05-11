@@ -18,14 +18,17 @@ export function NotFoundPage() {
         </div>
 
         <div className="grid gap-3">
-          <p className="text-caption-bold uppercase tracking-[0.28em] text-primary-signal">
+          <p className="text-caption-bold uppercase text-primary-signal">
             Page not found
           </p>
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-text-primary sm:text-5xl">
             요청한 페이지를 찾을 수 없습니다
           </h1>
           <p className="mx-auto max-w-lg text-body-main leading-7 text-text-secondary">
-            주소가 변경되었거나 삭제된 페이지일 수 있습니다. 홈으로 돌아가거나 이전 화면에서 다시 시도하세요.
+            주소가 변경되었거나 삭제된 페이지일 수 있습니다.
+          </p>
+          <p className="mx-auto max-w-lg text-body-main leading-7 text-text-secondary">
+            홈으로 돌아가거나 이전 화면에서 다시 시도하세요.
           </p>
         </div>
 
@@ -45,7 +48,7 @@ export function NotFoundPage() {
             size="md"
             leadingIcon={<ArrowLeft size={18} />}
             onClick={() => navigate(-1)}
-            className="w-full border border-text-secondary/10 sm:w-fit"
+            className="w-full rounded-md border border-text-secondary/10 [border-radius:0.375rem] sm:w-fit"
           >
             이전으로
           </CurvedButton>
