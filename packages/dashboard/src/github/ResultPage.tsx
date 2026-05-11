@@ -257,9 +257,6 @@ function SearchPage({
         </div>
 
         <div className="relative">
-          <div className="absolute left-6 top-1/2 -translate-y-1/2 flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white/5 text-white/20">
-            <Search size={18} />
-          </div>
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-white/20" />
           </div>
@@ -267,7 +264,7 @@ function SearchPage({
             key={keyword}
             type="text"
             className="block w-full pl-11 pr-4 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-sm font-medium outline-none focus:border-[#4ade80]/30 transition-all placeholder:text-white/10"
-            placeholder="Search keywords in knowledge cards..."
+            placeholder="찾는 내용을 검색해주세요."
             defaultValue={keyword}
             onChange={(e) => handleKeywordInputChange(e.target.value)}
           />
