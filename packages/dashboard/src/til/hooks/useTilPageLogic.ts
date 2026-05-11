@@ -3,12 +3,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@san/shared';
 import type { TilJobTone, TilPageLogic } from '../types';
 import { useTilGenerateMutation, useTilGithubCommitMutation } from './useTilMutations';
+import type { TilResponse } from '@san/shared';
 import {
   tilKeys,
   useTilAsyncJobStatus,
   useTilByDate,
   useTilSources,
 } from './useTilQueries';
+
+const EMPTY_TIL_LIST: TilResponse[] = [];
 
 export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
@@ -23,7 +26,7 @@ export function useTilPageLogic(): TilPageLogic {
 
   const tilQuery = useTilByDate(selectedDate);
 
-  const tilList = tilQuery.data ?? [];
+  const tilList = tilQuery.data ?? EMPTY_TIL_LIST;
   const selectedTil = useMemo(
     () => tilList.find((item) => item.summaryId === selectedSummaryId) ?? tilList[0] ?? null,
     [selectedSummaryId, tilList],

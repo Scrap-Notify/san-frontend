@@ -1,8 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, Search } from 'lucide-react';
 import type { TilResponse } from '@san/shared';
+import type { TilSourceContentResponse } from '@san/shared';
 import type { TilSourcesQuery } from '../types';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
+
+const EMPTY_SOURCES: TilSourceContentResponse[] = [];
 
 interface CollectedDataPanelProps {
     sourcesQuery: TilSourcesQuery;
@@ -12,7 +15,7 @@ interface CollectedDataPanelProps {
 export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataPanelProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const debouncedSearch = useDebounce(searchQuery, 300);
-    const sources = sourcesQuery.data?.sources ?? [];
+    const sources = sourcesQuery.data?.sources ?? EMPTY_SOURCES;
 
     const items: CollectedDataItem[] = useMemo(() => {
         const baseItems = sources.map((source) => ({
