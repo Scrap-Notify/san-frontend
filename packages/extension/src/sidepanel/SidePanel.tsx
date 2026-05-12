@@ -17,6 +17,7 @@ import {
 import SidePanelNavbar from './components/layout/SidePanelNavbar';
 import { CreatedKnowledgeCard } from './components/knowledge/CreatedKnowledgeCard';
 import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCard';
+import { ExtensionAuthCard } from './components/auth/ExtensionAuthCard';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
@@ -237,6 +238,7 @@ export default function SidePanel() {
   const [activeKnowledgeTab, setActiveKnowledgeTab] = useState<KnowledgeTab>('recent');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isAuthCardOpen, setIsAuthCardOpen] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
     const requestToken = await authTokenStorage.getToken();
@@ -583,12 +585,18 @@ export default function SidePanel() {
 
   const handleAuthButtonClick = useCallback(() => {
     if (!isAuthenticated) {
-      openDashboardLogin();
+      setIsAuthCardOpen(true);
       return;
     }
 
     setIsLogoutConfirmOpen(true);
-  }, [isAuthenticated, openDashboardLogin]);
+  }, [isAuthenticated]);
+
+  const handleExtensionAuthComplete = useCallback(() => {
+    setIsAuthCardOpen(false);
+    setIsAuthenticated(true);
+    void refreshRecentCards();
+  }, [refreshRecentCards]);
 
   const handleCancelLogout = useCallback(() => {
     if (isLoggingOut) return;
@@ -729,72 +737,78 @@ export default function SidePanel() {
         <GlowBackground />
         <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
-          <div className="shrink-0">
-            {isSaving || (isLoadingRelated && !createdCard) ? (
-              <KnowledgeLoadingCard />
-            ) : (
-              <DropZone
-                pendingScrap={pendingScrap}
-                onTextDrop={handleTextDrop}
-                onImageDrop={handleImageDrop}
-                onSave={handleSave}
-                onClear={handleClearPending}
-                isSaving={isSaving}
-                savingLabel={savingLabel}
-                saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
-                saveError={saveError}
-                saveNotice={saveNotice}
-                canSave={isAuthenticated}
-                authNotice={!isAuthenticated && pendingScrap ? '' : null}
-                onLogin={!isAuthenticated ? openDashboardLogin : undefined}
-              />
-            )}
-          </div>
-
-          {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
-          {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
-            <div className="shrink-0">
-              <CreatedKnowledgeCard card={createdCard} />
-            </div>
-          )}
-
-          {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
-          <div className="flex shrink-0 flex-col">
-            {!isAuthenticated ? (
-              !pendingScrap && <EmptyState onLogin={openDashboardLogin} />
-            ) : (
-              <>
-                {hasKnowledgeSearchResult ? (
-                  <RecentKnowledgeList
-                    cards={knowledgeSearchCards}
-                    isLoading={isSearchingKnowledge}
-                    error={knowledgeSearchError}
-                    isScrollable={false}
-                    title={SEARCH_RESULT_TITLE}
-                    action={knowledgeSearchAction}
-                  />
-                ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
-                  <SimilarKnowledgeList
-                    cards={relatedCards}
-                    isLoading={false}
-                    error={relatedError}
-                    isScrollable={false}
-                    title={knowledgeTabs}
-                    action={knowledgeSearchAction}
-                  />
+          {isAuthCardOpen && !isAuthenticated ? (
+            <ExtensionAuthCard onAuthenticated={handleExtensionAuthComplete} />
+          ) : (
+            <>
+              <div className="shrink-0">
+                {isSaving || (isLoadingRelated && !createdCard) ? (
+                  <KnowledgeLoadingCard />
                 ) : (
-                  <RecentKnowledgeList
-                    cards={recentCards}
-                    isLoading={isLoadingRecent && recentCards.length === 0}
-                    error={recentError}
-                    isScrollable={false}
-                    title={knowledgeTabs}
-                    action={knowledgeSearchAction}
+                  <DropZone
+                    pendingScrap={pendingScrap}
+                    onTextDrop={handleTextDrop}
+                    onImageDrop={handleImageDrop}
+                    onSave={handleSave}
+                    onClear={handleClearPending}
+                    isSaving={isSaving}
+                    savingLabel={savingLabel}
+                    saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+                    saveError={saveError}
+                    saveNotice={saveNotice}
+                    canSave={isAuthenticated}
+                    authNotice={!isAuthenticated && pendingScrap ? '' : null}
+                    onLogin={!isAuthenticated ? () => setIsAuthCardOpen(true) : undefined}
                   />
                 )}
-              </>
-            )}
-          </div>
+              </div>
+
+          {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
+              {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
+                <div className="shrink-0">
+                  <CreatedKnowledgeCard card={createdCard} />
+                </div>
+              )}
+
+          {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
+              <div className="flex shrink-0 flex-col">
+                {!isAuthenticated ? (
+                  !pendingScrap && <EmptyState onLogin={() => setIsAuthCardOpen(true)} />
+                ) : (
+                  <>
+                    {hasKnowledgeSearchResult ? (
+                      <RecentKnowledgeList
+                        cards={knowledgeSearchCards}
+                        isLoading={isSearchingKnowledge}
+                        error={knowledgeSearchError}
+                        isScrollable={false}
+                        title={SEARCH_RESULT_TITLE}
+                        action={knowledgeSearchAction}
+                      />
+                    ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
+                      <SimilarKnowledgeList
+                        cards={relatedCards}
+                        isLoading={false}
+                        error={relatedError}
+                        isScrollable={false}
+                        title={knowledgeTabs}
+                        action={knowledgeSearchAction}
+                      />
+                    ) : (
+                      <RecentKnowledgeList
+                        cards={recentCards}
+                        isLoading={isLoadingRecent && recentCards.length === 0}
+                        error={recentError}
+                        isScrollable={false}
+                        title={knowledgeTabs}
+                        action={knowledgeSearchAction}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
