@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
-import githubSvg from '@dashboard/assets/github.svg';
+import githubSvg from '@ui/assets/icons/github.svg';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
   A009: 'GitHub 계정이 연동되어 있지 않습니다.',

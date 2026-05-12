@@ -29,6 +29,9 @@ const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
 const dashboardLoginUrl = new URL('/login', dashboardBaseUrl);
 dashboardLoginUrl.searchParams.set('clientType', 'EXTENSION');
+const dashboardGithubLoginUrl = new URL('/login', dashboardBaseUrl);
+dashboardGithubLoginUrl.searchParams.set('clientType', 'EXTENSION');
+dashboardGithubLoginUrl.searchParams.set('autoGithub', 'true');
 const SEARCH_RESULT_TITLE = '\uAC80\uC0C9 \uACB0\uACFC';
 const RECENT_TAB_LABEL = '\uCD5C\uADFC \uC9C0\uC2DD';
 const SIMILAR_TAB_LABEL = '\uC720\uC0AC \uC9C0\uC2DD';
@@ -169,7 +172,7 @@ function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: Knowledge
   ];
 
   return (
-    <div className="grid h-9 w-[156px] shrink-0 grid-cols-2 rounded-md border border-text-secondary/10 bg-surface-highest/60 p-1">
+    <div className="flex shrink-0 items-center gap-5">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -179,11 +182,11 @@ function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: Knowledge
             disabled={tab.disabled}
             onClick={() => onChange(tab.id)}
             className={[
-              'rounded text-caption-bold transition',
+              'whitespace-nowrap text-xs font-semibold transition',
               isActive
-                ? 'bg-primary-signal/15 text-primary-signal shadow-neon-sm'
-                : 'text-text-secondary hover:bg-white/5 hover:text-text-primary',
-              tab.disabled ? 'cursor-not-allowed opacity-40 hover:bg-transparent hover:text-text-secondary' : '',
+                ? 'text-primary-signal'
+                : 'text-text-secondary/45 hover:text-text-primary',
+              tab.disabled ? 'cursor-not-allowed opacity-30 hover:text-text-secondary/55' : '',
             ].join(' ')}
           >
             {tab.label}
@@ -580,6 +583,10 @@ export default function SidePanel() {
     chrome.tabs.create({ url: dashboardLoginUrl.toString() });
   }, []);
 
+  const openDashboardGithubLogin = useCallback(() => {
+    chrome.tabs.create({ url: dashboardGithubLoginUrl.toString() });
+  }, []);
+
   const openDashboard = useCallback(() => {
     chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : dashboardLoginUrl.toString() });
   }, [isAuthenticated]);
@@ -754,7 +761,10 @@ export default function SidePanel() {
         <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
           {isAuthCardOpen && !isAuthenticated ? (
-            <ExtensionAuthCard onAuthenticated={handleExtensionAuthComplete} />
+            <ExtensionAuthCard
+              onAuthenticated={handleExtensionAuthComplete}
+              onGithubLogin={openDashboardGithubLogin}
+            />
           ) : (
             <>
               <div className="shrink-0">

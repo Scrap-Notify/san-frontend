@@ -71,15 +71,7 @@ export default function SidePanelNavbar({
           </button>
 
           {isAuthenticated && isProfileMenuOpen && (
-            <div className="absolute right-0 top-10 w-40 overflow-hidden rounded-lg border border-white/[0.16] bg-white/[0.08] p-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl">
-              <button
-                type="button"
-                onClick={onOpenDashboard}
-                className="flex h-9 w-full items-center gap-2 rounded-md px-2.5 text-left text-xs font-semibold text-text-secondary transition hover:bg-white/8 hover:text-text-primary"
-              >
-                <LayoutDashboard size={14} aria-hidden="true" />
-                Dashboard
-              </button>
+            <div className="absolute right-0 top-10 w-32 overflow-hidden rounded-lg border border-white/[0.16] bg-white/[0.08] p-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl">
               <button
                 type="button"
                 onClick={onLogoutClick}

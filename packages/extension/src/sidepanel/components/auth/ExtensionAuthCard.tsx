@@ -2,18 +2,20 @@ import { type FormEvent, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { getApiErrorMessage } from '@san/shared';
 import { authApi, authTokenStorage } from '@extension/api/client';
+import githubSvg from '@san/ui/assets/icons/github.svg';
 
 type AuthMode = 'login' | 'signup';
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
 interface ExtensionAuthCardProps {
   onAuthenticated: () => void;
+  onGithubLogin: () => void;
 }
 
 const inputClass =
-  'block h-9 w-full rounded-md border border-white/[0.1] bg-white/[0.045] px-2.5 text-[13px] text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.055)] outline-none backdrop-blur-xl placeholder:text-text-secondary/32 transition focus:border-primary-signal/50 focus:bg-white/[0.065] focus:ring-1 focus:ring-primary-signal/18';
+  'block h-12 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
 
-export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
+export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionAuthCardProps) {
   const [mode, setMode] = useState<AuthMode>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -117,22 +119,51 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
   };
 
   return (
-    <section className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-4 py-4 sm:px-8">
-      <div className="relative flex h-[clamp(340px,calc(100vh-112px),374px)] w-full max-w-[420px] flex-col overflow-hidden rounded-lg border border-white/[0.18] bg-white/[0.075] p-3.5 shadow-[0_18px_48px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
-        <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-primary-signal/10 blur-3xl" />
-        <div className="pointer-events-none absolute -left-20 bottom-12 h-36 w-36 rounded-full bg-white/[0.08] blur-3xl" />
+    <section className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-3 py-4 sm:px-8">
+      <div
+        className="relative flex h-[clamp(520px,calc(100vh-112px),600px)] w-full max-w-[400px] flex-col justify-center overflow-hidden rounded-[28px] border border-white/20 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl sm:rounded-3xl sm:p-8"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%)',
+        }}
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
 
         <div className="relative mb-5">
-          <h1 className="text-xl font-bold leading-6 text-text-primary">
+          <h1 className="text-2xl font-bold text-text-primary sm:text-[32px]">
             {isSignup ? '회원가입' : '로그인'}
           </h1>
+          <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+            {isSignup ? '나만의 지식 아카이브 공간을 만들어보세요.' : '아카이브에 접속하고 탐험을 계속하세요.'}
+          </p>
         </div>
 
         <form className="relative flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
-          <div className={['flex min-h-0 flex-1 flex-col', isSignup ? 'justify-start gap-2' : 'justify-center gap-3 pb-4'].join(' ')}>
+          {!isSignup && (
+            <>
+              <button
+                type="button"
+                onClick={onGithubLogin}
+                className="relative flex h-14 w-full shrink-0 items-center rounded-xl border border-white/10 bg-black text-sm font-bold text-white outline-none transition hover:opacity-85 focus-visible:ring-1 focus-visible:ring-primary-signal/35 active:scale-[0.98]"
+              >
+                <span className="absolute left-3 flex h-8 w-8 items-center justify-center sm:left-4">
+                  <img src={githubSvg} alt="" aria-hidden="true" className="h-6 w-6 brightness-0 invert" />
+                </span>
+                <span className="pointer-events-none absolute inset-x-0 block truncate px-14 text-center">
+                  GitHub 계정으로 로그인
+                </span>
+              </button>
+
+              <div className="my-5 flex shrink-0 items-center gap-4">
+                <div className="h-px flex-1 bg-white/10" />
+                <span className="text-[11px] text-text-secondary/50">Or</span>
+                <div className="h-px flex-1 bg-white/10" />
+              </div>
+            </>
+          )}
+
+          <div className={['flex min-h-0 flex-1 flex-col', isSignup ? 'justify-start gap-3' : 'justify-start gap-3'].join(' ')}>
             <div>
-              <label className="mb-1 block text-[11px] font-bold text-text-secondary">아이디</label>
+              <label className="mb-1.5 block text-xs font-bold text-text-secondary">아이디</label>
               <div className={isSignup ? 'flex gap-2' : undefined}>
                 <input
                   type="text"
@@ -147,7 +178,7 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
                     type="button"
                     onClick={handleCheckUsername}
                     disabled={usernameCheckStatus === 'checking'}
-                    className="h-9 shrink-0 rounded-md border border-primary-signal/30 bg-primary-signal/[0.055] px-2 text-[10px] font-bold text-primary-signal shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] outline-none transition hover:bg-primary-signal/10 focus-visible:ring-1 focus-visible:ring-primary-signal/35 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-12 shrink-0 rounded-xl border border-primary-signal/40 px-4 text-[11px] font-bold text-primary-signal outline-none transition hover:bg-primary-signal/10 focus-visible:ring-1 focus-visible:ring-primary-signal/35 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                   </button>
@@ -166,7 +197,7 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-[11px] font-bold text-text-secondary">비밀번호</label>
+              <label className="mb-1.5 block text-xs font-bold text-text-secondary">비밀번호</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -216,13 +247,13 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="h-9 min-h-9 w-full shrink-0 rounded-md bg-primary-signal text-[13px] font-bold text-background outline-none transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ boxShadow: '0 0 22px 0 rgba(0,255,194,0.24)' }}
+            className="h-12 min-h-12 w-full shrink-0 rounded-xl bg-primary-signal text-sm font-bold text-background outline-none transition hover:brightness-110 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.25)' }}
           >
             {isSubmitting ? '처리 중...' : isSignup ? '회원가입' : '로그인'}
           </button>
 
-          <p className="mt-3 text-center text-[11px] text-text-secondary">
+          <p className="mt-6 text-center text-sm text-text-secondary">
             {isSignup ? '이미 계정이 있으신가요?' : '계정이 없으신가요?'}{' '}
             <button
               type="button"
