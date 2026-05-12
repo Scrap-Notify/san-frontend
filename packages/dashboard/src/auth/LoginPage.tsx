@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import githubSvg from '@ui/assets/icons/github.svg';
@@ -26,10 +26,10 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const autoGithubStartedRef = useRef(false);
 
-  const handleGithubLogin = () => {
+  const handleGithubLogin = useCallback(() => {
     rememberAuthClientType(clientType);
-    window.location.href = githubAuthApi.getGithubAuthorizeUrl(clientType);
-  };
+    window.location.replace(githubAuthApi.getGithubAuthorizeUrl(clientType));
+  }, [clientType]);
 
   useEffect(() => {
     if (searchParams.get('autoGithub') !== 'true' || autoGithubStartedRef.current) {
@@ -38,7 +38,7 @@ export function LoginPage() {
 
     autoGithubStartedRef.current = true;
     handleGithubLogin();
-  });
+  }, [handleGithubLogin, searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
