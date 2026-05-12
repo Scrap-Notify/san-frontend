@@ -14,6 +14,8 @@ const baseURL = import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL;
 
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
+const SESSION_ID_KEY = 'san_session_id';
+const CLIENT_TYPE_KEY = 'san_client_type';
 
 async function getStorageValue(key: string): Promise<string | null> {
   const stored = await chrome.storage.local.get(key);
@@ -23,14 +25,21 @@ async function getStorageValue(key: string): Promise<string | null> {
 const tokenProvider: TokenProvider = {
   getToken: () => getStorageValue(ACCESS_TOKEN_KEY),
   getRefreshToken: () => getStorageValue(REFRESH_TOKEN_KEY),
-  setTokens: async ({ accessToken, refreshToken }: AuthTokens) => {
+  setTokens: async ({ accessToken, refreshToken, sessionId, clientType }: AuthTokens) => {
     await chrome.storage.local.set({
       [ACCESS_TOKEN_KEY]: accessToken,
       [REFRESH_TOKEN_KEY]: refreshToken,
+      [CLIENT_TYPE_KEY]: clientType ?? 'EXTENSION',
+      ...(sessionId ? { [SESSION_ID_KEY]: sessionId } : {}),
     });
   },
   clearToken: async () => {
-    await chrome.storage.local.remove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+    await chrome.storage.local.remove([
+      ACCESS_TOKEN_KEY,
+      REFRESH_TOKEN_KEY,
+      SESSION_ID_KEY,
+      CLIENT_TYPE_KEY,
+    ]);
   },
 };
 

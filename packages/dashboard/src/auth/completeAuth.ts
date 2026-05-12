@@ -7,11 +7,13 @@ import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
 import { authTokenStorage } from '@dashboard/api/tokenStorage';
 
 export async function completeAuth(tokens: AuthTokens, clientType: ClientType) {
+  const scopedTokens = { ...tokens, clientType };
+
   if (clientType === 'EXTENSION') {
-    await syncExtensionAuth(tokens);
+    await syncExtensionAuth(scopedTokens);
     await authTokenStorage.clearToken();
     return;
   }
 
-  await authTokenStorage.setTokens(tokens);
+  await authTokenStorage.setTokens(scopedTokens);
 }

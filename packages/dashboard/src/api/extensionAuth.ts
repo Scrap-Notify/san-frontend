@@ -42,6 +42,8 @@ export async function syncExtensionAuth(tokens: AuthTokens): Promise<void> {
     type: AUTH_SYNC_MESSAGE,
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
+    sessionId: tokens.sessionId,
+    clientType: tokens.clientType ?? 'EXTENSION',
   };
 
   await deliverExtensionAuthMessage(message, true);

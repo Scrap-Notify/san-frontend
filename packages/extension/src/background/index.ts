@@ -5,6 +5,8 @@ const DEBUG_PREFIX = '[SAN:background]';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
+const SESSION_ID_KEY = 'san_session_id';
+const CLIENT_TYPE_KEY = 'san_client_type';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
@@ -14,6 +16,8 @@ interface AuthSyncMessage {
   type: typeof AUTH_SYNC_MESSAGE;
   accessToken?: string;
   refreshToken?: string;
+  sessionId?: string;
+  clientType?: 'DASHBOARD' | 'EXTENSION';
 }
 
 interface AuthClearMessage {
@@ -241,6 +245,8 @@ async function syncAuthTokens(message: AuthSyncMessage) {
   await chrome.storage.local.set({
     [ACCESS_TOKEN_KEY]: message.accessToken,
     [REFRESH_TOKEN_KEY]: message.refreshToken,
+    [CLIENT_TYPE_KEY]: message.clientType ?? 'EXTENSION',
+    ...(message.sessionId ? { [SESSION_ID_KEY]: message.sessionId } : {}),
   });
   notifyAuthStateChanged(true);
 
@@ -248,16 +254,28 @@ async function syncAuthTokens(message: AuthSyncMessage) {
 }
 
 async function clearAuthTokens() {
-  await chrome.storage.local.remove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+  await chrome.storage.local.remove([
+    ACCESS_TOKEN_KEY,
+    REFRESH_TOKEN_KEY,
+    SESSION_ID_KEY,
+    CLIENT_TYPE_KEY,
+  ]);
   notifyAuthStateChanged(false);
 }
 
 async function readStoredAuthState() {
-  const stored = await chrome.storage.local.get([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+  const stored = await chrome.storage.local.get([
+    ACCESS_TOKEN_KEY,
+    REFRESH_TOKEN_KEY,
+    SESSION_ID_KEY,
+    CLIENT_TYPE_KEY,
+  ]);
 
   return {
     hasAccessToken: typeof stored[ACCESS_TOKEN_KEY] === 'string',
     hasRefreshToken: typeof stored[REFRESH_TOKEN_KEY] === 'string',
+    hasSessionId: typeof stored[SESSION_ID_KEY] === 'string',
+    clientType: typeof stored[CLIENT_TYPE_KEY] === 'string' ? stored[CLIENT_TYPE_KEY] : null,
   };
 }
 

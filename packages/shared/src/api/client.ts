@@ -2,9 +2,13 @@ import axios, { AxiosHeaders, type AxiosError, type InternalAxiosRequestConfig }
 
 export const SKIP_AUTH_HEADER = 'X-SAN-Skip-Auth';
 
+export type AuthClientType = 'DASHBOARD' | 'EXTENSION';
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  sessionId?: string;
+  clientType?: AuthClientType;
 }
 
 export interface TokenProvider {
@@ -25,6 +29,7 @@ export interface ApiResponse<T> {
 export interface TokenResponse extends AuthTokens {
   tokenType: 'Bearer' | string;
   expiresIn: number;
+  sessionId: string;
 }
 
 interface RetriableRequestConfig extends InternalAxiosRequestConfig {

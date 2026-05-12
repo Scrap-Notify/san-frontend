@@ -32,5 +32,7 @@ export interface ExtensionMessage {
   payload?: PendingScrap;
   accessToken?: string;
   refreshToken?: string;
+  sessionId?: string;
+  clientType?: 'DASHBOARD' | 'EXTENSION';
   isAuthenticated?: boolean;
 }
