@@ -82,6 +82,7 @@ async function deliverExtensionAuthMessage(message: unknown, expectStoredTokens:
     console.warn(DEBUG_PREFIX, 'extension auth sync was not confirmed', {
       errors: error instanceof AuthSyncError ? error.errors : [normalizeError(error)],
     });
+    throw error;
   }
 }
 

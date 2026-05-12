@@ -631,7 +631,12 @@ export default function SidePanel() {
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to logout on server', error);
     } finally {
-      await authTokenStorage.clearToken();
+      await chrome.runtime
+        .sendMessage({ type: 'SAN_AUTH_CLEAR' })
+        .catch(async (error) => {
+          console.error(DEBUG_PREFIX, 'failed to clear auth through background', error);
+          await authTokenStorage.clearToken();
+        });
       setIsAuthenticated(false);
       setRecentCards([]);
       setCreatedCard(null);
