@@ -587,11 +587,18 @@ export default function SidePanel() {
   const handleProfileButtonClick = useCallback(() => {
     if (!isAuthenticated) {
       setIsAuthCardOpen(true);
+      setIsProfileMenuOpen(false);
       return;
     }
 
     setIsProfileMenuOpen((current) => !current);
   }, [isAuthenticated]);
+
+  const handleHomeClick = useCallback(() => {
+    setIsAuthCardOpen(false);
+    setIsProfileMenuOpen(false);
+    setIsLogoutConfirmOpen(false);
+  }, []);
 
   const handleExtensionAuthComplete = useCallback(() => {
     setIsAuthCardOpen(false);
@@ -706,6 +713,7 @@ export default function SidePanel() {
         <SidePanelNavbar
           isAuthenticated={isAuthenticated}
           isProfileMenuOpen={isProfileMenuOpen}
+          onHomeClick={handleHomeClick}
           onOpenDashboard={openDashboard}
           onProfileButtonClick={handleProfileButtonClick}
           onLogoutClick={handleLogoutClick}

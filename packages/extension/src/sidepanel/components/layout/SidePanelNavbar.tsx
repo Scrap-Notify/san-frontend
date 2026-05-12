@@ -5,6 +5,7 @@ import sanTypo from '@san/ui/assets/brand/SAN_TYPO.svg';
 interface SidePanelNavbarProps {
   isAuthenticated: boolean;
   isProfileMenuOpen: boolean;
+  onHomeClick: () => void;
   onOpenDashboard: () => void;
   onProfileButtonClick: () => void;
   onLogoutClick: () => void;
@@ -13,14 +14,21 @@ interface SidePanelNavbarProps {
 export default function SidePanelNavbar({
   isAuthenticated,
   isProfileMenuOpen,
+  onHomeClick,
   onOpenDashboard,
   onProfileButtonClick,
   onLogoutClick,
 }: SidePanelNavbarProps) {
   return (
     <div className="sticky top-0 z-20 -mx-4 flex h-16 items-center justify-between border-b border-primary-signal/15 bg-background/95 px-4 backdrop-blur-md">
-      <div className="flex min-w-0 flex-1 items-center" aria-label="SAN">
-        <div className="flex h-10 min-w-0 items-center gap-2.5">
+      <div className="flex min-w-0 flex-1 items-center">
+        <button
+          type="button"
+          onClick={onHomeClick}
+          className="flex h-10 min-w-0 items-center gap-2.5 rounded-md transition hover:opacity-80 active:scale-[0.98]"
+          aria-label="Go to extension home"
+          title="Home"
+        >
           <img
             src={sanLogo}
             alt=""
@@ -32,7 +40,7 @@ export default function SidePanelNavbar({
             alt="SAN"
             className="h-5 w-[min(84px,calc(100vw-200px))] min-w-0 shrink object-contain object-left"
           />
-        </div>
+        </button>
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
