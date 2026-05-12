@@ -30,6 +30,8 @@ export { createCardsApi } from './cards';
 export type { CardsApi } from './cards';
 export { createSearchApi } from './search';
 export type { SearchApi } from './search';
+export { createS3Api } from './s3';
+export type { S3Api } from './s3';
 export { createAsyncJobsApi } from './async';
 export type { AsyncJobsApi } from './async';
 export { createTilApi } from './til';

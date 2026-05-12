@@ -12,6 +12,10 @@ export type {
   SourceType,
 } from './scraps';
 export type {
+  S3PresignedUrlRequest,
+  S3PresignedUrlResponse,
+} from './s3';
+export type {
   CategoryResponse,
   KnowledgeCardAnalysisJobResponse,
   KnowledgeCardByScrapResponse,
