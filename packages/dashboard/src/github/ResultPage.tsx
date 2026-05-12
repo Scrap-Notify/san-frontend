@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, Filter, Search, ExternalLink, Quote as QuoteIcon, MessageSquare, Clock, Globe, ArrowRight, Share2, Bookmark, Calendar, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
@@ -152,9 +152,13 @@ export function ResultPage() {
     [searchQuery.data],
   );
 
-  const handleSearchChange = (newKeyword: string) => {
+  const handleSearchChange = useCallback((newKeyword: string) => {
+    if (newKeyword.trim() === keyword) {
+      return;
+    }
+
     setSearchParams({ query: newKeyword });
-  };
+  }, [keyword, setSearchParams]);
 
   return (
     <SearchPage
@@ -186,25 +190,23 @@ function SearchPage({
   onLoadMore,
   onSearchChange,
 }: SearchPageProps) {
-  const searchDebounceRef = useRef<number | null>(null);
+  const [inputValue, setInputValue] = useState(keyword);
 
   useEffect(() => {
-    return () => {
-      if (searchDebounceRef.current !== null) {
-        window.clearTimeout(searchDebounceRef.current);
-      }
-    };
-  }, []);
+    setInputValue((currentValue) => (currentValue === keyword ? currentValue : keyword));
+  }, [keyword]);
 
-  const handleKeywordInputChange = (value: string) => {
-    if (searchDebounceRef.current !== null) {
-      window.clearTimeout(searchDebounceRef.current);
+  useEffect(() => {
+    if (inputValue.trim() === keyword) {
+      return;
     }
 
-    searchDebounceRef.current = window.setTimeout(() => {
-      onSearchChange(value);
+    const timer = window.setTimeout(() => {
+      onSearchChange(inputValue);
     }, 300);
-  };
+
+    return () => window.clearTimeout(timer);
+  }, [inputValue, keyword, onSearchChange]);
 
   return (
     <section className="flex w-full min-w-0 flex-col gap-12 py-12 text-white">
@@ -261,12 +263,11 @@ function SearchPage({
             <Search className="h-4 w-4 text-white/20" />
           </div>
           <input
-            key={keyword}
             type="text"
             className="block w-full pl-11 pr-4 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-sm font-medium outline-none focus:border-[#4ade80]/30 transition-all placeholder:text-white/10"
             placeholder="찾는 내용을 검색해주세요."
-            defaultValue={keyword}
-            onChange={(e) => handleKeywordInputChange(e.target.value)}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
           />
         </div>
       </div>
