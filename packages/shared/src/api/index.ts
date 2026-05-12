@@ -4,6 +4,10 @@ export type { ApiResponse, AuthTokens, TokenProvider, TokenResponse } from './cl
 export { createAuthApi } from './auth';
 export type {
   AuthApi,
+  AuthSession,
+  AuthSessionsResponse,
+  BridgeTicketResponse,
+  BridgeTokenRequest,
   ClientType,
   GithubLoginRequest,
   GithubTokenExchangeRequest,
@@ -16,6 +20,7 @@ export type {
 export { createGithubApi } from './github';
 export type {
   GithubApi,
+  GithubLinkStatus,
   GithubRepository,
   GithubRepositoryConnectRequest,
 } from './github';

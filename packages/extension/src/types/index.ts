@@ -25,7 +25,8 @@ export type MessageType =
   | 'PUSH_TO_SIDEPANEL'
   | 'SAN_AUTH_SYNC'
   | 'SAN_AUTH_CLEAR'
-  | 'SAN_AUTH_STATE_CHANGED';
+  | 'SAN_AUTH_STATE_CHANGED'
+  | 'LOGIN_BRIDGE_TICKET';
 
 export interface ExtensionMessage {
   type: MessageType;
@@ -34,5 +35,6 @@ export interface ExtensionMessage {
   refreshToken?: string;
   sessionId?: string;
   clientType?: 'DASHBOARD' | 'EXTENSION';
+  ticket?: string;
   isAuthenticated?: boolean;
 }

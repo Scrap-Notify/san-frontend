@@ -23,12 +23,14 @@ const githubAuthBaseURL = import.meta.env.VITE_GITHUB_AUTH_API_BASE_URL
 const tokenProvider = {
   getToken: localAuthTokenStorage.getToken,
   getRefreshToken: localAuthTokenStorage.getRefreshToken,
+  getUsername: localAuthTokenStorage.getUsername,
+  setUsername: localAuthTokenStorage.setUsername,
   setTokens: async (tokens: AuthTokens) => {
     await localAuthTokenStorage.setTokens(tokens);
   },
   clearToken: async () => {
     await localAuthTokenStorage.clearToken();
-    void clearExtensionAuth();
+    await clearExtensionAuth();
   },
 };
 

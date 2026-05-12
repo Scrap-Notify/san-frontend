@@ -21,7 +21,7 @@ export function GithubAuthResultPage() {
   const code = searchParams.get('code');
   const error = searchParams.get('error');
   const githubLinked = searchParams.get('githubLinked');
-  const clientType = getAuthClientType(searchParams, rememberedClientType ?? undefined);
+  const clientType = getAuthClientType(searchParams, rememberedClientType ?? 'DASHBOARD');
 
   const message = exchangeErrorMessage
     ?? (githubLinked === 'true'

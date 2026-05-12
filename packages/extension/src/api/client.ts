@@ -9,7 +9,9 @@ import {
   type TokenProvider,
 } from '@san/shared';
 
-const defaultBaseURL = 'http://localhost:8080/api';
+const defaultBaseURL = import.meta.env.PROD
+  ? 'https://k14a309.p.ssafy.io/api'
+  : 'http://localhost:8080/api';
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL;
 
 const ACCESS_TOKEN_KEY = 'san_access_token';

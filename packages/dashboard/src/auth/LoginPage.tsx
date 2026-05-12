@@ -1,7 +1,7 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-import githubSvg from '@dashboard/assets/github.svg';
+import githubSvg from '@ui/assets/icons/github.svg';
 import { getApiErrorMessage } from '@san/shared';
 import { authApi, githubAuthApi } from '../api/client';
 import { getAuthClientType, rememberAuthClientType, withAuthClientType } from './clientType';
@@ -24,11 +24,21 @@ export function LoginPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(initialAuthError);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const autoGithubStartedRef = useRef(false);
 
   const handleGithubLogin = () => {
     rememberAuthClientType(clientType);
     window.location.href = githubAuthApi.getGithubAuthorizeUrl(clientType);
   };
+
+  useEffect(() => {
+    if (searchParams.get('autoGithub') !== 'true' || autoGithubStartedRef.current) {
+      return;
+    }
+
+    autoGithubStartedRef.current = true;
+    handleGithubLogin();
+  });
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,7 +64,7 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       const tokens = await authApi.login({ username, password, clientType });
-      await completeAuth(tokens, clientType);
+      await completeAuth(tokens, clientType, username.trim());
       navigate('/');
     } catch (err) {
       let msg = getApiErrorMessage(err, '로그인에 실패했습니다.');

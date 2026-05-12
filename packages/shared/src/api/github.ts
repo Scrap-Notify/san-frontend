@@ -18,6 +18,13 @@ export interface GithubAuthorizeUrlResponse {
   redirectUrl: string;
 }
 
+export interface GithubLinkStatus {
+  linked: boolean;
+  githubUsername: string | null;
+  repositoryConnected: boolean;
+  connectedRepository: GithubRepository | null;
+}
+
 export function createGithubApi(apiClient: AxiosInstance) {
   return {
     getLinkAuthorizeUrl: (): Promise<string> =>
@@ -27,6 +34,11 @@ export function createGithubApi(apiClient: AxiosInstance) {
 
     unlinkAccount: (): Promise<void> =>
       apiClient.delete<ApiResponse<void>>('/github/link').then(() => undefined),
+
+    getLinkStatus: (): Promise<GithubLinkStatus> =>
+      apiClient
+        .get<ApiResponse<GithubLinkStatus>>('/github/link/status')
+        .then((response) => unwrapApiResponse(response.data)),
 
     getRepositories: (): Promise<GithubRepository[]> =>
       apiClient

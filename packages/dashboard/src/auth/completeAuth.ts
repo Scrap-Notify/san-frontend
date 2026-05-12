@@ -6,7 +6,7 @@ import type { AuthTokens, ClientType } from '@san/shared';
 import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
 import { authTokenStorage } from '@dashboard/api/tokenStorage';
 
-export async function completeAuth(tokens: AuthTokens, clientType: ClientType) {
+export async function completeAuth(tokens: AuthTokens, clientType: ClientType, username?: string) {
   const scopedTokens = { ...tokens, clientType };
 
   if (clientType === 'EXTENSION') {
@@ -16,4 +16,7 @@ export async function completeAuth(tokens: AuthTokens, clientType: ClientType) {
   }
 
   await authTokenStorage.setTokens(scopedTokens);
+  if (username) {
+    await authTokenStorage.setUsername(username);
+  }
 }
