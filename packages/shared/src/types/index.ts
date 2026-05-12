@@ -14,6 +14,7 @@ export type {
 export type {
   S3PresignedUrlRequest,
   S3PresignedUrlResponse,
+  S3UploadImageResult,
 } from './s3';
 export type {
   CategoryResponse,

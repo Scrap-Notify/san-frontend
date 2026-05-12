@@ -9,3 +9,7 @@ export interface S3PresignedUrlResponse {
   objectKey: string;
   expiresInSeconds: number;
 }
+
+export interface S3UploadImageResult {
+  objectKey: string;
+}
