@@ -11,7 +11,7 @@ interface ExtensionAuthCardProps {
 }
 
 const inputClass =
-  'block h-11 w-full rounded-lg border border-white/10 bg-black/35 px-3.5 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+  'block h-11 w-full rounded-lg border border-white/[0.12] bg-white/[0.055] px-3.5 text-sm text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] outline-none backdrop-blur-xl placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:bg-white/[0.075] focus:ring-1 focus:ring-primary-signal/20';
 
 export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -118,8 +118,12 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
 
   return (
     <section className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-1 py-5">
-      <div className="w-full max-w-[340px] rounded-lg border border-white/15 bg-surface-container/80 p-5 shadow-2xl backdrop-blur-2xl">
-        <div className="mb-5">
+      <div className="relative w-full max-w-[340px] overflow-hidden rounded-lg border border-white/[0.18] bg-white/[0.075] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
+        <div className="pointer-events-none absolute -right-16 -top-20 h-44 w-44 rounded-full bg-primary-signal/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-20 bottom-12 h-36 w-36 rounded-full bg-white/[0.08] blur-3xl" />
+
+        <div className="relative mb-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-signal/80">
             SAN Extension
           </p>
@@ -131,7 +135,7 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
           </p>
         </div>
 
-        <div className="mb-5 grid h-9 grid-cols-2 rounded-md border border-white/10 bg-black/25 p-1">
+        <div className="relative mb-5 grid h-9 grid-cols-2 rounded-md border border-white/[0.12] bg-black/20 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
           {(['login', 'signup'] as const).map((item) => (
             <button
               key={item}
@@ -149,7 +153,7 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
           ))}
         </div>
 
-        <form className="space-y-3" onSubmit={handleSubmit}>
+        <form className="relative space-y-3" onSubmit={handleSubmit}>
           <div>
             <label className="mb-1.5 block text-xs font-bold text-text-secondary">아이디</label>
             <div className={isSignup ? 'flex gap-2' : undefined}>
@@ -166,7 +170,7 @@ export function ExtensionAuthCard({ onAuthenticated }: ExtensionAuthCardProps) {
                   type="button"
                   onClick={handleCheckUsername}
                   disabled={usernameCheckStatus === 'checking'}
-                  className="h-11 shrink-0 rounded-lg border border-primary-signal/35 px-3 text-[11px] font-bold text-primary-signal transition hover:bg-primary-signal/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-11 shrink-0 rounded-lg border border-primary-signal/35 bg-primary-signal/[0.06] px-3 text-[11px] font-bold text-primary-signal shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition hover:bg-primary-signal/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                 </button>
