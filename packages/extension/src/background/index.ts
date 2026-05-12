@@ -5,7 +5,7 @@ const DEBUG_PREFIX = '[SAN:background]';
 const defaultBaseURL = import.meta.env.PROD
   ? 'https://k14a309.p.ssafy.io/api'
   : 'http://localhost:8080/api';
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL;
+const baseURL = normalizeApiBaseURL(import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL);
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
@@ -16,6 +16,11 @@ const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const isDebug = import.meta.env.DEV;
+
+function normalizeApiBaseURL(value: string) {
+  const trimmed = value.replace(/\/$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+}
 
 interface AuthSyncMessage {
   type: typeof AUTH_SYNC_MESSAGE;

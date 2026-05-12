@@ -5,6 +5,7 @@ import { HomePage } from './main/HomePage';
 import { Signup } from './auth/SignUpPage';
 import { ResultPage } from './github/ResultPage';
 import { GithubAuthResultPage } from './auth/GithubAuthResultPage';
+import { GithubAuthStartPage } from './auth/GithubAuthStartPage';
 import { SettingsIntegrationsPage } from './main/SettingsIntegrationsPage';
 import { TilPage } from './til/TilPage';
 import { GithubRepositorySelectPage } from './main/GithubRepositorySelectPage';
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
   {
     path: '/signup',
     element: <Signup />,
+  },
+  {
+    path: '/auth/github/start',
+    element: <GithubAuthStartPage />,
   },
   {
     path: '/auth/github/callback',

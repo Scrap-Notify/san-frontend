@@ -12,7 +12,12 @@ import {
 const defaultBaseURL = import.meta.env.PROD
   ? 'https://k14a309.p.ssafy.io/api'
   : 'http://localhost:8080/api';
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL;
+const baseURL = normalizeApiBaseURL(import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL);
+
+function normalizeApiBaseURL(value: string) {
+  const trimmed = value.replace(/\/$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+}
 
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';

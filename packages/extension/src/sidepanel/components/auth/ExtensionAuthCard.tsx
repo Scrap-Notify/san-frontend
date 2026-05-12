@@ -145,11 +145,12 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
                 onClick={onGithubLogin}
                 className="relative flex h-14 w-full shrink-0 items-center rounded-xl border border-white/10 bg-black text-sm font-bold text-white outline-none transition hover:opacity-85 focus-visible:ring-1 focus-visible:ring-primary-signal/35 active:scale-[0.98]"
               >
-                <span className="absolute left-3 flex h-8 w-8 items-center justify-center sm:left-4">
+                <span className="absolute left-4 flex h-8 w-8 items-center justify-center">
                   <img src={githubSvg} alt="" aria-hidden="true" className="h-6 w-6 brightness-0 invert" />
                 </span>
-                <span className="pointer-events-none absolute inset-x-0 block truncate px-14 text-center">
-                  GitHub 계정으로 로그인
+                <span className="pointer-events-none flex w-full justify-center px-14 text-center">
+                  <span className="sm:hidden">GitHub 로그인</span>
+                  <span className="hidden sm:inline">GitHub 계정으로 로그인</span>
                 </span>
               </button>
 
