@@ -6,9 +6,12 @@ import {
   type TokenResponse,
 } from './client';
 
+export type ClientType = 'DASHBOARD' | 'EXTENSION';
+
 export interface LoginRequest {
   username: string;
   password: string;
+  clientType: ClientType;
 }
 
 export interface SignupRequest {
@@ -26,6 +29,7 @@ export interface GithubTokenExchangeRequest {
 
 export interface GithubLoginRequest {
   code: string;
+  clientType: ClientType;
 }
 
 export interface WithdrawRequest {
@@ -72,7 +76,8 @@ export function createAuthApi(apiClient: AxiosInstance) {
         .post<ApiResponse<TokenResponse>>('/auth/reissue', payload, publicRequest)
         .then((response) => unwrapApiResponse(response.data)),
 
-    getGithubAuthorizeUrl: (): string => apiClient.getUri({ url: '/auth/github/authorize' }),
+    getGithubAuthorizeUrl: (clientType: ClientType): string =>
+      apiClient.getUri({ url: '/auth/github/authorize', params: { clientType } }),
 
     loginWithGithubCode: (payload: GithubLoginRequest): Promise<TokenResponse> =>
       apiClient

@@ -1,14 +1,17 @@
 import { type FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, authTokenStorage } from '../api/client';
-import { syncExtensionAuth } from '@dashboard/api/extensionAuth';
+import { authApi } from '../api/client';
+import { getAuthClientType, withAuthClientType } from './clientType';
+import { completeAuth } from './completeAuth';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
 export function Signup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const clientType = getAuthClientType(searchParams);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -74,9 +77,8 @@ export function Signup() {
     setIsSubmitting(true);
     try {
       await authApi.signup({ username: trimmed, password });
-      const tokens = await authApi.login({ username: trimmed, password });
-      await authTokenStorage.setTokens(tokens);
-      await syncExtensionAuth(tokens);
+      const tokens = await authApi.login({ username: trimmed, password, clientType });
+      await completeAuth(tokens, clientType);
       navigate('/');
     } catch (error) {
       let msg = getApiErrorMessage(error, '회원가입에 실패했습니다.');
@@ -227,7 +229,7 @@ export function Signup() {
           <div className="mt-6">
             <p className="text-center text-sm text-text-secondary">
               이미 계정이 있으신가요?{' '}
-              <Link to="/login" className="font-bold text-primary-signal hover:underline">
+              <Link to={withAuthClientType('/login', clientType)} className="font-bold text-primary-signal hover:underline">
                 로그인
               </Link>
             </p>

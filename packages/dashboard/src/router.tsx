@@ -9,6 +9,7 @@ import { SettingsIntegrationsPage } from './main/SettingsIntegrationsPage';
 import { TilPage } from './til/TilPage';
 import { GithubRepositorySelectPage } from './main/GithubRepositorySelectPage';
 import { ProfilePage } from './main/ProfilePage';
+import { NotFoundPage } from './main/NotFoundPage';
 import { authTokenStorage } from './api/client';
 
 async function requireAuth() {
@@ -72,6 +73,10 @@ export const router = createBrowserRouter([
       {
         path: '/settings/repositories',
         element: <GithubRepositorySelectPage />,
+      },
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },

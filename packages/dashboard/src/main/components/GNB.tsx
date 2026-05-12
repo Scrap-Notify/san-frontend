@@ -15,7 +15,7 @@ interface TopNavBarProps {
 }
 
 export function TopNavBar({
-  searchPlaceholder = 'Search the archive...',
+  searchPlaceholder = '키워드로 검색...',
   userAvatarUrl,
   activeMenu,
   onSettingsClick,

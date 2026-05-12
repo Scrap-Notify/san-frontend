@@ -53,7 +53,9 @@ export function ArchiveSection() {
       <div className="flex flex-col gap-dashboard-gap">
         <div className="flex flex-col gap-dashboard-gap sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h2 className="text-h1-bold text-text-primary">나의 지식 아카이브</h2>
+            <h2 className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-h1-bold text-transparent">
+              나의 지식 아카이브
+            </h2>
           </div>
 
           <div className="flex shrink-0 items-center gap-3 rounded-full border border-white/5 bg-[#121212] px-3 py-1.5 shadow-sm">

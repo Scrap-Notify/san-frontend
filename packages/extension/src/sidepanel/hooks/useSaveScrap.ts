@@ -210,7 +210,7 @@ export function useSaveScrap({
       setCreatedCard(createdCard.card ? toKnowledgeCardView(createdCard.card) : null);
       setSavingLabel('Finding related cards...');
       const similarCards = await cardsApi.getSimilarByCardId(createdCard.cardId);
-      setRelatedCards(similarCards.similarCards);
+      setRelatedCards(similarCards.similarCards.slice(0, 3));
       setHasRelatedResult(true);
       void refreshRecentCards();
     } catch (error) {

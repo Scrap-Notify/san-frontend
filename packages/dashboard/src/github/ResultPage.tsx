@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, Filter, Search, ExternalLink, Quote as QuoteIcon, MessageSquare, Clock, Globe, ArrowRight, Share2, Bookmark, Calendar, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import type { SearchCardResult, SearchParams } from '@san/shared';
 import { searchApi } from '../api/client';
@@ -134,59 +134,44 @@ export function ResultPage() {
     fromDate: '',
     toDate: '',
   });
-  const [page, setPage] = useState(0);
-  const [accumulatedCards, setAccumulatedCards] = useState<ExtendedSearchCardResult[]>([]);
-  const [prevFilterKey, setPrevFilterKey] = useState<string>('');
-  const [lastProcessedData, setLastProcessedData] = useState<unknown>(null);
 
   const size = 12;
   const keyword = searchParams.get('query')?.trim() ?? '';
   const normalizedTag = normalizeTag(filters.tag);
-  const filterKey = `${keyword}|${normalizedTag}|${filters.fromDate}|${filters.toDate}`;
 
-  useEffect(() => {
-    if (filterKey !== prevFilterKey) {
-      setPrevFilterKey(filterKey);
-      setPage(0);
-      setAccumulatedCards([]);
-      setLastProcessedData(null);
-    }
-  }, [filterKey, prevFilterKey]);
-
-  const searchQuery = useQuery({
-    queryKey: ['knowledge-search', keyword, normalizedTag, filters.fromDate, filters.toDate, page, size],
-    queryFn: () => searchApi.search(toSearchParams(keyword, normalizedTag, filters, page, size)),
+  const searchQuery = useInfiniteQuery({
+    queryKey: ['knowledge-search', keyword, normalizedTag, filters.fromDate, filters.toDate, size],
+    queryFn: ({ pageParam }) => searchApi.search(toSearchParams(keyword, normalizedTag, filters, pageParam, size)),
     enabled: Boolean(keyword),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => (lastPage.hasNext ? allPages.length : undefined),
   });
 
-  const displayedResults = accumulatedCards;
+  const displayedResults = useMemo(
+    () => dedupeByCardId(searchQuery.data?.pages.flatMap((page) => page.results) ?? []) as ExtendedSearchCardResult[],
+    [searchQuery.data],
+  );
 
-  useEffect(() => {
-    if (searchQuery.data && searchQuery.data !== lastProcessedData) {
-      setLastProcessedData(searchQuery.data);
-      setAccumulatedCards((current) => {
-        const nextCards = page === 0 ? searchQuery.data.results : [...current, ...searchQuery.data.results];
-        return dedupeByCardId(nextCards) as ExtendedSearchCardResult[];
-      });
+  const handleSearchChange = useCallback((newKeyword: string) => {
+    if (newKeyword.trim() === keyword) {
+      return;
     }
-  }, [lastProcessedData, page, searchQuery.data]);
 
-  const handleSearchChange = (newKeyword: string) => {
     setSearchParams({ query: newKeyword });
-  };
+  }, [keyword, setSearchParams]);
 
   return (
     <SearchPage
       keyword={keyword}
-      totalCount={searchQuery.data?.totalCount ?? displayedResults.length}
+      totalCount={searchQuery.data?.pages[0]?.totalCount ?? displayedResults.length}
       results={displayedResults}
       filters={filters}
       hasKeyword={Boolean(keyword)}
       isPending={searchQuery.isPending && !displayedResults.length}
       isError={searchQuery.isError}
-      hasNext={searchQuery.data?.hasNext ?? false}
+      hasNext={searchQuery.hasNextPage}
       onFilterChange={setFilters}
-      onLoadMore={() => setPage((current) => current + 1)}
+      onLoadMore={() => void searchQuery.fetchNextPage()}
       onSearchChange={handleSearchChange}
     />
   );
@@ -205,6 +190,24 @@ function SearchPage({
   onLoadMore,
   onSearchChange,
 }: SearchPageProps) {
+  const [inputValue, setInputValue] = useState(keyword);
+
+  useEffect(() => {
+    setInputValue((currentValue) => (currentValue === keyword ? currentValue : keyword));
+  }, [keyword]);
+
+  useEffect(() => {
+    if (inputValue.trim() === keyword) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      onSearchChange(inputValue);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [inputValue, keyword, onSearchChange]);
+
   return (
     <section className="flex w-full min-w-0 flex-col gap-12 py-12 text-white">
       <header className="flex flex-col gap-3">
@@ -256,18 +259,15 @@ function SearchPage({
         </div>
 
         <div className="relative">
-          <div className="absolute left-6 top-1/2 -translate-y-1/2 flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white/5 text-white/20">
-            <Search size={18} />
-          </div>
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search className="h-4 w-4 text-white/20" />
           </div>
           <input
             type="text"
             className="block w-full pl-11 pr-4 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-sm font-medium outline-none focus:border-[#4ade80]/30 transition-all placeholder:text-white/10"
-            placeholder="Search keywords in knowledge cards..."
-            value={keyword}
-            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="찾는 내용을 검색해주세요."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
           />
         </div>
       </div>

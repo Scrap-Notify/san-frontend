@@ -26,6 +26,8 @@ const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
 const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
+const dashboardLoginUrl = new URL('/login', dashboardBaseUrl);
+dashboardLoginUrl.searchParams.set('clientType', 'EXTENSION');
 const SEARCH_RESULT_TITLE = '\uAC80\uC0C9 \uACB0\uACFC';
 const RECENT_TAB_LABEL = '\uCD5C\uADFC \uC9C0\uC2DD';
 const SIMILAR_TAB_LABEL = '\uC720\uC0AC \uC9C0\uC2DD';
@@ -572,11 +574,11 @@ export default function SidePanel() {
   }, [clearResultState, pendingScrap?.image_blob_id]);
 
   const openDashboardLogin = useCallback(() => {
-    chrome.tabs.create({ url: `${dashboardBaseUrl}/login` });
+    chrome.tabs.create({ url: dashboardLoginUrl.toString() });
   }, []);
 
   const openDashboard = useCallback(() => {
-    chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : `${dashboardBaseUrl}/login` });
+    chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : dashboardLoginUrl.toString() });
   }, [isAuthenticated]);
 
   const handleAuthButtonClick = useCallback(() => {
