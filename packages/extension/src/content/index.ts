@@ -7,6 +7,7 @@ const DASHBOARD_MESSAGE_SOURCE = 'SAN_DASHBOARD';
 const EXTENSION_MESSAGE_SOURCE = 'SAN_EXTENSION';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
+const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const isDebug = import.meta.env.DEV;
 
 const allowedDashboardOrigins = new Set([
@@ -38,7 +39,11 @@ function isDashboardAuthMessage(value: unknown): value is { source: string; requ
   const payload = maybe.payload;
   if (!payload || typeof payload !== 'object') return false;
   const authMessage = payload as { type?: unknown };
-  return authMessage.type === AUTH_SYNC_MESSAGE || authMessage.type === AUTH_CLEAR_MESSAGE;
+  return (
+    authMessage.type === AUTH_SYNC_MESSAGE
+    || authMessage.type === AUTH_CLEAR_MESSAGE
+    || authMessage.type === LOGIN_BRIDGE_TICKET_MESSAGE
+  );
 }
 
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, _sender, sendResponse) => {

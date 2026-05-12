@@ -9,7 +9,8 @@
     ".": "./src/index.ts",
     "./styles": "./src/styles/globals.css",
     "./components/Button/CurvedButton": "./src/components/Button/CurvedButton.tsx",
-    "./assets/brand/*": "./src/assets/brand/*"
+    "./assets/brand/*": "./src/assets/brand/*",
+    "./assets/icons/*": "./src/assets/icons/*"
   },
   "peerDependencies": {
     "react": "^18.0.0",

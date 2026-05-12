@@ -1,8 +1,7 @@
 import type { AuthTokens } from '@san/shared';
-import { authTokenStorage } from './tokenStorage';
-
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
+const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const DEBUG_PREFIX = '[SAN:extension-auth]';
 const DASHBOARD_MESSAGE_SOURCE = 'SAN_DASHBOARD';
 const EXTENSION_MESSAGE_SOURCE = 'SAN_EXTENSION';
@@ -42,6 +41,8 @@ export async function syncExtensionAuth(tokens: AuthTokens): Promise<void> {
     type: AUTH_SYNC_MESSAGE,
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
+    sessionId: tokens.sessionId,
+    clientType: tokens.clientType ?? 'EXTENSION',
   };
 
   await deliverExtensionAuthMessage(message, true);
@@ -53,21 +54,14 @@ export async function clearExtensionAuth(): Promise<void> {
   await deliverExtensionAuthMessage(message, false);
 }
 
-export async function syncStoredExtensionAuth(): Promise<void> {
-  const [accessToken, refreshToken] = await Promise.all([
-    authTokenStorage.getToken(),
-    authTokenStorage.getRefreshToken(),
-  ]);
-
-  if (!accessToken || !refreshToken) {
-    console.info(DEBUG_PREFIX, 'stored auth sync skipped: dashboard tokens are missing', {
-      hasAccessToken: Boolean(accessToken),
-      hasRefreshToken: Boolean(refreshToken),
-    });
-    return;
-  }
-
-  await syncExtensionAuth({ accessToken, refreshToken });
+export async function syncExtensionBridgeTicket(ticket: string): Promise<void> {
+  await deliverExtensionAuthMessage(
+    {
+      type: LOGIN_BRIDGE_TICKET_MESSAGE,
+      ticket,
+    },
+    true
+  );
 }
 
 async function deliverExtensionAuthMessage(message: unknown, expectStoredTokens: boolean): Promise<void> {
@@ -88,6 +82,7 @@ async function deliverExtensionAuthMessage(message: unknown, expectStoredTokens:
     console.warn(DEBUG_PREFIX, 'extension auth sync was not confirmed', {
       errors: error instanceof AuthSyncError ? error.errors : [normalizeError(error)],
     });
+    throw error;
   }
 }
 

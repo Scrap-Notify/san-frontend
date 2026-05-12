@@ -78,7 +78,7 @@ export function Signup() {
     try {
       await authApi.signup({ username: trimmed, password });
       const tokens = await authApi.login({ username: trimmed, password, clientType });
-      await completeAuth(tokens, clientType);
+      await completeAuth(tokens, clientType, trimmed);
       navigate('/');
     } catch (error) {
       let msg = getApiErrorMessage(error, '회원가입에 실패했습니다.');

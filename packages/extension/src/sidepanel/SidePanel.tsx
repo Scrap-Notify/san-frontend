@@ -17,6 +17,7 @@ import {
 import SidePanelNavbar from './components/layout/SidePanelNavbar';
 import { CreatedKnowledgeCard } from './components/knowledge/CreatedKnowledgeCard';
 import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCard';
+import { ExtensionAuthCard } from './components/auth/ExtensionAuthCard';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
@@ -28,6 +29,9 @@ const defaultDashboardBaseUrl = 'http://localhost:5173';
 const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
 const dashboardLoginUrl = new URL('/login', dashboardBaseUrl);
 dashboardLoginUrl.searchParams.set('clientType', 'EXTENSION');
+const dashboardGithubLoginUrl = new URL('/login', dashboardBaseUrl);
+dashboardGithubLoginUrl.searchParams.set('clientType', 'EXTENSION');
+dashboardGithubLoginUrl.searchParams.set('autoGithub', 'true');
 const SEARCH_RESULT_TITLE = '\uAC80\uC0C9 \uACB0\uACFC';
 const RECENT_TAB_LABEL = '\uCD5C\uADFC \uC9C0\uC2DD';
 const SIMILAR_TAB_LABEL = '\uC720\uC0AC \uC9C0\uC2DD';
@@ -168,7 +172,7 @@ function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: Knowledge
   ];
 
   return (
-    <div className="grid h-9 w-[156px] shrink-0 grid-cols-2 rounded-md border border-text-secondary/10 bg-surface-highest/60 p-1">
+    <div className="flex shrink-0 items-center gap-5">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         return (
@@ -178,11 +182,11 @@ function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: Knowledge
             disabled={tab.disabled}
             onClick={() => onChange(tab.id)}
             className={[
-              'rounded text-caption-bold transition',
+              'whitespace-nowrap text-xs font-semibold transition',
               isActive
-                ? 'bg-primary-signal/15 text-primary-signal shadow-neon-sm'
-                : 'text-text-secondary hover:bg-white/5 hover:text-text-primary',
-              tab.disabled ? 'cursor-not-allowed opacity-40 hover:bg-transparent hover:text-text-secondary' : '',
+                ? 'text-primary-signal'
+                : 'text-text-secondary/45 hover:text-text-primary',
+              tab.disabled ? 'cursor-not-allowed opacity-30 hover:text-text-secondary/55' : '',
             ].join(' ')}
           >
             {tab.label}
@@ -237,6 +241,8 @@ export default function SidePanel() {
   const [activeKnowledgeTab, setActiveKnowledgeTab] = useState<KnowledgeTab>('recent');
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isAuthCardOpen, setIsAuthCardOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
     const requestToken = await authTokenStorage.getToken();
@@ -496,12 +502,26 @@ export default function SidePanel() {
       }
     };
 
+    const handlePanelFocus = () => {
+      void refreshAuthState();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void refreshAuthState();
+      }
+    };
+
     chrome.storage.onChanged.addListener(handleStorageChange);
     chrome.runtime.onMessage.addListener(handleAuthMessage);
+    window.addEventListener('focus', handlePanelFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       ignore = true;
       chrome.storage.onChanged.removeListener(handleStorageChange);
       chrome.runtime.onMessage.removeListener(handleAuthMessage);
+      window.removeEventListener('focus', handlePanelFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [refreshRecentCards]);
 
@@ -577,23 +597,45 @@ export default function SidePanel() {
     chrome.tabs.create({ url: dashboardLoginUrl.toString() });
   }, []);
 
+  const openDashboardGithubLogin = useCallback(() => {
+    chrome.tabs.create({ url: dashboardGithubLoginUrl.toString() });
+  }, []);
+
   const openDashboard = useCallback(() => {
     chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : dashboardLoginUrl.toString() });
   }, [isAuthenticated]);
 
-  const handleAuthButtonClick = useCallback(() => {
+  const handleProfileButtonClick = useCallback(() => {
     if (!isAuthenticated) {
-      openDashboardLogin();
+      setIsAuthCardOpen(true);
+      setIsProfileMenuOpen(false);
       return;
     }
 
-    setIsLogoutConfirmOpen(true);
-  }, [isAuthenticated, openDashboardLogin]);
+    setIsProfileMenuOpen((current) => !current);
+  }, [isAuthenticated]);
+
+  const handleHomeClick = useCallback(() => {
+    setIsAuthCardOpen(false);
+    setIsProfileMenuOpen(false);
+    setIsLogoutConfirmOpen(false);
+  }, []);
+
+  const handleExtensionAuthComplete = useCallback(() => {
+    setIsAuthCardOpen(false);
+    setIsAuthenticated(true);
+    void refreshRecentCards();
+  }, [refreshRecentCards]);
 
   const handleCancelLogout = useCallback(() => {
     if (isLoggingOut) return;
     setIsLogoutConfirmOpen(false);
   }, [isLoggingOut]);
+
+  const handleLogoutClick = useCallback(() => {
+    setIsProfileMenuOpen(false);
+    setIsLogoutConfirmOpen(true);
+  }, []);
 
   const handleConfirmLogout = useCallback(async () => {
     setIsLoggingOut(true);
@@ -603,7 +645,12 @@ export default function SidePanel() {
     } catch (error) {
       console.error(DEBUG_PREFIX, 'failed to logout on server', error);
     } finally {
-      await authTokenStorage.clearToken();
+      await chrome.runtime
+        .sendMessage({ type: 'SAN_AUTH_CLEAR' })
+        .catch(async (error) => {
+          console.error(DEBUG_PREFIX, 'failed to clear auth through background', error);
+          await authTokenStorage.clearToken();
+        });
       setIsAuthenticated(false);
       setRecentCards([]);
       setCreatedCard(null);
@@ -691,8 +738,11 @@ export default function SidePanel() {
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <SidePanelNavbar
           isAuthenticated={isAuthenticated}
+          isProfileMenuOpen={isProfileMenuOpen}
+          onHomeClick={handleHomeClick}
           onOpenDashboard={openDashboard}
-          onAuthButtonClick={handleAuthButtonClick}
+          onProfileButtonClick={handleProfileButtonClick}
+          onLogoutClick={handleLogoutClick}
         />
         {isLogoutConfirmOpen && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
@@ -729,72 +779,81 @@ export default function SidePanel() {
         <GlowBackground />
         <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
-          <div className="shrink-0">
-            {isSaving || (isLoadingRelated && !createdCard) ? (
-              <KnowledgeLoadingCard />
-            ) : (
-              <DropZone
-                pendingScrap={pendingScrap}
-                onTextDrop={handleTextDrop}
-                onImageDrop={handleImageDrop}
-                onSave={handleSave}
-                onClear={handleClearPending}
-                isSaving={isSaving}
-                savingLabel={savingLabel}
-                saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
-                saveError={saveError}
-                saveNotice={saveNotice}
-                canSave={isAuthenticated}
-                authNotice={!isAuthenticated && pendingScrap ? '' : null}
-                onLogin={!isAuthenticated ? openDashboardLogin : undefined}
-              />
-            )}
-          </div>
-
-          {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
-          {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
-            <div className="shrink-0">
-              <CreatedKnowledgeCard card={createdCard} />
-            </div>
-          )}
-
-          {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
-          <div className="flex shrink-0 flex-col">
-            {!isAuthenticated ? (
-              !pendingScrap && <EmptyState onLogin={openDashboardLogin} />
-            ) : (
-              <>
-                {hasKnowledgeSearchResult ? (
-                  <RecentKnowledgeList
-                    cards={knowledgeSearchCards}
-                    isLoading={isSearchingKnowledge}
-                    error={knowledgeSearchError}
-                    isScrollable={false}
-                    title={SEARCH_RESULT_TITLE}
-                    action={knowledgeSearchAction}
-                  />
-                ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
-                  <SimilarKnowledgeList
-                    cards={relatedCards}
-                    isLoading={false}
-                    error={relatedError}
-                    isScrollable={false}
-                    title={knowledgeTabs}
-                    action={knowledgeSearchAction}
-                  />
+          {isAuthCardOpen && !isAuthenticated ? (
+            <ExtensionAuthCard
+              onAuthenticated={handleExtensionAuthComplete}
+              onGithubLogin={openDashboardGithubLogin}
+            />
+          ) : (
+            <>
+              <div className="shrink-0">
+                {isSaving || (isLoadingRelated && !createdCard) ? (
+                  <KnowledgeLoadingCard />
                 ) : (
-                  <RecentKnowledgeList
-                    cards={recentCards}
-                    isLoading={isLoadingRecent && recentCards.length === 0}
-                    error={recentError}
-                    isScrollable={false}
-                    title={knowledgeTabs}
-                    action={knowledgeSearchAction}
+                  <DropZone
+                    pendingScrap={pendingScrap}
+                    onTextDrop={handleTextDrop}
+                    onImageDrop={handleImageDrop}
+                    onSave={handleSave}
+                    onClear={handleClearPending}
+                    isSaving={isSaving}
+                    savingLabel={savingLabel}
+                    saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+                    saveError={saveError}
+                    saveNotice={saveNotice}
+                    canSave={isAuthenticated}
+                    authNotice={!isAuthenticated && pendingScrap ? '' : null}
+                    onLogin={!isAuthenticated ? () => setIsAuthCardOpen(true) : undefined}
                   />
                 )}
-              </>
-            )}
-          </div>
+              </div>
+
+          {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
+              {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
+                <div className="shrink-0">
+                  <CreatedKnowledgeCard card={createdCard} />
+                </div>
+              )}
+
+          {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
+              <div className="flex shrink-0 flex-col">
+                {!isAuthenticated ? (
+                  !pendingScrap && <EmptyState onLogin={() => setIsAuthCardOpen(true)} />
+                ) : (
+                  <>
+                    {hasKnowledgeSearchResult ? (
+                      <RecentKnowledgeList
+                        cards={knowledgeSearchCards}
+                        isLoading={isSearchingKnowledge}
+                        error={knowledgeSearchError}
+                        isScrollable={false}
+                        title={SEARCH_RESULT_TITLE}
+                        action={knowledgeSearchAction}
+                      />
+                    ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
+                      <SimilarKnowledgeList
+                        cards={relatedCards}
+                        isLoading={false}
+                        error={relatedError}
+                        isScrollable={false}
+                        title={knowledgeTabs}
+                        action={knowledgeSearchAction}
+                      />
+                    ) : (
+                      <RecentKnowledgeList
+                        cards={recentCards}
+                        isLoading={isLoadingRecent && recentCards.length === 0}
+                        error={recentError}
+                        isScrollable={false}
+                        title={knowledgeTabs}
+                        action={knowledgeSearchAction}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

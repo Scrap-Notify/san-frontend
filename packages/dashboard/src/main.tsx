@@ -5,11 +5,8 @@ import { RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiProvider } from '@san/shared';
 import { scrapsApi, cardsApi } from './api/client';
-import { syncStoredExtensionAuth } from './api/extensionAuth';
 import { router } from './router';
 import './index.css';
-
-void syncStoredExtensionAuth();
 
 const queryClient = new QueryClient({
   defaultOptions: {

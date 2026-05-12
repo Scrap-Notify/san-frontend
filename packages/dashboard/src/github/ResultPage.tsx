@@ -162,6 +162,7 @@ export function ResultPage() {
 
   return (
     <SearchPage
+      key={keyword}
       keyword={keyword}
       totalCount={searchQuery.data?.pages[0]?.totalCount ?? displayedResults.length}
       results={displayedResults}
@@ -191,10 +192,6 @@ function SearchPage({
   onSearchChange,
 }: SearchPageProps) {
   const [inputValue, setInputValue] = useState(keyword);
-
-  useEffect(() => {
-    setInputValue((currentValue) => (currentValue === keyword ? currentValue : keyword));
-  }, [keyword]);
 
   useEffect(() => {
     if (inputValue.trim() === keyword) {

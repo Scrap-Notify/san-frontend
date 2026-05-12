@@ -2,11 +2,12 @@ import type { AxiosInstance } from 'axios';
 import {
   SKIP_AUTH_HEADER,
   unwrapApiResponse,
+  type AuthClientType,
   type ApiResponse,
   type TokenResponse,
 } from './client';
 
-export type ClientType = 'DASHBOARD' | 'EXTENSION';
+export type ClientType = AuthClientType;
 
 export interface LoginRequest {
   username: string;
@@ -34,6 +35,26 @@ export interface GithubLoginRequest {
 
 export interface WithdrawRequest {
   password: string;
+}
+
+export interface BridgeTicketResponse {
+  ticket: string;
+  expiresIn: number;
+}
+
+export interface BridgeTokenRequest {
+  ticket: string;
+}
+
+export interface AuthSession {
+  sessionId: string;
+  clientType: ClientType;
+  current: boolean;
+  expiresInSeconds: number;
+}
+
+export interface AuthSessionsResponse {
+  sessions: AuthSession[];
 }
 
 export interface SignupResponse {
@@ -91,6 +112,28 @@ export function createAuthApi(apiClient: AxiosInstance) {
 
     logout: (): Promise<void> =>
       apiClient.post<ApiResponse<void>>('/auth/logout').then(() => undefined),
+
+    getSessions: (): Promise<AuthSessionsResponse> =>
+      apiClient
+        .get<ApiResponse<AuthSessionsResponse>>('/auth/sessions')
+        .then((response) => unwrapApiResponse(response.data)),
+
+    revokeSession: (sessionId: string, clientType: ClientType): Promise<void> =>
+      apiClient
+        .delete<ApiResponse<void>>(`/auth/sessions/${sessionId}`, {
+          params: { clientType },
+        })
+        .then(() => undefined),
+
+    createBridgeTicket: (): Promise<BridgeTicketResponse> =>
+      apiClient
+        .post<ApiResponse<BridgeTicketResponse>>('/auth/bridge/ticket')
+        .then((response) => unwrapApiResponse(response.data)),
+
+    exchangeBridgeToken: (payload: BridgeTokenRequest): Promise<TokenResponse> =>
+      apiClient
+        .post<ApiResponse<TokenResponse>>('/auth/bridge/token', payload, publicRequest)
+        .then((response) => unwrapApiResponse(response.data)),
 
     withdraw: (payload: WithdrawRequest): Promise<void> =>
       apiClient.delete<ApiResponse<void>>('/auth/withdraw', { data: payload }).then(() => undefined),

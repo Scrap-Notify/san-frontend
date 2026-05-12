@@ -9,7 +9,6 @@ import {
   createTilApi,
   type AuthTokens,
 } from '@san/shared';
-import { clearExtensionAuth } from './extensionAuth';
 import { authTokenStorage as localAuthTokenStorage } from './tokenStorage';
 
 const defaultBaseURL = import.meta.env.PROD
@@ -23,12 +22,13 @@ const githubAuthBaseURL = import.meta.env.VITE_GITHUB_AUTH_API_BASE_URL
 const tokenProvider = {
   getToken: localAuthTokenStorage.getToken,
   getRefreshToken: localAuthTokenStorage.getRefreshToken,
+  getUsername: localAuthTokenStorage.getUsername,
+  setUsername: localAuthTokenStorage.setUsername,
   setTokens: async (tokens: AuthTokens) => {
     await localAuthTokenStorage.setTokens(tokens);
   },
   clearToken: async () => {
     await localAuthTokenStorage.clearToken();
-    void clearExtensionAuth();
   },
 };
 
