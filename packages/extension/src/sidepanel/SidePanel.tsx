@@ -502,12 +502,26 @@ export default function SidePanel() {
       }
     };
 
+    const handlePanelFocus = () => {
+      void refreshAuthState();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        void refreshAuthState();
+      }
+    };
+
     chrome.storage.onChanged.addListener(handleStorageChange);
     chrome.runtime.onMessage.addListener(handleAuthMessage);
+    window.addEventListener('focus', handlePanelFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       ignore = true;
       chrome.storage.onChanged.removeListener(handleStorageChange);
       chrome.runtime.onMessage.removeListener(handleAuthMessage);
+      window.removeEventListener('focus', handlePanelFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [refreshRecentCards]);
 
