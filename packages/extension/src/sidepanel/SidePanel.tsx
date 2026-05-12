@@ -239,6 +239,7 @@ export default function SidePanel() {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isAuthCardOpen, setIsAuthCardOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const refreshRecentCards = useCallback(async () => {
     const requestToken = await authTokenStorage.getToken();
@@ -583,13 +584,13 @@ export default function SidePanel() {
     chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : dashboardLoginUrl.toString() });
   }, [isAuthenticated]);
 
-  const handleAuthButtonClick = useCallback(() => {
+  const handleProfileButtonClick = useCallback(() => {
     if (!isAuthenticated) {
       setIsAuthCardOpen(true);
       return;
     }
 
-    setIsLogoutConfirmOpen(true);
+    setIsProfileMenuOpen((current) => !current);
   }, [isAuthenticated]);
 
   const handleExtensionAuthComplete = useCallback(() => {
@@ -602,6 +603,11 @@ export default function SidePanel() {
     if (isLoggingOut) return;
     setIsLogoutConfirmOpen(false);
   }, [isLoggingOut]);
+
+  const handleLogoutClick = useCallback(() => {
+    setIsProfileMenuOpen(false);
+    setIsLogoutConfirmOpen(true);
+  }, []);
 
   const handleConfirmLogout = useCallback(async () => {
     setIsLoggingOut(true);
@@ -699,8 +705,10 @@ export default function SidePanel() {
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <SidePanelNavbar
           isAuthenticated={isAuthenticated}
+          isProfileMenuOpen={isProfileMenuOpen}
           onOpenDashboard={openDashboard}
-          onAuthButtonClick={handleAuthButtonClick}
+          onProfileButtonClick={handleProfileButtonClick}
+          onLogoutClick={handleLogoutClick}
         />
         {isLogoutConfirmOpen && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
