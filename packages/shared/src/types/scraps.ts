@@ -8,12 +8,14 @@ export interface Scrap extends BaseEntity {
   sourceUrl: string | null;
   rawContent: string | null;
   imageUrl: string | null;
+  imageObjectKey: string | null;
   ai_status?: AiStatus;
 }
 
 export interface CreateScrapRequest {
   sourceUrl?: string | null;
   rawContent: string;
+  imageObjectKey?: string | null;
 }
 
 export interface CreateScrapResponse extends Scrap {

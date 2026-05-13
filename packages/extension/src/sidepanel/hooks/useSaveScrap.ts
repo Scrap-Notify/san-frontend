@@ -7,7 +7,7 @@ import {
   type KnowledgeCardResponse,
   type KnowledgeCardView,
 } from '@san/shared';
-import { asyncJobsApi, cardsApi, scrapsApi } from '@extension/api/client';
+import { asyncJobsApi, cardsApi, scrapsApi, s3Api } from '@extension/api/client';
 import type { PendingScrap, SavedInsight } from '@extension/types';
 
 const STORAGE_KEY = 'san:saved-insights';
@@ -68,7 +68,7 @@ function toSavedInsight(scrap: PendingScrap): SavedInsight {
   };
 }
 
-function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
+function toCreateScrapRequest(scrap: PendingScrap, imageObjectKey?: string | null): CreateScrapRequest {
   if (scrap.source_type === 'LINK') {
     return {
       sourceUrl: scrap.source_url,
@@ -79,7 +79,8 @@ function toCreateScrapRequest(scrap: PendingScrap): CreateScrapRequest {
   if (scrap.source_type === 'IMAGE') {
     return {
       sourceUrl: scrap.source_url,
-      rawContent: scrap.image_url ?? scrap.source_url ?? scrap.raw_content ?? scrap.title,
+      rawContent: scrap.image_url ?? scrap.raw_content ?? scrap.image_file_name ?? scrap.title,
+      imageObjectKey,
     };
   }
 
@@ -181,11 +182,15 @@ export function useSaveScrap({
         return;
       }
 
-      const request = toCreateScrapRequest(pendingScrap);
-      if (pendingScrap.source_type === 'IMAGE' && pendingImageFile && !pendingScrap.image_url) {
-        throw new Error('Image upload is not supported by the current API. Save a page or text scrap instead.');
+      let imageObjectKey: string | null = null;
+      if (pendingScrap.source_type === 'IMAGE' && pendingImageFile) {
+        setSavingLabel('Uploading image...');
+        const uploadResult = await s3Api.uploadImage(pendingImageFile);
+        imageObjectKey = uploadResult.objectKey;
       }
 
+      const request = toCreateScrapRequest(pendingScrap, imageObjectKey);
+      setSavingLabel('Saving scrap...');
       const response = await scrapsApi.create(request);
       const saved = {
         ...toSavedInsight(pendingScrap),

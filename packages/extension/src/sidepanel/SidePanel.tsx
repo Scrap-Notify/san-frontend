@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { getS3ImageFileValidationError } from '@san/shared';
 import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
 import { authApi, authTokenStorage, cardsApi, searchApi } from '@extension/api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '@extension/types';
@@ -555,6 +556,12 @@ export default function SidePanel() {
   }, [clearResultState, pendingScrap?.image_blob_id]);
 
   const handleImageDrop = useCallback(async (file: File) => {
+    const validationError = getS3ImageFileValidationError(file);
+    if (validationError) {
+      setSaveError(validationError);
+      return;
+    }
+
     const metadata = await requestActiveTabMetadata();
     const previewUrl = await fileToDataUrl(file);
     const imageBlobId = await savePendingImageFile(file);
