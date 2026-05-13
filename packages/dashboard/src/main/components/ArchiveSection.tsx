@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { useArchiveCards } from '@dashboard/hooks/useArchiveCards';
+import { HomeKnowledgeCardsEmptyState } from './HomeEmptyStates';
 
 export function ArchiveSection() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export function ArchiveSection() {
     setActiveIndex(pageIndex);
   }, [cards.length]);
 
-  const scrollCarousel = (direction: 'previous' | 'next') => {
+  const scrollCarousel = useCallback((direction: 'previous' | 'next') => {
     const carousel = carouselRef.current;
     if (!carousel) return;
 
@@ -35,18 +36,18 @@ export function ArchiveSection() {
       left: carousel.clientWidth * (direction === 'previous' ? -1 : 1),
       behavior: 'smooth',
     });
-  };
+  }, []);
 
-  // Autoplay
   useEffect(() => {
     if (isPending || isError || cards.length === 0 || isHovered || !isPlaying) return;
     const interval = setInterval(() => {
       scrollCarousel('next');
     }, 4000);
     return () => clearInterval(interval);
-  }, [isPending, isError, cards.length, isHovered, isPlaying]);
+  }, [cards.length, isError, isHovered, isPending, isPlaying, scrollCarousel]);
 
   const totalPages = Math.max(1, Math.ceil(cards.length / 3));
+  const hasCards = !isPending && !isError && cards.length > 0;
 
   return (
     <section className="w-full min-w-0 overflow-hidden pb-xl">
@@ -61,50 +62,52 @@ export function ArchiveSection() {
           <div className="flex shrink-0 items-center gap-3 rounded-full border border-white/5 bg-[#121212] px-3 py-1.5 shadow-sm">
             <button
               type="button"
-              className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white"
-              onClick={() => setIsPlaying(!isPlaying)}
+              className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+              onClick={() => setIsPlaying((current) => !current)}
+              disabled={!hasCards}
               aria-label={isPlaying ? '일시정지' : '재생'}
             >
               {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
             </button>
             <div className="h-3 w-[1px] bg-white/10" />
-            
+
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => scrollCarousel('previous')}
                 className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
-                disabled={activeIndex === 0}
+                disabled={!hasCards || activeIndex === 0}
+                aria-label="이전 페이지"
               >
                 <ChevronLeft size={14} />
               </button>
 
               <div className="flex items-center gap-2 px-1">
-                {!isPending && !isError && Array.from({ length: totalPages }).map((_, index) => (
+                {hasCards ? Array.from({ length: totalPages }).map((_, index) => (
                   <button
                     key={index}
+                    type="button"
                     onClick={() => {
                       const carousel = carouselRef.current;
                       if (!carousel) return;
-                      // 페이지 인덱스에 따라 정확한 위치로 스크롤
-                      const scrollTarget = carousel.clientWidth * index;
-                      carousel.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+                      carousel.scrollTo({ left: carousel.clientWidth * index, behavior: 'smooth' });
                     }}
                     className={`h-2.5 rounded-full transition-all duration-300 ${
-                      index === activeIndex 
-                        ? 'w-5 bg-[#4ade80] shadow-[0_0_10px_rgba(74,222,128,0.5)]' 
+                      index === activeIndex
+                        ? 'w-5 bg-[#4ade80] shadow-[0_0_10px_rgba(74,222,128,0.5)]'
                         : 'w-2.5 bg-white/20 hover:bg-white/40'
                     }`}
                     aria-label={`${index + 1}번째 페이지로 이동`}
                   />
-                ))}
+                )) : null}
               </div>
 
               <button
                 type="button"
                 onClick={() => scrollCarousel('next')}
                 className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
-                disabled={activeIndex === totalPages - 1}
+                disabled={!hasCards || activeIndex === totalPages - 1}
+                aria-label="다음 페이지"
               >
                 <ChevronRight size={14} />
               </button>
@@ -112,7 +115,7 @@ export function ArchiveSection() {
           </div>
         </div>
 
-        <div 
+        <div
           className="min-w-0"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
@@ -131,10 +134,15 @@ export function ArchiveSection() {
             ) : null}
 
             {!isPending && !isError && cards.length === 0 ? (
-              <StatusCard message="아직 저장된 아카이브 카드가 없습니다." />
+              <HomeKnowledgeCardsEmptyState
+                primaryAction={{
+                  label: '분석 시작',
+                  onClick: () => navigate('/til'),
+                }}
+              />
             ) : null}
 
-            {!isPending && !isError ? cards.map((card) => {
+            {hasCards ? cards.map((card) => {
               const date = formatRelativeDate(card.created_at);
               const categoryName = card.category_name ?? card.tags[0]?.name ?? 'Uncategorized';
 
