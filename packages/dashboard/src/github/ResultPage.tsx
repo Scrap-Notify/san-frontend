@@ -4,6 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, Filter, Search, ExternalLink, Quote as QuoteIcon, MessageSquare, Clock, Globe, ArrowRight, Share2, Bookmark, Calendar, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import type { SearchCardResult, SearchParams } from '@san/shared';
 import { searchApi } from '../api/client';
+import { ContentEmptyState } from '../components/empty/ContentEmptyState';
 
 interface SearchFilters {
   tag: string;
@@ -288,6 +289,11 @@ function SearchPage({
           </div>
           <p className="text-sm font-medium text-white/40">검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</p>
         </div>
+      ) : results.length === 0 ? (
+        <ContentEmptyState
+          title="검색 결과가 없어요"
+          description={'뿌리가 닿는 지식 카드를 찾지 못했습니다.\n다른 키워드로 다시 검색해보세요.'}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-10">
           {results.map((card, idx) => (

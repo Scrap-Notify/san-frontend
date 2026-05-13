@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, GitBranch, Loader2 } from 'lucide-react';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
+import { InlineActionToast } from '../components/toast/InlineActionToast';
 
 export function GithubRepositorySelectPage() {
   const navigate = useNavigate();
@@ -11,6 +12,15 @@ export function GithubRepositorySelectPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  useEffect(() => {
+    if (!errorMessage) return;
+    void ({
+      type: 'error',
+      title: '저장소 연결 오류',
+      description: errorMessage,
+    });
+  }, [errorMessage]);
 
   useEffect(() => {
     let ignore = false;
@@ -144,13 +154,14 @@ export function GithubRepositorySelectPage() {
           </div>
         )}
 
-        {errorMessage ? (
+        {false && errorMessage ? (
           <p className="rounded-leaf border border-red-300/20 bg-red-500/10 px-md py-sm text-body-sm-bold text-red-200">
             {errorMessage}
           </p>
         ) : null}
 
-        <div className="grid gap-sm sm:grid-cols-[1fr_auto] sm:items-center">
+        <div className="relative grid gap-sm sm:grid-cols-[1fr_auto] sm:items-center">
+          <InlineActionToast message={errorMessage} />
           <button
             type="button"
             onClick={() => navigate('/settings/integrations')}

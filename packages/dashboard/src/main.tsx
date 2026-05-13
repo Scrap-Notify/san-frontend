@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiProvider } from '@san/shared';
 import { scrapsApi, cardsApi } from './api/client';
 import { router } from './router';
+import { ToastProvider } from './components/toast/ToastProvider';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -21,7 +22,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ApiProvider scrapsApi={scrapsApi} cardsApi={cardsApi}>
-        <RouterProvider router={router} />
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
       </ApiProvider>
     </QueryClientProvider>
   </StrictMode>
