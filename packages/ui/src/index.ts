@@ -9,5 +9,6 @@ export { IconBox } from './components/IconBox/IconBox.tsx';
 export { LeafCard } from './components/LeafCard/LeafCard.tsx';
 export { CurvedButton } from './components/Button/CurvedButton.tsx';
 export { ErrorFallback } from './components/Error/ErrorFallback.tsx';
+export type { ErrorFallbackProps, ErrorFallbackType } from './components/Error/ErrorFallback.tsx';
 export { EmptyState } from './components/Error/EmptyState.tsx';
-export type { EmptyStateType } from './components/Error/EmptyState.tsx';
+export type { EmptyStateProps, EmptyStateType } from './components/Error/EmptyState.tsx';
