@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "SAN - 지식 창고",
+  "description": "웹에서 수집한 링크, 텍스트, 이미지를 SAN 지식 관리 서비스에 저장하고 관리합니다.",
   "version": "1.0.0",
   "permissions": [
     "sidePanel",
     "storage",
     "tabs",
     "activeTab",
-    "scripting",
     "contextMenus"
   ],
   "host_permissions": [
