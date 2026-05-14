@@ -8,7 +8,11 @@
     "storage",
     "tabs",
     "activeTab",
-    "contextMenus"
+    "contextMenus",
+    "scripting",
+    "commands",
+    "notifications",
+    "alarms"
   ],
   "host_permissions": [
     "http://localhost/*",

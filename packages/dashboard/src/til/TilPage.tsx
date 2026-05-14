@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, GitCommitHorizontal } from 'lucide-react';
 import { CollectedDataPanel } from './components/CollectedDataPanel';
 import { TILEditor } from './components/TILEditor';
@@ -6,6 +7,7 @@ import { useTilPageLogic } from './hooks/useTilPageLogic';
 import { TILModeTabs, type TILMode } from './components/TILModeTabs';
 
 export function TilPage() {
+    const [searchParams] = useSearchParams();
     const {
         selectedDate,
         setSelectedDate,
@@ -26,6 +28,12 @@ export function TilPage() {
 
     const [activeTab, setActiveTab] = useState<TILMode>('drafts');
     const dateLabel = formatDateForDisplay(selectedDate);
+    const dateParam = searchParams.get('date');
+
+    useEffect(() => {
+        if (!isValidDateParam(dateParam) || dateParam === selectedDate) return;
+        setSelectedDate(dateParam);
+    }, [dateParam, selectedDate, setSelectedDate]);
 
     const goToPrevDate = () => {
         const date = new Date(selectedDate);
@@ -160,4 +168,10 @@ function shiftDate(date: Date): string {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+}
+
+function isValidDateParam(value: string | null): value is string {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const date = new Date(value);
+    return !Number.isNaN(date.getTime()) && shiftDate(date) === value;
 }
