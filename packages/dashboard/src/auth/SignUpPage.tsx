@@ -5,7 +5,7 @@ import { getApiErrorMessage } from '@san/shared';
 import { authApi } from '../api/client';
 import { getAuthClientType, withAuthClientType } from './clientType';
 import { completeAuth } from './completeAuth';
-import { useToast } from '../components/toast/ToastProvider';
+import { useToast } from '../components/toast/toastContext';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 

@@ -51,26 +51,21 @@ const FEEDBACK_TYPES = [
 }>;
 
 export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
+  if (!open) return null;
+
+  return <FeedbackDialogContent onClose={onClose} />;
+}
+
+function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>) {
   const [type, setType] = useState<FeedbackType>('BUG');
   const [content, setContent] = useState('');
   const [contact, setContact] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const pageUrl = useMemo(() => (typeof window === 'undefined' ? '' : window.location.href), [open]);
+  const pageUrl = useMemo(() => (typeof window === 'undefined' ? '' : window.location.href), []);
 
   useEffect(() => {
-    if (!open) return;
-    setType('BUG');
-    setContent('');
-    setContact('');
-    setErrorMessage(null);
-    setIsSubmitted(false);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !isSubmitting) {
         onClose();
@@ -79,9 +74,7 @@ export function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSubmitting, onClose, open]);
-
-  if (!open) return null;
+  }, [isSubmitting, onClose]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
