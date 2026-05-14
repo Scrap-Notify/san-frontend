@@ -1,4 +1,5 @@
 import type { SavedInsight } from '@extension/types';
+import { PackageOpen } from 'lucide-react';
 import ArchiveItem from './ArchiveItem';
 
 interface CardListProps {
@@ -9,28 +10,41 @@ function formatTime(value: string) {
   return new Intl.DateTimeFormat('ko-KR', {
     month: 'short',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
   }).format(new Date(value));
+}
+
+function getPreviewContent(card: SavedInsight) {
+  return card.raw_content ?? card.source_url ?? card.image_file_name ?? card.domain ?? null;
 }
 
 export const CardList = ({ cards }: CardListProps) => {
   if (cards.length === 0) {
     return (
-      <div className="rounded-leaf border border-text-secondary/20 bg-surface-container p-popover-padding text-center">
-        <p className="text-body-main-bold text-text-primary">No local captures yet</p>
-        <p className="mt-1 text-caption text-text-secondary">Captured sources will appear here.</p>
+      <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
+        <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+          <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-body-sm font-medium text-text-secondary">
+            아직 저장된 원본이 없어요.
+          </p>
+          <p className="text-caption text-text-secondary/60">
+            수집한 내용을 저장하면 이곳에 표시돼요.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3 pb-4">
+    <div className="space-y-4 pb-4">
       {cards.map((card) => (
         <ArchiveItem
           key={card.id}
           title={card.title || card.domain || 'Untitled'}
-          meta={`${card.source_type} / ${formatTime(card.created_at)}`}
+          meta={formatTime(card.created_at)}
+          sourceType={card.source_type}
+          content={getPreviewContent(card)}
         />
       ))}
     </div>
