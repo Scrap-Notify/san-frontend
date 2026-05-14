@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Bold, Italic, List, Link as LinkIcon, RotateCcw, Heading, Quote, Code, ListOrdered, ListChecks } from 'lucide-react';
+import { Bold, Italic, List, Link as LinkIcon, RotateCcw, Heading, Quote, Code, ListOrdered, ListChecks, Save } from 'lucide-react';
 import type { TILMode } from '@dashboard/til/components/TILModeTabs';
 import type { TilResponse } from '@san/shared';
 import type {
@@ -45,11 +45,19 @@ export function TILEditor({
                               commitMessage,
                           }: TILEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+    const [editDraft, setEditDraft] = useState('');
 
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
-    const displayedDraft = draft || (selectedTil?.content ?? '');
+    const aiDraft = selectedTil?.content ?? '';
+    const previewDraft = draft || aiDraft;
+    const isEditing = activeTab === 'edit';
+    const displayedDraft = activeTab === 'drafts' ? aiDraft : previewDraft;
     const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
+
+    useEffect(() => {
+        setEditDraft(previewDraft);
+    }, [previewDraft, selectedTil?.summaryId]);
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
@@ -58,6 +66,10 @@ export function TILEditor({
     const handleGenerate = () => {
         if (isGenerating) return;
         generateMutation.mutate();
+    };
+
+    const handleSave = () => {
+        setDraft(editDraft);
     };
 
 
@@ -109,10 +121,11 @@ export function TILEditor({
             { range: selection, text: replacement, forceMoveMarkers: true },
         ]);
 
-        setDraft(model.getValue());
+        setEditDraft(model.getValue());
     };
 
     const statusMessage = generationMessage ?? commitMessage;
+    const hasUnsavedChanges = editDraft !== previewDraft;
 
     return (
         <div className="flex h-full min-h-0 w-full flex-col">
@@ -120,7 +133,7 @@ export function TILEditor({
                 <div className="flex shrink-0 items-center justify-between border-b border-white/5 px-4 py-2.5">
                     <div className="flex items-center gap-3 text-text-secondary">
                         {/* 그룹 1: 텍스트 서식 */}
-                        <div className="flex items-center gap-2">
+                        <div className={`${isEditing ? 'flex' : 'hidden'} items-center gap-2`}>
                             <button type="button" onClick={() => handleFormat('heading')} title="Heading" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
                                 <Heading size={13} strokeWidth={2} />
                             </button>
@@ -141,10 +154,10 @@ export function TILEditor({
                             </button>
                         </div>
 
-                        <div className="h-3 w-px bg-white/10" />
+                        <div className={`${isEditing ? 'block' : 'hidden'} h-3 w-px bg-white/10`} />
 
                         {/* 그룹 2: 리스트 */}
-                        <div className="flex items-center gap-2">
+                        <div className={`${isEditing ? 'flex' : 'hidden'} items-center gap-2`}>
                             <button type="button" onClick={() => handleFormat('ordered-list')} title="Ordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
                                 <ListOrdered size={13} strokeWidth={2} />
                             </button>
@@ -156,7 +169,7 @@ export function TILEditor({
                             </button>
                         </div>
 
-                        <div className="h-4 w-px bg-white/10" />
+                        <div className={`${isEditing ? 'block' : 'hidden'} h-4 w-px bg-white/10`} />
 
                         {statusMessage ? (
                             <div
@@ -180,6 +193,22 @@ export function TILEditor({
 
                         <div className="h-4 w-px bg-white/10" />
 
+                        {isEditing ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={handleSave}
+                                    disabled={!hasUnsavedChanges}
+                                    className="flex h-8 items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-primary-signal px-3 text-xs font-bold text-background transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-primary-signal/60"
+                                >
+                                    <Save size={13} strokeWidth={2.2} />
+                                    SAVE
+                                </button>
+
+                                <div className="h-4 w-px bg-white/10" />
+                            </>
+                        ) : null}
+
                         <button
                             type="button"
                             onClick={handleGenerate}
@@ -187,7 +216,7 @@ export function TILEditor({
                             className="flex items-center gap-1.5 font-bold text-primary-signal transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
-                            {isGenerating ? 'GENERATING...' : 'REGENERATE'}
+                            {isGenerating ? '생성하는 중...' : '다시 생성하기'}
                         </button>
                     </div>
                 </div>
@@ -208,13 +237,13 @@ export function TILEditor({
                             title="오늘은 작성된 TIL이 없어요"
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
                         />
-                    ) : activeTab === 'drafts' || activeTab === 'edit' ? (
+                    ) : isEditing ? (
                         <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-white/5 bg-[#1e1e1e]/30 transition-all">
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="markdown"
-                                value={displayedDraft}
-                                onChange={(v) => setDraft(v ?? '')}
+                                value={editDraft}
+                                onChange={(v) => setEditDraft(v ?? '')}
                                 onMount={handleEditorMount}
                                 loading={
                                     <div className="flex h-full w-full flex-col gap-4 p-6 animate-pulse">

@@ -124,7 +124,7 @@ export function TilPage() {
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="제목을 입력하세요"
-                            readOnly={activeTab === 'preview'}
+                            readOnly={activeTab !== 'edit'}
                             className="w-full bg-transparent text-xl font-extrabold text-white outline-none transition-all placeholder:text-text-secondary/20 focus:placeholder:text-text-secondary/10"
                         />
                     </div>
