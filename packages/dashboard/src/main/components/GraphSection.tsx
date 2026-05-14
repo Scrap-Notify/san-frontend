@@ -7,7 +7,7 @@ export function GraphSection() {
   return (
     <div className="flex flex-col gap-dashboard-gap">
       <h2 className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-h1-bold text-transparent">
-        나의 지식의 숲
+        나의 지식 숲
       </h2>
       <HomeGraphEmptyState
         primaryAction={{
