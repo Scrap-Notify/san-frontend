@@ -805,7 +805,7 @@ export default function SidePanel() {
                     onClear={handleClearPending}
                     isSaving={isSaving}
                     savingLabel={savingLabel}
-                    saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+                    saveLabel="Save"
                     saveError={saveError}
                     saveNotice={saveNotice}
                     canSave={true}
