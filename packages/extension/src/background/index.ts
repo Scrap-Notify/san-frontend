@@ -96,6 +96,15 @@ chrome.runtime.onInstalled.addListener(() => {
       title: 'SAN: Save selected text',
       contexts: ['selection'],
     });
+
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: "SAN_LOGO_EXTENSION.png",
+      title: "SAN 리콜 알림 테스트",
+      message: "이 알림이 보이면 Chrome 알림 설정이 정상입니다.",
+      priority: 2,
+    });
+
   });
 });
 
