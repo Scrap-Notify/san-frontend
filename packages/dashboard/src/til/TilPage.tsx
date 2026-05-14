@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, GitCommitHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GitCommitHorizontal, Trash2 } from 'lucide-react';
 import { CollectedDataPanel } from './components/CollectedDataPanel';
 import { TILEditor } from './components/TILEditor';
 import { useTilPageLogic } from './hooks/useTilPageLogic';
@@ -21,6 +21,8 @@ export function TilPage() {
         generationStatusQuery,
         commitStatusQuery,
         generateMutation,
+        updateMutation,
+        deleteMutation,
         commitMutation,
         generationTone,
         generationMessage,
@@ -56,6 +58,16 @@ export function TilPage() {
         commitMutation.isPending ||
         commitStatusQuery.data?.status === 'PENDING' ||
         commitStatusQuery.data?.status === 'PROCESSING';
+    const displayedTitle = activeTab === 'edit' ? title : selectedTil?.title ?? title;
+
+    const handleDeleteTil = () => {
+        if (!selectedTil || deleteMutation.isPending) return;
+
+        const confirmed = window.confirm('선택한 TIL을 삭제할까요? 삭제 후에는 되돌릴 수 없습니다.');
+        if (!confirmed) return;
+
+        deleteMutation.mutate(selectedTil.summaryId);
+    };
 
     return (
         <section className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-80px)] w-full overflow-hidden bg-background text-text-primary">
@@ -102,6 +114,16 @@ export function TilPage() {
 
                             <button
                                 type="button"
+                                onClick={handleDeleteTil}
+                                disabled={deleteMutation.isPending || !selectedTil}
+                                className="flex h-10 md:h-11 flex-1 md:flex-none items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md border border-error/20 bg-error/10 px-4 text-sm font-medium text-error transition-all hover:bg-error/15 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Trash2 size={16} />
+                                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                            </button>
+
+                            <button
+                                type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
                                 className="flex h-10 md:h-11 flex-1 md:flex-none items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md bg-[#238636] px-4 text-sm font-medium text-white shadow-lg transition-all hover:bg-[#2ea043] hover:shadow-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
@@ -121,7 +143,7 @@ export function TilPage() {
 
                         <input
                             type="text"
-                            value={title}
+                            value={displayedTitle}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="제목을 입력하세요"
                             readOnly={activeTab !== 'edit'}
@@ -132,11 +154,13 @@ export function TilPage() {
                     <div className="flex min-h-[500px] flex-1 flex-col rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl overflow-hidden">
                         <TILEditor
                             activeTab={activeTab}
+                            title={title}
                             draft={draft}
                             setDraft={setDraft}
                             selectedTil={selectedTil}
                             isTilLoading={tilQuery.isPending}
                             generateMutation={generateMutation}
+                            updateMutation={updateMutation}
                             commitMutation={commitMutation}
                             generationStatusQuery={generationStatusQuery}
                             commitStatusQuery={commitStatusQuery}

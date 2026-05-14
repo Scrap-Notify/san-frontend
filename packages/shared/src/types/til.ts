@@ -6,6 +6,11 @@ export interface TilGenerateRequest {
   targetDate: string;
 }
 
+export interface TilUpdateRequest {
+  title: string;
+  content: string;
+}
+
 export interface TilGenerationJobResponse {
   summaryId: string;
   jobId: string;

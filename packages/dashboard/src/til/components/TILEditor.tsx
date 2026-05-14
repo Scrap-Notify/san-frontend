@@ -12,16 +12,19 @@ import type {
     TilGithubCommitMutation,
     TilJobStatusQuery,
     TilJobTone,
+    TilUpdateMutation,
 } from '@dashboard/til/types';
 import { ContentEmptyState } from '@dashboard/components/empty/ContentEmptyState';
 
 interface TILEditorProps {
     activeTab: TILMode;
+    title: string;
     draft: string;
     setDraft: (value: string) => void;
     selectedTil: TilResponse | null;
     isTilLoading?: boolean;
     generateMutation: TilGenerateMutation;
+    updateMutation: TilUpdateMutation;
     commitMutation: TilGithubCommitMutation;
     generationStatusQuery: TilJobStatusQuery;
     commitStatusQuery: TilJobStatusQuery;
@@ -32,11 +35,13 @@ interface TILEditorProps {
 
 export function TILEditor({
                               activeTab,
+                              title,
                               draft,
                               setDraft,
                               selectedTil,
                               isTilLoading = false,
                               generateMutation,
+                              updateMutation,
                               commitMutation,
                               generationStatusQuery,
                               commitStatusQuery,
@@ -69,7 +74,13 @@ export function TILEditor({
     };
 
     const handleSave = () => {
-        setDraft(editDraft);
+        if (!selectedTil?.summaryId || !canSave) return;
+
+        updateMutation.mutate({
+            summaryId: selectedTil.summaryId,
+            title: title.trim(),
+            content: editDraft,
+        });
     };
 
 
@@ -125,7 +136,14 @@ export function TILEditor({
     };
 
     const statusMessage = generationMessage ?? commitMessage;
-    const hasUnsavedChanges = editDraft !== previewDraft;
+    const hasUnsavedChanges = editDraft !== previewDraft || title !== (selectedTil?.title ?? '');
+    const canSave = Boolean(
+        selectedTil?.summaryId &&
+        title.trim() &&
+        editDraft.trim() &&
+        hasUnsavedChanges &&
+        !updateMutation.isPending,
+    );
 
     return (
         <div className="flex h-full min-h-0 w-full flex-col">
@@ -198,11 +216,11 @@ export function TILEditor({
                                 <button
                                     type="button"
                                     onClick={handleSave}
-                                    disabled={!hasUnsavedChanges}
+                                    disabled={!canSave}
                                     className="flex h-8 items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-primary-signal px-3 text-xs font-bold text-background transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-primary-signal/60"
                                 >
                                     <Save size={13} strokeWidth={2.2} />
-                                    SAVE
+                                    {updateMutation.isPending ? 'SAVING...' : 'SAVE'}
                                 </button>
 
                                 <div className="h-4 w-px bg-white/10" />

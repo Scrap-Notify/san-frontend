@@ -2,7 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getApiErrorMessage } from '@san/shared';
 import type { TilJobTone, TilPageLogic } from '../types';
-import { useTilGenerateMutation, useTilGithubCommitMutation } from './useTilMutations';
+import {
+  useTilDeleteMutation,
+  useTilGenerateMutation,
+  useTilGithubCommitMutation,
+  useTilUpdateMutation,
+} from './useTilMutations';
 import type { TilResponse } from '@san/shared';
 import {
   tilKeys,
@@ -63,6 +68,32 @@ export function useTilPageLogic(): TilPageLogic {
     },
   });
 
+  const updateMutation = useTilUpdateMutation({
+    onSuccess: (response) => {
+      setSelectedSummaryId(response.summaryId);
+      setTitle(response.title ?? '');
+      setDraft(response.content ?? '');
+      queryClient.setQueryData<TilResponse[]>(tilKeys.byDate(response.targetDate), (previous) => {
+        if (!previous) return [response];
+        return previous.map((item) => item.summaryId === response.summaryId ? response : item);
+      });
+      void queryClient.invalidateQueries({ queryKey: tilKeys.recallCards(response.summaryId) });
+    },
+  });
+
+  const deleteMutation = useTilDeleteMutation({
+    onSuccess: (_response, deletedSummaryId) => {
+      const remaining = tilList.filter((item) => item.summaryId !== deletedSummaryId);
+      const nextTil = remaining[0] ?? null;
+
+      setSelectedSummaryId(nextTil?.summaryId ?? null);
+      setTitle(nextTil?.title ?? '');
+      setDraft(nextTil?.content ?? '');
+      queryClient.setQueryData<TilResponse[]>(tilKeys.byDate(selectedDate), remaining);
+      void queryClient.invalidateQueries({ queryKey: tilKeys.byDate(selectedDate) });
+    },
+  });
+
   const commitMutation = useTilGithubCommitMutation({
     onSuccess: (response) => {
       setCommitJobId(response.jobId);
@@ -112,6 +143,8 @@ export function useTilPageLogic(): TilPageLogic {
     generationStatusQuery,
     commitStatusQuery,
     generateMutation,
+    updateMutation,
+    deleteMutation,
     commitMutation,
     generationTone,
     commitTone,

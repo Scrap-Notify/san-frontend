@@ -17,6 +17,8 @@ export type TilJobStatusQuery = UseQueryResult<AsyncJobStatusResponse>;
 
 export type TilGenerateMutation = UseMutationResult<TilGenerationJobResponse, Error, void, unknown>;
 export type TilGithubCommitMutation = UseMutationResult<TilGithubCommitJobResponse, Error, string, unknown>;
+export type TilUpdateMutation = UseMutationResult<TilResponse, Error, { summaryId: string; title: string; content: string }, unknown>;
+export type TilDeleteMutation = UseMutationResult<void, Error, string, unknown>;
 
 export interface TilSourceContent {
   inputType: 'text' | 'url' | 'image' | string;
@@ -44,6 +46,8 @@ export interface TilPageLogic {
   generationStatusQuery: TilJobStatusQuery;
   commitStatusQuery: TilJobStatusQuery;
   generateMutation: TilGenerateMutation;
+  updateMutation: TilUpdateMutation;
+  deleteMutation: TilDeleteMutation;
   commitMutation: TilGithubCommitMutation;
   generationTone: TilJobTone;
   commitTone: TilJobTone;
