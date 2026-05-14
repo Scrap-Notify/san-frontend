@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { LoginPage } from './auth/LoginPage';
 import { HomePage } from './main/HomePage';
@@ -7,7 +7,6 @@ import { ResultPage } from './github/ResultPage';
 import { GithubAuthResultPage } from './auth/GithubAuthResultPage';
 import { SettingsIntegrationsPage } from './main/SettingsIntegrationsPage';
 import { TilPage } from './til/TilPage';
-import { GithubRepositorySelectPage } from './main/GithubRepositorySelectPage';
 import { ProfilePage } from './main/ProfilePage';
 import { NotFoundPage } from './main/NotFoundPage';
 import { AuthGate } from './auth/AuthGate';
@@ -82,11 +81,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '/settings/repositories',
-        element: (
-          <AuthGate>
-            <GithubRepositorySelectPage />
-          </AuthGate>
-        ),
+        element: <Navigate to="/settings/integrations" replace />,
       },
       {
         path: '*',

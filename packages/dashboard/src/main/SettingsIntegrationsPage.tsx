@@ -1,5 +1,5 @@
-import { GitBranch, RefreshCw, Trash2, Loader2, Search, Link2, TerminalSquare, AlertTriangle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { ExternalLink, FolderGit2, GitBranch, RefreshCw, Loader2, Search, Link2, TerminalSquare, AlertTriangle } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
@@ -61,44 +61,39 @@ export function SettingsIntegrationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  useEffect(() => {
-    if (!errorMessage) return;
-    void ({
-      type: 'error',
-      title: '연결 오류',
-      description: errorMessage,
-    });
-  }, [errorMessage]);
 
-  const loadConnectedRepositories = async () => {
+  const loadConnectedRepositories = useCallback(async () => {
     setIsLoadingConnected(true);
     setErrorMessage(null);
     setActionError(null);
 
     try {
-      const repositories = await githubApi.getConnectedRepositories();
-      // 단일 레포 연결 정책 반영 (배열이어도 하나만 렌더링하도록 취급)
-      setConnectedRepositories(repositories);
-      setIsGithubLinked(true);
+      const status = await githubApi.getLinkStatus();
+      setConnectedRepositories(status.connectedRepository ? [status.connectedRepository] : []);
+      setIsGithubLinked(status.linked);
+      if (!status.linked) {
+        setAvailableRepositories([]);
+      }
     } catch {
       setConnectedRepositories([]);
       setIsGithubLinked(false);
+      setAvailableRepositories([]);
     } finally {
       setIsLoadingConnected(false);
     }
-  };
+  }, []);
 
-  const loadAvailableRepositories = async () => {
+  const loadAvailableRepositories = useCallback(async () => {
     setIsLoadingAvailable(true);
     try {
       const items = await githubApi.getRepositories();
       setAvailableRepositories(items);
     } catch {
-      // ignore
+      setAvailableRepositories([]);
     } finally {
       setIsLoadingAvailable(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (githubLinked) {
@@ -106,17 +101,22 @@ export function SettingsIntegrationsPage() {
     }
 
     let ignore = false;
-    githubApi.getConnectedRepositories()
-      .then((repositories) => {
+    githubApi.getLinkStatus()
+      .then((status) => {
         if (ignore) return;
-        setConnectedRepositories(repositories);
-        setIsGithubLinked(true);
-        loadAvailableRepositories();
+        setConnectedRepositories(status.connectedRepository ? [status.connectedRepository] : []);
+        setIsGithubLinked(status.linked);
+        if (status.linked) {
+          loadAvailableRepositories();
+        } else {
+          setAvailableRepositories([]);
+        }
       })
       .catch(() => {
         if (ignore) return;
         setConnectedRepositories([]);
         setIsGithubLinked(false);
+        setAvailableRepositories([]);
       })
       .finally(() => {
         if (ignore) return;
@@ -126,8 +126,7 @@ export function SettingsIntegrationsPage() {
     return () => {
       ignore = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [githubLinked]);
+  }, [githubLinked, loadAvailableRepositories, navigate]);
 
   const handleLinkGithub = async () => {
     if (isLinking || isGithubLinked) return;
@@ -213,6 +212,7 @@ export function SettingsIntegrationsPage() {
     if (!debouncedSearchQuery) return notConnected;
     return notConnected.filter(repo => repo.fullName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
   }, [availableRepositories, connectedRepositories, debouncedSearchQuery]);
+  const hasConnectedRepository = connectedRepositories.length > 0;
 
   return (
     <section className="w-full min-w-0 space-y-lg py-dashboard-gap text-text-primary max-w-[1200px] mx-auto">
@@ -227,17 +227,23 @@ export function SettingsIntegrationsPage() {
             <div className="mt-3 flex items-center gap-3">
               <h1 className="text-4xl font-bold text-white tracking-tight">GitHub</h1>
               <span
-                className={`inline-flex items-center rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${
                   isGithubLinked
-                    ? 'bg-white/5 text-white/40 border border-white/10'
-                    : 'bg-white/5 text-white/40 border border-white/10'
+                    ? 'text-[#4ade80]'
+                    : 'text-white/40'
                 }`}
               >
+                <span className="relative flex h-2 w-2" aria-hidden="true">
+                  {isGithubLinked && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ade80] opacity-60" />}
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isGithubLinked ? 'bg-[#4ade80]' : 'bg-white/25'}`} />
+                </span>
                 {isGithubLinked ? '연동됨' : '미연동'}
               </span>
             </div>
             <p className="mt-4 max-w-lg text-sm text-white/50 leading-relaxed">
-              GitHub 계정을 연동하여 레포지토리를 동기화하고, "TIL" 마크다운 파일들을 SAN 워크스페이스로 자동으로 가져오세요.
+              GitHub 계정을 연동하여 Repository를 동기화하세요.
+              <br />
+              SAN에서 쌓은 TIL 기록을 꾸준한 커밋으로 남기고, GitHub 잔디를 심어보세요.
             </p>
           </div>
 
@@ -247,35 +253,33 @@ export function SettingsIntegrationsPage() {
                 type="button"
                 onClick={handleUnlinkGithub}
                 disabled={isUnlinking}
-                className="text-sm font-medium text-white/40 hover:text-red-400 transition"
+                className="rounded-md border border-white/10 px-3 py-2 text-sm font-medium text-white/45 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isUnlinking ? '해제 중...' : '연동 해제'}
               </button>
             )}
             <InlineActionToast message={actionError?.target === 'link' ? actionError.message : null} />
-            <button
-              type="button"
-              onClick={handleLinkGithub}
-              disabled={isLinking || isGithubLinked}
-              className={`inline-flex h-11 items-center gap-2 rounded-full px-6 text-sm font-bold transition-all ${
-                isGithubLinked
-                  ? 'bg-[#4ade80] text-black hover:bg-[#4ade80]/90 cursor-not-allowed opacity-90'
-                  : 'bg-[#4ade80] text-black hover:bg-[#4ade80]/90 active:scale-95'
-              }`}
-            >
-              <img
-                src={githubSvg}
-                alt="GitHub"
-                className={`w-5 h-5 ${isGithubLinked ? 'brightness-0' : 'brightness-0'}`}
-              />
-              {isLinking ? '연동 중...' : 'GitHub 계정 연동'}
-            </button>
+            {!isGithubLinked && (
+              <button
+                type="button"
+                onClick={handleLinkGithub}
+                disabled={isLinking}
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-[#4ade80] px-6 text-sm font-bold text-black transition-all hover:bg-[#4ade80]/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <img
+                  src={githubSvg}
+                  alt="GitHub"
+                  className="h-5 w-5 brightness-0"
+                />
+                {isLinking ? '연동 중...' : 'GitHub 계정 연동'}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* 에러 메시지 */}
-      {false && errorMessage && (
+      {errorMessage && (
         <div className="flex items-center gap-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4 mt-6">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500">
             <AlertTriangle size={20} />
@@ -298,18 +302,25 @@ export function SettingsIntegrationsPage() {
         {/* 왼쪽: Available Repositories */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">연결 가능한 레포지토리</h2>
-            <span className="text-xs text-white/40">{isGithubLinked ? '동기화 준비 완료' : '동기화 비활성화됨'}</span>
+            <div>
+              <h2 className="text-lg font-bold text-white">연결 가능한 Repository</h2>
+              {isGithubLinked && hasConnectedRepository && (
+                <p className="mt-1 text-xs text-white/40">하나의 Repository만 선택 가능합니다.</p>
+              )}
+            </div>
+            <span className="text-xs text-white/40">
+              {!isGithubLinked ? 'GitHub 연동 필요' : hasConnectedRepository ? '선택 완료' : 'Repository 선택 가능'}
+            </span>
           </div>
 
-          <div className="flex min-h-[400px] flex-col overflow-hidden rounded-xl border border-white/5 bg-[#121212]/80">
+          <div className="flex h-[460px] flex-col overflow-hidden rounded-xl border border-white/5 bg-[#121212]/80">
             {/* 검색바 */}
             <div className="border-b border-white/5 p-4">
               <div className="relative">
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
                 <input
                   type="text"
-                  placeholder="레포지토리 검색..."
+                  placeholder="Repository 검색..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={!isGithubLinked || isLoadingAvailable}
@@ -319,7 +330,7 @@ export function SettingsIntegrationsPage() {
             </div>
 
             {/* 목록 또는 Empty State */}
-            <div className="flex flex-1 flex-col overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {!isGithubLinked ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 border-dashed bg-white/5 text-white/30">
@@ -327,13 +338,13 @@ export function SettingsIntegrationsPage() {
                   </div>
                   <h3 className="text-base font-bold text-white">계정이 연동되지 않았습니다</h3>
                   <p className="mt-2 max-w-[260px] text-xs text-white/40 leading-relaxed">
-                    GitHub 계정을 연동하면 SAN과 동기화할 레포지토리를 조회하고 선택할 수 있습니다.
+                    GitHub 계정을 연동하면 SAN과 동기화할 Repository를 조회하고 선택할 수 있습니다.
                   </p>
                   <button
                     onClick={handleLinkGithub}
                     className="mt-6 rounded-lg bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition"
                   >
-                    연결 상태 새로고침
+                    GitHub 계정 연동
                   </button>
                 </div>
               ) : isLoadingAvailable ? (
@@ -344,20 +355,26 @@ export function SettingsIntegrationsPage() {
                     <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#1c1c1c] p-4 transition hover:bg-white/[0.04]">
                       <div className="flex min-w-0 items-center gap-4">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 text-white/40">
-                          <GitBranch size={20} />
+                          <FolderGit2 size={20} />
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-sm font-bold text-white">{repo.fullName}</p>
                           <p className="text-xs text-white/40 mt-1">{repo.privateRepository ? '비공개(Private)' : '공개(Public)'} / {repo.defaultBranch}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleConnectRepository(repo)}
-                        disabled={connectingRepoId === repo.githubRepositoryId}
-                        className="flex h-8 shrink-0 items-center justify-center rounded-md bg-[#254230] px-4 text-xs font-bold text-[#4ade80] transition hover:bg-[#2d523b] disabled:opacity-50"
-                      >
-                        {connectingRepoId === repo.githubRepositoryId ? <Loader2 size={14} className="animate-spin" /> : '연결하기'}
-                      </button>
+                      {hasConnectedRepository ? (
+                        <span className="shrink-0 rounded-md border border-white/10 px-3 py-1.5 text-xs font-medium text-white/35">
+                          1개만 가능
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleConnectRepository(repo)}
+                          disabled={connectingRepoId === repo.githubRepositoryId}
+                          className="flex h-8 shrink-0 items-center justify-center rounded-md bg-[#254230] px-4 text-xs font-bold text-[#4ade80] transition hover:bg-[#2d523b] disabled:opacity-50"
+                        >
+                          {connectingRepoId === repo.githubRepositoryId ? <Loader2 size={14} className="animate-spin" /> : '연결하기'}
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -374,10 +391,15 @@ export function SettingsIntegrationsPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-white">연결된 레포지토리</h2>
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white/60">
-                {connectedRepositories.length}
-              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-white">연결된 Repository</h2>
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white/60">
+                    {connectedRepositories.length}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-white/40">현재 SAN과 동기화 중인 Repository입니다.</p>
+              </div>
             </div>
             <button
               onClick={loadConnectedRepositories}
@@ -388,7 +410,11 @@ export function SettingsIntegrationsPage() {
             </button>
           </div>
 
-          <div className="flex min-h-[400px] flex-col overflow-hidden rounded-xl border border-white/5 bg-[#121212]/80 p-4">
+          <div className={`flex flex-col overflow-hidden rounded-xl bg-transparent p-4 ${
+            isGithubLinked && connectedRepositories.length > 0
+              ? 'border border-transparent'
+              : 'h-[460px] border border-white/5'
+          }`}>
             {!isGithubLinked || (!isLoadingConnected && connectedRepositories.length === 0) ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/30">
@@ -400,41 +426,69 @@ export function SettingsIntegrationsPage() {
                   </div>
                 </div>
                 <h3 className="text-base font-bold text-white">
-                  {isGithubLinked ? '연결된 레포지토리가 없습니다' : 'GitHub 연동이 필요합니다'}
+                  {isGithubLinked ? '연결된 Repository가 없습니다' : 'GitHub 연동이 필요합니다'}
                 </h3>
                 <p className="mt-2 max-w-[280px] text-xs text-white/40 leading-relaxed">
                   {isGithubLinked 
-                    ? '좌측 목록에서 SAN과 동기화할 레포지토리를 선택해주세요.'
-                    : '계정 연동 후, SAN 워크스페이스에서 관리할 레포지토리를 선택할 수 있습니다.'}
+                    ? '좌측 목록에서 SAN과 동기화할 Repository를 선택해주세요.'
+                    : '계정 연동 후, SAN 워크스페이스에서 관리할 Repository를 선택할 수 있습니다.'}
                 </p>
               </div>
             ) : isLoadingConnected ? (
                <RepositorySkeleton />
             ) : (
-              <ul className="flex flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                {connectedRepositories.map((repo) => (
-                  <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#1c1c1c] p-4">
-                    <div className="flex min-w-0 items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#254230]/50 text-[#4ade80]">
-                        <GitBranch size={20} />
+              <div className="flex min-h-0 flex-1 flex-col">
+                <ul className="flex min-h-0 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                  {connectedRepositories.map((repo) => (
+                    <li key={repo.githubRepositoryId} className="rounded-lg border border-white/10 bg-[#1c1c1c] p-4 ring-1 ring-[#4ade80]/15">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-4">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5">
+                            <img src={githubSvg} alt="" aria-hidden="true" className="h-5 w-5 brightness-0 invert opacity-80" />
+                          </div>
+                          <div className="min-w-0">
+                            <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white transition hover:text-[#4ade80]">
+                              {repo.fullName}
+                            </a>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-white/40">
+                              <span>{repo.privateRepository ? '비공개(Private)' : '공개(Public)'}</span>
+                              <span className="h-1 w-1 rounded-full bg-white/20" aria-hidden="true" />
+                              <span className="inline-flex items-center gap-1 text-[#4ade80]">
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
+                                Active
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDisconnectRepository(repo.githubRepositoryId)}
+                          className="inline-flex shrink-0 items-center rounded-md border border-white/10 px-2.5 py-1.5 text-xs font-bold text-white/35 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300"
+                          title="레포 끊기"
+                        >
+                          레포 끊기
+                        </button>
                       </div>
-                      <div className="min-w-0">
-                        <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white hover:text-[#4ade80] transition">
-                          {repo.fullName}
+
+                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/5 pt-3">
+                        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-white/10 bg-black/20 px-2.5 py-1 text-xs font-medium text-white/55">
+                          <GitBranch size={13} />
+                          <span className="truncate">{repo.defaultBranch}</span>
+                        </span>
+                        <a
+                          href={repo.htmlUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1 text-xs font-bold text-[#4ade80] transition hover:bg-white/10"
+                        >
+                          GitHub에서 보기
+                          <ExternalLink size={13} />
                         </a>
-                        <p className="text-xs text-white/40 mt-1">{repo.privateRepository ? '비공개(Private)' : '공개(Public)'} / {repo.defaultBranch}</p>
                       </div>
-                    </div>
-                    <button
-                      onClick={() => handleDisconnectRepository(repo.githubRepositoryId)}
-                      className="text-white/30 hover:text-red-400 transition p-2"
-                      title="연결 해제"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                    </li>
+                  ))}
+                </ul>
+
+              </div>
             )}
           </div>
         </div>
