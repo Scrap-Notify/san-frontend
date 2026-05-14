@@ -114,16 +114,6 @@ export function TilPage() {
 
                             <button
                                 type="button"
-                                onClick={handleDeleteTil}
-                                disabled={deleteMutation.isPending || !selectedTil}
-                                className="flex h-10 md:h-11 flex-1 md:flex-none items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md border border-error/20 bg-error/10 px-4 text-sm font-medium text-error transition-all hover:bg-error/15 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <Trash2 size={16} />
-                                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                            </button>
-
-                            <button
-                                type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
                                 className="flex h-10 md:h-11 flex-1 md:flex-none items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md bg-[#238636] px-4 text-sm font-medium text-white shadow-lg transition-all hover:bg-[#2ea043] hover:shadow-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
@@ -141,20 +131,33 @@ export function TilPage() {
                             # Today's Knowledge Summary
                         </h2>
 
-                        <input
-                            type="text"
-                            value={displayedTitle}
-                            onChange={(e) => setTitle(e.target.value)}
-                            placeholder="제목을 입력하세요"
-                            readOnly={activeTab !== 'edit'}
-                            className="w-full bg-transparent text-xl font-extrabold text-white outline-none transition-all placeholder:text-text-secondary/20 focus:placeholder:text-text-secondary/10"
-                        />
+                        <div className="flex items-start gap-3">
+                            <input
+                                type="text"
+                                value={displayedTitle}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="제목을 입력하세요"
+                                readOnly={activeTab !== 'edit'}
+                                className="min-w-0 flex-1 bg-transparent text-xl font-extrabold text-white outline-none transition-all placeholder:text-text-secondary/20 focus:placeholder:text-text-secondary/10"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={handleDeleteTil}
+                                disabled={deleteMutation.isPending || !selectedTil}
+                                className="mt-1 flex h-7 shrink-0 items-center justify-center gap-1 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-error px-2.5 text-[10px] font-bold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-error/60"
+                            >
+                                <Trash2 size={12} strokeWidth={2.2} />
+                                {deleteMutation.isPending ? 'DELETING' : 'DELETE'}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex min-h-[500px] flex-1 flex-col rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl overflow-hidden">
                         <TILEditor
                             activeTab={activeTab}
                             title={title}
+                            setTitle={setTitle}
                             draft={draft}
                             setDraft={setDraft}
                             selectedTil={selectedTil}

@@ -19,6 +19,7 @@ import { ContentEmptyState } from '@dashboard/components/empty/ContentEmptyState
 interface TILEditorProps {
     activeTab: TILMode;
     title: string;
+    setTitle: (value: string) => void;
     draft: string;
     setDraft: (value: string) => void;
     selectedTil: TilResponse | null;
@@ -36,6 +37,7 @@ interface TILEditorProps {
 export function TILEditor({
                               activeTab,
                               title,
+                              setTitle,
                               draft,
                               setDraft,
                               selectedTil,
@@ -57,6 +59,7 @@ export function TILEditor({
     const aiDraft = selectedTil?.content ?? '';
     const previewDraft = draft || aiDraft;
     const isEditing = activeTab === 'edit';
+    const isDrafts = activeTab === 'drafts';
     const displayedDraft = activeTab === 'drafts' ? aiDraft : previewDraft;
     const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
 
@@ -81,6 +84,11 @@ export function TILEditor({
             title: title.trim(),
             content: editDraft,
         });
+    };
+
+    const handleReset = () => {
+        setTitle(selectedTil?.title ?? '');
+        setEditDraft(previewDraft);
     };
 
 
@@ -137,6 +145,7 @@ export function TILEditor({
 
     const statusMessage = generationMessage ?? commitMessage;
     const hasUnsavedChanges = editDraft !== previewDraft || title !== (selectedTil?.title ?? '');
+    const showModeAction = isDrafts || isEditing;
     const canSave = Boolean(
         selectedTil?.summaryId &&
         title.trim() &&
@@ -209,7 +218,7 @@ export function TILEditor({
                     <div className="flex items-center gap-4 text-xs font-medium text-text-secondary">
                         <span>UTF-8</span>
 
-                        <div className="h-4 w-px bg-white/10" />
+                        {showModeAction ? <div className="h-4 w-px bg-white/10" /> : null}
 
                         {isEditing ? (
                             <>
@@ -227,15 +236,29 @@ export function TILEditor({
                             </>
                         ) : null}
 
-                        <button
-                            type="button"
-                            onClick={handleGenerate}
-                            disabled={isGenerating}
-                            className="flex items-center gap-1.5 font-bold text-primary-signal transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
-                            {isGenerating ? '생성하는 중...' : '다시 생성하기'}
-                        </button>
+                        {isDrafts ? (
+                            <button
+                                type="button"
+                                onClick={handleGenerate}
+                                disabled={isGenerating}
+                                className="flex items-center gap-1.5 font-bold text-primary-signal transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
+                                {isGenerating ? '생성하는 중...' : '다시 생성하기'}
+                            </button>
+                        ) : null}
+
+                        {isEditing ? (
+                            <button
+                                type="button"
+                                onClick={handleReset}
+                                disabled={!hasUnsavedChanges || updateMutation.isPending}
+                                className="flex items-center gap-1.5 font-bold text-text-secondary transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                <RotateCcw size={14} />
+                                초기화
+                            </button>
+                        ) : null}
                     </div>
                 </div>
 
