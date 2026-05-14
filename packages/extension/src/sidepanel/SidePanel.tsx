@@ -231,6 +231,7 @@ export default function SidePanel() {
   const [hasRelatedResult, setHasRelatedResult] = useState(false);
   const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
   const [createdCard, setCreatedCard] = useState<KnowledgeCardView | null>(null);
+  const [createdCardSource, setCreatedCardSource] = useState<SavedInsight | null>(null);
   const [recentCards, setRecentCards] = useState<KnowledgeCardResponse[]>([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(false);
   const [recentError, setRecentError] = useState<string | null>(null);
@@ -251,6 +252,7 @@ export default function SidePanel() {
       setIsAuthenticated(false);
       setRecentCards([]);
       setCreatedCard(null);
+      setCreatedCardSource(null);
       setRelatedCards([]);
       setActiveKnowledgeTab('recent');
       return;
@@ -274,6 +276,7 @@ export default function SidePanel() {
         setIsAuthenticated(false);
         setRecentCards([]);
         setCreatedCard(null);
+        setCreatedCardSource(null);
         setRelatedCards([]);
         setKnowledgeSearchCards([]);
         setHasKnowledgeSearchResult(false);
@@ -312,6 +315,7 @@ export default function SidePanel() {
     isRestoringPendingImage,
     deletePendingImageFile,
     setCreatedCard,
+    setCreatedCardSource,
     refreshRecentCards,
   });
 
@@ -321,6 +325,7 @@ export default function SidePanel() {
     setRelatedCards([]);
     setHasRelatedResult(false);
     setCreatedCard(null);
+    setCreatedCardSource(null);
     setIsLoadingRelated(false);
     setActiveKnowledgeTab('recent');
   }, [clearSaveFeedback]);
@@ -481,6 +486,7 @@ export default function SidePanel() {
       } else {
         setRecentCards([]);
         setCreatedCard(null);
+        setCreatedCardSource(null);
         setRelatedCards([]);
         setActiveKnowledgeTab('recent');
       }
@@ -661,6 +667,7 @@ export default function SidePanel() {
       setIsAuthenticated(false);
       setRecentCards([]);
       setCreatedCard(null);
+      setCreatedCardSource(null);
       setRelatedCards([]);
       setKnowledgeSearchCards([]);
       setHasKnowledgeSearchResult(false);
@@ -818,7 +825,7 @@ export default function SidePanel() {
           {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
               {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
                 <div className="shrink-0">
-                  <CreatedKnowledgeCard card={createdCard} />
+                  <CreatedKnowledgeCard card={createdCard} source={createdCardSource} />
                 </div>
               )}
 

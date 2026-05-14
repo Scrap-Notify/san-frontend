@@ -1,68 +1,109 @@
+import { useState } from 'react';
+import { ChevronDown, FileText, Image, Link } from 'lucide-react';
 import type { KnowledgeCardView } from '@san/shared';
+import type { SavedInsight } from '@extension/types';
 
 interface CreatedKnowledgeCardProps {
   card: KnowledgeCardView;
+  source?: SavedInsight | null;
 }
 
-export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
-  return (
-    <div className="px-1 text-body-sm font-medium text-text-secondary">
+function getSourceContent(source: SavedInsight) {
+  return source.raw_content ?? source.source_url ?? source.image_file_name ?? source.title;
+}
 
-    <div className="flex flex-col gap-[calc(var(--spacing-dashboard-gap)/2)]">
-        지식 카드 생성
+function getSourceMeta(source: SavedInsight) {
+  return source.source_url ?? source.domain ?? source.image_file_name ?? source.title;
+}
+
+function getSourceIcon(source: SavedInsight) {
+  if (source.source_type === 'IMAGE') return Image;
+  if (source.source_type === 'LINK') return Link;
+  return FileText;
+}
+
+export function CreatedKnowledgeCard({ card, source }: CreatedKnowledgeCardProps) {
+  const [isSourceOpen, setIsSourceOpen] = useState(Boolean(source));
+  const SourceIcon = source ? getSourceIcon(source) : FileText;
+  const sourceContent = source ? getSourceContent(source) : null;
+  const sourceMeta = source ? getSourceMeta(source) : null;
+
+  return (
+    <section className="px-1 text-body-sm font-medium text-text-secondary">
+      <div className="mb-2 text-body-sm font-medium text-text-secondary/85">
+        지식카드 생성
       </div>
 
-      {/* Card Content: Compact Organic Leaf Shape */}
-      <article className="relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*2/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-4 backdrop-blur-xl shadow-neon-sm">
-        {/* Subtle Background Glow */}
-        <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-primary-signal/5 blur-2xl" aria-hidden="true" />
-        
-        {/* Left: Icon Area with SPROUT Badge */}
-        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-leaf border border-primary-signal/20 bg-surface-low shadow-neon-sm">
-          <svg
-            width={20}
-            height={20}
-            viewBox="0 0 22 22"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-primary-signal"
-          >
-            <path
-              d="M10.3125 21.2809C9.625 21.2809 8.93229 21.2028 8.23438 21.0465C7.53646 20.8903 6.82292 20.6663 6.09375 20.3746C6.34375 17.8538 7.07292 15.4996 8.28125 13.3121C9.48958 11.1246 11.0417 9.19757 12.9375 7.5309C10.6458 8.69757 8.66146 10.2392 6.98438 12.1559C5.30729 14.0726 4.13542 16.2601 3.46875 18.7184C3.38542 18.6559 3.30729 18.5882 3.23438 18.5153C3.16146 18.4424 3.08333 18.3642 3 18.2809C2.02083 17.3017 1.27604 16.208 0.765625 14.9996C0.255208 13.7913 0 12.5309 0 11.2184C0 9.80173 0.28125 8.44757 0.84375 7.1559C1.40625 5.86423 2.1875 4.7184 3.1875 3.7184C4.875 2.0309 7.0625 0.931941 9.75 0.421524C12.4375 -0.0888928 16.2083 -0.135768 21.0625 0.280899C21.4375 5.26007 21.375 9.05694 20.875 11.6715C20.375 14.2861 19.2917 16.4267 17.625 18.0934C16.6042 19.1142 15.4635 19.9007 14.2031 20.4528C12.9427 21.0049 11.6458 21.2809 10.3125 21.2809Z"
-              fill="currentColor"
-            />
-          </svg>
-          <div className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full bg-primary-signal px-1.5 py-0.5 shadow-neon-sm">
-            <span className="text-[7px] font-bold uppercase text-forest-bg leading-none">SPROUT</span>
-          </div>
-        </div>
-
-        {/* Right: Content Area */}
-        <div className="flex flex-1 flex-col justify-start overflow-hidden">
-          <h3 className="line-clamp-1 text-body-main-bold text-text-primary">
+      <article className="flex flex-col gap-4 overflow-hidden rounded-leaf border border-text-secondary/12 bg-surface-container/80 p-5 shadow-neon-sm">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="line-clamp-2 cursor-text select-text text-body-main-bold text-text-primary">
             {card.title}
           </h3>
-          <div className="mt-1 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <p className="text-body-sm leading-5 text-text-secondary/90">
-              {card.summary}
-            </p>
+
+          {source ? (
+            <button
+              type="button"
+              onClick={() => setIsSourceOpen((current) => !current)}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary-signal/15 bg-primary-signal/8 text-primary-signal transition hover:border-primary-signal/30 hover:bg-primary-signal/12"
+              aria-label={isSourceOpen ? 'Hide source origin' : 'Show source origin'}
+              aria-expanded={isSourceOpen}
+            >
+              <ChevronDown
+                size={16}
+                strokeWidth={1.8}
+                className={['transition-transform', isSourceOpen ? 'rotate-180' : ''].join(' ')}
+                aria-hidden="true"
+              />
+            </button>
+          ) : null}
+        </div>
+
+        {source && isSourceOpen ? (
+          <div className="rounded-leaf border-l-2 border-primary-signal bg-background/35 p-4">
+            <div className="mb-2 flex items-center gap-2 text-primary-signal">
+              <SourceIcon size={13} strokeWidth={1.8} aria-hidden="true" />
+              <span className="text-caption-bold uppercase">Source origin</span>
+            </div>
+
+            {sourceMeta ? (
+              <p className="line-clamp-1 cursor-text select-text text-caption text-text-secondary/75">
+                {sourceMeta}
+              </p>
+            ) : null}
+
+            {source.image_preview_url ? (
+              <img
+                src={source.image_preview_url}
+                alt={source.title}
+                className="mt-3 max-h-24 w-full rounded-leaf object-cover"
+              />
+            ) : sourceContent ? (
+              <p className="mt-2 max-h-16 overflow-y-auto whitespace-pre-wrap text-body-sm italic leading-5 text-text-primary/85 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {sourceContent}
+              </p>
+            ) : null}
           </div>
-          
-          {/* Tags (Conditional and limited for space) */}
-          {card.tags.length > 0 && (
-            <div className="mt-2 flex shrink-0 flex-wrap gap-[calc(var(--spacing-dashboard-gap)/4)]">
-              {card.tags.slice(0, 2).map((tag) => (
+        ) : null}
+
+        <div className="flex flex-col gap-4 pt-1">
+          <p className="line-clamp-3 cursor-text select-text text-body-sm leading-6 text-text-secondary/85">
+            {card.summary}
+          </p>
+
+          {card.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {card.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag.tag_id}
-                  className="rounded-full border border-primary-signal/15 bg-background/40 px-2 py-0.5 text-[10px] font-bold text-primary-signal"
+                  className="inline-flex items-center rounded-full border border-primary-signal/20 bg-primary-signal/8 px-2.5 py-1 text-[10px] font-bold uppercase text-primary-signal"
                 >
-                  #{tag.name}
+                  {tag.name}
                 </span>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </article>
-    </div>
+    </section>
   );
 }
