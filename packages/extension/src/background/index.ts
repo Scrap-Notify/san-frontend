@@ -1,6 +1,10 @@
 // packages/extension/src/background/index.ts
 import type { ExtensionMessage, PendingScrap } from '@extension/types/index';
 
+declare global {
+  var sanTestNotification: (() => void) | undefined;
+}
+
 const DEBUG_PREFIX = '[SAN:background]';
 const defaultBaseURL = import.meta.env.PROD
   ? 'https://k14a309.p.ssafy.io/api'
@@ -15,6 +19,7 @@ const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
+const TEST_NOTIFICATION_MESSAGE = 'SAN_TEST_NOTIFICATION';
 const isDebug = import.meta.env.DEV;
 
 function normalizeApiBaseURL(value: string) {
@@ -79,6 +84,39 @@ function debugLog(message: string, data?: unknown) {
   console.debug(DEBUG_PREFIX, message, data);
 }
 
+function createSanNotification() {
+  const notifications = (
+    chrome as typeof chrome & { notifications?: typeof chrome.notifications }
+  ).notifications;
+
+  if (!notifications?.create) {
+    console.error(
+      DEBUG_PREFIX,
+      'chrome.notifications API is unavailable. Check the loaded extension manifest has the notifications permission and reload the extension.',
+    );
+    return;
+  }
+
+  notifications.create(
+    {
+      type: 'basic',
+      iconUrl: 'SAN_LOGO_EXTENSION.png',
+      title: 'SAN 리콜 알림 테스트',
+      message: '이 알림이 보이면 Chrome 알림 설정이 정상입니다.',
+      priority: 2,
+    },
+    (notificationId) => {
+      if (chrome.runtime.lastError) {
+        console.error(DEBUG_PREFIX, 'notification failed', chrome.runtime.lastError.message);
+        return;
+      }
+      debugLog('notification created', notificationId);
+    },
+  );
+}
+
+globalThis.sanTestNotification = createSanNotification;
+
 debugLog('service worker loaded');
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -97,13 +135,7 @@ chrome.runtime.onInstalled.addListener(() => {
       contexts: ['selection'],
     });
 
-    chrome.notifications.create({
-      type: "basic",
-      iconUrl: "SAN_LOGO_EXTENSION.png",
-      title: "SAN 리콜 알림 테스트",
-      message: "이 알림이 보이면 Chrome 알림 설정이 정상입니다.",
-      priority: 2,
-    });
+    createSanNotification();
 
   });
 });
@@ -209,6 +241,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
   debugLog('runtime message received', { message, tabId: sender.tab?.id, url: sender.tab?.url });
+  if (message.type === TEST_NOTIFICATION_MESSAGE) {
+    createSanNotification();
+    sendResponse({ ok: true });
+    return;
+  }
+
   if (message.type === 'SCRAP_SELECTION' && sender.tab?.id && message.payload) {
     pushToSidePanel(message.payload);
     return;
