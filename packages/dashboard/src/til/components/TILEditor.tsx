@@ -20,6 +20,7 @@ interface TILEditorProps {
     draft: string;
     setDraft: (value: string) => void;
     selectedTil: TilResponse | null;
+    isTilLoading?: boolean;
     generateMutation: TilGenerateMutation;
     commitMutation: TilGithubCommitMutation;
     generationStatusQuery: TilJobStatusQuery;
@@ -34,6 +35,7 @@ export function TILEditor({
                               draft,
                               setDraft,
                               selectedTil,
+                              isTilLoading = false,
                               generateMutation,
                               commitMutation,
                               generationStatusQuery,
@@ -48,7 +50,7 @@ export function TILEditor({
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
     const displayedDraft = draft || (selectedTil?.content ?? '');
-    const isEmptyTil = !selectedTil && !displayedDraft.trim() && !isGenerating;
+    const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
@@ -200,7 +202,17 @@ export function TILEditor({
                 </div>
 
                 <div className="relative w-full pt-2">
-                    {isEmptyTil ? (
+                    {isTilLoading ? (
+                        <div className="flex h-[500px] w-full flex-col gap-4 p-6 animate-pulse">
+                            <div className="h-6 w-3/4 rounded bg-white/5" />
+                            <div className="h-4 w-full rounded bg-white/5" />
+                            <div className="h-4 w-full rounded bg-white/5" />
+                            <div className="h-4 w-2/3 rounded bg-white/5" />
+                            <div className="mt-4 h-6 w-1/2 rounded bg-white/5" />
+                            <div className="h-4 w-full rounded bg-white/5" />
+                            <div className="h-4 w-5/6 rounded bg-white/5" />
+                        </div>
+                    ) : isEmptyTil ? (
                         <ContentEmptyState
                             title="오늘은 작성된 TIL이 없어요"
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
