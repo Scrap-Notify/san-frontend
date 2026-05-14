@@ -34,7 +34,7 @@ export function GithubAuthResultPage() {
 
   useEffect(() => {
     if (githubLinked === 'true') {
-      navigate('/settings/repositories', { replace: true });
+      navigate('/settings/integrations', { replace: true });
       return;
     }
 
@@ -66,7 +66,7 @@ export function GithubAuthResultPage() {
       .then(async (tokens) => {
         if (ignore) return;
         await completeAuth(tokens, clientType);
-        navigate(clientType === 'EXTENSION' ? '/' : '/settings/repositories', { replace: true });
+        navigate(clientType === 'EXTENSION' ? '/' : '/settings/integrations', { replace: true });
       })
       .catch((exchangeError) => {
         if (ignore) return;

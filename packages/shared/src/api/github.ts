@@ -47,8 +47,11 @@ export function createGithubApi(apiClient: AxiosInstance) {
 
     getConnectedRepositories: (): Promise<GithubRepository[]> =>
       apiClient
-        .get<ApiResponse<GithubRepository[]>>('/github/repositories/connected')
-        .then((response) => unwrapApiResponse(response.data)),
+        .get<ApiResponse<GithubLinkStatus>>('/github/link/status')
+        .then((response) => {
+          const status = unwrapApiResponse(response.data);
+          return status.connectedRepository ? [status.connectedRepository] : [];
+        }),
 
     connectRepository: (
       payload: GithubRepositoryConnectRequest
