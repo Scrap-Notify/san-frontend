@@ -497,8 +497,8 @@ function createTilRecallNotification(targetDate: string, til: TilResponse) {
   notifications.create(
     {
       type: 'basic',
-      iconUrl: 'SAN_LOGO_EXTENSION.png',
-      title: '다시 볼 TIL이 있어요',
+      iconUrl: 'san-alert.png',
+      title: '복습할 내용을 알려드려요',
       message: til.title
         ? `${targetDate} TIL: ${til.title}`
         : `${targetDate} TIL을 다시 확인해보세요.`,
