@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getS3ImageFileValidationError } from '@san/shared';
 import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
 import { authApi, authTokenStorage, cardsApi, searchApi } from '@extension/api/client';
@@ -244,6 +244,14 @@ export default function SidePanel() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isAuthCardOpen, setIsAuthCardOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  const sourceByCardId = useMemo(() => {
+    const entries = cards
+      .filter((card): card is SavedInsight & { card_id: string } => Boolean(card.card_id))
+      .map((card) => [card.card_id, card] as const);
+
+    return Object.fromEntries(entries);
+  }, [cards]);
 
   const refreshRecentCards = useCallback(async () => {
     const requestToken = await authTokenStorage.getToken();
@@ -836,6 +844,7 @@ export default function SidePanel() {
                         isScrollable={false}
                         title={SEARCH_RESULT_TITLE}
                         action={knowledgeSearchAction}
+                        sourceByCardId={sourceByCardId}
                       />
                     ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
                       <SimilarKnowledgeList
@@ -845,6 +854,7 @@ export default function SidePanel() {
                         isScrollable={false}
                         title={knowledgeTabs}
                         action={knowledgeSearchAction}
+                        sourceByCardId={sourceByCardId}
                       />
                     ) : (
                       <RecentKnowledgeList
@@ -854,6 +864,7 @@ export default function SidePanel() {
                         isScrollable={false}
                         title={knowledgeTabs}
                         action={knowledgeSearchAction}
+                        sourceByCardId={sourceByCardId}
                       />
                     )}
                   </>

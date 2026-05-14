@@ -7,17 +7,13 @@ interface CreatedKnowledgeCardProps {
 export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
   return (
     <div className="px-1 text-body-sm font-medium text-text-secondary">
-
-    <div className="flex flex-col gap-[calc(var(--spacing-dashboard-gap)/2)]">
-        지식 카드 생성
+      <div className="flex flex-col gap-[calc(var(--spacing-dashboard-gap)/2)]">
+        지식카드 생성
       </div>
 
-      {/* Card Content: Compact Organic Leaf Shape */}
       <article className="relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*2/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-4 backdrop-blur-xl shadow-neon-sm">
-        {/* Subtle Background Glow */}
         <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-primary-signal/5 blur-2xl" aria-hidden="true" />
-        
-        {/* Left: Icon Area with SPROUT Badge */}
+
         <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-leaf border border-primary-signal/20 bg-surface-low shadow-neon-sm">
           <svg
             width={20}
@@ -33,11 +29,10 @@ export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
             />
           </svg>
           <div className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full bg-primary-signal px-1.5 py-0.5 shadow-neon-sm">
-            <span className="text-[7px] font-bold uppercase text-forest-bg leading-none">SPROUT</span>
+            <span className="text-[7px] font-bold uppercase leading-none text-forest-bg">SPROUT</span>
           </div>
         </div>
 
-        {/* Right: Content Area */}
         <div className="flex flex-1 flex-col justify-start overflow-hidden">
           <h3 className="line-clamp-1 text-body-main-bold text-text-primary">
             {card.title}
@@ -47,9 +42,8 @@ export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
               {card.summary}
             </p>
           </div>
-          
-          {/* Tags (Conditional and limited for space) */}
-          {card.tags.length > 0 && (
+
+          {card.tags.length > 0 ? (
             <div className="mt-2 flex shrink-0 flex-wrap gap-[calc(var(--spacing-dashboard-gap)/4)]">
               {card.tags.slice(0, 2).map((tag) => (
                 <span
@@ -60,7 +54,7 @@ export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
                 </span>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </article>
     </div>

@@ -219,8 +219,13 @@ export function useSaveScrap({
       setSavingLabel(response.jobId ? 'Creating card...' : 'Loading card...');
       setIsLoadingRelated(true);
       const createdCard = await resolveCreatedCard(response);
+      const cardsWithCardId = nextCards.map((item) => (
+        item.id === response.scrapId ? { ...item, card_id: createdCard.cardId } : item
+      ));
 
       setCreatedCard(createdCard.card ? toKnowledgeCardView(createdCard.card) : null);
+      setCards(cardsWithCardId);
+      await saveInsights(cardsWithCardId);
       setSavingLabel('Finding related cards...');
       const similarCards = await cardsApi.getSimilarByCardId(createdCard.cardId);
       setRelatedCards(similarCards.similarCards.slice(0, 3));
