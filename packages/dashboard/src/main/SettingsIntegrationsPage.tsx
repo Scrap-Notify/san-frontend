@@ -1,5 +1,5 @@
 import { ExternalLink, FolderGit2, GitBranch, RefreshCw, Loader2, Search, Link2, TerminalSquare, AlertTriangle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
@@ -61,16 +61,8 @@ export function SettingsIntegrationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  useEffect(() => {
-    if (!errorMessage) return;
-    void ({
-      type: 'error',
-      title: '연결 오류',
-      description: errorMessage,
-    });
-  }, [errorMessage]);
 
-  const loadConnectedRepositories = async () => {
+  const loadConnectedRepositories = useCallback(async () => {
     setIsLoadingConnected(true);
     setErrorMessage(null);
     setActionError(null);
@@ -89,19 +81,19 @@ export function SettingsIntegrationsPage() {
     } finally {
       setIsLoadingConnected(false);
     }
-  };
+  }, []);
 
-  const loadAvailableRepositories = async () => {
+  const loadAvailableRepositories = useCallback(async () => {
     setIsLoadingAvailable(true);
     try {
       const items = await githubApi.getRepositories();
       setAvailableRepositories(items);
     } catch {
-      // ignore
+      setAvailableRepositories([]);
     } finally {
       setIsLoadingAvailable(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (githubLinked) {
@@ -134,8 +126,7 @@ export function SettingsIntegrationsPage() {
     return () => {
       ignore = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [githubLinked]);
+  }, [githubLinked, loadAvailableRepositories, navigate]);
 
   const handleLinkGithub = async () => {
     if (isLinking || isGithubLinked) return;
@@ -288,7 +279,7 @@ export function SettingsIntegrationsPage() {
       </div>
 
       {/* 에러 메시지 */}
-      {false && errorMessage && (
+      {errorMessage && (
         <div className="flex items-center gap-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4 mt-6">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500">
             <AlertTriangle size={20} />
