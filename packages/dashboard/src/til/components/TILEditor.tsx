@@ -56,8 +56,8 @@ export function TILEditor({
 
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
-    const aiDraft = selectedTil?.content ?? '';
-    const previewDraft = draft || aiDraft;
+    const aiDraft = removeTilDateHeading(selectedTil?.content ?? '');
+    const previewDraft = removeTilDateHeading(draft || aiDraft);
     const isEditing = activeTab === 'edit';
     const isDrafts = activeTab === 'drafts';
     const displayedDraft = activeTab === 'drafts' ? aiDraft : previewDraft;
@@ -82,13 +82,13 @@ export function TILEditor({
         updateMutation.mutate({
             summaryId: selectedTil.summaryId,
             title: title.trim(),
-            content: editDraft,
+            content: removeTilDateHeading(editDraft),
         });
     };
 
     const handleReset = () => {
         setTitle(selectedTil?.title ?? '');
-        setEditDraft(previewDraft);
+        setEditDraft(removeTilDateHeading(previewDraft));
     };
 
 
@@ -140,7 +140,7 @@ export function TILEditor({
             { range: selection, text: replacement, forceMoveMarkers: true },
         ]);
 
-        setEditDraft(model.getValue());
+        setEditDraft(removeTilDateHeading(model.getValue()));
     };
 
     const statusMessage = generationMessage ?? commitMessage;
@@ -324,7 +324,7 @@ export function TILEditor({
                             />
                         </div>
                     ) : (
-                        <div className="h-full min-h-[500px] overflow-y-auto px-10 py-8">
+                        <div className="h-full min-h-[500px] overflow-y-auto px-10 pb-8 pt-4">
                             <article className="max-w-none leading-relaxed text-text-primary">
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
@@ -412,4 +412,11 @@ export function TILEditor({
 
 function isRunning(status?: string) {
     return status === 'PENDING' || status === 'PROCESSING';
+}
+
+function removeTilDateHeading(content: string) {
+    return content
+        .replace(/^\s*#{1,6}\s*TIL\s*[-–—]\s*\d{4}[./-]\d{1,2}[./-]\d{1,2}\s*\n+/i, '')
+        .replace(/^\s*TIL\s*[-–—]\s*\d{4}[./-]\d{1,2}[./-]\d{1,2}\s*\n+/i, '')
+        .trimStart();
 }
