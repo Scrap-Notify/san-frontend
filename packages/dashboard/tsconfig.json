@@ -12,13 +12,12 @@
     "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
       "@san/shared":   ["../shared/src/index.ts"],
       "@san/shared/*": ["../shared/src/*"],
       "@san/ui":       ["../ui/src/index.ts"],
       "@ui/*":         ["../ui/src/*"],
-      "@dashboard/*":  ["src/*"]
+      "@dashboard/*":  ["./src/*"],
     }
   },
   "include": ["src/**/*"],

@@ -1,0 +1,51 @@
+import { useEffect, useState } from 'react';
+import { AlertCircle, RotateCcw } from 'lucide-react';
+
+interface InlineActionToastProps {
+  message: string | null;
+  actionLabel?: string;
+  duration?: number;
+}
+
+export function InlineActionToast({ message, actionLabel = '다시 확인하기', duration = 3600 }: InlineActionToastProps) {
+  const [isVisible, setIsVisible] = useState(Boolean(message));
+
+  useEffect(() => {
+    if (!message) {
+      setIsVisible(false);
+      return;
+    }
+
+    setIsVisible(true);
+    const timeout = window.setTimeout(() => setIsVisible(false), duration);
+    return () => window.clearTimeout(timeout);
+  }, [duration, message]);
+
+  if (!message || !isVisible) return null;
+
+  return (
+    <div
+      role="alert"
+      className={[
+        'pointer-events-none absolute bottom-full left-0 mb-3 flex h-14 w-full min-w-[260px] items-center gap-4 px-4',
+        'rounded-tl-[48px] rounded-br-lg rounded-tr-lg rounded-bl-[48px]',
+        'border border-[#ffb4ab]/20 bg-[#2a1718]/80 backdrop-blur-xl',
+        'shadow-[0_8px_24px_rgba(0,0,0,0.22)]',
+      ].join(' ')}
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ffb4ab]/10 text-[#ffb4ab]">
+        <AlertCircle size={20} strokeWidth={1.8} aria-hidden="true" />
+      </span>
+
+      <span className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="truncate text-xs font-bold text-text-primary">
+          {message}
+        </span>
+        <span className="flex min-w-0 items-center gap-1 text-[10px] font-medium text-[#ffb4ab]">
+          <RotateCcw size={10} strokeWidth={2} aria-hidden="true" />
+          <span className="truncate">{actionLabel}</span>
+        </span>
+      </span>
+    </div>
+  );
+}

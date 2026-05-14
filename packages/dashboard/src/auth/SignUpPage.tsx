@@ -5,11 +5,13 @@ import { getApiErrorMessage } from '@san/shared';
 import { authApi } from '../api/client';
 import { getAuthClientType, withAuthClientType } from './clientType';
 import { completeAuth } from './completeAuth';
+import { useToast } from '../components/toast/ToastProvider';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 
 export function Signup() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const clientType = getAuthClientType(searchParams);
   const [username, setUsername] = useState('');
@@ -21,7 +23,6 @@ export function Signup() {
   const [usernameCheckStatus, setUsernameCheckStatus] = useState<UsernameCheckStatus>('idle');
   const [usernameMessage, setUsernameMessage] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleUsernameChange = (value: string) => {
@@ -33,7 +34,6 @@ export function Signup() {
 
   const handleCheckUsername = async () => {
     const trimmed = username.trim();
-    setErrorMessage(null);
     setUsernameMessage(null);
     setConfirmPasswordError(null);
     if (!trimmed) {
@@ -56,7 +56,6 @@ export function Signup() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setErrorMessage(null);
     setConfirmPasswordError(null);
 
     let hasError = false;
@@ -83,7 +82,11 @@ export function Signup() {
     } catch (error) {
       let msg = getApiErrorMessage(error, '회원가입에 실패했습니다.');
       msg = msg.replace(/^(Password|아이디|비밀번호):\s*/i, '');
-      setErrorMessage(msg);
+      showToast({
+        type: 'error',
+        title: '회원가입에 실패했어요',
+        description: msg,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -209,10 +212,6 @@ export function Signup() {
 
             <div className="pt-2 shrink-0">
               {/* 에러 메시지 (API 호출 실패, 비밀번호 불일치, 약관 미동의 등) */}
-              <p className="mb-2 min-h-[16px] text-center text-[11px] text-red-400">
-                {errorMessage || ''}
-              </p>
-
               {/* 가입 버튼 */}
               <button
                 type="submit"

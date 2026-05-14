@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository } from '@san/shared';
 import { githubApi } from '../api/client';
 import githubSvg from '@ui/assets/icons/github.svg';
+import { InlineActionToast } from '../components/toast/InlineActionToast';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
   A009: 'GitHub 계정이 연동되어 있지 않습니다.',
@@ -49,6 +50,7 @@ export function SettingsIntegrationsPage() {
   const [availableRepositories, setAvailableRepositories] = useState<GithubRepository[]>([]);
   
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<{ target: string; message: string } | null>(null);
   
   const [isLoadingConnected, setIsLoadingConnected] = useState(true);
   const [isLoadingAvailable, setIsLoadingAvailable] = useState(false);
@@ -59,9 +61,19 @@ export function SettingsIntegrationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
+  useEffect(() => {
+    if (!errorMessage) return;
+    void ({
+      type: 'error',
+      title: '연결 오류',
+      description: errorMessage,
+    });
+  }, [errorMessage]);
+
   const loadConnectedRepositories = async () => {
     setIsLoadingConnected(true);
     setErrorMessage(null);
+    setActionError(null);
 
     try {
       const repositories = await githubApi.getConnectedRepositories();
@@ -127,6 +139,7 @@ export function SettingsIntegrationsPage() {
       window.location.href = await githubApi.getLinkAuthorizeUrl();
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, 'GitHub 연동을 시작하지 못했습니다.', GITHUB_LINK_ERROR_MESSAGE));
+      setActionError({ target: 'link', message: 'GitHub 연결에 실패했어요.' });
       setIsLinking(false);
     }
   };
@@ -228,7 +241,7 @@ export function SettingsIntegrationsPage() {
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="relative flex shrink-0 items-center gap-3">
             {isGithubLinked && (
               <button
                 type="button"
@@ -239,6 +252,7 @@ export function SettingsIntegrationsPage() {
                 {isUnlinking ? '해제 중...' : '연동 해제'}
               </button>
             )}
+            <InlineActionToast message={actionError?.target === 'link' ? actionError.message : null} />
             <button
               type="button"
               onClick={handleLinkGithub}
@@ -261,7 +275,7 @@ export function SettingsIntegrationsPage() {
       </div>
 
       {/* 에러 메시지 */}
-      {errorMessage && (
+      {false && errorMessage && (
         <div className="flex items-center gap-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4 mt-6">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500">
             <AlertTriangle size={20} />

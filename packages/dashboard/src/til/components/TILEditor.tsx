@@ -13,6 +13,7 @@ import type {
     TilJobStatusQuery,
     TilJobTone,
 } from '@dashboard/til/types';
+import { ContentEmptyState } from '@dashboard/components/empty/ContentEmptyState';
 
 interface TILEditorProps {
     activeTab: TILMode;
@@ -47,6 +48,7 @@ export function TILEditor({
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
     const displayedDraft = draft || (selectedTil?.content ?? '');
+    const isEmptyTil = !selectedTil && !displayedDraft.trim() && !isGenerating;
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
@@ -198,7 +200,12 @@ export function TILEditor({
                 </div>
 
                 <div className="relative w-full pt-2">
-                    {activeTab === 'drafts' || activeTab === 'edit' ? (
+                    {isEmptyTil ? (
+                        <ContentEmptyState
+                            title="오늘은 작성된 TIL이 없어요"
+                            description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
+                        />
+                    ) : activeTab === 'drafts' || activeTab === 'edit' ? (
                         <div style={{ height: editorHeight }} className="relative w-full overflow-hidden rounded-lg bg-[#1e1e1e]/30 border border-white/5 transition-all">
                             <Editor
                                 theme="vs-dark"
