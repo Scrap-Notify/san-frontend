@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getS3ImageFileValidationError } from '@san/shared';
 import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
 import { authApi, authTokenStorage, cardsApi, searchApi } from '@extension/api/client';
@@ -231,7 +231,7 @@ export default function SidePanel() {
   const [hasRelatedResult, setHasRelatedResult] = useState(false);
   const [isRestoringPendingImage, setIsRestoringPendingImage] = useState(false);
   const [createdCard, setCreatedCard] = useState<KnowledgeCardView | null>(null);
-  const [createdCardSource, setCreatedCardSource] = useState<SavedInsight | null>(null);
+  const [, setCreatedCardSource] = useState<SavedInsight | null>(null);
   const [recentCards, setRecentCards] = useState<KnowledgeCardResponse[]>([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(false);
   const [recentError, setRecentError] = useState<string | null>(null);
@@ -245,6 +245,14 @@ export default function SidePanel() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isAuthCardOpen, setIsAuthCardOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  const sourceByCardId = useMemo(() => {
+    const entries = cards
+      .filter((card): card is SavedInsight & { card_id: string } => Boolean(card.card_id))
+      .map((card) => [card.card_id, card] as const);
+
+    return Object.fromEntries(entries);
+  }, [cards]);
 
   const refreshRecentCards = useCallback(async () => {
     const requestToken = await authTokenStorage.getToken();
@@ -825,7 +833,7 @@ export default function SidePanel() {
           {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
               {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
                 <div className="shrink-0">
-                  <CreatedKnowledgeCard card={createdCard} source={createdCardSource} />
+                  <CreatedKnowledgeCard card={createdCard} />
                 </div>
               )}
 
@@ -843,6 +851,7 @@ export default function SidePanel() {
                         isScrollable={false}
                         title={SEARCH_RESULT_TITLE}
                         action={knowledgeSearchAction}
+                        sourceByCardId={sourceByCardId}
                       />
                     ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
                       <SimilarKnowledgeList
@@ -852,6 +861,7 @@ export default function SidePanel() {
                         isScrollable={false}
                         title={knowledgeTabs}
                         action={knowledgeSearchAction}
+                        sourceByCardId={sourceByCardId}
                       />
                     ) : (
                       <RecentKnowledgeList
@@ -861,6 +871,7 @@ export default function SidePanel() {
                         isScrollable={false}
                         title={knowledgeTabs}
                         action={knowledgeSearchAction}
+                        sourceByCardId={sourceByCardId}
                       />
                     )}
                   </>

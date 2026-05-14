@@ -16,6 +16,7 @@ export interface PendingScrap {
 
 export interface SavedInsight extends PendingScrap {
   id: string;
+  card_id?: string | null;
   created_at: string;
 }
 

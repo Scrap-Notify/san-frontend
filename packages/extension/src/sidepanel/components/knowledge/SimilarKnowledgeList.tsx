@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { KnowledgeCardResponse } from '@san/shared';
+import type { SavedInsight } from '@extension/types';
 import { RecentKnowledgeList } from './RecentKnowledgeList';
 
 const TITLE = '\uC720\uC0AC \uC9C0\uC2DD';
@@ -17,6 +18,7 @@ interface SimilarKnowledgeListProps {
   action?: ReactNode;
   isScrollable?: boolean;
   title?: ReactNode;
+  sourceByCardId?: Record<string, SavedInsight | undefined>;
 }
 
 export function SimilarKnowledgeList({
@@ -26,6 +28,7 @@ export function SimilarKnowledgeList({
   action,
   isScrollable = true,
   title,
+  sourceByCardId,
 }: SimilarKnowledgeListProps) {
   return (
     <RecentKnowledgeList
@@ -35,6 +38,7 @@ export function SimilarKnowledgeList({
       action={action}
       isScrollable={isScrollable}
       title={title ?? TITLE}
+      sourceByCardId={sourceByCardId}
       loadingMessage={LOADING_MESSAGE}
       loadingDescription={LOADING_DESCRIPTION}
       errorMessage={ERROR_MESSAGE}
