@@ -1,5 +1,30 @@
 @import "../../ui/src/styles/globals.css";
 
+@keyframes san-feedback-nudge {
+  0%, 78%, 100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 18px 52px rgba(0, 0, 0, 0.42), 0 0 34px rgba(74, 222, 128, 0.34);
+  }
+  84% {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48), 0 0 52px rgba(74, 222, 128, 0.58);
+  }
+  90% {
+    transform: translateY(0) scale(1);
+  }
+  94% {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+.san-feedback-float {
+  animation: san-feedback-nudge 7s ease-in-out infinite;
+}
+
+.san-feedback-float:hover {
+  animation-play-state: paused;
+}
+
 :root {
   /*
    * Dashboard spacing follows an 8px base scale.

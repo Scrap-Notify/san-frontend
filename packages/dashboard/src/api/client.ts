@@ -3,6 +3,7 @@ import {
   createAsyncJobsApi,
   createAuthApi,
   createCardsApi,
+  createFeedbackApi,
   createGithubApi,
   createSearchApi,
   createScrapsApi,
@@ -38,6 +39,7 @@ const githubAuthApiClient = createApiClient(githubAuthBaseURL, tokenProvider);
 export const authApi = createAuthApi(apiClient);
 export const githubAuthApi = createAuthApi(githubAuthApiClient);
 export const githubApi = createGithubApi(apiClient);
+export const feedbackApi = createFeedbackApi(apiClient);
 export const searchApi = createSearchApi(apiClient);
 export const scrapsApi = createScrapsApi(apiClient);
 export const cardsApi = createCardsApi(apiClient);
