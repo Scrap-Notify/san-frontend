@@ -1,5 +1,6 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { AlertCircle, Check, Info, RotateCcw, X } from 'lucide-react';
+import { ToastContext } from './toastContext';
 
 export type ToastType = 'success' | 'error' | 'loading' | 'info';
 
@@ -14,13 +15,6 @@ interface ToastItem extends Required<Omit<ToastInput, 'description'>> {
   id: number;
   description?: string;
 }
-
-interface ToastContextValue {
-  showToast: (toast: ToastInput) => number;
-  dismissToast: (id: number) => void;
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null);
 
 const DEFAULT_DURATION = 3600;
 
@@ -60,14 +54,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
     </ToastContext.Provider>
   );
-}
-
-export function useToast() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
-  }
-  return context;
 }
 
 function ToastViewport({ toasts, onDismiss }: { toasts: ToastItem[]; onDismiss: (id: number) => void }) {

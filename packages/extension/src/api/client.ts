@@ -3,6 +3,7 @@ import {
   createAsyncJobsApi,
   createAuthApi,
   createCardsApi,
+  createFeedbackApi,
   createS3Api,
   createSearchApi,
   createScrapsApi,
@@ -59,4 +60,5 @@ export const s3Api = createS3Api(apiClient);
 export const cardsApi = createCardsApi(apiClient);
 export const searchApi = createSearchApi(apiClient);
 export const asyncJobsApi = createAsyncJobsApi(apiClient);
+export const feedbackApi = createFeedbackApi(apiClient);
 export const authTokenStorage = tokenProvider;

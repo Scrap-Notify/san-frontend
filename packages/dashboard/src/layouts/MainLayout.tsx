@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { TopNavBar } from '@dashboard/main/components/GNB';
+import { FloatingFeedbackButton } from '@dashboard/main/components/FloatingFeedbackButton';
 
 export function MainLayout() {
   const location = useLocation();
@@ -14,6 +15,7 @@ export function MainLayout() {
       <main className="dashboard-shell mt-8 pb-16">
         <Outlet />
       </main>
+      <FloatingFeedbackButton />
     </div>
   );
 }

@@ -1,6 +1,8 @@
-import { LayoutDashboard, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, LogOut, MessageSquare, User } from 'lucide-react';
+import { useState } from 'react';
 import sanLogo from '@san/ui/assets/brand/SAN_LOGO.svg';
 import sanTypo from '@san/ui/assets/brand/SAN_TYPO.svg';
+import { FeedbackPopover } from '../feedback/FeedbackPopover';
 
 interface SidePanelNavbarProps {
   isAuthenticated: boolean;
@@ -19,6 +21,8 @@ export default function SidePanelNavbar({
   onProfileButtonClick,
   onLogoutClick,
 }: SidePanelNavbarProps) {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   return (
     <div className="sticky top-0 z-20 -mx-4 flex h-16 items-center justify-between border-b border-primary-signal/15 bg-background/95 px-4 backdrop-blur-md">
       <div className="flex min-w-0 flex-1 items-center">
@@ -44,6 +48,26 @@ export default function SidePanelNavbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
+        <div className="relative">
+          {isAuthenticated && (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsFeedbackOpen((current) => !current)}
+                className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary-signal/25 bg-primary-signal/10 text-primary-signal transition hover:border-primary-signal/60 hover:bg-primary-signal/15 active:scale-95"
+                aria-label="Feedback"
+                aria-expanded={isFeedbackOpen}
+                title="Feedback"
+              >
+                <MessageSquare size={16} strokeWidth={1.7} aria-hidden="true" />
+                <span className="absolute left-1/2 top-[43%] -translate-x-1/2 -translate-y-1/2 text-[10px] font-black leading-none">
+                  ?
+                </span>
+              </button>
+              {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
+            </>
+          )}
+        </div>
         <button
           type="button"
           onClick={onOpenDashboard}

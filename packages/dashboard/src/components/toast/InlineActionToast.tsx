@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { AlertCircle, RotateCcw } from 'lucide-react';
 
 interface InlineActionToastProps {
@@ -7,21 +6,8 @@ interface InlineActionToastProps {
   duration?: number;
 }
 
-export function InlineActionToast({ message, actionLabel = '다시 확인하기', duration = 3600 }: InlineActionToastProps) {
-  const [isVisible, setIsVisible] = useState(Boolean(message));
-
-  useEffect(() => {
-    if (!message) {
-      setIsVisible(false);
-      return;
-    }
-
-    setIsVisible(true);
-    const timeout = window.setTimeout(() => setIsVisible(false), duration);
-    return () => window.clearTimeout(timeout);
-  }, [duration, message]);
-
-  if (!message || !isVisible) return null;
+export function InlineActionToast({ message, actionLabel = '다시 확인하기' }: InlineActionToastProps) {
+  if (!message) return null;
 
   return (
     <div

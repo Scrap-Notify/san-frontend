@@ -24,6 +24,13 @@ export type {
   GithubRepository,
   GithubRepositoryConnectRequest,
 } from './github';
+export { createFeedbackApi } from './feedback';
+export type {
+  FeedbackApi,
+  FeedbackCreateRequest,
+  FeedbackCreateResponse,
+  FeedbackType,
+} from './feedback';
 export { createScrapsApi } from './scraps';
 export type { ScrapsApi } from './scraps';
 export { createCardsApi } from './cards';
