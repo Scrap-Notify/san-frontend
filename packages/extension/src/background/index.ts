@@ -431,7 +431,7 @@ async function runTilRecallCheck() {
     return;
   }
 
-  createTilRecallNotification(target.targetDate, target.til);
+  await createTilRecallNotification(target.targetDate, target.til);
 }
 
 async function findTilRecallTarget(accessToken: string) {
@@ -469,7 +469,10 @@ async function getTilsByDate(accessToken: string, date: string): Promise<TilResp
     });
   }
 
-  const payload = await response.json() as ApiResponse<TilResponse[]>;
+  const payload = await parseApiResponse<TilResponse[]>(
+    response,
+    `Failed to parse TIL response for ${date}`,
+  );
 
   if (!response.ok || !payload.ok || !payload.data) {
     if (response.status === 401) {
@@ -481,7 +484,7 @@ async function getTilsByDate(accessToken: string, date: string): Promise<TilResp
   return payload.data;
 }
 
-function createTilRecallNotification(targetDate: string, til: TilResponse) {
+async function createTilRecallNotification(targetDate: string, til: TilResponse) {
   const notifications = (
     chrome as typeof chrome & { notifications?: typeof chrome.notifications }
   ).notifications;
@@ -494,7 +497,11 @@ function createTilRecallNotification(targetDate: string, til: TilResponse) {
     return;
   }
 
+  const notificationId = `san-til-recall-${targetDate}`;
+  await saveNotificationTarget(notificationId, targetDate);
+
   notifications.create(
+    notificationId,
     {
       type: 'basic',
       iconUrl: 'san-alert.png',
@@ -504,16 +511,16 @@ function createTilRecallNotification(targetDate: string, til: TilResponse) {
         : `${targetDate} TIL을 다시 확인해보세요.`,
       priority: 2,
     },
-    (notificationId?: string) => {
+    (createdNotificationId?: string) => {
       if (chrome.runtime.lastError) {
         console.error(DEBUG_PREFIX, 'notification failed', chrome.runtime.lastError.message);
+        void removeNotificationTarget(notificationId);
         return;
       }
-      if (notificationId) {
-        void saveNotificationTarget(notificationId, targetDate);
+      if (createdNotificationId) {
         void chrome.storage.local.set({ [TIL_RECALL_LAST_NOTIFIED_KEY]: formatLocalDate(new Date()) });
       }
-      debugLog('notification created', notificationId);
+      debugLog('notification created', createdNotificationId);
     },
   );
 }
@@ -531,6 +538,20 @@ async function saveNotificationTarget(notificationId: string, targetDate: string
       [notificationId]: targetDate,
     },
   });
+}
+
+async function removeNotificationTarget(notificationId: string) {
+  const stored = await chrome.storage.local.get(TIL_RECALL_NOTIFICATION_TARGETS_KEY);
+  const targets = typeof stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] === 'object'
+    && stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] !== null
+    ? stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] as Record<string, string>
+    : {};
+
+  if (!targets[notificationId]) return;
+
+  const nextTargets = { ...targets };
+  delete nextTargets[notificationId];
+  await chrome.storage.local.set({ [TIL_RECALL_NOTIFICATION_TARGETS_KEY]: nextTargets });
 }
 
 async function openTilRecallNotification(notificationId: string) {
@@ -600,10 +621,15 @@ async function reissueStoredTokens() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
   });
-  const payload = await response.json() as ApiResponse<TokenResponse>;
+  const payload = await parseApiResponse<TokenResponse>(
+    response,
+    'Failed to parse token reissue response',
+  );
 
   if (!response.ok || !payload.ok || !payload.data) {
-    await clearAuthTokens();
+    if (response.status === 401 || response.status === 403) {
+      await clearAuthTokens();
+    }
     return null;
   }
 
@@ -628,7 +654,10 @@ async function exchangeAndSyncBridgeToken(message: LoginBridgeTicketMessage) {
     body: JSON.stringify({ ticket: message.ticket }),
   });
 
-  const payload = await response.json() as ApiResponse<TokenResponse>;
+  const payload = await parseApiResponse<TokenResponse>(
+    response,
+    'Failed to parse bridge token response',
+  );
 
   if (!response.ok || !payload.ok || !payload.data) {
     throw new Error(payload.message ?? payload.error ?? 'Bridge token exchange failed');
@@ -696,6 +725,36 @@ function notifyAuthStateChanged(isAuthenticated: boolean) {
     .catch((error) => {
       debugLog('auth state change broadcast skipped', error);
     });
+}
+
+async function parseApiResponse<T>(response: Response, fallbackMessage: string): Promise<ApiResponse<T>> {
+  const text = await response.text().catch((error) => {
+    console.error(DEBUG_PREFIX, 'failed to read API response body', {
+      error,
+      status: response.status,
+      url: response.url,
+    });
+    return '';
+  });
+
+  if (!text.trim()) {
+    console.error(DEBUG_PREFIX, 'empty API response body', {
+      status: response.status,
+      url: response.url,
+    });
+    return { ok: false, message: fallbackMessage };
+  }
+
+  try {
+    return JSON.parse(text) as ApiResponse<T>;
+  } catch (error) {
+    console.error(DEBUG_PREFIX, 'failed to parse API response JSON', {
+      error,
+      status: response.status,
+      url: response.url,
+    });
+    return { ok: false, message: fallbackMessage };
+  }
 }
 
 function pushToSidePanel(payload: PendingScrap) {
