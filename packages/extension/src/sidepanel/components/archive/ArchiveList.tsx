@@ -8,7 +8,9 @@ interface ArchiveListProps {
 export function ArchiveList({ cards }: ArchiveListProps) {
   return (
     <section>
-      <div className="mb-3 text-caption font-medium uppercase tracking-[0.14em] text-text-secondary">최근 아카이브</div>
+      <div className="mb-3 text-caption font-medium uppercase tracking-[0.14em] text-text-secondary">
+        Local captures
+      </div>
       <CardList cards={cards} />
     </section>
   );
