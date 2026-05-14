@@ -206,7 +206,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                 value={contact}
                 onChange={(event) => setContact(event.target.value)}
                 maxLength={255}
-                placeholder="좋은 의견은 작은 선물로 감사 인사를 전할게요."
+                placeholder="보내주신 의견에 감사의 마음을 담아 작은 선물을 전할 수 있어요."
                 className="h-11 rounded-lg border border-white/10 bg-[#1c1c1c] px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#4ade80]/45"
               />
             </label>

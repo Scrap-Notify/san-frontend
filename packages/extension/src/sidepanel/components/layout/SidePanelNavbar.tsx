@@ -1,4 +1,4 @@
-import { LayoutDashboard, LogOut, MessageSquare, User } from 'lucide-react';
+import { LayoutDashboard, LogOut, MessageCircleHeart, User } from 'lucide-react';
 import { useState } from 'react';
 import sanLogo from '@san/ui/assets/brand/SAN_LOGO.svg';
 import sanTypo from '@san/ui/assets/brand/SAN_TYPO.svg';
@@ -59,10 +59,7 @@ export default function SidePanelNavbar({
                 aria-expanded={isFeedbackOpen}
                 title="Feedback"
               >
-                <MessageSquare size={16} strokeWidth={1.7} aria-hidden="true" />
-                <span className="absolute left-1/2 top-[43%] -translate-x-1/2 -translate-y-1/2 text-[10px] font-black leading-none">
-                  ?
-                </span>
+                <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
               </button>
               {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
             </>
