@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
@@ -45,7 +45,6 @@ export function TILEditor({
                               commitMessage,
                           }: TILEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-    const [editorHeight, setEditorHeight] = useState(500);
 
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
@@ -54,14 +53,6 @@ export function TILEditor({
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
-        // 초기 높이 계산
-        const lineCount = editor.getModel()?.getLineCount() ?? 20;
-        setEditorHeight(Math.max(500, lineCount * 24 + 80));
-        // 컨텐츠 변경 시 높이 자동 조정
-        editor.onDidContentSizeChange((e) => {
-            const newHeight = Math.max(500, e.contentHeight + 80);
-            setEditorHeight(newHeight);
-        });
     };
 
     const handleGenerate = () => {
@@ -124,8 +115,8 @@ export function TILEditor({
     const statusMessage = generationMessage ?? commitMessage;
 
     return (
-        <div className="flex min-h-0 w-full flex-col">
-            <main className="relative flex w-full flex-col bg-transparent">
+        <div className="flex h-full min-h-0 w-full flex-col">
+            <main className="relative flex min-h-0 w-full flex-1 flex-col bg-transparent">
                 <div className="flex shrink-0 items-center justify-between border-b border-white/5 px-4 py-2.5">
                     <div className="flex items-center gap-3 text-text-secondary">
                         {/* 그룹 1: 텍스트 서식 */}
@@ -201,9 +192,9 @@ export function TILEditor({
                     </div>
                 </div>
 
-                <div className="relative w-full pt-2">
+                <div className="relative min-h-0 w-full flex-1 overflow-hidden pt-2">
                     {isTilLoading ? (
-                        <div className="flex h-[500px] w-full flex-col gap-4 p-6 animate-pulse">
+                        <div className="flex h-full min-h-[500px] w-full flex-col gap-4 overflow-hidden p-6 animate-pulse">
                             <div className="h-6 w-3/4 rounded bg-white/5" />
                             <div className="h-4 w-full rounded bg-white/5" />
                             <div className="h-4 w-full rounded bg-white/5" />
@@ -218,7 +209,7 @@ export function TILEditor({
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
                         />
                     ) : activeTab === 'drafts' || activeTab === 'edit' ? (
-                        <div style={{ height: editorHeight }} className="relative w-full overflow-hidden rounded-lg bg-[#1e1e1e]/30 border border-white/5 transition-all">
+                        <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-white/5 bg-[#1e1e1e]/30 transition-all">
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="markdown"
@@ -242,7 +233,12 @@ export function TILEditor({
                                     lineHeight: 26,
                                     wordWrap: 'on',
                                     minimap: { enabled: false },
-                                    scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
+                                    scrollbar: {
+                                        vertical: 'auto',
+                                        horizontal: 'auto',
+                                        handleMouseWheel: true,
+                                        alwaysConsumeMouseWheel: false,
+                                    },
                                     padding: { top: 16, bottom: 40 },
                                     lineNumbers: 'on',
                                     renderLineHighlight: 'all',
@@ -258,7 +254,7 @@ export function TILEditor({
                             />
                         </div>
                     ) : (
-                        <div className="h-full overflow-y-auto px-10 py-8 no-scrollbar">
+                        <div className="h-full min-h-[500px] overflow-y-auto px-10 py-8">
                             <article className="max-w-none leading-relaxed text-text-primary">
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
