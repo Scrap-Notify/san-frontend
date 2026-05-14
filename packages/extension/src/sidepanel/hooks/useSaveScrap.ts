@@ -178,7 +178,15 @@ export function useSaveScrap({
       }
 
       if (!isAuthenticated) {
-        setSaveNotice('Login to save this source as a knowledge card.');
+        const saved = toSavedInsight(pendingScrap);
+        const nextCards = [saved, ...cards];
+        setCards(nextCards);
+        setPendingScrap(null);
+        setPendingImageFile(null);
+        await savePendingScrap(null);
+        await saveInsights(nextCards);
+        await deletePendingImageFile(pendingScrap.image_blob_id);
+        setSaveNotice('Saved locally on this browser.');
         return;
       }
 

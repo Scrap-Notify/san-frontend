@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { ErrorFallback } from '@san/ui';
+import { authTokenStorage } from '@dashboard/api/client';
 import { useArchiveCards } from '@dashboard/hooks/useArchiveCards';
 import { HomeKnowledgeCardsEmptyState } from './HomeEmptyStates';
 
 export function ArchiveSection() {
   const navigate = useNavigate();
   const carouselRef = useRef<HTMLDivElement>(null);
-  const { cards, isPending, isError } = useArchiveCards({ limit: 12 });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { cards, isPending, isError } = useArchiveCards({ limit: 12 }, { enabled: isAuthenticated });
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -39,15 +43,33 @@ export function ArchiveSection() {
   }, []);
 
   useEffect(() => {
-    if (isPending || isError || cards.length === 0 || isHovered || !isPlaying) return;
+    if (!isAuthenticated || isPending || isError || cards.length === 0 || isHovered || !isPlaying) return;
     const interval = setInterval(() => {
       scrollCarousel('next');
     }, 4000);
     return () => clearInterval(interval);
-  }, [cards.length, isError, isHovered, isPending, isPlaying, scrollCarousel]);
+  }, [cards.length, isAuthenticated, isError, isHovered, isPending, isPlaying, scrollCarousel]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    authTokenStorage.getToken()
+      .then((token) => {
+        if (ignore) return;
+        setIsAuthenticated(Boolean(token));
+      })
+      .finally(() => {
+        if (ignore) return;
+        setIsCheckingAuth(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const totalPages = Math.max(1, Math.ceil(cards.length / 3));
-  const hasCards = !isPending && !isError && cards.length > 0;
+  const hasCards = isAuthenticated && !isPending && !isError && cards.length > 0;
 
   return (
     <section className="w-full min-w-0 overflow-hidden pb-xl">
@@ -59,6 +81,7 @@ export function ArchiveSection() {
             </h2>
           </div>
 
+          {isAuthenticated ? (
           <div className="flex shrink-0 items-center gap-3 rounded-full border border-white/5 bg-[#121212] px-3 py-1.5 shadow-sm">
             <button
               type="button"
@@ -113,6 +136,7 @@ export function ArchiveSection() {
               </button>
             </div>
           </div>
+          ) : null}
         </div>
 
         <div
@@ -125,15 +149,29 @@ export function ArchiveSection() {
             onScroll={handleScroll}
             className="flex w-full min-w-0 snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
           >
-            {isPending ? (
+            {isCheckingAuth ? (
+              <StatusCard message="로그인 상태를 확인하는 중..." />
+            ) : null}
+
+            {!isCheckingAuth && !isAuthenticated ? (
+              <div className="flex min-h-[400px] w-full shrink-0 snap-start items-center justify-center">
+                <ErrorFallback
+                  type="auth"
+                  variant="full"
+                  onRetry={() => navigate('/login', { state: { from: '/' } })}
+                />
+              </div>
+            ) : null}
+
+            {isAuthenticated && isPending ? (
               <StatusCard message="아카이브 카드를 불러오는 중..." />
             ) : null}
 
-            {isError ? (
+            {isAuthenticated && isError ? (
               <StatusCard message="아카이브 카드를 불러올 수 없습니다." tone="error" />
             ) : null}
 
-            {!isPending && !isError && cards.length === 0 ? (
+            {isAuthenticated && !isPending && !isError && cards.length === 0 ? (
               <HomeKnowledgeCardsEmptyState
                 primaryAction={{
                   label: '분석 시작',

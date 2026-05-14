@@ -196,11 +196,18 @@ interface UseArchiveCardsResult {
   isError: boolean;
 }
 
+interface UseArchiveCardsOptions {
+  enabled?: boolean;
+}
+
 // const useMockCards = true; // Mock data toggle kept for local UI checks.
 
-export function useArchiveCards(params?: ArchiveCardsParams): UseArchiveCardsResult {
+export function useArchiveCards(
+  params?: ArchiveCardsParams,
+  options?: UseArchiveCardsOptions
+): UseArchiveCardsResult {
   const serverParams = toKnowledgeCardListParams(params);
-  const query = useCards(serverParams);
+  const query = useCards(serverParams, { enabled: options?.enabled });
 
   /*
   const useMockCards = true;

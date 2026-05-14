@@ -4,11 +4,11 @@ import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from 
 import { authApi, authTokenStorage, cardsApi, searchApi } from '@extension/api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '@extension/types';
 import { DropZone } from './components/capture/DropZone';
-import { EmptyState } from './components/feedback/EmptyState';
 import GlowBackground from './components/feedback/GlowBackground';
 import { KnowledgeSearchBar } from './components/knowledge/KnowledgeSearchBar';
 import { RecentKnowledgeList } from './components/knowledge/RecentKnowledgeList';
 import { SimilarKnowledgeList } from './components/knowledge/SimilarKnowledgeList';
+import { ArchiveList } from './components/archive/ArchiveList';
 import {
   loadPendingScrap,
   loadSavedInsights,
@@ -805,10 +805,10 @@ export default function SidePanel() {
                     onClear={handleClearPending}
                     isSaving={isSaving}
                     savingLabel={savingLabel}
-                    saveLabel={isAuthenticated ? 'Save' : 'Save locally'}
+                    saveLabel="Save"
                     saveError={saveError}
                     saveNotice={saveNotice}
-                    canSave={isAuthenticated}
+                    canSave={true}
                     authNotice={!isAuthenticated && pendingScrap ? '' : null}
                     onLogin={!isAuthenticated ? () => setIsAuthCardOpen(true) : undefined}
                   />
@@ -825,7 +825,7 @@ export default function SidePanel() {
           {/* 3. Content Area: Search Bar + (Related Cards OR Recent List) */}
               <div className="flex shrink-0 flex-col">
                 {!isAuthenticated ? (
-                  !pendingScrap && <EmptyState onLogin={() => setIsAuthCardOpen(true)} />
+                  <ArchiveList cards={cards} />
                 ) : (
                   <>
                     {hasKnowledgeSearchResult ? (
