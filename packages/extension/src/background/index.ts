@@ -1,25 +1,30 @@
 // packages/extension/src/background/index.ts
 import type { ExtensionMessage, PendingScrap } from '@extension/types/index';
 
-declare global {
-  var sanTestNotification: (() => void) | undefined;
-}
-
 const DEBUG_PREFIX = '[SAN:background]';
 const defaultBaseURL = import.meta.env.PROD
   ? 'https://k14a309.p.ssafy.io/api'
   : 'http://localhost:8080/api';
 const baseURL = normalizeApiBaseURL(import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL);
+const defaultDashboardBaseUrl = import.meta.env.PROD
+  ? 'https://k14a309.p.ssafy.io'
+  : 'http://localhost:5173';
+const dashboardBaseUrl = (import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl).replace(/\/$/, '');
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const SESSION_ID_KEY = 'san_session_id';
 const CLIENT_TYPE_KEY = 'san_client_type';
+const TIL_RECALL_SETTINGS_KEY = 'san:til-recall-settings';
+const TIL_RECALL_LAST_NOTIFIED_KEY = 'san:til-recall-last-notified-date';
+const TIL_RECALL_NOTIFICATION_TARGETS_KEY = 'san:til-recall-notification-targets';
+const TIL_RECALL_ALARM_NAME = 'san:til-recall';
+const DEFAULT_TIL_RECALL_TIME = '07:00';
+const TIL_RECALL_OFFSETS = [7, 3, 1] as const;
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
-const TEST_NOTIFICATION_MESSAGE = 'SAN_TEST_NOTIFICATION';
 const isDebug = import.meta.env.DEV;
 
 function normalizeApiBaseURL(value: string) {
@@ -57,6 +62,20 @@ interface TokenResponse {
   sessionId: string;
 }
 
+interface TilResponse {
+  summaryId: string;
+  targetDate: string;
+  title: string | null;
+  content: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface TilRecallSettings {
+  enabled: boolean;
+  time: string;
+}
+
 function isAuthSyncMessage(message: unknown): message is AuthSyncMessage {
   if (!message || typeof message !== 'object') return false;
   const maybe = message as Partial<AuthSyncMessage>;
@@ -75,6 +94,16 @@ function isLoginBridgeTicketMessage(message: unknown): message is LoginBridgeTic
   return maybe.type === LOGIN_BRIDGE_TICKET_MESSAGE;
 }
 
+function isTilRecallSettings(value: unknown): value is TilRecallSettings {
+  if (!value || typeof value !== 'object') return false;
+  const maybe = value as Partial<TilRecallSettings>;
+  return typeof maybe.enabled === 'boolean' && isValidTime(maybe.time);
+}
+
+function isValidTime(value: unknown): value is string {
+  return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
 function debugLog(message: string, data?: unknown) {
   if (!isDebug) return;
   if (data === undefined) {
@@ -83,39 +112,6 @@ function debugLog(message: string, data?: unknown) {
   }
   console.debug(DEBUG_PREFIX, message, data);
 }
-
-function createSanNotification() {
-  const notifications = (
-    chrome as typeof chrome & { notifications?: typeof chrome.notifications }
-  ).notifications;
-
-  if (!notifications?.create) {
-    console.error(
-      DEBUG_PREFIX,
-      'chrome.notifications API is unavailable. Check the loaded extension manifest has the notifications permission and reload the extension.',
-    );
-    return;
-  }
-
-  notifications.create(
-    {
-      type: 'basic',
-      iconUrl: 'SAN_LOGO_EXTENSION.png',
-      title: 'SAN 리콜 알림 테스트',
-      message: '이 알림이 보이면 Chrome 알림 설정이 정상입니다.',
-      priority: 2,
-    },
-    (notificationId) => {
-      if (chrome.runtime.lastError) {
-        console.error(DEBUG_PREFIX, 'notification failed', chrome.runtime.lastError.message);
-        return;
-      }
-      debugLog('notification created', notificationId);
-    },
-  );
-}
-
-globalThis.sanTestNotification = createSanNotification;
 
 debugLog('service worker loaded');
 
@@ -134,10 +130,36 @@ chrome.runtime.onInstalled.addListener(() => {
       title: 'SAN: Save selected text',
       contexts: ['selection'],
     });
-
-    createSanNotification();
-
   });
+
+  void ensureTilRecallSettings();
+  void scheduleNextTilRecallAlarm();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  void ensureTilRecallSettings();
+  void scheduleNextTilRecallAlarm();
+});
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name !== TIL_RECALL_ALARM_NAME) return;
+
+  void runTilRecallCheck()
+    .catch((error) => {
+      console.error(DEBUG_PREFIX, 'failed to run TIL recall check', error);
+    })
+    .finally(() => {
+      void scheduleNextTilRecallAlarm();
+    });
+});
+
+chrome.notifications.onClicked.addListener((notificationId) => {
+  void openTilRecallNotification(notificationId);
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== 'local' || !changes[TIL_RECALL_SETTINGS_KEY]) return;
+  void scheduleNextTilRecallAlarm();
 });
 
 chrome.action.onClicked.addListener((tab) => {
@@ -241,12 +263,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
   debugLog('runtime message received', { message, tabId: sender.tab?.id, url: sender.tab?.url });
-  if (message.type === TEST_NOTIFICATION_MESSAGE) {
-    createSanNotification();
-    sendResponse({ ok: true });
-    return;
-  }
-
   if (message.type === 'SCRAP_SELECTION' && sender.tab?.id && message.payload) {
     pushToSidePanel(message.payload);
     return;
@@ -345,6 +361,262 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
   return true;
 });
 
+async function ensureTilRecallSettings() {
+  const stored = await chrome.storage.local.get(TIL_RECALL_SETTINGS_KEY);
+  const settings = stored[TIL_RECALL_SETTINGS_KEY];
+
+  if (isTilRecallSettings(settings)) {
+    return settings;
+  }
+
+  const defaultSettings = getDefaultTilRecallSettings();
+  await chrome.storage.local.set({ [TIL_RECALL_SETTINGS_KEY]: defaultSettings });
+  return defaultSettings;
+}
+
+async function getTilRecallSettings(): Promise<TilRecallSettings> {
+  const stored = await chrome.storage.local.get(TIL_RECALL_SETTINGS_KEY);
+  const settings = stored[TIL_RECALL_SETTINGS_KEY];
+
+  if (isTilRecallSettings(settings)) {
+    return settings;
+  }
+
+  return getDefaultTilRecallSettings();
+}
+
+function getDefaultTilRecallSettings(): TilRecallSettings {
+  return {
+    enabled: true,
+    time: DEFAULT_TIL_RECALL_TIME,
+  };
+}
+
+async function scheduleNextTilRecallAlarm() {
+  const settings = await getTilRecallSettings();
+  await chrome.alarms.clear(TIL_RECALL_ALARM_NAME);
+
+  if (!settings.enabled) {
+    debugLog('TIL recall alarm disabled');
+    return;
+  }
+
+  const nextAlarmAt = getNextAlarmTime(settings.time);
+  chrome.alarms.create(TIL_RECALL_ALARM_NAME, {
+    when: nextAlarmAt.getTime(),
+  });
+  debugLog('TIL recall alarm scheduled', { time: settings.time, nextAlarmAt: nextAlarmAt.toISOString() });
+}
+
+async function runTilRecallCheck() {
+  const settings = await getTilRecallSettings();
+  if (!settings.enabled) return;
+
+  const today = formatLocalDate(new Date());
+  const stored = await chrome.storage.local.get(TIL_RECALL_LAST_NOTIFIED_KEY);
+  if (stored[TIL_RECALL_LAST_NOTIFIED_KEY] === today) {
+    debugLog('TIL recall already notified today', today);
+    return;
+  }
+
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) {
+    debugLog('TIL recall skipped because access token is missing');
+    return;
+  }
+
+  const target = await findTilRecallTarget(accessToken);
+  if (!target) {
+    debugLog('TIL recall skipped because target TIL was not found');
+    return;
+  }
+
+  createTilRecallNotification(target.targetDate, target.til);
+}
+
+async function findTilRecallTarget(accessToken: string) {
+  for (const offset of TIL_RECALL_OFFSETS) {
+    const targetDate = getDateBefore(offset);
+    const tils = await getTilsByDate(accessToken, targetDate);
+
+    if (tils.length > 0) {
+      return {
+        targetDate,
+        til: tils[0],
+      };
+    }
+  }
+
+  return null;
+}
+
+async function getTilsByDate(accessToken: string, date: string): Promise<TilResponse[]> {
+  let response = await fetch(`${baseURL}/tils?date=${encodeURIComponent(date)}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (response.status === 401) {
+    const refreshedAccessToken = await reissueStoredTokens();
+    if (!refreshedAccessToken) {
+      throw new Error('Missing valid auth tokens');
+    }
+
+    response = await fetch(`${baseURL}/tils?date=${encodeURIComponent(date)}`, {
+      headers: {
+        Authorization: `Bearer ${refreshedAccessToken}`,
+      },
+    });
+  }
+
+  const payload = await response.json() as ApiResponse<TilResponse[]>;
+
+  if (!response.ok || !payload.ok || !payload.data) {
+    if (response.status === 401) {
+      await clearAuthTokens();
+    }
+    throw new Error(payload.message ?? payload.error ?? `Failed to load TIL for ${date}`);
+  }
+
+  return payload.data;
+}
+
+function createTilRecallNotification(targetDate: string, til: TilResponse) {
+  const notifications = (
+    chrome as typeof chrome & { notifications?: typeof chrome.notifications }
+  ).notifications;
+
+  if (!notifications?.create) {
+    console.error(
+      DEBUG_PREFIX,
+      'chrome.notifications API is unavailable. Check the loaded extension manifest has the notifications permission and reload the extension.',
+    );
+    return;
+  }
+
+  notifications.create(
+    {
+      type: 'basic',
+      iconUrl: 'SAN_LOGO_EXTENSION.png',
+      title: '다시 볼 TIL이 있어요',
+      message: til.title
+        ? `${targetDate} TIL: ${til.title}`
+        : `${targetDate} TIL을 다시 확인해보세요.`,
+      priority: 2,
+    },
+    (notificationId?: string) => {
+      if (chrome.runtime.lastError) {
+        console.error(DEBUG_PREFIX, 'notification failed', chrome.runtime.lastError.message);
+        return;
+      }
+      if (notificationId) {
+        void saveNotificationTarget(notificationId, targetDate);
+        void chrome.storage.local.set({ [TIL_RECALL_LAST_NOTIFIED_KEY]: formatLocalDate(new Date()) });
+      }
+      debugLog('notification created', notificationId);
+    },
+  );
+}
+
+async function saveNotificationTarget(notificationId: string, targetDate: string) {
+  const stored = await chrome.storage.local.get(TIL_RECALL_NOTIFICATION_TARGETS_KEY);
+  const targets = typeof stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] === 'object'
+    && stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] !== null
+    ? stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] as Record<string, string>
+    : {};
+
+  await chrome.storage.local.set({
+    [TIL_RECALL_NOTIFICATION_TARGETS_KEY]: {
+      ...targets,
+      [notificationId]: targetDate,
+    },
+  });
+}
+
+async function openTilRecallNotification(notificationId: string) {
+  const stored = await chrome.storage.local.get(TIL_RECALL_NOTIFICATION_TARGETS_KEY);
+  const targets = typeof stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] === 'object'
+    && stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] !== null
+    ? stored[TIL_RECALL_NOTIFICATION_TARGETS_KEY] as Record<string, string>
+    : {};
+  const targetDate = targets[notificationId];
+  if (!targetDate) return;
+
+  const nextTargets = { ...targets };
+  delete nextTargets[notificationId];
+  await chrome.storage.local.set({ [TIL_RECALL_NOTIFICATION_TARGETS_KEY]: nextTargets });
+  await chrome.notifications.clear(notificationId);
+  await chrome.tabs.create({ url: `${dashboardBaseUrl}/til?date=${encodeURIComponent(targetDate)}` });
+}
+
+function getNextAlarmTime(time: string) {
+  const [hours, minutes] = time.split(':').map(Number);
+  const next = new Date();
+  next.setHours(hours, minutes, 0, 0);
+
+  if (next.getTime() <= Date.now()) {
+    next.setDate(next.getDate() + 1);
+  }
+
+  return next;
+}
+
+function getDateBefore(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return formatLocalDate(date);
+}
+
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+async function getStoredAccessToken() {
+  const stored = await chrome.storage.local.get(ACCESS_TOKEN_KEY);
+  return typeof stored[ACCESS_TOKEN_KEY] === 'string' ? stored[ACCESS_TOKEN_KEY] : null;
+}
+
+async function getStoredRefreshToken() {
+  const stored = await chrome.storage.local.get(REFRESH_TOKEN_KEY);
+  return typeof stored[REFRESH_TOKEN_KEY] === 'string' ? stored[REFRESH_TOKEN_KEY] : null;
+}
+
+async function getValidAccessToken() {
+  return getStoredAccessToken();
+}
+
+async function reissueStoredTokens() {
+  const refreshToken = await getStoredRefreshToken();
+  if (!refreshToken) {
+    await clearAuthTokens();
+    return null;
+  }
+
+  const response = await fetch(`${baseURL}/auth/reissue`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+  const payload = await response.json() as ApiResponse<TokenResponse>;
+
+  if (!response.ok || !payload.ok || !payload.data) {
+    await clearAuthTokens();
+    return null;
+  }
+
+  await chrome.storage.local.set({
+    [ACCESS_TOKEN_KEY]: payload.data.accessToken,
+    [REFRESH_TOKEN_KEY]: payload.data.refreshToken,
+    [CLIENT_TYPE_KEY]: 'EXTENSION',
+    ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
+  });
+
+  return payload.data.accessToken;
+}
+
 async function exchangeAndSyncBridgeToken(message: LoginBridgeTicketMessage) {
   if (!message.ticket) {
     throw new Error('Missing bridge ticket');
@@ -383,6 +655,8 @@ async function syncAuthTokens(message: AuthSyncMessage) {
     ...(message.sessionId ? { [SESSION_ID_KEY]: message.sessionId } : {}),
   });
   notifyAuthStateChanged(true);
+  void ensureTilRecallSettings();
+  void scheduleNextTilRecallAlarm();
 
   return readStoredAuthState();
 }

@@ -27,7 +27,6 @@ export type MessageType =
   | 'SAN_AUTH_SYNC'
   | 'SAN_AUTH_CLEAR'
   | 'SAN_AUTH_STATE_CHANGED'
-  | 'SAN_TEST_NOTIFICATION'
   | 'LOGIN_BRIDGE_TICKET';
 
 export interface ExtensionMessage {
