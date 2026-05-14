@@ -129,7 +129,6 @@ interface UseSaveScrapParams {
   isRestoringPendingImage: boolean;
   deletePendingImageFile: (id: string | null | undefined) => void | Promise<void>;
   setCreatedCard: (next: KnowledgeCardView | null) => void;
-  setCreatedCardSource: (next: SavedInsight | null) => void;
   refreshRecentCards: () => void | Promise<void>;
 }
 
@@ -148,7 +147,6 @@ export function useSaveScrap({
   isRestoringPendingImage,
   deletePendingImageFile,
   setCreatedCard,
-  setCreatedCardSource,
   refreshRecentCards,
 }: UseSaveScrapParams) {
   const [isSaving, setIsSaving] = useState(false);
@@ -172,7 +170,6 @@ export function useSaveScrap({
     setRelatedCards([]);
     setHasRelatedResult(false);
     setCreatedCard(null);
-    setCreatedCardSource(null);
     setIsLoadingRelated(false);
 
     try {
@@ -227,11 +224,6 @@ export function useSaveScrap({
       ));
 
       setCreatedCard(createdCard.card ? toKnowledgeCardView(createdCard.card) : null);
-      setCreatedCardSource(
-        createdCard.card
-          ? { ...saved, card_id: createdCard.cardId }
-          : null
-      );
       setCards(cardsWithCardId);
       await saveInsights(cardsWithCardId);
       setSavingLabel('Finding related cards...');
@@ -256,7 +248,6 @@ export function useSaveScrap({
     refreshRecentCards,
     setCards,
     setCreatedCard,
-    setCreatedCardSource,
     setHasRelatedResult,
     setIsLoadingRelated,
     setPendingImageFile,
