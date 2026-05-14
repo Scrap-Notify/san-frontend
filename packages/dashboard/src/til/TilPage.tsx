@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, GitCommitHorizontal, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GitCommitHorizontal, Trash2, PanelLeft } from 'lucide-react';
 import { CollectedDataPanel } from './components/CollectedDataPanel';
 import { TILEditor } from './components/TILEditor';
 import { useTilPageLogic } from './hooks/useTilPageLogic';
@@ -14,6 +14,10 @@ export function TilPage() {
         title,
         setTitle,
         draft,
+        setDraft,
+        tilList,
+        selectedSummaryId,
+        setSelectedSummaryId,
         selectedTil,
         tilQuery,
         sourcesQuery,
@@ -29,6 +33,7 @@ export function TilPage() {
     } = useTilPageLogic();
 
     const [activeTab, setActiveTab] = useState<TILMode>('drafts');
+    const [isTilListOpen, setIsTilListOpen] = useState(false);
     const dateLabel = formatDateForDisplay(selectedDate);
     const dateParam = searchParams.get('date');
 
@@ -57,7 +62,7 @@ export function TilPage() {
         commitMutation.isPending ||
         commitStatusQuery.data?.status === 'PENDING' ||
         commitStatusQuery.data?.status === 'PROCESSING';
-    const displayedTitle = activeTab === 'drafts' ? selectedTil?.title ?? title : title;
+    const displayedTitle = activeTab === 'edit' ? title : selectedTil?.title ?? title;
 
     const handleDeleteTil = () => {
         if (!selectedTil || deleteMutation.isPending) return;
@@ -69,8 +74,8 @@ export function TilPage() {
     };
 
     return (
-        <section className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-80px)] w-full overflow-hidden bg-background text-text-primary">
-            <div className="no-scrollbar flex min-w-0 flex-1 flex-col overflow-y-auto px-4 md:px-6 pb-6 pt-3 order-1 lg:order-1">
+        <section className="flex h-auto w-full flex-col overflow-hidden bg-background text-text-primary lg:h-[calc(100vh-80px)] lg:flex-row">
+            <div className="no-scrollbar order-1 flex min-w-0 flex-1 flex-col overflow-y-auto px-4 pb-6 pt-3 md:px-6 lg:order-1">
                 <header className="mb-6 flex flex-col gap-3">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
                         <span className="text-primary-signal">T</span>
@@ -80,7 +85,7 @@ export function TilPage() {
                         <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">earned</span>
                     </h1>
 
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1 rounded-xl border border-white/5 bg-white/5 px-2 py-1.5">
                                 <button
@@ -105,7 +110,7 @@ export function TilPage() {
                                 </button>
                             </div>
 
-                            <div className="hidden md:block h-4 w-px bg-white/10" />
+                            <div className="hidden h-4 w-px bg-white/10 md:block" />
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3">
@@ -115,8 +120,8 @@ export function TilPage() {
                                 type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
-                                className="flex h-10 md:h-11 flex-1 md:flex-none items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md bg-[#238636] px-4 text-sm font-medium text-white shadow-lg transition-all hover:bg-[#2ea043] hover:shadow-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
+                                className="flex h-10 flex-1 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-[#238636] px-4 text-sm font-medium text-white shadow-lg transition-all hover:bg-[#2ea043] hover:shadow-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50 md:h-11 md:flex-none"
+                            >
                                 <GitCommitHorizontal size={16} />
                                 {isCommitting ? 'Committing...' : 'Commit'}
                             </button>
@@ -124,11 +129,77 @@ export function TilPage() {
                     </div>
                 </header>
 
-                <div className="flex min-h-0 flex-1 flex-col gap-4">
-                    <div className="px-1">
-                        <h2 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary-signal opacity-80">
-                            # Today's Knowledge Summary
-                        </h2>
+                <div className="flex min-h-0 flex-1 gap-3">
+                    <div className="flex min-h-0 shrink-0 items-start gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setIsTilListOpen((current) => !current)}
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center text-text-secondary transition ${
+                                isTilListOpen
+                                    ? 'text-white'
+                                    : 'hover:text-primary-signal'
+                            }`}
+                            aria-label="Toggle TIL list"
+                            aria-expanded={isTilListOpen}
+                        >
+                            <PanelLeft size={19} />
+                        </button>
+
+                        <aside
+                            className={`min-h-[500px] overflow-hidden transition-[width,border-color] duration-300 ease-out ${
+                                isTilListOpen
+                                    ? 'w-[286px] border-r border-white/10'
+                                    : 'w-0 border-r-0 border-transparent'
+                            }`}
+                            aria-hidden={!isTilListOpen}
+                        >
+                            <div className="w-[286px]">
+                                <div className={`no-scrollbar max-h-[calc(100vh-230px)] overflow-y-auto px-3 pb-3 transition-opacity duration-150 ${
+                                    isTilListOpen ? 'opacity-100 delay-100' : 'pointer-events-none opacity-0'
+                                }`}>
+                                    {tilQuery.isPending ? (
+                                        <div className="px-3 py-4 text-sm text-text-secondary">Loading...</div>
+                                    ) : tilList.length === 0 ? (
+                                        <div className="px-3 py-4 text-sm text-text-secondary">No TILs for this date.</div>
+                                    ) : (
+                                        tilList.map((til, index) => {
+                                            const isSelected = til.summaryId === (selectedSummaryId ?? selectedTil?.summaryId);
+
+                                            return (
+                                                <button
+                                                    key={til.summaryId}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedSummaryId(til.summaryId);
+                                                    }}
+                                                    className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition ${
+                                                        isSelected
+                                                            ? 'bg-white/[0.075] text-white'
+                                                            : 'text-text-secondary hover:bg-white/5 hover:text-white'
+                                                    }`}
+                                                >
+                                                    <span className="min-w-0">
+                                                        <span className="block truncate text-sm font-semibold">
+                                                            {getTilTitle(til, index)}
+                                                        </span>
+                                                        <span className="mt-1 block text-xs text-text-secondary/70">
+                                                            {formatTimeForDisplay(til.updatedAt)}
+                                                        </span>
+                                                    </span>
+                                                </button>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+
+                    <div className="flex min-w-0 flex-1 flex-col gap-4">
+                        <div className="px-1">
+                            <h2 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary-signal opacity-80">
+                                # Today's Knowledge Summary
+                            </h2>
 
                         <div className="flex items-start gap-3">
                             <input
@@ -151,6 +222,15 @@ export function TilPage() {
                             </button>
                         </div>
                     </div>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="제목을 입력하세요"
+                                readOnly={activeTab === 'preview'}
+                                className="w-full bg-transparent text-xl font-extrabold text-white outline-none transition-all placeholder:text-text-secondary/20 focus:placeholder:text-text-secondary/10"
+                            />
+                        </div>
 
                     <div className="flex min-h-[500px] flex-1 flex-col rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl overflow-hidden">
                         <TILEditor
@@ -158,6 +238,7 @@ export function TilPage() {
                             title={title}
                             setTitle={setTitle}
                             draft={draft}
+                            setDraft={setDraft}
                             selectedTil={selectedTil}
                             isTilLoading={tilQuery.isPending}
                             generateMutation={generateMutation}
@@ -189,6 +270,21 @@ function formatDateForDisplay(dateString: string) {
         day: 'numeric',
     });
 }
+
+function formatTimeForDisplay(dateString: string) {
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) return '';
+
+    return date.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+//
+// function getTilTitle(til: TilResponse, index: number) {
+//     return til.title?.trim() || `Untitled TIL ${index + 1}`;
+// }
 
 function shiftDate(date: Date): string {
     const year = date.getFullYear();
