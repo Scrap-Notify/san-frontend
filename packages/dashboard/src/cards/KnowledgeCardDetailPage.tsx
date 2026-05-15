@@ -169,6 +169,7 @@ function SourceDataSection({ source }: { source: KnowledgeCardDetailData['source
 
 function ProcessedTextSection({ processedText }: { processedText: KnowledgeCardDetailData['processedText'] }) {
   const [value, setValue] = useState(processedText.refinedContent);
+  const hasRefinedContent = processedText.refinedContent.trim().length > 0;
 
   useEffect(() => {
     setValue(processedText.refinedContent);
@@ -182,16 +183,27 @@ function ProcessedTextSection({ processedText }: { processedText: KnowledgeCardD
         description="원본을 읽기 쉽게 변환한 텍스트입니다. 오타나 OCR 오류 정도만 수정할 수 있으며, 수정 내용은 기존 최종 지식카드에 자동 반영되지 않습니다."
       />
 
-      <div className="mt-6 rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-1">
-        <textarea
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          spellCheck={false}
-          className="min-h-[22rem] w-full resize-y rounded-[14px] bg-transparent px-5 py-4 text-base leading-8 text-white/70 outline-none placeholder:text-white/20 focus:bg-white/[0.02]"
-          aria-label="AI 1차 정제 텍스트"
-          placeholder="AI 1차 정제 텍스트가 아직 생성되지 않았습니다."
-        />
-      </div>
+      {hasRefinedContent ? (
+        <div className="mt-6 rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-1">
+          <textarea
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            spellCheck={false}
+            className="min-h-[22rem] w-full resize-y rounded-[14px] bg-transparent px-5 py-4 text-base leading-8 text-white/70 outline-none placeholder:text-white/20 focus:bg-white/[0.02]"
+            aria-label="AI 1차 정제 텍스트"
+          />
+        </div>
+      ) : (
+        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
+          <div className="flex max-w-md flex-col items-center gap-3">
+            <Sparkles size={24} className="text-white/25" aria-hidden="true" />
+            <p className="text-base font-semibold text-white/70">1차 정제 데이터가 없습니다.</p>
+            <p className="text-sm leading-6 text-white/40">
+              현재 상세 API에서 정제된 텍스트가 제공되지 않아 원본 데이터와 최종 지식카드만 확인할 수 있습니다.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-white/35">
         <span>문서 편집기가 아니라 정제 텍스트 확인과 경미한 보정 용도입니다.</span>
