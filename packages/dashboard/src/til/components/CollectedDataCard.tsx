@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExternalLink, FileText, Link as LinkIcon, Copy, Check } from 'lucide-react';
+import { ExternalLink, Copy, Check, ScanText, Link2 } from 'lucide-react';
 
 export interface CollectedDataItem {
     id: string;
@@ -27,14 +27,14 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const leafBaseClass =
-        'group relative flex-shrink-0 overflow-hidden border border-white/5 bg-[#1A1C1E] shadow-xl transition-all hover:scale-[1.01] hover:bg-[#222426] rounded-tl-[32px] rounded-br-[32px] rounded-tr-lg rounded-bl-lg w-full';
+    const cardBaseClass =
+        'group relative w-full flex-shrink-0 overflow-hidden rounded-tl-[30px] rounded-br-[30px] rounded-tr-[10px] rounded-bl-[10px] border border-white/[0.08] bg-white/[0.045] shadow-[0_14px_30px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-md transition-colors hover:border-white/[0.13] hover:bg-white/[0.058]';
 
     const cardContent = (
         <>
             {item.type === 'image' ? (
-                <article className={leafBaseClass}>
-                    <div className="relative h-48 w-full">
+                <article className={cardBaseClass}>
+                    <div className="relative h-40 w-full">
                         {item.imageUrl ? (
                             <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
                         ) : (
@@ -45,8 +45,8 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
 
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                        <div className="absolute bottom-0 left-0 right-0 p-6">
-                            <h3 className="text-base font-bold leading-tight text-white">{item.title}</h3>
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <h3 className="text-sm font-bold leading-tight text-white">{item.title}</h3>
                             <p className="mt-1 text-xs font-medium text-text-secondary/80">
                                 {item.subtitle || 'Captured from Source'}
                             </p>
@@ -55,47 +55,49 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="absolute right-4 top-4 rounded-xl p-2 text-white/70 transition hover:bg-white/8 hover:text-primary-signal"
+                            className="absolute right-3 top-3 rounded-lg p-1.5 text-white/60 transition hover:bg-white/8 hover:text-primary-signal"
                         >
-                            {copied ? <Check size={18} /> : <Copy size={18} />}
+                            {copied ? <Check size={16} /> : <Copy size={16} />}
                         </button>
                     </div>
                 </article>
             ) : item.type === 'link' ? (
-                <article className={`flex flex-col gap-4 p-6 ${leafBaseClass}`}>
-                    <header className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="shrink-0">
-                                <LinkIcon size={22} className="text-primary-signal" />
+                <article className={`flex flex-col gap-3 p-4 ${cardBaseClass}`}>
+                    <header className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                            <SourceIcon type="link" />
+                            <div className="min-w-0">
+                                <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white">{item.title}</h3>
+                                {item.timeLabel ? (
+                                    <p className="mt-0.5 text-[11px] font-medium text-text-secondary/40">
+                                        {item.timeLabel}
+                                    </p>
+                                ) : null}
                             </div>
-                            <h3 className="text-base font-bold leading-tight text-white">{item.title}</h3>
                         </div>
 
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="rounded-xl p-2 text-text-secondary transition hover:bg-white/8 hover:text-primary-signal"
+                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-white/8 hover:text-primary-signal"
                         >
-                            {copied ? <Check size={18} /> : <Copy size={18} />}
+                            {copied ? <Check size={15} /> : <Copy size={15} />}
                         </button>
                     </header>
 
                     {item.excerpt ? (
-                        <p className="line-clamp-2 text-sm leading-relaxed text-text-secondary/60">
+                        <p className="line-clamp-2 text-sm leading-relaxed text-text-secondary/65">
                             {item.excerpt}
                         </p>
                     ) : null}
                 </article>
             ) : (
-                <article className={`flex flex-col gap-4 p-6 ${leafBaseClass}`}>
-                    <header className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                            <div className="shrink-0 pt-0.5">
-                                <FileText size={24} className="text-primary-signal" />
-                            </div>
-
-                            <div className="min-w-0 flex-1 pt-1">
-                                <h3 className="text-base font-bold leading-tight text-white">{item.title}</h3>
+                <article className={`flex flex-col gap-3 p-4 ${cardBaseClass}`}>
+                    <header className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 flex-1 items-start gap-3">
+                            <SourceIcon type="text" />
+                            <div className="min-w-0 flex-1">
+                                <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white">{item.title}</h3>
                                 <p className="mt-0.5 text-xs font-medium text-text-secondary/40">
                                     {item.timeLabel}
                                 </p>
@@ -105,21 +107,21 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="rounded-xl p-2 text-text-secondary transition hover:bg-white/8 hover:text-primary-signal"
+                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-white/8 hover:text-primary-signal"
                         >
-                            {copied ? <Check size={18} /> : <Copy size={18} />}
+                            {copied ? <Check size={15} /> : <Copy size={15} />}
                         </button>
                     </header>
 
                     {item.excerpt ? (
-                        <p className="line-clamp-3 select-text text-base italic leading-relaxed text-text-secondary/80">
+                        <p className="line-clamp-3 select-text text-sm leading-relaxed text-text-secondary/70">
                             "{item.excerpt}"
                         </p>
                     ) : null}
 
-                    <footer className="mt-1 flex items-center justify-between border-t border-white/5 pt-4">
+                    <footer className="mt-1 flex items-center justify-between border-t border-white/[0.06] pt-3">
                         {item.tag ? (
-                            <span className="max-w-[180px] truncate rounded-full border border-white/8 bg-white/[0.03] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-text-secondary/55">
+                            <span className="max-w-[180px] truncate rounded-full border border-white/8 bg-white/[0.03] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-secondary/55">
                                 {item.tag}
                             </span>
                         ) : (
@@ -127,9 +129,9 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         )}
 
                         {item.href ? (
-                            <div className="rounded-lg bg-white/5 p-1.5 transition hover:bg-primary-signal/10">
+                            <div className="rounded-lg bg-white/5 p-1.5 transition group-hover:bg-primary-signal/10">
                                 <ExternalLink
-                                    size={16}
+                                    size={15}
                                     className="text-text-secondary/80 group-hover:text-primary-signal"
                                 />
                             </div>
@@ -146,5 +148,15 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
         <a href={item.href} target="_blank" rel="noreferrer" className="block">
             {cardContent}
         </a>
+    );
+}
+
+function SourceIcon({ type }: { type: 'link' | 'text' }) {
+    const Icon = type === 'link' ? Link2 : ScanText;
+
+    return (
+        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-primary-signal">
+            <Icon size={18} strokeWidth={1.9} />
+        </span>
     );
 }
