@@ -4,6 +4,7 @@ import type {
   KnowledgeCardAnalysisJobResponse,
   KnowledgeCardByScrapResponse,
   KnowledgeCardCreateRequest,
+  KnowledgeCardDetailResponse,
   KnowledgeCardListResponse,
   KnowledgeCardListParams,
   KnowledgeCardSimilarCardsResponse,
@@ -24,6 +25,11 @@ export function createCardsApi(apiClient: AxiosInstance) {
     getByScrapId: (scrapId: string): Promise<KnowledgeCardByScrapResponse> =>
       apiClient
         .get<ApiResponse<KnowledgeCardByScrapResponse>>(`/cards/${scrapId}`)
+        .then((response) => unwrapApiResponse(response.data)),
+
+    getDetail: (cardId: string): Promise<KnowledgeCardDetailResponse> =>
+      apiClient
+        .get<ApiResponse<KnowledgeCardDetailResponse>>(`/cards/${cardId}/detail`)
         .then((response) => unwrapApiResponse(response.data)),
 
     getSimilarByCardId: (cardId: string): Promise<KnowledgeCardSimilarCardsResponse> =>

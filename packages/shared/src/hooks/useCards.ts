@@ -6,6 +6,8 @@ import type { KnowledgeCardListParams } from '../types';
 export const cardKeys = {
   all: ['cards'] as const,
   list: (params?: KnowledgeCardListParams) => ['cards', 'list', params ?? {}] as const,
+  detail: (cardId: string | null | undefined) => ['cards', 'detail', cardId] as const,
+  similar: (cardId: string | null | undefined) => ['cards', 'similar', cardId] as const,
 };
 
 // ----------------------------
@@ -19,6 +21,26 @@ export function useCards(params?: KnowledgeCardListParams, options?: { enabled?:
     queryKey: cardKeys.list(params),
     queryFn: () => cardsApi.getAll(params),
     enabled: options?.enabled ?? true,
+    staleTime: 1000 * 30,
+  });
+}
+
+export function useCardDetail(cardId: string | null | undefined) {
+  const { cardsApi } = useApiContext();
+  return useQuery({
+    queryKey: cardKeys.detail(cardId),
+    queryFn: () => cardsApi.getDetail(cardId ?? ''),
+    enabled: Boolean(cardId),
+    staleTime: 1000 * 30,
+  });
+}
+
+export function useSimilarCards(cardId: string | null | undefined) {
+  const { cardsApi } = useApiContext();
+  return useQuery({
+    queryKey: cardKeys.similar(cardId),
+    queryFn: () => cardsApi.getSimilarByCardId(cardId ?? ''),
+    enabled: Boolean(cardId),
     staleTime: 1000 * 30,
   });
 }
