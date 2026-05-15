@@ -221,7 +221,7 @@ export function ProfilePage() {
               </p>
             )}
 
-            <div className="mt-6 space-y-3">
+            <div className="no-scrollbar mt-6 max-h-[360px] space-y-3 overflow-y-auto pr-1">
               {sessionsQuery.isLoading ? (
                 <div className="flex h-24 items-center justify-center text-sm text-white/35">
                   <Loader2 size={18} className="mr-2 animate-spin" />
