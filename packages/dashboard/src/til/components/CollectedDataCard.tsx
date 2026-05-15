@@ -55,7 +55,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="absolute right-4 top-4 rounded-xl bg-black/40 p-2 text-white/70 backdrop-blur-md transition hover:bg-black/60 hover:text-primary-signal"
+                            className="absolute right-4 top-4 rounded-xl p-2 text-white/70 transition hover:bg-white/8 hover:text-primary-signal"
                         >
                             {copied ? <Check size={18} /> : <Copy size={18} />}
                         </button>
@@ -74,7 +74,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="rounded-xl bg-white/5 p-2 text-text-secondary transition hover:bg-white/10 hover:text-primary-signal"
+                            className="rounded-xl p-2 text-text-secondary transition hover:bg-white/8 hover:text-primary-signal"
                         >
                             {copied ? <Check size={18} /> : <Copy size={18} />}
                         </button>
@@ -105,7 +105,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="rounded-xl bg-white/5 p-2 text-text-secondary transition hover:bg-white/10 hover:text-primary-signal"
+                            className="rounded-xl p-2 text-text-secondary transition hover:bg-white/8 hover:text-primary-signal"
                         >
                             {copied ? <Check size={18} /> : <Copy size={18} />}
                         </button>
@@ -118,9 +118,13 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                     ) : null}
 
                     <footer className="mt-1 flex items-center justify-between border-t border-white/5 pt-4">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary/50">
-              {item.tag}
-            </span>
+                        {item.tag ? (
+                            <span className="max-w-[180px] truncate rounded-full border border-white/8 bg-white/[0.03] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-text-secondary/55">
+                                {item.tag}
+                            </span>
+                        ) : (
+                            <span />
+                        )}
 
                         {item.href ? (
                             <div className="rounded-lg bg-white/5 p-1.5 transition hover:bg-primary-signal/10">

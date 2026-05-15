@@ -278,7 +278,7 @@ export function TILEditor({
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
                         />
                     ) : isEditing ? (
-                        <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-white/5 bg-[#1e1e1e]/30 transition-all">
+                        <div className="til-editor-scrollbar til-editor-surface relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-white/5 bg-[#1e1e1e]/30">
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="markdown"
@@ -305,6 +305,8 @@ export function TILEditor({
                                     scrollbar: {
                                         vertical: 'auto',
                                         horizontal: 'auto',
+                                        verticalScrollbarSize: 7,
+                                        horizontalScrollbarSize: 7,
                                         handleMouseWheel: true,
                                         alwaysConsumeMouseWheel: false,
                                     },
@@ -323,7 +325,7 @@ export function TILEditor({
                             />
                         </div>
                     ) : (
-                        <div className="h-full min-h-[500px] overflow-y-auto px-10 pb-8 pt-4">
+                        <div className="til-editor-scrollbar til-editor-surface h-full min-h-[500px] overflow-y-auto px-10 pb-8 pt-4">
                             <article className="max-w-none leading-relaxed text-text-primary">
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
