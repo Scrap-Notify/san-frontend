@@ -14,7 +14,6 @@ export function TilPage() {
         title,
         setTitle,
         draft,
-        setDraft,
         selectedTil,
         tilQuery,
         sourcesQuery,
@@ -58,7 +57,7 @@ export function TilPage() {
         commitMutation.isPending ||
         commitStatusQuery.data?.status === 'PENDING' ||
         commitStatusQuery.data?.status === 'PROCESSING';
-    const displayedTitle = activeTab === 'edit' ? title : selectedTil?.title ?? title;
+    const displayedTitle = activeTab === 'drafts' ? selectedTil?.title ?? title : title;
 
     const handleDeleteTil = () => {
         if (!selectedTil || deleteMutation.isPending) return;
@@ -159,7 +158,6 @@ export function TilPage() {
                             title={title}
                             setTitle={setTitle}
                             draft={draft}
-                            setDraft={setDraft}
                             selectedTil={selectedTil}
                             isTilLoading={tilQuery.isPending}
                             generateMutation={generateMutation}
