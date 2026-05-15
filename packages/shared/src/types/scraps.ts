@@ -19,7 +19,8 @@ export interface CreateScrapRequest {
 }
 
 export interface CreateScrapResponse extends Scrap {
-  jobId?: string | null;
+  analysisJobId?: string | null;
+  refineJobId?: string | null;
   cardId?: string | null;
   duplicated?: boolean;
 }

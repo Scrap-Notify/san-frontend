@@ -40,8 +40,8 @@ async function waitForCardAnalysis(jobId: string) {
 }
 
 async function resolveCreatedCard(response: CreateScrapResponse) {
-  if (response.jobId) {
-    await waitForCardAnalysis(response.jobId);
+  if (response.analysisJobId) {
+    await waitForCardAnalysis(response.analysisJobId);
   }
 
   const cardResponse = response.cardId
@@ -219,7 +219,7 @@ export function useSaveScrap({
         setSaveNotice(DUPLICATE_SCRAP_NOTICE);
       }
 
-      setSavingLabel(response.jobId ? 'Creating card...' : 'Loading card...');
+      setSavingLabel(response.analysisJobId ? 'Creating card...' : 'Loading card...');
       setIsLoadingRelated(true);
       const createdCard = await resolveCreatedCard(response);
       const cardsWithCardId = nextCards.map((item) => (
