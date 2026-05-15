@@ -26,7 +26,6 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
     useEffect(() => {
         itemRefs.current = itemRefs.current.slice(0, visibleCards.length);
         if (visibleCards.length === 0) {
-            setActiveIndex(0);
             return;
         }
 
