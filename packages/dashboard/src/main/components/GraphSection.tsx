@@ -1,14 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { HomeGraphEmptyState } from './HomeEmptyStates';
+import { HomeSectionTitle } from './HomeSectionTitle';
 
 export function GraphSection() {
   const navigate = useNavigate();
 
   return (
     <div className="flex flex-col gap-dashboard-gap">
-      <h2 className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-h1-bold text-transparent">
+      <HomeSectionTitle>
         나의 지식 숲
-      </h2>
+      </HomeSectionTitle>
       <HomeGraphEmptyState
         primaryAction={{
           label: '첫 씨앗 심기',
