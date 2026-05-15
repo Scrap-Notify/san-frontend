@@ -189,7 +189,7 @@ export function useSaveScrap({
         await savePendingScrap(null);
         await saveInsights(nextCards);
         await deletePendingImageFile(pendingScrap.image_blob_id);
-        setSaveNotice('Saved locally on this browser.');
+        setSaveNotice('수집한 데이터가 성공적으로 저장되었습니다.');
         return;
       }
 
