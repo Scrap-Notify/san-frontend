@@ -21,7 +21,6 @@ interface TILEditorProps {
     title: string;
     setTitle: (value: string) => void;
     draft: string;
-    setDraft: (value: string) => void;
     selectedTil: TilResponse | null;
     isTilLoading?: boolean;
     generateMutation: TilGenerateMutation;
@@ -39,7 +38,6 @@ export function TILEditor({
                               title,
                               setTitle,
                               draft,
-                              setDraft,
                               selectedTil,
                               isTilLoading = false,
                               generateMutation,
@@ -57,15 +55,15 @@ export function TILEditor({
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
     const aiDraft = removeTilDateHeading(selectedTil?.content ?? '');
-    const previewDraft = removeTilDateHeading(draft || aiDraft);
+    const savedDraft = removeTilDateHeading(draft || aiDraft);
     const isEditing = activeTab === 'edit';
     const isDrafts = activeTab === 'drafts';
-    const displayedDraft = activeTab === 'drafts' ? aiDraft : previewDraft;
+    const displayedDraft = activeTab === 'drafts' ? aiDraft : editDraft;
     const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
 
     useEffect(() => {
-        setEditDraft(previewDraft);
-    }, [previewDraft, selectedTil?.summaryId]);
+        setEditDraft(savedDraft);
+    }, [savedDraft, selectedTil?.summaryId]);
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
@@ -88,7 +86,7 @@ export function TILEditor({
 
     const handleReset = () => {
         setTitle(selectedTil?.title ?? '');
-        setEditDraft(removeTilDateHeading(previewDraft));
+        setEditDraft(savedDraft);
     };
 
 
@@ -144,7 +142,7 @@ export function TILEditor({
     };
 
     const statusMessage = generationMessage ?? commitMessage;
-    const hasUnsavedChanges = editDraft !== previewDraft || title !== (selectedTil?.title ?? '');
+    const hasUnsavedChanges = editDraft !== savedDraft || title !== (selectedTil?.title ?? '');
     const showModeAction = isDrafts || isEditing;
     const canSave = Boolean(
         selectedTil?.summaryId &&
@@ -275,6 +273,7 @@ export function TILEditor({
                         </div>
                     ) : isEmptyTil ? (
                         <ContentEmptyState
+                            variant="til"
                             title="오늘은 작성된 TIL이 없어요"
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
                         />
