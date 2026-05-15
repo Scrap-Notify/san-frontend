@@ -432,17 +432,17 @@ function toDetailData(
   detail: KnowledgeCardDetailResponse,
   similarCards: KnowledgeCardResponse[],
 ): KnowledgeCardDetailData {
-  const rawContent = detail.rawContent ?? '';
+  const sourceContent = detail.sourceContent ?? '';
   const tags = detail.tags ?? [];
 
   return {
     cardId,
     source: {
-      type: inferSourceType(rawContent),
-      url: isUrl(rawContent) ? rawContent : null,
-      previewUrl: null,
-      rawContent,
-      collectedAt: null,
+      type: detail.sourceType,
+      url: detail.sourceType === 'LINK' ? sourceContent : null,
+      previewUrl: detail.sourceType === 'IMAGE' ? sourceContent : null,
+      rawContent: detail.sourceType === 'TEXT' ? sourceContent : '',
+      collectedAt: detail.collectedAt,
     },
     processedText: {
       refinedContent: detail.refinedContent ?? '',
@@ -479,20 +479,6 @@ function toKeyPoints(summary: string | null) {
 
 function toRelatedKeywords(categoryName: string, tags: string[]) {
   return Array.from(new Set([categoryName, ...tags].filter(Boolean)));
-}
-
-function inferSourceType(rawContent: string): KnowledgeSourceType {
-  if (isUrl(rawContent)) return 'LINK';
-  return 'TEXT';
-}
-
-function isUrl(value: string) {
-  try {
-    const url = new URL(value.trim());
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
 }
 
 function getSourceIcon(type: KnowledgeSourceType) {

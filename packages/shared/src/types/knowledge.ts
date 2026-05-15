@@ -51,10 +51,12 @@ export interface KnowledgeCardDetailResponse {
   title: string;
   categoryId: string;
   categoryName: string;
-  rawContent: string | null;
+  sourceType: SourceType;
+  sourceContent: string | null;
   refinedContent: string | null;
   summary: string | null;
   tags: string[];
+  collectedAt: string | null;
 }
 
 export interface Tag {
