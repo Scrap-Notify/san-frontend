@@ -1,14 +1,15 @@
 import { type FormEvent, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Loader2, LogOut, Shield, Trash2, User, X } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { AlertTriangle, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
-import { authApi, authTokenStorage, githubApi } from '../api/client';
+import { authApi, authTokenStorage, githubApi, statisticsApi } from '../api/client';
 
 const sessionLabel: Record<AuthSession['clientType'], string> = {
-  DASHBOARD: 'Dashboard',
-  EXTENSION: 'Extension',
+  DASHBOARD: '대시보드',
+  EXTENSION: '익스텐션',
 };
+
 function formatExpiresIn(seconds: number) {
   const days = Math.floor(seconds / 86400);
   if (days > 0) return `${days}일 남음`;
@@ -20,8 +21,14 @@ function formatExpiresIn(seconds: number) {
   return `${minutes}분 남음`;
 }
 
+function maskSessionId(sessionId: string) {
+  if (sessionId.length <= 13) return sessionId;
+  return `${sessionId.slice(0, 8)}...${sessionId.slice(-5)}`;
+}
+
 export function ProfilePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [revokeSessionId, setRevokeSessionId] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -29,6 +36,7 @@ export function ProfilePage() {
   const [withdrawPassword, setWithdrawPassword] = useState('');
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+
   const sessionsQuery = useQuery({
     queryKey: ['auth', 'sessions'],
     queryFn: () => authApi.getSessions(),
@@ -38,6 +46,7 @@ export function ProfilePage() {
   const sessionsErrorMessage = sessionsQuery.error
     ? getApiErrorMessage(sessionsQuery.error, '세션 목록을 불러오지 못했습니다.')
     : null;
+
   const profileQuery = useQuery({
     queryKey: ['auth', 'profile-label'],
     queryFn: async () => {
@@ -51,7 +60,7 @@ export function ProfilePage() {
         && githubStatus.value.linked
         && githubStatus.value.githubUsername
       ) {
-        return { name: githubStatus.value.githubUsername, caption: 'GitHub 계정' };
+        return { name: githubStatus.value.githubUsername, caption: `github.com/${githubStatus.value.githubUsername}` };
       }
 
       const localUsername = username.status === 'fulfilled' ? username.value : null;
@@ -61,10 +70,40 @@ export function ProfilePage() {
   });
   const profileLabel = profileQuery.data ?? { name: 'SAN 사용자', caption: '현재 로그인된 계정' };
 
+  const usernameQuery = useQuery({
+    queryKey: ['auth', 'current-username'],
+    queryFn: () => authTokenStorage.getUsername(),
+    staleTime: 0,
+  });
+
+  const statisticsQuery = useQuery({
+    queryKey: ['statistics', 'overview', usernameQuery.data ?? 'unknown'],
+    queryFn: () => statisticsApi.getOverview(),
+    enabled: usernameQuery.isSuccess,
+    staleTime: 1000 * 60,
+  });
+  const statistics = statisticsQuery.data;
+  const statisticsItems = [
+    {
+      label: '지식 카드',
+      value: statistics?.totalKnowledgeCardCount,
+    },
+    {
+      label: 'TIL 기록',
+      value: statistics?.totalTilCount,
+    },
+    {
+      label: '오늘 생성',
+      value: statistics?.todayKnowledgeCardCount,
+      accent: true,
+    },
+  ];
+
   const clearLocalAuthAndMoveLogin = useCallback(async () => {
     await authTokenStorage.clearToken();
+    queryClient.clear();
     navigate('/login', { replace: true });
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -114,142 +153,164 @@ export function ProfilePage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-[1040px] space-y-8 py-10 text-white">
-      <header className="flex flex-col gap-3">
-        <h1 className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
+    <section className="mx-auto w-full max-w-[720px] py-6 text-white">
+      <header className="mb-7 border-b border-white/8 pb-6">
+        <h1 className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-h1-bold text-transparent">
           마이 프로필
         </h1>
-        <p className="text-base text-white/50">로그인 세션과 계정 상태를 관리하세요.</p>
+        <p className="mt-2 text-sm text-white/45">계정 통계와 로그인 세션을 관리하세요.</p>
       </header>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr]">
-        <aside className="rounded-[32px] border border-white/5 bg-[#131718] p-8 shadow-2xl">
-          <div className="flex flex-col items-center text-center">
-            <div className="h-28 w-28 rounded-full border border-[#4ade80]/25 bg-gradient-to-tr from-[#1a1f21] to-[#0B0D0F] p-1">
-              <div className="flex h-full w-full items-center justify-center rounded-full border border-white/10 bg-black/20">
-                <User size={44} className="text-[#4ade80]" strokeWidth={1.5} />
+      <div className="space-y-6">
+        <section className="rounded-lg border border-white/[0.07] bg-white/[0.04] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.2)]">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/10 text-lg font-black text-primary-signal">
+                {profileLabel.name.slice(0, 1).toUpperCase()}
               </div>
-            </div>
-
-            <div className="mt-6">
-              <h2 className="break-all text-2xl font-bold tracking-tight">{profileLabel.name}</h2>
-              <p className="mt-1 text-sm font-medium text-white/40">{profileLabel.caption}</p>
+              <div className="min-w-0">
+                <h2 className="truncate text-lg font-bold tracking-tight text-white">{profileLabel.name}</h2>
+                <p className="mt-1 truncate text-sm text-text-secondary">{profileLabel.caption}</p>
+              </div>
             </div>
 
             <button
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="mt-8 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-white/5 bg-white/5 text-sm font-bold text-white/55 transition hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-black/30 px-4 text-xs font-bold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoggingOut ? <Loader2 size={17} className="animate-spin" /> : <LogOut size={17} />}
+              {isLoggingOut ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
               {isLoggingOut ? '로그아웃 중' : '로그아웃'}
             </button>
           </div>
-        </aside>
 
-        <div className="space-y-8">
-          <section className="rounded-[32px] border border-white/5 bg-[#131718] p-8 shadow-2xl">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h3 className="flex items-center gap-2 text-xl font-bold">
-                  <Shield size={19} className="text-[#4ade80]" />
-                  로그인 세션
-                </h3>
-                <p className="mt-2 text-sm text-white/40">대시보드와 익스텐션 세션을 분리해서 관리합니다.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void sessionsQuery.refetch()}
-                disabled={sessionsQuery.isFetching}
-                className="h-9 rounded-xl border border-white/10 px-4 text-xs font-bold text-white/45 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                새로고침
-              </button>
+          <div className="mt-6 border-t border-white/[0.06] pt-5">
+            <div className="grid grid-cols-3 gap-4">
+              {statisticsItems.map((item) => (
+                <div key={item.label} className="min-w-0">
+                  <p className="truncate text-[11px] font-bold uppercase tracking-wide text-text-secondary/75">
+                    {item.label}
+                  </p>
+                  <p className={`mt-2 text-xl font-black tabular-nums ${item.accent ? 'text-primary-signal' : 'text-white'}`}>
+                    {statisticsQuery.isLoading || statisticsQuery.isError || item.value == null
+                      ? '-'
+                      : item.value.toLocaleString()}
+                  </p>
+                </div>
+              ))}
             </div>
+          </div>
 
-            {(sessionError || sessionsErrorMessage) && (
-              <p className="mt-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                {sessionError || sessionsErrorMessage}
-              </p>
-            )}
+          {statisticsQuery.error && (
+            <p className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-200">
+              {getApiErrorMessage(statisticsQuery.error, '통계를 불러오지 못했습니다.')}
+            </p>
+          )}
+        </section>
 
-            <div className="mt-6 space-y-3">
-              {sessionsQuery.isLoading ? (
-                <div className="flex h-24 items-center justify-center text-sm text-white/35">
-                  <Loader2 size={18} className="mr-2 animate-spin" />
-                  세션을 불러오는 중
-                </div>
-              ) : sessions.length === 0 ? (
-                <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-5 text-sm text-white/40">
-                  활성 세션이 없습니다.
-                </div>
-              ) : (
-                sessions.map((session) => (
-                  <div
-                    key={`${session.clientType}-${session.sessionId}`}
-                    className="flex flex-col gap-4 rounded-2xl border border-white/5 bg-white/[0.03] p-5 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-white">{sessionLabel[session.clientType]}</span>
-                        {session.current && (
-                          <span className="rounded-full border border-[#4ade80]/25 bg-[#4ade80]/10 px-2 py-0.5 text-[10px] font-black text-[#4ade80]">
-                            현재
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 break-all text-xs text-white/30">{session.sessionId}</p>
-                      <p className="mt-2 text-xs font-semibold text-white/35">{formatExpiresIn(session.expiresInSeconds)}</p>
+        <section className="border-t border-white/[0.06] pt-6">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="flex items-center gap-2 text-base font-bold text-white">
+                <Shield size={17} className="text-primary-signal" />
+                로그인 세션
+              </h3>
+              <p className="mt-1 text-xs text-white/40">대시보드와 확장 프로그램 세션을 관리합니다.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void sessionsQuery.refetch()}
+              disabled={sessionsQuery.isFetching}
+              className="flex h-8 w-8 shrink-0 items-center justify-center text-white/45 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="세션 새로고침"
+              title="세션 새로고침"
+            >
+              <RefreshCw size={14} className={sessionsQuery.isFetching ? 'animate-spin' : undefined} />
+            </button>
+          </div>
+
+          {(sessionError || sessionsErrorMessage) && (
+            <p className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {sessionError || sessionsErrorMessage}
+            </p>
+          )}
+
+          <div className="no-scrollbar max-h-[360px] space-y-3 overflow-y-auto pr-1">
+            {sessionsQuery.isLoading ? (
+              <div className="flex h-24 items-center justify-center text-sm text-white/35">
+                <Loader2 size={18} className="mr-2 animate-spin" />
+                세션을 불러오는 중
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className="rounded-lg border border-white/5 bg-white/[0.03] p-5 text-sm text-white/40">
+                활성 세션이 없습니다.
+              </div>
+            ) : (
+              sessions.map((session) => (
+                <div
+                  key={`${session.clientType}-${session.sessionId}`}
+                  className="flex flex-col gap-4 rounded-lg border border-white/[0.07] bg-white/[0.04] px-5 py-4 transition-colors hover:border-white/[0.12] sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">{sessionLabel[session.clientType]}</span>
+                      {session.current && (
+                        <span className="rounded-md bg-primary-signal/12 px-2 py-0.5 text-[10px] font-black text-primary-signal">
+                          현재
+                        </span>
+                      )}
                     </div>
-
-                    {session.current ? (
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        disabled={isLoggingOut}
-                        className="h-10 rounded-xl border border-red-500/20 px-4 text-xs font-bold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        현재 세션 로그아웃
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => void handleRevokeSession(session)}
-                        disabled={revokeSessionId === session.sessionId}
-                        className="h-10 rounded-xl border border-white/10 px-4 text-xs font-bold text-white/45 transition hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {revokeSessionId === session.sessionId ? '폐기 중' : '세션 폐기'}
-                      </button>
-                    )}
+                    <p className="mt-1 font-mono text-xs text-text-secondary">{maskSessionId(session.sessionId)}</p>
+                    <p className="mt-2 text-xs font-medium text-white/38">만료까지 {formatExpiresIn(session.expiresInSeconds)}</p>
                   </div>
-                ))
-              )}
-            </div>
-          </section>
 
-          <section className="rounded-[32px] border border-red-500/15 bg-red-500/[0.04] p-8">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="flex items-center gap-2 text-xl font-bold text-red-200">
-                  <AlertTriangle size={19} />
-                  회원탈퇴
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-red-100/55">
-                  탈퇴하면 모든 로그인 세션이 만료되고 계정이 비활성화됩니다.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsWithdrawOpen(true)}
-                className="flex h-11 items-center justify-center gap-2 rounded-2xl border border-red-500/25 px-5 text-sm font-bold text-red-200 transition hover:bg-red-500/10 active:scale-95"
-              >
-                <Trash2 size={16} />
+                  {session.current ? (
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                      className="h-8 shrink-0 rounded-md border border-red-500/20 px-3 text-xs font-bold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      현재 세션 로그아웃
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void handleRevokeSession(session)}
+                      disabled={revokeSessionId === session.sessionId}
+                      className="h-8 shrink-0 rounded-md bg-black/30 px-3 text-xs font-bold text-white/70 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {revokeSessionId === session.sessionId ? '폐기 중' : '폐기'}
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-white/[0.06] bg-transparent px-3 py-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="flex items-center gap-1.5 text-xs font-bold text-red-200/80">
+                <AlertTriangle size={13} />
                 회원탈퇴
-              </button>
+              </h3>
+              <p className="mt-0.5 text-[11px] leading-4 text-white/32">
+                탈퇴하면 모든 로그인 세션이 만료되고 계정이 비활성화됩니다.
+              </p>
             </div>
-          </section>
-        </div>
+            <button
+              type="button"
+              onClick={() => setIsWithdrawOpen(true)}
+              className="flex h-7 shrink-0 items-center justify-center gap-1 rounded-md border border-red-400/18 bg-transparent px-2.5 text-[11px] font-bold text-red-200/75 transition hover:border-red-300/35 hover:text-red-100 active:scale-[0.98]"
+            >
+              <Trash2 size={12} />
+              회원탈퇴
+            </button>
+          </div>
+        </section>
       </div>
 
       {isWithdrawOpen && (
