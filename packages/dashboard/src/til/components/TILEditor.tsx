@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
@@ -46,24 +46,26 @@ export function TILEditor({
                               generationStatusQuery,
                               commitStatusQuery,
                               generationTone,
-                              generationMessage,
-                              commitMessage,
+    generationMessage,
+    commitMessage,
                           }: TILEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-    const [editDraft, setEditDraft] = useState('');
 
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
     const aiDraft = removeTilDateHeading(selectedTil?.content ?? '');
     const savedDraft = removeTilDateHeading(draft || aiDraft);
+    const draftKey = `${selectedTil?.summaryId ?? 'empty'}:${savedDraft}`;
+    const [editDraftState, setEditDraftState] = useState(() => ({
+        key: draftKey,
+        value: savedDraft,
+    }));
+    const editDraft = editDraftState.key === draftKey ? editDraftState.value : savedDraft;
+    const setEditDraft = (value: string) => setEditDraftState({ key: draftKey, value });
     const isEditing = activeTab === 'edit';
     const isDrafts = activeTab === 'drafts';
     const displayedDraft = activeTab === 'drafts' ? aiDraft : editDraft;
     const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
-
-    useEffect(() => {
-        setEditDraft(savedDraft);
-    }, [savedDraft, selectedTil?.summaryId]);
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
