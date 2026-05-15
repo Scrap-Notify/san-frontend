@@ -128,7 +128,7 @@ export function GithubContributionGraph({
           {error}
         </div>
       ) : (
-        <div className="mt-5 flex min-w-0 justify-center overflow-hidden pb-1">
+        <div className="mt-5 flex min-w-0 justify-center overflow-x-auto overflow-y-hidden pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="min-w-0">
             <div className="relative ml-10 h-5">
               {monthLabels.map(({ weekIndex, label }) => (
