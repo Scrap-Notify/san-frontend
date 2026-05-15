@@ -54,3 +54,49 @@ export interface TilGithubCommitJobResponse {
   summaryId: string;
   status: TilGithubCommitStatus;
 }
+
+export interface TilGithubContributionDayResponse {
+  date: string;
+  count: number;
+  level: number;
+}
+
+export interface TilGithubContributionRepositoryResponse {
+  githubRepositoryId: number;
+  name: string;
+  fullName: string;
+  htmlUrl: string;
+  count: number;
+}
+
+export interface TilGithubContributionCommitResponse {
+  commitId: string;
+  summaryId: string;
+  githubRepositoryId: number;
+  repositoryName: string;
+  repositoryFullName: string;
+  branch: string;
+  filePath: string;
+  title: string;
+  commitSha: string;
+  commitUrl: string;
+  pushedAt: string;
+}
+
+export interface TilGithubContributionResponse {
+  from: string;
+  to: string;
+  totalCommits: number;
+  activeDays: number;
+  currentStreakDays: number;
+  longestStreakDays: number;
+  days: TilGithubContributionDayResponse[];
+  repositories: TilGithubContributionRepositoryResponse[];
+  commits: TilGithubContributionCommitResponse[];
+}
+
+export interface TilGithubContributionParams {
+  from?: string;
+  to?: string;
+  githubRepositoryId?: number;
+}
