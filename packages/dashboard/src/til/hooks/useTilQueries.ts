@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { asyncJobsApi, tilApi } from '@dashboard/api/client';
+import type { TilResponse } from '@san/shared';
 
 export const tilKeys = {
   all: ['til'] as const,
@@ -9,10 +10,14 @@ export const tilKeys = {
   asyncJob: (jobId: string | null | undefined) => ['async-job', jobId] as const,
 };
 
-export function useTilByDate(date: string) {
+export function useTilByDate(
+  date: string,
+  options?: Omit<UseQueryOptions<TilResponse[]>, 'queryKey' | 'queryFn'>,
+) {
   return useQuery({
     queryKey: tilKeys.byDate(date),
     queryFn: () => tilApi.getByDate(date),
+    ...options,
   });
 }
 

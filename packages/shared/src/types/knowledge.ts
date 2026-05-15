@@ -47,6 +47,18 @@ export interface KnowledgeCardSimilarCardsResponse {
   similarCards: KnowledgeCardResponse[];
 }
 
+export interface KnowledgeCardDetailResponse {
+  title: string;
+  categoryId: string;
+  categoryName: string;
+  sourceType: SourceType;
+  sourceContent: string | null;
+  refinedContent: string | null;
+  summary: string | null;
+  tags: string[];
+  collectedAt: string | null;
+}
+
 export interface Tag {
   tag_id: string;
   name: string;

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { CloudUpload, RotateCcw, Sparkles } from 'lucide-react';
 import { CurvedButton } from '@san/ui/components/Button/CurvedButton';
 import type { PendingScrap } from '@extension/types';
+import { ToastMessage } from '../feedback/ToastMessage';
 
 interface DropZoneProps {
   pendingScrap: PendingScrap | null;
@@ -210,15 +211,11 @@ export const DropZone = ({
       </section>
 
       {(error || saveError) && (
-        <p className="rounded-leaf border border-red-500/20 bg-red-500/10 px-4 py-3 text-caption text-red-300">
-          {error ?? saveError}
-        </p>
+        <ToastMessage tone="error" message={error ?? saveError ?? ''} />
       )}
 
       {saveNotice && (
-        <div className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-4 py-3 text-caption text-primary-signal">
-          {saveNotice}
-        </div>
+        <ToastMessage tone="success" message={saveNotice} />
       )}
     </div>
   );

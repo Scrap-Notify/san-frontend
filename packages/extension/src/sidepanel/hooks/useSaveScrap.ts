@@ -40,8 +40,8 @@ async function waitForCardAnalysis(jobId: string) {
 }
 
 async function resolveCreatedCard(response: CreateScrapResponse) {
-  if (response.jobId) {
-    await waitForCardAnalysis(response.jobId);
+  if (response.analysisJobId) {
+    await waitForCardAnalysis(response.analysisJobId);
   }
 
   const cardResponse = response.cardId
@@ -189,7 +189,7 @@ export function useSaveScrap({
         await savePendingScrap(null);
         await saveInsights(nextCards);
         await deletePendingImageFile(pendingScrap.image_blob_id);
-        setSaveNotice('Saved locally on this browser.');
+        setSaveNotice('수집한 데이터가 성공적으로 저장되었습니다.');
         return;
       }
 
@@ -219,7 +219,7 @@ export function useSaveScrap({
         setSaveNotice(DUPLICATE_SCRAP_NOTICE);
       }
 
-      setSavingLabel(response.jobId ? 'Creating card...' : 'Loading card...');
+      setSavingLabel(response.analysisJobId ? 'Creating card...' : 'Loading card...');
       setIsLoadingRelated(true);
       const createdCard = await resolveCreatedCard(response);
       const cardsWithCardId = nextCards.map((item) => (
