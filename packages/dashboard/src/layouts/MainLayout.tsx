@@ -8,11 +8,11 @@ export function MainLayout() {
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
-      <header className="sticky top-0 z-50 w-full">
+      <header className="fixed left-0 top-0 z-50 w-full">
         <TopNavBar activeMenu={activeMenu} />
       </header>
 
-      <main className="dashboard-shell mt-8 pb-16">
+      <main className="dashboard-shell pt-[var(--dashboard-nav-offset)] pb-16">
         <Outlet />
       </main>
       <FloatingFeedbackButton />

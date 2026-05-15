@@ -13,6 +13,7 @@ import {
   tilKeys,
   useTilAsyncJobStatus,
   useTilByDate,
+  useTilRecallCards,
   useTilSources,
 } from './useTilQueries';
 
@@ -93,6 +94,7 @@ export function useTilPageLogic(): TilPageLogic {
     setDraft(selectedTil?.content ?? '');
   }
 
+  const recallCardsQuery = useTilRecallCards(selectedTil?.summaryId);
   const sourcesQuery = useTilSources(selectedTil?.summaryId);
   const generationStatusQuery = useTilAsyncJobStatus(generationJobId);
   const commitStatusQuery = useTilAsyncJobStatus(commitJobId);
@@ -182,6 +184,7 @@ export function useTilPageLogic(): TilPageLogic {
     tilList,
     selectedTil,
     tilQuery,
+    recallCardsQuery,
     sourcesQuery,
     generationStatusQuery,
     commitStatusQuery,

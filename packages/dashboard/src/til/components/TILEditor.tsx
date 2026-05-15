@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
@@ -16,6 +16,8 @@ import type {
 } from '@dashboard/til/types';
 import { ContentEmptyState } from '@dashboard/components/empty/ContentEmptyState';
 
+const STATUS_MESSAGE_VISIBLE_MS = 3500;
+
 interface TILEditorProps {
     activeTab: TILMode;
     title: string;
@@ -29,6 +31,7 @@ interface TILEditorProps {
     generationStatusQuery: TilJobStatusQuery;
     commitStatusQuery: TilJobStatusQuery;
     generationTone: TilJobTone;
+    commitTone: TilJobTone;
     generationMessage: string | null;
     commitMessage: string | null;
 }
@@ -46,6 +49,7 @@ export function TILEditor({
                               generationStatusQuery,
                               commitStatusQuery,
                               generationTone,
+                              commitTone,
     generationMessage,
     commitMessage,
                           }: TILEditorProps) {
@@ -144,6 +148,8 @@ export function TILEditor({
     };
 
     const statusMessage = generationMessage ?? commitMessage;
+    const statusTone = generationMessage ? generationTone : commitTone;
+    const [visibleStatusMessage, setVisibleStatusMessage] = useState<string | null>(null);
     const hasUnsavedChanges = editDraft !== savedDraft || title !== (selectedTil?.title ?? '');
     const showModeAction = isDrafts || isEditing;
     const canSave = Boolean(
@@ -154,11 +160,28 @@ export function TILEditor({
         !updateMutation.isPending,
     );
 
+    useEffect(() => {
+        if (!statusMessage) {
+            const clearId = window.setTimeout(() => setVisibleStatusMessage(null), 0);
+            return () => window.clearTimeout(clearId);
+        }
+
+        const showId = window.setTimeout(() => setVisibleStatusMessage(statusMessage), 0);
+        const hideId = statusTone === 'pending'
+            ? undefined
+            : window.setTimeout(() => setVisibleStatusMessage(null), STATUS_MESSAGE_VISIBLE_MS);
+
+        return () => {
+            window.clearTimeout(showId);
+            if (hideId) window.clearTimeout(hideId);
+        };
+    }, [statusMessage, statusTone]);
+
     return (
         <div className="flex h-full min-h-0 w-full flex-col">
             <main className="relative flex min-h-0 w-full flex-1 flex-col bg-transparent">
                 <div className="flex shrink-0 items-center justify-between border-b border-white/5 px-4 py-2.5">
-                    <div className="flex items-center gap-3 text-text-secondary">
+                    <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden text-text-secondary">
                         {/* 그룹 1: 텍스트 서식 */}
                         <div className={`${isEditing ? 'flex' : 'hidden'} items-center gap-2`}>
                             <button type="button" onClick={() => handleFormat('heading')} title="Heading" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
@@ -198,24 +221,24 @@ export function TILEditor({
 
                         <div className={`${isEditing ? 'block' : 'hidden'} h-4 w-px bg-white/10`} />
 
-                        {statusMessage ? (
+                        {visibleStatusMessage ? (
                             <div
-                                className={`flex items-center gap-2 rounded-full border px-3 py-1 ${
-                                    generationTone === 'success'
+                                className={`flex min-w-0 max-w-[220px] items-center gap-2 rounded-full border px-3 py-1 md:max-w-[420px] ${
+                                    statusTone === 'success'
                                         ? 'border-primary-signal/30 bg-primary-signal/10 text-primary-signal'
-                                        : generationTone === 'error'
+                                        : statusTone === 'error'
                                             ? 'border-error/30 bg-error/10 text-error'
-                                            : generationTone === 'pending'
+                                            : statusTone === 'pending'
                                                 ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-500'
                                                 : 'border-white/10 bg-white/5 text-text-secondary'
                                 }`}
                             >
-                                <span className="text-xs font-bold">{statusMessage}</span>
+                                <span className="block min-w-0 truncate whitespace-nowrap text-xs font-bold">{visibleStatusMessage}</span>
                             </div>
                         ) : null}
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs font-medium text-text-secondary">
+                    <div className="flex shrink-0 items-center gap-4 text-xs font-medium text-text-secondary">
                         <span>UTF-8</span>
 
                         {showModeAction ? <div className="h-4 w-px bg-white/10" /> : null}

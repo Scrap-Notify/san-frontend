@@ -119,6 +119,7 @@
   --space-5: 40px;
   --space-6: 48px;
   --dashboard-layout-gap: clamp(var(--space-3), 4vw, var(--space-5));
+  --dashboard-nav-offset: 88px;
 }
 
 *, *::before, *::after {
@@ -153,6 +154,10 @@ body {
 }
 
 @media (max-width: 480px) {
+  :root {
+    --dashboard-nav-offset: 80px;
+  }
+
   .dashboard-shell,
   .auth-shell {
     padding-inline: 20px;

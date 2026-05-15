@@ -3,6 +3,7 @@ import type {
   AsyncJobStatusResponse,
   TilGenerationJobResponse,
   TilGithubCommitJobResponse,
+  TilRecallCardsResponse,
   TilResponse,
   TilSourcesResponse,
 } from '@san/shared';
@@ -12,6 +13,7 @@ export type TilDateString = string;
 export type TilJobTone = 'idle' | 'pending' | 'success' | 'error';
 
 export type TilListQuery = UseQueryResult<TilResponse[]>;
+export type TilRecallCardsQuery = UseQueryResult<TilRecallCardsResponse>;
 export type TilSourcesQuery = UseQueryResult<TilSourcesResponse>;
 export type TilJobStatusQuery = UseQueryResult<AsyncJobStatusResponse>;
 
@@ -42,6 +44,7 @@ export interface TilPageLogic {
   tilList: TilResponse[];
   selectedTil: TilResponse | null;
   tilQuery: TilListQuery;
+  recallCardsQuery: TilRecallCardsQuery;
   sourcesQuery: TilSourcesQuery;
   generationStatusQuery: TilJobStatusQuery;
   commitStatusQuery: TilJobStatusQuery;

@@ -20,6 +20,7 @@ export function TilPage() {
         setSelectedSummaryId,
         selectedTil,
         tilQuery,
+        recallCardsQuery,
         sourcesQuery,
         generationStatusQuery,
         commitStatusQuery,
@@ -28,6 +29,7 @@ export function TilPage() {
         deleteMutation,
         commitMutation,
         generationTone,
+        commitTone,
         generationMessage,
         commitMessage,
     } = useTilPageLogic();
@@ -125,9 +127,10 @@ export function TilPage() {
     };
 
     return (
-        <section className="flex h-auto w-full flex-col overflow-hidden bg-background text-text-primary lg:h-[calc(100vh-80px)] lg:flex-row">
-            <div className="no-scrollbar order-1 flex min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-6 pt-3 md:px-3 lg:order-1">
-                <header className="mb-6 flex flex-col gap-3">
+        <section className="flex h-auto w-full flex-col overflow-hidden bg-background text-text-primary lg:h-[calc(100vh-104px)]">
+            <div className="flex h-full w-full flex-col lg:min-h-0 lg:flex-row">
+            <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-5 pt-1 md:px-3 lg:order-1">
+                <header className="mb-4 flex flex-col gap-2">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
                         <span className="text-primary-signal">T</span>
                         <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">oday</span>
@@ -136,7 +139,7 @@ export function TilPage() {
                         <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">earned</span>
                     </h1>
 
-                    <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                    <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
                         <div className="flex items-center gap-4">
                             <div
                                 className="relative flex items-center gap-1 px-1.5 py-1"
@@ -247,7 +250,7 @@ export function TilPage() {
                                 type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
-                                className="flex h-9 flex-1 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-[#238636] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:opacity-50 md:flex-none"
+                                className="flex h-9 w-[132px] shrink-0 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-[#238636] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <GitCommitHorizontal size={15} />
                                 {isCommitting ? 'Committing...' : 'Commit'}
@@ -364,7 +367,7 @@ export function TilPage() {
                         </aside>
                     </div>
 
-                    <div className="flex min-w-0 flex-1 flex-col gap-4">
+                    <div className="flex min-w-0 flex-1 flex-col gap-3">
                         <div className="px-1">
                             <h2 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary-signal opacity-80">
                                 # Today's Knowledge Summary
@@ -379,7 +382,7 @@ export function TilPage() {
                                     }}
                                     placeholder="제목을 입력하세요"
                                     readOnly={activeTab !== 'edit'}
-                                    rows={2}
+                                    rows={1}
                                     className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-xl font-extrabold leading-7 text-white outline-none transition-all placeholder:text-text-secondary/20 focus:placeholder:text-text-secondary/10"
                                 />
 
@@ -427,7 +430,11 @@ export function TilPage() {
                             </div>
                         </div>
 
-                        <div className="flex min-h-[500px] flex-1 flex-col overflow-hidden rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl">
+                        <div className={`flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl ${
+                            activeTab === 'edit'
+                                ? 'min-h-[760px] lg:min-h-[820px]'
+                                : 'min-h-[500px]'
+                        }`}>
                             <TILEditor
                                 activeTab={activeTab}
                                 title={title}
@@ -441,17 +448,24 @@ export function TilPage() {
                                 generationStatusQuery={generationStatusQuery}
                                 commitStatusQuery={commitStatusQuery}
                                 generationTone={generationTone}
+                                commitTone={commitTone}
                                 generationMessage={generationMessage}
                                 commitMessage={commitMessage}
                             />
                         </div>
+
                     </div>
                 </div>
             </div>
 
-            <aside className="no-scrollbar w-full lg:w-[360px] shrink-0 border-t lg:border-t-0 lg:border-l border-white/10 bg-transparent order-2 lg:order-2">
-                <CollectedDataPanel sourcesQuery={sourcesQuery} selectedTil={selectedTil} />
+            <aside className="order-2 flex min-h-0 w-full shrink-0 border-t border-white/10 bg-transparent lg:order-2 lg:w-[360px] lg:border-l lg:border-t-0">
+                <CollectedDataPanel
+                    sourcesQuery={sourcesQuery}
+                    recallCardsQuery={recallCardsQuery}
+                    selectedTil={selectedTil}
+                />
             </aside>
+            </div>
 
             {pendingDeleteTilId ? (
                 <div
