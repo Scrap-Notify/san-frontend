@@ -29,6 +29,7 @@ export function TilPage() {
         deleteMutation,
         commitMutation,
         generationTone,
+        commitTone,
         generationMessage,
         commitMessage,
     } = useTilPageLogic();
@@ -249,7 +250,7 @@ export function TilPage() {
                                 type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
-                                className="flex h-9 flex-1 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-[#238636] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:opacity-50 md:flex-none"
+                                className="flex h-9 w-[132px] shrink-0 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-[#238636] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <GitCommitHorizontal size={15} />
                                 {isCommitting ? 'Committing...' : 'Commit'}
@@ -447,6 +448,7 @@ export function TilPage() {
                                 generationStatusQuery={generationStatusQuery}
                                 commitStatusQuery={commitStatusQuery}
                                 generationTone={generationTone}
+                                commitTone={commitTone}
                                 generationMessage={generationMessage}
                                 commitMessage={commitMessage}
                             />
