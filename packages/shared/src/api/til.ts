@@ -7,6 +7,7 @@ import type {
   TilRecallCardsResponse,
   TilResponse,
   TilSourcesResponse,
+  TilUpdateRequest,
 } from '../types';
 
 export function createTilApi(apiClient: AxiosInstance) {
@@ -19,6 +20,16 @@ export function createTilApi(apiClient: AxiosInstance) {
     getByDate: (date: string): Promise<TilResponse[]> =>
       apiClient
         .get<ApiResponse<TilResponse[]>>('/tils', { params: { date } })
+        .then((response) => unwrapApiResponse(response.data)),
+
+    update: (summaryId: string, payload: TilUpdateRequest): Promise<TilResponse> =>
+      apiClient
+        .patch<ApiResponse<TilResponse>>(`/tils/${summaryId}`, payload)
+        .then((response) => unwrapApiResponse(response.data)),
+
+    delete: (summaryId: string): Promise<void> =>
+      apiClient
+        .delete<ApiResponse<void>>(`/tils/${summaryId}`)
         .then((response) => unwrapApiResponse(response.data)),
 
     getRecallCards: (summaryId: string): Promise<TilRecallCardsResponse> =>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   getApiErrorMessage,
   toKnowledgeCardView,
@@ -153,6 +153,7 @@ export function useSaveScrap({
   const [savingLabel, setSavingLabel] = useState('Saving...');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const isSavingRef = useRef(false);
 
   const clearSaveFeedback = useCallback(() => {
     setSaveError(null);
@@ -161,7 +162,9 @@ export function useSaveScrap({
 
   const handleSave = useCallback(async () => {
     if (!pendingScrap) return;
+    if (isSavingRef.current) return;
 
+    isSavingRef.current = true;
     setIsSaving(true);
     setSavingLabel(isAuthenticated ? 'Saving scrap...' : 'Saving locally...');
     setSaveError(null);
@@ -235,6 +238,7 @@ export function useSaveScrap({
       setSaveError(getApiErrorMessage(error, 'Failed to save scrap.'));
       setRelatedError(getApiErrorMessage(error, 'Failed to load related cards.'));
     } finally {
+      isSavingRef.current = false;
       setIsSaving(false);
       setIsLoadingRelated(false);
     }

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Editor, { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Bold, Italic, List, Link as LinkIcon, RotateCcw, Heading, Quote, Code, ListOrdered, ListChecks } from 'lucide-react';
+import { Bold, Italic, List, Link as LinkIcon, RotateCcw, Heading, Quote, Code, ListOrdered, ListChecks, Save } from 'lucide-react';
 import type { TILMode } from '@dashboard/til/components/TILModeTabs';
 import type { TilResponse } from '@san/shared';
 import type {
@@ -12,15 +12,20 @@ import type {
     TilGithubCommitMutation,
     TilJobStatusQuery,
     TilJobTone,
+    TilUpdateMutation,
 } from '@dashboard/til/types';
 import { ContentEmptyState } from '@dashboard/components/empty/ContentEmptyState';
 
 interface TILEditorProps {
     activeTab: TILMode;
+    title: string;
+    setTitle: (value: string) => void;
     draft: string;
     setDraft: (value: string) => void;
     selectedTil: TilResponse | null;
+    isTilLoading?: boolean;
     generateMutation: TilGenerateMutation;
+    updateMutation: TilUpdateMutation;
     commitMutation: TilGithubCommitMutation;
     generationStatusQuery: TilJobStatusQuery;
     commitStatusQuery: TilJobStatusQuery;
@@ -31,10 +36,14 @@ interface TILEditorProps {
 
 export function TILEditor({
                               activeTab,
+                              title,
+                              setTitle,
                               draft,
                               setDraft,
                               selectedTil,
+                              isTilLoading = false,
                               generateMutation,
+                              updateMutation,
                               commitMutation,
                               generationStatusQuery,
                               commitStatusQuery,
@@ -43,28 +52,43 @@ export function TILEditor({
                               commitMessage,
                           }: TILEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-    const [editorHeight, setEditorHeight] = useState(500);
+    const [editDraft, setEditDraft] = useState('');
 
     const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
 
-    const displayedDraft = draft || (selectedTil?.content ?? '');
-    const isEmptyTil = !selectedTil && !displayedDraft.trim() && !isGenerating;
+    const aiDraft = removeTilDateHeading(selectedTil?.content ?? '');
+    const previewDraft = removeTilDateHeading(draft || aiDraft);
+    const isEditing = activeTab === 'edit';
+    const isDrafts = activeTab === 'drafts';
+    const displayedDraft = activeTab === 'drafts' ? aiDraft : previewDraft;
+    const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
+
+    useEffect(() => {
+        setEditDraft(previewDraft);
+    }, [previewDraft, selectedTil?.summaryId]);
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
-        // 초기 높이 계산
-        const lineCount = editor.getModel()?.getLineCount() ?? 20;
-        setEditorHeight(Math.max(500, lineCount * 24 + 80));
-        // 컨텐츠 변경 시 높이 자동 조정
-        editor.onDidContentSizeChange((e) => {
-            const newHeight = Math.max(500, e.contentHeight + 80);
-            setEditorHeight(newHeight);
-        });
     };
 
     const handleGenerate = () => {
         if (isGenerating) return;
         generateMutation.mutate();
+    };
+
+    const handleSave = () => {
+        if (!selectedTil?.summaryId || !canSave) return;
+
+        updateMutation.mutate({
+            summaryId: selectedTil.summaryId,
+            title: title.trim(),
+            content: removeTilDateHeading(editDraft),
+        });
+    };
+
+    const handleReset = () => {
+        setTitle(selectedTil?.title ?? '');
+        setEditDraft(removeTilDateHeading(previewDraft));
     };
 
 
@@ -116,18 +140,27 @@ export function TILEditor({
             { range: selection, text: replacement, forceMoveMarkers: true },
         ]);
 
-        setDraft(model.getValue());
+        setEditDraft(removeTilDateHeading(model.getValue()));
     };
 
     const statusMessage = generationMessage ?? commitMessage;
+    const hasUnsavedChanges = editDraft !== previewDraft || title !== (selectedTil?.title ?? '');
+    const showModeAction = isDrafts || isEditing;
+    const canSave = Boolean(
+        selectedTil?.summaryId &&
+        title.trim() &&
+        editDraft.trim() &&
+        hasUnsavedChanges &&
+        !updateMutation.isPending,
+    );
 
     return (
-        <div className="flex min-h-0 w-full flex-col">
-            <main className="relative flex w-full flex-col bg-transparent">
+        <div className="flex h-full min-h-0 w-full flex-col">
+            <main className="relative flex min-h-0 w-full flex-1 flex-col bg-transparent">
                 <div className="flex shrink-0 items-center justify-between border-b border-white/5 px-4 py-2.5">
                     <div className="flex items-center gap-3 text-text-secondary">
                         {/* 그룹 1: 텍스트 서식 */}
-                        <div className="flex items-center gap-2">
+                        <div className={`${isEditing ? 'flex' : 'hidden'} items-center gap-2`}>
                             <button type="button" onClick={() => handleFormat('heading')} title="Heading" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
                                 <Heading size={13} strokeWidth={2} />
                             </button>
@@ -148,10 +181,10 @@ export function TILEditor({
                             </button>
                         </div>
 
-                        <div className="h-3 w-px bg-white/10" />
+                        <div className={`${isEditing ? 'block' : 'hidden'} h-3 w-px bg-white/10`} />
 
                         {/* 그룹 2: 리스트 */}
-                        <div className="flex items-center gap-2">
+                        <div className={`${isEditing ? 'flex' : 'hidden'} items-center gap-2`}>
                             <button type="button" onClick={() => handleFormat('ordered-list')} title="Ordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
                                 <ListOrdered size={13} strokeWidth={2} />
                             </button>
@@ -163,7 +196,7 @@ export function TILEditor({
                             </button>
                         </div>
 
-                        <div className="h-4 w-px bg-white/10" />
+                        <div className={`${isEditing ? 'block' : 'hidden'} h-4 w-px bg-white/10`} />
 
                         {statusMessage ? (
                             <div
@@ -185,33 +218,73 @@ export function TILEditor({
                     <div className="flex items-center gap-4 text-xs font-medium text-text-secondary">
                         <span>UTF-8</span>
 
-                        <div className="h-4 w-px bg-white/10" />
+                        {showModeAction ? <div className="h-4 w-px bg-white/10" /> : null}
 
-                        <button
-                            type="button"
-                            onClick={handleGenerate}
-                            disabled={isGenerating}
-                            className="flex items-center gap-1.5 font-bold text-primary-signal transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
-                            {isGenerating ? 'GENERATING...' : 'REGENERATE'}
-                        </button>
+                        {isEditing ? (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={handleSave}
+                                    disabled={!canSave}
+                                    className="flex h-8 items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-primary-signal px-3 text-xs font-bold text-background transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-primary-signal/60"
+                                >
+                                    <Save size={13} strokeWidth={2.2} />
+                                    {updateMutation.isPending ? 'SAVING...' : 'SAVE'}
+                                </button>
+
+                                <div className="h-4 w-px bg-white/10" />
+                            </>
+                        ) : null}
+
+                        {isDrafts ? (
+                            <button
+                                type="button"
+                                onClick={handleGenerate}
+                                disabled={isGenerating}
+                                className="flex items-center gap-1.5 font-bold text-primary-signal transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
+                                {isGenerating ? '생성하는 중...' : '다시 생성하기'}
+                            </button>
+                        ) : null}
+
+                        {isEditing ? (
+                            <button
+                                type="button"
+                                onClick={handleReset}
+                                disabled={!hasUnsavedChanges || updateMutation.isPending}
+                                className="flex items-center gap-1.5 font-bold text-text-secondary transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                <RotateCcw size={14} />
+                                초기화
+                            </button>
+                        ) : null}
                     </div>
                 </div>
 
-                <div className="relative w-full pt-2">
-                    {isEmptyTil ? (
+                <div className="relative min-h-0 w-full flex-1 overflow-hidden pt-2">
+                    {isTilLoading ? (
+                        <div className="flex h-full min-h-[500px] w-full flex-col gap-4 overflow-hidden p-6 animate-pulse">
+                            <div className="h-6 w-3/4 rounded bg-white/5" />
+                            <div className="h-4 w-full rounded bg-white/5" />
+                            <div className="h-4 w-full rounded bg-white/5" />
+                            <div className="h-4 w-2/3 rounded bg-white/5" />
+                            <div className="mt-4 h-6 w-1/2 rounded bg-white/5" />
+                            <div className="h-4 w-full rounded bg-white/5" />
+                            <div className="h-4 w-5/6 rounded bg-white/5" />
+                        </div>
+                    ) : isEmptyTil ? (
                         <ContentEmptyState
                             title="오늘은 작성된 TIL이 없어요"
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
                         />
-                    ) : activeTab === 'drafts' || activeTab === 'edit' ? (
-                        <div style={{ height: editorHeight }} className="relative w-full overflow-hidden rounded-lg bg-[#1e1e1e]/30 border border-white/5 transition-all">
+                    ) : isEditing ? (
+                        <div className="relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-white/5 bg-[#1e1e1e]/30 transition-all">
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="markdown"
-                                value={displayedDraft}
-                                onChange={(v) => setDraft(v ?? '')}
+                                value={editDraft}
+                                onChange={(v) => setEditDraft(v ?? '')}
                                 onMount={handleEditorMount}
                                 loading={
                                     <div className="flex h-full w-full flex-col gap-4 p-6 animate-pulse">
@@ -230,7 +303,12 @@ export function TILEditor({
                                     lineHeight: 26,
                                     wordWrap: 'on',
                                     minimap: { enabled: false },
-                                    scrollbar: { vertical: 'hidden', horizontal: 'hidden', handleMouseWheel: false },
+                                    scrollbar: {
+                                        vertical: 'auto',
+                                        horizontal: 'auto',
+                                        handleMouseWheel: true,
+                                        alwaysConsumeMouseWheel: false,
+                                    },
                                     padding: { top: 16, bottom: 40 },
                                     lineNumbers: 'on',
                                     renderLineHighlight: 'all',
@@ -246,7 +324,7 @@ export function TILEditor({
                             />
                         </div>
                     ) : (
-                        <div className="h-full overflow-y-auto px-10 py-8 no-scrollbar">
+                        <div className="h-full min-h-[500px] overflow-y-auto px-10 pb-8 pt-4">
                             <article className="max-w-none leading-relaxed text-text-primary">
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
@@ -334,4 +412,11 @@ export function TILEditor({
 
 function isRunning(status?: string) {
     return status === 'PENDING' || status === 'PROCESSING';
+}
+
+function removeTilDateHeading(content: string) {
+    return content
+        .replace(/^\s*#{1,6}\s*TIL\s*[-–—]\s*\d{4}[./-]\d{1,2}[./-]\d{1,2}\s*\n+/i, '')
+        .replace(/^\s*TIL\s*[-–—]\s*\d{4}[./-]\d{1,2}[./-]\d{1,2}\s*\n+/i, '')
+        .trimStart();
 }

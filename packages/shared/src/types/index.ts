@@ -41,5 +41,6 @@ export type {
   TilResponse,
   TilSourceContentResponse,
   TilSourcesResponse,
+  TilUpdateRequest,
 } from './til';
 export { toKnowledgeCardView } from './knowledge';
