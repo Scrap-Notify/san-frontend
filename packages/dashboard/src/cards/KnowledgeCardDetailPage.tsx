@@ -219,7 +219,7 @@ function ProcessedTextSection({
       <SectionHeader
         icon={<Sparkles size={18} />}
         title="AI 1차 정제 텍스트"
-        description="원본을 읽기 쉽게 변환한 텍스트입니다. 오타나 OCR 오류 정도만 수정할 수 있으며, 수정 내용은 기존 최종 지식카드에 자동 반영되지 않습니다."
+        description="원본을 읽기 쉽게 변환한 텍스트입니다. 오타나 OCR 오류 정도는 현재 화면에서만 임시로 수정할 수 있으며, 수정 내용은 저장되지 않고 기존 최종 지식카드에도 자동 반영되지 않습니다."
       />
 
       {hasRefinedContent ? (
@@ -258,7 +258,7 @@ function ProcessedTextSection({
       )}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-white/35">
-        <span>문서 편집기가 아니라 정제 텍스트 확인과 경미한 보정 용도입니다.</span>
+        <span>문서 편집기가 아니라 정제 텍스트 확인과 일시적인 보정 용도입니다.</span>
         {processedText.updatedAt ? <span>정제 일시 {formatDateTime(processedText.updatedAt)}</span> : null}
       </div>
     </section>
