@@ -12,7 +12,7 @@ export function MainLayout() {
         <TopNavBar activeMenu={activeMenu} />
       </header>
 
-      <main className="dashboard-shell pt-[88px] pb-16">
+      <main className="dashboard-shell pt-[var(--dashboard-nav-offset)] pb-16">
         <Outlet />
       </main>
       <FloatingFeedbackButton />
