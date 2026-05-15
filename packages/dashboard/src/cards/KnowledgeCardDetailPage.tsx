@@ -90,8 +90,8 @@ export function KnowledgeCardDetailPage() {
             <ArrowLeft size={16} aria-hidden="true" />
             돌아가기
           </button>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#4ade80]">Knowledge Card Detail</p>
-          <h1 className="mt-3 max-w-4xl text-3xl font-extrabold leading-tight text-white md:text-5xl">
+          <p className="text-md font-bold uppercase tracking-wide text-[#4ade80]">지식카드 상세보기</p>
+          <h1 className="mt-3 max-w-4xl text-h1-bold leading-[1.25] text-white md:text-[40px]">
             {data.finalCard.title}
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-white/50">
@@ -225,12 +225,7 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="min-w-0">
           <div className="rounded-2xl border border-white/5 bg-[#181c1f] p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">AI Summary</p>
-            <p className="mt-4 whitespace-pre-wrap text-base leading-8 text-white/70">{finalCard.summary}</p>
-          </div>
-
-          <div className="mt-5 rounded-2xl border border-white/5 bg-[#181c1f] p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">핵심 요약</p>
+            <p className="text-sm font-bold tracking-wide text-white/35">핵심 요약</p>
             <ul className="mt-4 space-y-3">
               {finalCard.keyPoints.map((point) => (
                 <li key={point} className="flex gap-3 text-sm leading-7 text-white/70">
@@ -245,14 +240,14 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
         <div className="flex min-w-0 flex-col gap-5">
           <InfoBlock label="카테고리" value={finalCard.categoryName} />
           <div className={panelCardClass}>
-            <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+            <p className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-white/35">
               <Tags size={14} aria-hidden="true" />
               태그
             </p>
             <TagList values={finalCard.tags} />
           </div>
           <div className={panelCardClass}>
-            <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+            <p className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-white/35">
               <Hash size={14} aria-hidden="true" />
               관련 키워드
             </p>
@@ -268,7 +263,7 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
   return (
     <aside className="flex min-w-0 flex-col gap-5 xl:sticky xl:top-28 xl:self-start">
       <div className={panelCardClass}>
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#4ade80]">Metadata</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-[#4ade80]">Metadata</p>
         <dl className="mt-5 space-y-4 text-sm">
           <MetaRow label="Card ID" value={data.cardId} />
           <MetaRow label="Source" value={data.source.type} />
@@ -278,7 +273,7 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
       </div>
 
       <div className={panelCardClass}>
-        <p className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+        <p className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-white/35">
           <Tags size={14} aria-hidden="true" />
           Tags
         </p>
@@ -286,7 +281,7 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
       </div>
 
       <div className={panelCardClass}>
-        <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-white/35">관련 카드</p>
+        <p className="mb-4 text-sm font-bold tracking-wide text-white/35">관련 카드</p>
         {isLoadingRelated ? (
           <p className="text-sm text-white/40">관련 카드를 불러오는 중입니다.</p>
         ) : data.relatedCards.length > 0 ? (
@@ -326,14 +321,14 @@ function DetailStatus({ title, description, tone = 'default' }: { title: string;
 
 function SectionHeader({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="flex flex-col gap-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[18px] rounded-br-[18px] rounded-tr-md rounded-bl-md bg-[#4ade80]/10 text-[#4ade80]">
           {icon}
         </span>
         <h2 className="text-xl font-bold text-white">{title}</h2>
       </div>
-      <p className="max-w-2xl text-sm leading-6 text-white/45 sm:text-right">{description}</p>
+      <p className="w-full text-[16px] leading-7 text-white/50">{description}</p>
     </div>
   );
 }
@@ -341,7 +336,7 @@ function SectionHeader({ icon, title, description }: { icon: ReactNode; title: s
 function InfoBlock({ label, value }: { label: string; value: string }) {
   return (
     <div className={panelCardClass}>
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">{label}</p>
+      <p className="text-sm font-bold tracking-wide text-white/35">{label}</p>
       <p className="mt-3 text-base font-semibold text-white/80">{value}</p>
     </div>
   );
@@ -367,7 +362,7 @@ function TagList({ values, subtle = false }: { values: string[]; subtle?: boolea
         <span
           key={value}
           className={[
-            'rounded-md border px-3 py-1.5 text-xs font-medium',
+            'rounded-md border px-3 py-1.5 text-sm font-medium',
             subtle
               ? 'border-white/5 bg-white/[0.03] text-white/50'
               : 'border-[#4ade80]/15 bg-[#4ade80]/5 text-[#b9cbc1]',
