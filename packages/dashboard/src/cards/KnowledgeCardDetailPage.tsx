@@ -180,9 +180,11 @@ function SourceDataSection({ source }: { source: KnowledgeCardDetailData['source
             </a>
           ) : null}
 
-          <p className="whitespace-pre-wrap text-sm leading-7 text-white/60">
-            {source.rawContent || '원본 데이터가 비어 있습니다.'}
-          </p>
+          {source.type === 'TEXT' ? (
+            <p className="whitespace-pre-wrap text-sm leading-7 text-white/60">
+              {source.rawContent || '원본 데이터가 비어 있습니다.'}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#181c1f] p-5 text-center">
@@ -298,13 +300,6 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
             </p>
             <TagList values={finalCard.tags} />
           </div>
-          <div className={panelCardClass}>
-            <p className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-white/35">
-              <Hash size={14} aria-hidden="true" />
-              관련 키워드
-            </p>
-            <TagList values={finalCard.relatedKeywords} subtle />
-          </div>
         </div>
       </div>
     </section>
@@ -319,7 +314,6 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
         <dl className="mt-5 space-y-4 text-sm">
           <MetaRow label="Card ID" value={data.cardId} />
           <MetaRow label="Source" value={data.source.type} />
-          <MetaRow label="Created" value={data.finalCard.createdAt ? formatDateTime(data.finalCard.createdAt) : 'API 미제공'} />
           <MetaRow label="Collected" value={data.source.collectedAt ? formatDateTime(data.source.collectedAt) : 'API 미제공'} />
         </dl>
       </div>
