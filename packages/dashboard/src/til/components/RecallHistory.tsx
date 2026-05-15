@@ -128,7 +128,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
 
                                 <button
                                     type="button"
-                                    onClick={() => navigate(`/til?cardId=${card.cardId}`)}
+                                    onClick={() => navigate(`/cards/${card.cardId}`)}
                                     className="relative min-w-0 text-left transition-opacity hover:opacity-90"
                                 >
                                     <div>
