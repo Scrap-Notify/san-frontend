@@ -48,17 +48,50 @@ export interface KnowledgeCardDetailData {
 
 const sectionCardClass = 'rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-white/5 bg-[#131718] p-6 shadow-md';
 const panelCardClass = 'rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#181c1f] p-5';
+const REFINE_POLL_INTERVAL_MS = 2000;
+const REFINE_POLL_TIMEOUT_MS = 30000;
 
 export function KnowledgeCardDetailPage() {
   const { cardId } = useParams();
   const navigate = useNavigate();
-  const detailQuery = useCardDetail(cardId);
+  const [refinePollStartedAt, setRefinePollStartedAt] = useState<number | null>(null);
+  const [refinePollTimedOut, setRefinePollTimedOut] = useState(false);
+  const detailQuery = useCardDetail(cardId, {
+    refetchInterval: (query) => {
+      if (!query.state.data || refinePollTimedOut) return false;
+      if (query.state.data.refinedContent?.trim()) return false;
+      return REFINE_POLL_INTERVAL_MS;
+    },
+  });
   const similarQuery = useSimilarCards(cardId);
+  const hasRefinedContent = Boolean(detailQuery.data?.refinedContent?.trim());
+
+  useEffect(() => {
+    setRefinePollStartedAt(null);
+    setRefinePollTimedOut(false);
+  }, [cardId]);
+
+  useEffect(() => {
+    if (!detailQuery.data || hasRefinedContent) return;
+    setRefinePollStartedAt((current) => current ?? Date.now());
+  }, [detailQuery.data, hasRefinedContent]);
+
+  useEffect(() => {
+    if (!refinePollStartedAt || hasRefinedContent) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setRefinePollTimedOut(true);
+    }, REFINE_POLL_TIMEOUT_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [hasRefinedContent, refinePollStartedAt]);
 
   const data = useMemo(() => {
     if (!cardId || !detailQuery.data) return null;
     return toDetailData(cardId, detailQuery.data, similarQuery.data?.similarCards ?? []);
   }, [cardId, detailQuery.data, similarQuery.data?.similarCards]);
+
+  const isCheckingRefinedContent = Boolean(detailQuery.data) && !hasRefinedContent && !refinePollTimedOut;
 
   if (!cardId) {
     return <DetailStatus tone="error" title="잘못된 카드 주소입니다." description="상세보기로 이동할 지식카드 ID가 없습니다." />;
@@ -103,7 +136,7 @@ export function KnowledgeCardDetailPage() {
       <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex min-w-0 flex-col gap-6">
           <SourceDataSection source={data.source} />
-          <ProcessedTextSection processedText={data.processedText} />
+          <ProcessedTextSection processedText={data.processedText} isCheckingRefinedContent={isCheckingRefinedContent} />
           <FinalKnowledgeCardSection finalCard={data.finalCard} />
         </div>
         <DetailMetaPanel data={data} isLoadingRelated={similarQuery.isPending} />
@@ -167,7 +200,13 @@ function SourceDataSection({ source }: { source: KnowledgeCardDetailData['source
   );
 }
 
-function ProcessedTextSection({ processedText }: { processedText: KnowledgeCardDetailData['processedText'] }) {
+function ProcessedTextSection({
+  processedText,
+  isCheckingRefinedContent,
+}: {
+  processedText: KnowledgeCardDetailData['processedText'];
+  isCheckingRefinedContent: boolean;
+}) {
   const [value, setValue] = useState(processedText.refinedContent);
   const hasRefinedContent = processedText.refinedContent.trim().length > 0;
 
@@ -193,13 +232,26 @@ function ProcessedTextSection({ processedText }: { processedText: KnowledgeCardD
             aria-label="AI 1차 정제 텍스트"
           />
         </div>
+      ) : isCheckingRefinedContent ? (
+        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
+          <div className="flex max-w-md flex-col items-center gap-3">
+            <Loader2 size={24} className="animate-spin text-[#4ade80]" aria-hidden="true" />
+            <p className="text-base font-semibold text-white/70">1차 정제 데이터를 확인하는 중입니다.</p>
+            <p className="text-sm leading-6 text-white/40">
+              원본 저장 직후라면 정제 작업이 아직 끝나지 않았을 수 있어요.
+              <br />
+              잠시 동안 자동으로 다시 확인합니다.
+            </p>
+          </div>
+        </div>
       ) : (
         <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
             <Sparkles size={24} className="text-white/25" aria-hidden="true" />
             <p className="text-base font-semibold text-white/70">1차 정제 데이터가 없습니다.</p>
             <p className="text-sm leading-6 text-white/40">
-              현재 상세 API에서 정제된 텍스트가 제공되지 않아 원본 데이터와 최종 지식카드만 확인할 수 있습니다.
+              현재 상세 API에서 정제된 텍스트가 제공되지 않아 
+              <br />원본 데이터와 최종 지식카드만 확인할 수 있습니다.
             </p>
           </div>
         </div>

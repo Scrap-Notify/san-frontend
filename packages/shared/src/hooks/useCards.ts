@@ -1,7 +1,7 @@
 // packages/shared/src/hooks/useCards.ts
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { useApiContext } from '@san/shared';
-import type { KnowledgeCardListParams } from '../types';
+import type { KnowledgeCardDetailResponse, KnowledgeCardListParams } from '../types';
 
 export const cardKeys = {
   all: ['cards'] as const,
@@ -25,13 +25,17 @@ export function useCards(params?: KnowledgeCardListParams, options?: { enabled?:
   });
 }
 
-export function useCardDetail(cardId: string | null | undefined) {
+export function useCardDetail(
+  cardId: string | null | undefined,
+  options?: Omit<UseQueryOptions<KnowledgeCardDetailResponse>, 'queryKey' | 'queryFn'>
+) {
   const { cardsApi } = useApiContext();
   return useQuery({
     queryKey: cardKeys.detail(cardId),
     queryFn: () => cardsApi.getDetail(cardId ?? ''),
     enabled: Boolean(cardId),
     staleTime: 1000 * 30,
+    ...options,
   });
 }
 
