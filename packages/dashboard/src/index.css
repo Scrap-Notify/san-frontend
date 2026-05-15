@@ -160,8 +160,8 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -169,12 +169,53 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-teal);
+  background: rgba(148, 163, 184, 0.55);
+  background-clip: padding-box;
+  border: 1px solid transparent;
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-signal);
+  background: rgba(203, 213, 225, 0.78);
+  background-clip: padding-box;
+}
+
+.til-editor-scrollbar {
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+.til-editor-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.55);
+  background-clip: padding-box;
+  border: 1px solid transparent;
+}
+
+.til-editor-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(203, 213, 225, 0.72);
+  background-clip: padding-box;
+}
+
+.til-editor-scrollbar .monaco-scrollable-element > .scrollbar > .slider {
+  background: rgba(148, 163, 184, 0.45) !important;
+}
+
+.til-editor-scrollbar .monaco-scrollable-element > .scrollbar:hover > .slider,
+.til-editor-scrollbar .monaco-scrollable-element > .scrollbar > .slider.active {
+  background: rgba(203, 213, 225, 0.72) !important;
+}
+
+.til-editor-surface {
+  animation: til-editor-surface-in 120ms ease-out;
+}
+
+@keyframes til-editor-surface-in {
+  from {
+    opacity: 0.86;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar {

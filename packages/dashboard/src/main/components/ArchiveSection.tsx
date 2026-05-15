@@ -5,6 +5,7 @@ import { ErrorFallback } from '@san/ui';
 import { authTokenStorage } from '@dashboard/api/client';
 import { useArchiveCards } from '@dashboard/hooks/useArchiveCards';
 import { HomeKnowledgeCardsEmptyState } from './HomeEmptyStates';
+import { HomeSectionTitle } from './HomeSectionTitle';
 
 export function ArchiveSection() {
   const navigate = useNavigate();
@@ -76,9 +77,9 @@ export function ArchiveSection() {
       <div className="flex flex-col gap-dashboard-gap">
         <div className="flex flex-col gap-dashboard-gap sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h2 className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-h1-bold text-transparent">
+            <HomeSectionTitle>
               나의 지식 아카이브
-            </h2>
+            </HomeSectionTitle>
           </div>
 
           {isAuthenticated ? (

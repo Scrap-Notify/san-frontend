@@ -27,7 +27,7 @@ export function CollectedDataPanel({ sourcesQuery, selectedTil }: CollectedDataP
                 minute: '2-digit',
             }),
             excerpt: source.rawContent || source.sourceUrl || '',
-            tag: source.category?.categoryName ? `#${source.category.categoryName}` : '',
+            tag: source.category?.categoryName ? `# ${source.category.categoryName}` : '',
             imageUrl: source.imageUrl ?? undefined,
             href: source.sourceUrl ?? undefined,
         }));
