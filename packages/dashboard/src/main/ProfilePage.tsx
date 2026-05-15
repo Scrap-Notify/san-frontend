@@ -6,8 +6,8 @@ import { getApiErrorMessage, type AuthSession } from '@san/shared';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../api/client';
 
 const sessionLabel: Record<AuthSession['clientType'], string> = {
-  DASHBOARD: '웹 대시보드',
-  EXTENSION: '브라우저 확장',
+  DASHBOARD: '대시보드',
+  EXTENSION: '익스텐션',
 };
 
 function formatExpiresIn(seconds: number) {
