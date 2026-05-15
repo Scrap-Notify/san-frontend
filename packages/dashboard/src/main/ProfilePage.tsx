@@ -1,6 +1,6 @@
 import { type FormEvent, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../api/client';
@@ -28,6 +28,7 @@ function maskSessionId(sessionId: string) {
 
 export function ProfilePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [revokeSessionId, setRevokeSessionId] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -69,9 +70,16 @@ export function ProfilePage() {
   });
   const profileLabel = profileQuery.data ?? { name: 'SAN 사용자', caption: '현재 로그인된 계정' };
 
+  const usernameQuery = useQuery({
+    queryKey: ['auth', 'current-username'],
+    queryFn: () => authTokenStorage.getUsername(),
+    staleTime: 0,
+  });
+
   const statisticsQuery = useQuery({
-    queryKey: ['statistics', 'overview'],
+    queryKey: ['statistics', 'overview', usernameQuery.data ?? 'unknown'],
     queryFn: () => statisticsApi.getOverview(),
+    enabled: usernameQuery.isSuccess,
     staleTime: 1000 * 60,
   });
   const statistics = statisticsQuery.data;
@@ -93,8 +101,9 @@ export function ProfilePage() {
 
   const clearLocalAuthAndMoveLogin = useCallback(async () => {
     await authTokenStorage.clearToken();
+    queryClient.clear();
     navigate('/login', { replace: true });
-  }, [navigate]);
+  }, [navigate, queryClient]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -184,7 +193,9 @@ export function ProfilePage() {
                     {item.label}
                   </p>
                   <p className={`mt-2 text-xl font-black tabular-nums ${item.accent ? 'text-primary-signal' : 'text-white'}`}>
-                    {statisticsQuery.isLoading ? '-' : (item.value ?? 0).toLocaleString()}
+                    {statisticsQuery.isLoading || statisticsQuery.isError || item.value == null
+                      ? '-'
+                      : item.value.toLocaleString()}
                   </p>
                 </div>
               ))}
