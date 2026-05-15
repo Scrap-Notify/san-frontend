@@ -325,7 +325,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
   if (styleType === 0) {
     return (
       <article 
-        onClick={() => navigate(`/til?cardId=${card.cardId}`)}
+        onClick={() => navigate(`/cards/${card.cardId}`)}
         className="group relative flex h-[380px] cursor-pointer flex-col overflow-hidden rounded-[40px] bg-[#131718] p-10 border border-white/5 transition-all duration-500 hover:-translate-y-2 hover:bg-[#161a1b] hover:border-[#4ade80]/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(74,222,128,0.05)]"
       >
         <div className="flex items-center justify-between mb-8">
@@ -361,7 +361,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
   if (styleType === 1) {
     return (
       <article 
-        onClick={() => navigate(`/til?cardId=${card.cardId}`)}
+        onClick={() => navigate(`/cards/${card.cardId}`)}
         className="group relative h-[380px] cursor-pointer overflow-hidden rounded-[40px] border border-white/5 shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:border-[#4ade80]/30"
       >
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0D0F] via-[#0B0D0F]/60 to-transparent z-10" />
@@ -389,7 +389,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
   if (styleType === 2) {
     return (
       <article 
-        onClick={() => navigate(`/til?cardId=${card.cardId}`)}
+        onClick={() => navigate(`/cards/${card.cardId}`)}
         className="group relative flex h-[380px] cursor-pointer flex-col items-center justify-center text-center rounded-[40px] bg-gradient-to-b from-[#1a1f21] to-[#131718] p-12 border border-white/5 transition-all duration-500 hover:border-[#4ade80]/40"
       >
         <QuoteIcon className="text-[#4ade80]/20 mb-8" size={60} />
@@ -409,7 +409,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
 
   return (
     <article 
-      onClick={() => navigate(`/til?cardId=${card.cardId}`)}
+      onClick={() => navigate(`/cards/${card.cardId}`)}
       className="group relative flex h-[380px] cursor-pointer flex-col rounded-[40px] bg-[#0B0D0F] p-10 border border-white/5 overflow-hidden transition-all duration-500 hover:bg-[#0e1113] hover:border-[#4ade80]/30"
     >
       <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#4ade80]/5 blur-[80px] transition-all group-hover:bg-[#4ade80]/10" />

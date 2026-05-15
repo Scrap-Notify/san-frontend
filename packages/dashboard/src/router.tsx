@@ -10,6 +10,7 @@ import { TilPage } from './til/TilPage';
 import { ProfilePage } from './main/ProfilePage';
 import { NotFoundPage } from './main/NotFoundPage';
 import { AuthGate } from './auth/AuthGate';
+import { KnowledgeCardDetailPage } from './cards/KnowledgeCardDetailPage';
 
 export const router = createBrowserRouter([
   {
@@ -52,6 +53,14 @@ export const router = createBrowserRouter([
         element: (
           <AuthGate>
             <TilPage />
+          </AuthGate>
+        ),
+      },
+      {
+        path: '/cards/:cardId',
+        element: (
+          <AuthGate>
+            <KnowledgeCardDetailPage />
           </AuthGate>
         ),
       },
