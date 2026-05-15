@@ -7,6 +7,7 @@ import {
   createGithubApi,
   createSearchApi,
   createScrapsApi,
+  createStatisticsApi,
   createTilApi,
   type AuthTokens,
 } from '@san/shared';
@@ -45,4 +46,5 @@ export const scrapsApi = createScrapsApi(apiClient);
 export const cardsApi = createCardsApi(apiClient);
 export const tilApi = createTilApi(apiClient);
 export const asyncJobsApi = createAsyncJobsApi(apiClient);
+export const statisticsApi = createStatisticsApi(apiClient);
 export const authTokenStorage = tokenProvider;

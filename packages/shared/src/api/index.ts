@@ -43,3 +43,5 @@ export { createAsyncJobsApi } from './async';
 export type { AsyncJobsApi } from './async';
 export { createTilApi } from './til';
 export type { TilApi } from './til';
+export { createStatisticsApi } from './statistics';
+export type { StatisticsApi, StatisticsOverview } from './statistics';

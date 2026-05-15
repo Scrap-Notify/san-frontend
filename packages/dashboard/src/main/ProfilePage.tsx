@@ -1,9 +1,9 @@
 import { type FormEvent, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Loader2, LogOut, Shield, Trash2, User, X } from 'lucide-react';
+import { AlertTriangle, BookOpen, FileText, Loader2, LogOut, Shield, Sparkles, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
-import { authApi, authTokenStorage, githubApi } from '../api/client';
+import { authApi, authTokenStorage, githubApi, statisticsApi } from '../api/client';
 
 const sessionLabel: Record<AuthSession['clientType'], string> = {
   DASHBOARD: 'Dashboard',
@@ -60,6 +60,30 @@ export function ProfilePage() {
     staleTime: 1000 * 60,
   });
   const profileLabel = profileQuery.data ?? { name: 'SAN 사용자', caption: '현재 로그인된 계정' };
+
+  const statisticsQuery = useQuery({
+    queryKey: ['statistics', 'overview'],
+    queryFn: () => statisticsApi.getOverview(),
+    staleTime: 1000 * 60,
+  });
+  const statistics = statisticsQuery.data;
+  const statisticsItems = [
+    {
+      label: '전체 지식카드',
+      value: statistics?.totalKnowledgeCardCount,
+      icon: BookOpen,
+    },
+    {
+      label: '오늘 만든 카드',
+      value: statistics?.todayKnowledgeCardCount,
+      icon: Sparkles,
+    },
+    {
+      label: '전체 TIL',
+      value: statistics?.totalTilCount,
+      icon: FileText,
+    },
+  ];
 
   const clearLocalAuthAndMoveLogin = useCallback(async () => {
     await authTokenStorage.clearToken();
@@ -124,17 +148,40 @@ export function ProfilePage() {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr]">
         <aside className="rounded-[32px] border border-white/5 bg-[#131718] p-8 shadow-2xl">
-          <div className="flex flex-col items-center text-center">
-            <div className="h-28 w-28 rounded-full border border-[#4ade80]/25 bg-gradient-to-tr from-[#1a1f21] to-[#0B0D0F] p-1">
-              <div className="flex h-full w-full items-center justify-center rounded-full border border-white/10 bg-black/20">
-                <User size={44} className="text-[#4ade80]" strokeWidth={1.5} />
-              </div>
-            </div>
-
-            <div className="mt-6">
+          <div className="flex flex-col">
+            <div className="text-center">
               <h2 className="break-all text-2xl font-bold tracking-tight">{profileLabel.name}</h2>
               <p className="mt-1 text-sm font-medium text-white/40">{profileLabel.caption}</p>
             </div>
+
+            <div className="mt-8 grid gap-3">
+              {statisticsItems.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={item.label}
+                    className="flex items-center justify-between rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#4ade80]/10 text-[#4ade80]">
+                        <Icon size={17} />
+                      </span>
+                      <span className="text-sm font-semibold text-white/55">{item.label}</span>
+                    </div>
+                    <span className="text-xl font-black text-white">
+                      {statisticsQuery.isLoading ? '-' : (item.value ?? 0).toLocaleString()}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {statisticsQuery.error && (
+              <p className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-xs text-red-200">
+                {getApiErrorMessage(statisticsQuery.error, '통계를 불러오지 못했습니다.')}
+              </p>
+            )}
 
             <button
               type="button"
