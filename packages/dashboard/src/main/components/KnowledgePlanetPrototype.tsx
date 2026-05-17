@@ -6,7 +6,7 @@ import {
   useArchiveCategoryCards,
   useCardDetail,
 } from '@san/shared';
-import planetTexture from '../../assets/ph1_sphere_tp.png';
+import planetTexture from '../../assets/knowledge_planet_texture_mountain_v1.png';
 import type { GraphCategory, GraphLeaf } from './graph/types';
 import {
   createCanopyLeafPositions,
@@ -264,7 +264,10 @@ export function KnowledgePlanetPrototype() {
                 }`}
                 style={{
                   backgroundImage: `url(${planetTexture})`,
-                  transform: `translate3d(${wrapDegrees(renderRotation.y) * 0.12}px, ${renderRotation.x * -0.08}px, 0) scale(1.16)`,
+                  backgroundRepeat: 'repeat-x',
+                  backgroundSize: '220% 100%',
+                  backgroundPosition: `${50 + wrapDegrees(renderRotation.y) * 0.18}% ${50 + renderRotation.x * -0.08}%`,
+                  transform: 'scale(1.16)',
                 }}
               />
               <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_28%_24%,rgba(255,255,255,0.22),transparent_24%),radial-gradient(circle_at_68%_72%,rgba(0,0,0,0.58),transparent_38%)]" />
