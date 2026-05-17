@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import {
   useArchiveCardTagRelations,
@@ -6,16 +6,23 @@ import {
   useArchiveCategoryCards,
   useCardDetail,
 } from '@san/shared';
-import planetImage from '../../assets/ph1_sphere.png';
-import treeImage from '../../assets/ph2_tree.png';
 import { graphCategories, graphLeavesByCategory } from './graph/mockGraphData';
 import type { GraphCategory, GraphLeaf } from './graph/types';
 import { createCanopyLeafPositions, createPlanetMarkerPositions } from './graph/layout';
+
+type Rotation = {
+  x: number;
+  y: number;
+};
 
 export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedLeafId, setSelectedLeafId] = useState<string | null>(null);
+  const [rotation, setRotation] = useState<Rotation>({ x: -8, y: 18 });
+  const [zoom, setZoom] = useState(1);
+  const dragState = useRef<{ x: number; y: number } | null>(null);
+
   const categoriesQuery = useArchiveCategories();
   const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
   const relationsQuery = useArchiveCardTagRelations(selectedLeafId);
@@ -32,7 +39,6 @@ export function KnowledgePlanetPrototype() {
     }
 
     const positions = createPlanetMarkerPositions(apiCategories.length);
-
     return apiCategories.map((category, index) => ({
       id: category.categoryId,
       name: category.categoryName,
@@ -43,7 +49,6 @@ export function KnowledgePlanetPrototype() {
   useEffect(() => {
     if (!categoriesQuery.data?.categories.length) return;
     if (categoriesQuery.data.categories.some((category) => category.categoryId === selectedCategoryId)) return;
-
     setSelectedCategoryId(categoriesQuery.data.categories[0].categoryId);
   }, [categoriesQuery.data?.categories, selectedCategoryId]);
 
@@ -52,7 +57,6 @@ export function KnowledgePlanetPrototype() {
     if (!apiCards?.length) {
       const fallbackLeaves = graphLeavesByCategory[selectedCategoryId ?? 'nature'] ?? [];
       const fallbackPositions = createCanopyLeafPositions(fallbackLeaves.length);
-
       return fallbackLeaves.map((leaf, index) => ({
         ...leaf,
         position: fallbackPositions[index] ?? leaf.position,
@@ -60,7 +64,6 @@ export function KnowledgePlanetPrototype() {
     }
 
     const positions = createCanopyLeafPositions(apiCards.length);
-
     return apiCards.map((card, index) => ({
       id: card.cardId,
       title: card.title,
@@ -84,8 +87,8 @@ export function KnowledgePlanetPrototype() {
         .map((leaf) => leaf.id),
     );
   }, [leaves, relationsQuery.data?.relatedCards, selectedLeaf]);
-  const hasFocus = Boolean(selectedLeaf);
 
+  const hasFocus = Boolean(selectedLeaf);
   const sharedTagLinks = useMemo(() => {
     const links: Array<{ from: GraphLeaf; to: GraphLeaf; strength: number }> = [];
 
@@ -93,23 +96,15 @@ export function KnowledgePlanetPrototype() {
       relationsQuery.data.relatedCards.forEach((relatedCard) => {
         const relatedLeaf = leaves.find((leaf) => leaf.id === relatedCard.cardId);
         if (!relatedLeaf) return;
-
-        links.push({
-          from: selectedLeaf,
-          to: relatedLeaf,
-          strength: relatedCard.matchedTagCount,
-        });
+        links.push({ from: selectedLeaf, to: relatedLeaf, strength: relatedCard.matchedTagCount });
       });
-
       return links;
     }
 
     leaves.forEach((from, index) => {
       leaves.slice(index + 1).forEach((to) => {
         const sharedTagCount = from.tags.filter((tag) => to.tags.includes(tag)).length;
-        if (sharedTagCount > 0) {
-          links.push({ from, to, strength: sharedTagCount });
-        }
+        if (sharedTagCount > 0) links.push({ from, to, strength: sharedTagCount });
       });
     });
 
@@ -121,15 +116,38 @@ export function KnowledgePlanetPrototype() {
       setSelectedLeafId(null);
       return;
     }
-
     setView('planet');
+  };
+
+  const handlePlanetPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    dragState.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePlanetPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!dragState.current) return;
+    const deltaX = event.clientX - dragState.current.x;
+    const deltaY = event.clientY - dragState.current.y;
+    dragState.current = { x: event.clientX, y: event.clientY };
+
+    setRotation((current) => ({
+      x: clamp(current.x - deltaY * 0.25, -35, 35),
+      y: current.y + deltaX * 0.3,
+    }));
+  };
+
+  const handlePlanetPointerUp = () => {
+    dragState.current = null;
+  };
+
+  const handlePlanetWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setZoom((current) => clamp(current - event.deltaY * 0.0012, 0.84, 1.18));
   };
 
   return (
     <section className="relative min-h-[min(72vh,42rem)] overflow-hidden rounded-[32px] bg-[#101417] font-sans text-white">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00ffc2]/10 blur-3xl" />
-      </div>
+      <SceneBackdrop />
 
       {view === 'tree' ? (
         <button
@@ -143,12 +161,28 @@ export function KnowledgePlanetPrototype() {
       ) : null}
 
       <div
-        className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
-          view === 'planet' ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
+        className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${
+          view === 'planet' ? 'scale-100 opacity-100' : 'pointer-events-none scale-150 opacity-0'
         }`}
       >
-        <div className="relative aspect-square w-[min(72vw,32rem)] overflow-hidden rounded-full bg-[#101417] shadow-[0_0_60px_rgba(0,255,194,0.08)]">
-          <img src={planetImage} alt="Knowledge Planet" className="h-full w-full object-cover" />
+        <div
+          className="relative aspect-square w-[min(72vw,32rem)] touch-none"
+          onPointerDown={handlePlanetPointerDown}
+          onPointerMove={handlePlanetPointerMove}
+          onPointerUp={handlePlanetPointerUp}
+          onPointerCancel={handlePlanetPointerUp}
+          onWheel={handlePlanetWheel}
+        >
+          <div
+            className="absolute inset-0 transition-transform duration-300 ease-out"
+            style={{
+              transform: `scale(${zoom}) perspective(900px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+            }}
+          >
+            <div className="absolute inset-0 rounded-full border border-[#00ffc2]/20 bg-[radial-gradient(circle_at_32%_28%,rgba(133,255,220,0.22),transparent_18%),radial-gradient(circle_at_62%_38%,rgba(30,80,86,0.9),transparent_28%),radial-gradient(circle_at_45%_70%,rgba(12,25,28,0.98),rgba(7,11,13,1)_72%)] shadow-[inset_-36px_-24px_70px_rgba(0,0,0,0.6),0_0_80px_rgba(0,255,194,0.16)]" />
+            <div className="absolute inset-[8%] rounded-full opacity-75 [background-image:radial-gradient(circle_at_20%_28%,rgba(0,255,194,0.18)_0_7%,transparent_8%),radial-gradient(circle_at_68%_24%,rgba(0,255,194,0.14)_0_8%,transparent_9%),radial-gradient(circle_at_56%_64%,rgba(0,255,194,0.12)_0_10%,transparent_11%),radial-gradient(circle_at_30%_70%,rgba(0,255,194,0.08)_0_9%,transparent_10%)] blur-[1px]" />
+            <div className="absolute inset-[-4%] rounded-full border border-[#00ffc2]/15 blur-md" />
+          </div>
 
           {categories.map((category) => (
             <button
@@ -166,22 +200,19 @@ export function KnowledgePlanetPrototype() {
               <span className="absolute left-1/2 top-5 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#00ffc2]/20 bg-[#101417]/85 px-3 py-1 text-xs text-white/80 backdrop-blur-sm">
                 {category.name}
               </span>
-              <span className="pointer-events-none absolute left-1/2 top-11 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#00ffc2] px-3 py-1 text-xs font-semibold text-[#101417] opacity-0 transition duration-300 group-hover:opacity-100">
-                {category.name} 보기
-              </span>
             </button>
           ))}
         </div>
       </div>
 
       <div
-        className={`absolute inset-0 transition-all duration-500 ${
-          view === 'tree' ? 'scale-100 opacity-100' : 'pointer-events-none scale-95 opacity-0'
+        className={`absolute inset-0 transition-all duration-700 ${
+          view === 'tree' ? 'scale-100 opacity-100' : 'pointer-events-none scale-75 opacity-0'
         }`}
       >
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative h-full w-full max-w-[58rem]">
-            <img src={treeImage} alt="Knowledge Tree" className="absolute inset-0 h-full w-full object-contain" />
+            <TreeIllustration />
 
             <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {sharedTagLinks.map(({ from, to, strength }) => (
@@ -262,6 +293,40 @@ export function KnowledgePlanetPrototype() {
   );
 }
 
+function SceneBackdrop() {
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(0,255,194,0.08),transparent_28%),radial-gradient(circle_at_50%_100%,rgba(30,80,86,0.28),transparent_34%)]" />
+      <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00ffc2]/10 blur-3xl" />
+    </div>
+  );
+}
+
+function TreeIllustration() {
+  return (
+    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <radialGradient id="canopyGlow" cx="50%" cy="38%" r="45%">
+          <stop offset="0%" stopColor="#00ffc2" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#00ffc2" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="trunkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#315058" />
+          <stop offset="100%" stopColor="#122328" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="50" cy="38" rx="31" ry="24" fill="url(#canopyGlow)" />
+      <path d="M49 84 C48 73, 48 62, 50 50 C51 43, 49 36, 46 30" stroke="url(#trunkGradient)" strokeWidth="4.8" strokeLinecap="round" fill="none" />
+      <path d="M50 58 C42 48, 34 42, 25 36" stroke="#234149" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+      <path d="M50 54 C58 46, 67 40, 76 33" stroke="#234149" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+      <path d="M49 67 C41 60, 35 57, 29 54" stroke="#1e373d" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M51 65 C58 58, 66 55, 72 50" stroke="#1e373d" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M50 83 C44 88, 38 90, 31 91" stroke="#183137" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+      <path d="M50 83 C57 88, 63 90, 70 91" stroke="#183137" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
 function formatArchiveDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -283,4 +348,8 @@ function getRelationStrokeWidth(strength: number) {
 
 function getFocusedRelationOpacity(strength: number) {
   return Math.min(0.36 + strength * 0.2, 0.92);
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
