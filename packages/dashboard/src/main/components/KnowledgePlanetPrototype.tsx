@@ -84,6 +84,7 @@ export function KnowledgePlanetPrototype() {
         .map((leaf) => leaf.id),
     );
   }, [leaves, relationsQuery.data?.relatedCards, selectedLeaf]);
+  const hasFocus = Boolean(selectedLeaf);
 
   const sharedTagLinks = useMemo(() => {
     const links: Array<{ from: GraphLeaf; to: GraphLeaf; strength: number }> = [];
@@ -191,7 +192,7 @@ export function KnowledgePlanetPrototype() {
                   x2={parseFloat(to.position.left)}
                   y2={parseFloat(to.position.top)}
                   stroke="#00ffc2"
-                  strokeOpacity={getRelationOpacity(strength)}
+                  strokeOpacity={hasFocus ? getFocusedRelationOpacity(strength) : getRelationOpacity(strength)}
                   strokeDasharray="4 6"
                   strokeWidth={getRelationStrokeWidth(strength)}
                 />
@@ -201,6 +202,7 @@ export function KnowledgePlanetPrototype() {
             {leaves.map((leaf) => {
               const isSelected = leaf.id === selectedLeafId;
               const isRelated = relatedLeafIds.has(leaf.id);
+              const isDimmed = hasFocus && !isSelected && !isRelated;
 
               return (
                 <button
@@ -211,7 +213,7 @@ export function KnowledgePlanetPrototype() {
                     isSelected || isRelated
                       ? 'border-[#00ffc2]/80 bg-[#1e5056]/60 shadow-[0_0_28px_rgba(0,255,194,0.75)]'
                       : 'border-[#00ffc2]/30 bg-[#1e5056]/40 hover:bg-[#1e5056]/60 hover:shadow-[0_0_20px_rgba(0,255,194,0.4)]'
-                  }`}
+                  } ${isDimmed ? 'opacity-35 saturate-50' : 'opacity-100'}`}
                   style={{
                     top: leaf.position.top,
                     left: leaf.position.left,
@@ -277,4 +279,8 @@ function getRelationOpacity(strength: number) {
 
 function getRelationStrokeWidth(strength: number) {
   return Math.min(0.28 + strength * 0.18, 1.1);
+}
+
+function getFocusedRelationOpacity(strength: number) {
+  return Math.min(0.36 + strength * 0.2, 0.92);
 }
