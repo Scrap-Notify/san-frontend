@@ -10,7 +10,7 @@ export type GraphCategory = {
 export type GraphLeaf = {
   id: string;
   title: string;
-  summary: string;
+  summary?: string;
   tags: string[];
   collectedAt: string;
   position: {

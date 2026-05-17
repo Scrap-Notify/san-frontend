@@ -1,26 +1,70 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import {
+  useArchiveCardTagRelations,
+  useArchiveCategories,
+  useArchiveCategoryCards,
+  useCardDetail,
+} from '@san/shared';
 import planetImage from '../../assets/ph1_sphere.png';
 import treeImage from '../../assets/ph2_tree.png';
 import { graphCategories, graphLeavesByCategory } from './graph/mockGraphData';
-import type { GraphLeaf } from './graph/types';
+import type { GraphCategory, GraphLeaf } from './graph/types';
 
 export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('nature');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedLeafId, setSelectedLeafId] = useState<string | null>(null);
-  const leaves = graphLeavesByCategory[selectedCategoryId] ?? [];
+  const categoriesQuery = useArchiveCategories();
+  const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
+  const relationsQuery = useArchiveCardTagRelations(selectedLeafId);
+  const detailQuery = useCardDetail(selectedLeafId);
+
+  const categories = useMemo<GraphCategory[]>(() => {
+    const apiCategories = categoriesQuery.data?.categories;
+    if (!apiCategories?.length) return graphCategories;
+
+    return apiCategories.map((category, index) => ({
+      id: category.categoryId,
+      name: category.categoryName,
+      position: getCategoryPosition(index),
+    }));
+  }, [categoriesQuery.data?.categories]);
+
+  useEffect(() => {
+    if (!categoriesQuery.data?.categories.length) return;
+    if (categoriesQuery.data.categories.some((category) => category.categoryId === selectedCategoryId)) return;
+
+    setSelectedCategoryId(categoriesQuery.data.categories[0].categoryId);
+  }, [categoriesQuery.data?.categories, selectedCategoryId]);
+
+  const leaves = useMemo<GraphLeaf[]>(() => {
+    const apiCards = cardsQuery.data?.cards;
+    if (!apiCards?.length) return graphLeavesByCategory[selectedCategoryId ?? 'nature'] ?? [];
+
+    return apiCards.map((card, index) => ({
+      id: card.cardId,
+      title: card.title,
+      tags: card.tags.map((tag) => tag.tagName),
+      collectedAt: formatArchiveDate(card.createdAt),
+      position: getLeafPosition(index),
+    }));
+  }, [cardsQuery.data?.cards, selectedCategoryId]);
 
   const selectedLeaf = leaves.find((leaf) => leaf.id === selectedLeafId) ?? null;
   const relatedLeafIds = useMemo(() => {
     if (!selectedLeaf) return new Set<string>();
+    const apiRelatedIds = relationsQuery.data?.relatedCards.map((card) => card.cardId);
+    if (apiRelatedIds?.length) {
+      return new Set(apiRelatedIds.filter((cardId) => leaves.some((leaf) => leaf.id === cardId)));
+    }
 
     return new Set(
       leaves
         .filter((leaf) => leaf.id !== selectedLeaf.id && leaf.tags.some((tag) => selectedLeaf.tags.includes(tag)))
         .map((leaf) => leaf.id),
     );
-  }, [leaves, selectedLeaf]);
+  }, [leaves, relationsQuery.data?.relatedCards, selectedLeaf]);
 
   const sharedTagLinks = useMemo(() => {
     const links: Array<{ from: GraphLeaf; to: GraphLeaf }> = [];
@@ -70,7 +114,7 @@ export function KnowledgePlanetPrototype() {
         <div className="relative aspect-square w-[min(72vw,32rem)] overflow-hidden rounded-full bg-[#101417] shadow-[0_0_60px_rgba(0,255,194,0.08)]">
           <img src={planetImage} alt="Knowledge Planet" className="h-full w-full object-cover" />
 
-          {graphCategories.map((category) => (
+          {categories.map((category) => (
             <button
               key={category.id}
               type="button"
@@ -158,7 +202,13 @@ export function KnowledgePlanetPrototype() {
             >
               <p className="mb-3 text-sm text-[#00ffc2]/80">Leaf Detail</p>
               <h3 className="text-2xl font-semibold">{selectedLeaf.title}</h3>
-              <p className="mt-4 leading-7 text-white/75">{selectedLeaf.summary}</p>
+              <p className="mt-4 leading-7 text-white/75">
+                {detailQuery.isPending
+                  ? '요약을 불러오는 중입니다.'
+                  : detailQuery.data?.summary?.trim()
+                    ? detailQuery.data.summary
+                    : selectedLeaf.summary ?? '이 카드의 요약은 아직 준비되지 않았습니다.'}
+              </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {selectedLeaf.tags.map((tag) => (
                   <span key={tag} className="rounded-full bg-[#00ffc2]/10 px-3 py-1 text-sm text-[#00ffc2]">
@@ -173,4 +223,42 @@ export function KnowledgePlanetPrototype() {
       </div>
     </section>
   );
+}
+
+function getCategoryPosition(index: number) {
+  const positions = [
+    { top: '23%', left: '34%' },
+    { top: '34%', left: '62%' },
+    { top: '55%', left: '28%' },
+    { top: '59%', left: '70%' },
+    { top: '76%', left: '48%' },
+  ];
+
+  return positions[index % positions.length];
+}
+
+function getLeafPosition(index: number) {
+  const positions = [
+    { top: '24%', left: '38%' },
+    { top: '34%', left: '22%' },
+    { top: '18%', left: '62%' },
+    { top: '40%', left: '72%' },
+    { top: '58%', left: '58%' },
+    { top: '30%', left: '48%' },
+    { top: '48%', left: '34%' },
+    { top: '22%', left: '78%' },
+  ];
+
+  return positions[index % positions.length];
+}
+
+function formatArchiveDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
 }
