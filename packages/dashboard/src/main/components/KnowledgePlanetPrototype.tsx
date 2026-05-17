@@ -6,7 +6,7 @@ import {
   useArchiveCategoryCards,
   useCardDetail,
 } from '@san/shared';
-import planetTexture from '../../assets/knowledge_planet_texture_mountain_v1.png';
+import planetSource from '../../assets/ph1_real_sphere.png';
 import type { GraphCategory, GraphLeaf } from './graph/types';
 import {
   createCanopyLeafPositions,
@@ -20,18 +20,23 @@ type Rotation = {
   y: number;
 };
 
+const restingRotationBase: Rotation = { x: -8, y: 18 };
+
 export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedLeafId, setSelectedLeafId] = useState<string | null>(null);
-  const [renderRotation, setRenderRotation] = useState<Rotation>({ x: -8, y: 18 });
+  const [renderRotation, setRenderRotation] = useState<Rotation>(restingRotationBase);
   const [zoom, setZoom] = useState(1);
   const [isDraggingPlanet, setIsDraggingPlanet] = useState(false);
   const dragState = useRef<{ x: number; y: number; pointerId: number } | null>(null);
-  const rotationRef = useRef<Rotation>({ x: -8, y: 18 });
+  const rotationRef = useRef<Rotation>(restingRotationBase);
+  const targetRotationRef = useRef<Rotation>(restingRotationBase);
+  const isDraggingRef = useRef(false);
   const animationFrameRef = useRef<number | null>(null);
   const inertiaFrameRef = useRef<number | null>(null);
   const velocityRef = useRef<Rotation>({ x: 0, y: 0 });
+  const restingRotationRef = useRef<Rotation>(restingRotationBase);
 
   const categoriesQuery = useArchiveCategories();
   const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
@@ -150,7 +155,9 @@ export function KnowledgePlanetPrototype() {
     }
     velocityRef.current = { x: 0, y: 0 };
     dragState.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    isDraggingRef.current = true;
     setIsDraggingPlanet(true);
+    scheduleRotationRender();
   };
 
   const handlePlanetPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -160,20 +167,24 @@ export function KnowledgePlanetPrototype() {
     const deltaY = event.clientY - dragState.current.y;
     dragState.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
 
-    const velocityX = -deltaY * 0.72;
-    const velocityY = deltaX * 1.08;
+    const inputX = -deltaY * 0.16;
+    const inputY = deltaX * 0.24;
 
-    rotationRef.current = {
-      x: clamp(rotationRef.current.x + velocityX, -45, 45),
-      y: rotationRef.current.y + velocityY,
+    targetRotationRef.current = {
+      x: clamp(restingRotationRef.current.x + clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + inputX, -10, 10), -18, 8),
+      y: restingRotationRef.current.y + clamp(targetRotationRef.current.y - restingRotationRef.current.y + inputY, -14, 14),
     };
-    velocityRef.current = { x: velocityX, y: velocityY };
+    velocityRef.current = {
+      x: lerp(velocityRef.current.x, inputX, 0.22),
+      y: lerp(velocityRef.current.y, inputY, 0.22),
+    };
     scheduleRotationRender();
   };
 
   const handlePlanetPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (dragState.current?.pointerId !== event.pointerId) return;
     dragState.current = null;
+    isDraggingRef.current = false;
     setIsDraggingPlanet(false);
     startInertia();
   };
@@ -198,26 +209,48 @@ export function KnowledgePlanetPrototype() {
 
     animationFrameRef.current = window.requestAnimationFrame(() => {
       animationFrameRef.current = null;
+      rotationRef.current = {
+        x: roundTo(lerpAngle(rotationRef.current.x, targetRotationRef.current.x, isDraggingRef.current ? 0.18 : 0.16), 3),
+        y: roundTo(lerp(rotationRef.current.y, targetRotationRef.current.y, isDraggingRef.current ? 0.18 : 0.16), 3),
+      };
       setRenderRotation({ ...rotationRef.current });
+
+      const stillSettling =
+        Math.abs(shortestAngleDelta(rotationRef.current.x, targetRotationRef.current.x)) > 0.08 ||
+        Math.abs(rotationRef.current.y - targetRotationRef.current.y) > 0.08;
+
+      if (stillSettling || dragState.current || inertiaFrameRef.current !== null) {
+        scheduleRotationRender();
+      } else {
+        rotationRef.current = { ...targetRotationRef.current };
+      }
     });
   };
 
   const startInertia = () => {
     const tick = () => {
       velocityRef.current = {
-        x: velocityRef.current.x * 0.92,
-        y: velocityRef.current.y * 0.92,
+        x: roundTo(velocityRef.current.x * 0.72, 4),
+        y: roundTo(velocityRef.current.y * 0.72, 4),
       };
 
-      const hasMotion = Math.abs(velocityRef.current.x) > 0.05 || Math.abs(velocityRef.current.y) > 0.05;
+      const hasMotion = Math.abs(velocityRef.current.x) > 0.04 || Math.abs(velocityRef.current.y) > 0.04;
       if (!hasMotion) {
         inertiaFrameRef.current = null;
+        velocityRef.current = { x: 0, y: 0 };
         return;
       }
 
-      rotationRef.current = {
-        x: clamp(rotationRef.current.x + velocityRef.current.x, -45, 45),
-        y: rotationRef.current.y + velocityRef.current.y,
+      targetRotationRef.current = {
+        x: clamp(
+          restingRotationRef.current.x +
+            clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + velocityRef.current.x * 0.22, -10, 10),
+          -18,
+          8,
+        ),
+        y:
+          restingRotationRef.current.y +
+          clamp(targetRotationRef.current.y - restingRotationRef.current.y + velocityRef.current.y * 0.22, -14, 14),
       };
       scheduleRotationRender();
       inertiaFrameRef.current = window.requestAnimationFrame(tick);
@@ -247,7 +280,7 @@ export function KnowledgePlanetPrototype() {
         }`}
       >
         <div
-          className="relative aspect-square w-[min(72vw,32rem)] cursor-grab touch-none active:cursor-grabbing"
+          className="group/planet relative aspect-square w-[min(72vw,32rem)] cursor-grab touch-none active:cursor-grabbing"
           onPointerDown={handlePlanetPointerDown}
           onPointerMove={handlePlanetPointerMove}
           onPointerUp={handlePlanetPointerUp}
@@ -255,25 +288,31 @@ export function KnowledgePlanetPrototype() {
           onWheel={handlePlanetWheel}
         >
           <div
-            className={`pointer-events-none absolute inset-0 ${isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'}`}
+            className={`pointer-events-none absolute inset-0 animate-[planet-float_12s_ease-in-out_infinite] ${
+              isDraggingPlanet ? '' : 'transition-transform duration-500 ease-out'
+            }`}
             style={{ transform: `scale(${zoom})` }}
           >
-            <div className="absolute inset-0 overflow-hidden rounded-full border border-[#00ffc2]/5 bg-[radial-gradient(circle_at_32%_28%,rgba(133,255,220,0.22),transparent_18%),radial-gradient(circle_at_62%_38%,rgba(30,80,86,0.9),transparent_28%),radial-gradient(circle_at_45%_70%,rgba(12,25,28,0.98),rgba(7,11,13,1)_72%)] shadow-[inset_-36px_-24px_70px_rgba(0,0,0,0.6),0_0_80px_rgba(0,255,194,0.16)]">
-              <div
-                className={`absolute inset-[-8%] rounded-full bg-cover bg-center opacity-70 mix-blend-screen ${
-                  isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'
-                }`}
-                style={{
-                  backgroundImage: `url(${planetTexture})`,
-                  backgroundRepeat: 'repeat-x',
-                  backgroundSize: '220% 100%',
-                  backgroundPosition: `${50 + wrapDegrees(renderRotation.y) * 0.18}% ${50 + renderRotation.x * -0.08}%`,
-                  transform: 'scale(1.16)',
-                }}
-              />
-              <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_28%_24%,rgba(255,255,255,0.22),transparent_24%),radial-gradient(circle_at_68%_72%,rgba(0,0,0,0.58),transparent_38%)]" />
+            <div
+              className="absolute inset-0 transition-transform duration-500 ease-out group-hover/planet:scale-[1.02]"
+              style={getPlanetContainerStyle(renderRotation)}
+            >
+              <div className="absolute inset-[-4%] rounded-full bg-[radial-gradient(circle,rgba(120,255,220,0.028)_0%,rgba(120,255,220,0.012)_38%,rgba(120,255,220,0)_72%)] blur-2xl transition-opacity duration-500 group-hover/planet:opacity-90" />
+              <div className="absolute inset-0 overflow-hidden rounded-full shadow-[0_26px_78px_rgba(0,0,0,0.54),0_0_20px_rgba(120,255,220,0.028)] transition duration-500 group-hover/planet:brightness-[1.02]">
+                <img
+                  src={planetSource}
+                  alt=""
+                  aria-hidden="true"
+                  className={`absolute inset-0 h-full w-full object-cover ${
+                    isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'
+                  }`}
+                  style={getPlanetImageStyle(renderRotation)}
+                />
+                <div className="absolute inset-0 rounded-full" style={{ background: getPlanetImageShading(renderRotation) }} />
+                <div className="absolute inset-0 rounded-full" style={{ background: getPlanetEdgeFalloff(renderRotation) }} />
+                <div className="absolute inset-[1px] rounded-full bg-[radial-gradient(circle_at_18%_18%,rgba(165,232,255,0.045),transparent_16%),radial-gradient(circle_at_82%_82%,transparent_62%,rgba(0,0,0,0.1)_100%)] [mask-image:radial-gradient(circle_at_center,transparent_68%,black_96%)] [-webkit-mask-image:radial-gradient(circle_at_center,transparent_68%,black_96%)]" />
+              </div>
             </div>
-            <div className="absolute inset-[-4%] rounded-full border border-[#00ffc2]/15 blur-md" />
           </div>
 
           {categories.map((category) => {
@@ -288,7 +327,7 @@ export function KnowledgePlanetPrototype() {
                   setSelectedLeafId(null);
                   setView('tree');
                 }}
-                className="group absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-all duration-200"
+                className="group/marker absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-all duration-300"
                 style={{
                   top: `${projection.y}%`,
                   left: `${projection.x}%`,
@@ -297,8 +336,30 @@ export function KnowledgePlanetPrototype() {
                   pointerEvents: projection.visible ? 'auto' : 'none',
                 } satisfies CSSProperties}
               >
-                <span className="block h-3 w-3 rounded-full bg-[#00ffc2] shadow-[0_0_18px_rgba(0,255,194,0.95)] transition duration-300 group-hover:scale-125" />
-                <span className="absolute left-1/2 top-5 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#00ffc2]/20 bg-[#101417]/85 px-3 py-1 text-xs text-white/80 backdrop-blur-sm">
+                <span
+                  className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(120,255,220,0.18)_0%,rgba(120,255,220,0.08)_38%,transparent_72%)] blur-[0.8px] transition duration-300 group-hover/marker:scale-110 group-hover/marker:opacity-100"
+                  style={{
+                    width: `${projection.glowSize}px`,
+                    height: `${projection.glowSize}px`,
+                    opacity: projection.markerOpacity,
+                  }}
+                />
+                <span
+                  className="pointer-events-none absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full border border-[rgba(173,255,240,0.16)] opacity-0 transition duration-300 group-hover/marker:animate-[marker-breath_1.8s_ease-out_infinite] group-hover/marker:opacity-100"
+                  style={{
+                    width: `${projection.pulseSize}px`,
+                    height: `${projection.pulseSize}px`,
+                  }}
+                />
+                <span
+                  className="relative block rounded-full bg-[#d8fff8]/95 shadow-[0_0_7px_rgba(216,255,248,0.34)] transition duration-300 group-hover/marker:scale-110 group-hover/marker:bg-[#ebfffb] group-hover/marker:brightness-110 group-hover/marker:shadow-[0_0_10px_rgba(216,255,248,0.5)]"
+                  style={{
+                    width: `${projection.coreSize}px`,
+                    height: `${projection.coreSize}px`,
+                    opacity: projection.markerOpacity,
+                  }}
+                />
+                <span className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs text-white/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-300 group-hover/marker:translate-y-0 group-hover/marker:opacity-100">
                   {category.name}
                 </span>
               </button>
@@ -469,6 +530,23 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+function lerp(start: number, end: number, amount: number) {
+  return start + (end - start) * amount;
+}
+
+function roundTo(value: number, precision: number) {
+  const factor = 10 ** precision;
+  return Math.round(value * factor) / factor;
+}
+
+function shortestAngleDelta(from: number, to: number) {
+  return wrapDegrees(to - from);
+}
+
+function lerpAngle(start: number, end: number, amount: number) {
+  return wrapDegrees(start + shortestAngleDelta(start, end) * amount);
+}
+
 function projectSpherePoint(latitude: number, longitude: number, rotation: Rotation) {
   const lat = toRadians(latitude);
   const lon = toRadians(longitude + rotation.y);
@@ -489,6 +567,10 @@ function projectSpherePoint(latitude: number, longitude: number, rotation: Rotat
     visible,
     scale: 0.72 + depth * 0.4,
     opacity: 0.28 + depth * 0.72,
+    markerOpacity: 0.38 + depth * 0.56,
+    coreSize: 2.2 + depth * 2.2,
+    glowSize: 18 + depth * 12,
+    pulseSize: 8 + depth * 6,
   };
 }
 
@@ -498,4 +580,50 @@ function toRadians(value: number) {
 
 function wrapDegrees(value: number) {
   return ((value % 360) + 360) % 360 - 180;
+}
+
+function getPlanetImageShading(rotation: Rotation) {
+  const lightX = clamp(30 + wrapDegrees(rotation.y) * 0.025, 27, 33);
+  const lightY = clamp(24 - wrapDegrees(rotation.x) * 0.025, 21, 27);
+  const shadowX = 100 - lightX;
+  const shadowY = 100 - lightY;
+
+  return [
+    `radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255,255,255,0.045), transparent 18%)`,
+    `radial-gradient(circle at ${shadowX}% ${shadowY}%, rgba(0,0,0,0.24), transparent 48%)`,
+    'radial-gradient(circle at 50% 50%, transparent 60%, rgba(0,0,0,0.06) 78%, rgba(0,0,0,0.24) 100%)',
+    'radial-gradient(ellipse at 68% 100%, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.12) 32%, transparent 60%)',
+  ].join(',');
+}
+
+function getPlanetEdgeFalloff(rotation: Rotation) {
+  const slowShiftX = clamp(50 - wrapDegrees(rotation.y) * 0.006, 48, 52);
+  const slowShiftY = clamp(50 + wrapDegrees(rotation.x) * 0.004, 49, 51);
+
+  return [
+    `radial-gradient(circle at ${slowShiftX}% ${slowShiftY}%, transparent 56%, rgba(0,0,0,0.05) 74%, rgba(0,0,0,0.18) 100%)`,
+  ].join(',');
+}
+
+function getPlanetContainerStyle(rotation: Rotation): CSSProperties {
+  const tiltX = clamp((rotation.x - restingRotationBase.x) * 0.18, -2.8, 2.8);
+  const tiltY = clamp((rotation.y - restingRotationBase.y) * 0.12, -3.2, 3.2);
+
+  return {
+    transform: `perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) rotateZ(-4deg) scaleY(0.975)`,
+  };
+}
+
+function getPlanetImageStyle(rotation: Rotation): CSSProperties {
+  const deltaX = rotation.x - restingRotationBase.x;
+  const deltaY = rotation.y - restingRotationBase.y;
+  const verticalScale = 1 - Math.abs(deltaX) * 0.0008;
+  const verticalOffset = clamp(deltaX * -0.18, -0.8, 0.8);
+  const horizontalOffset = clamp(deltaY * 0.18, -2.4, 2.4);
+
+  return {
+    transform: `scale(1.34) translate(${horizontalOffset}%, ${verticalOffset}%) scaleY(${verticalScale})`,
+    objectPosition: '50% 50%',
+    filter: 'saturate(0.98) contrast(1.02)',
+  };
 }
