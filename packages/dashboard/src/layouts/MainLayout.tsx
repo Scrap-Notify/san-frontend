@@ -1,6 +1,6 @@
-import { Outlet, useLocation } from 'react-router-dom';
-import { TopNavBar } from '@dashboard/main/components/GNB';
-import { FloatingFeedbackButton } from '@dashboard/main/components/FloatingFeedbackButton';
+﻿import { Outlet, useLocation } from 'react-router-dom';
+import { TopNavBar } from '@dashboard/main/components/layout/GNB';
+import { FloatingFeedbackButton } from '@dashboard/main/components/feedback/FloatingFeedbackButton';
 
 export function MainLayout() {
   const location = useLocation();
@@ -27,3 +27,4 @@ function getActiveMenu(pathname: string) {
   if (pathname.startsWith('/profile')) return 'Profile';
   return 'Dashboard';
 }
+

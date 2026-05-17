@@ -3,9 +3,9 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { Eye, EyeOff } from 'lucide-react';
 import githubSvg from '@ui/assets/icons/github.svg';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi, githubAuthApi } from '../api/client';
-import { getAuthClientType, rememberAuthClientType, withAuthClientType } from './clientType';
-import { completeAuth } from './completeAuth';
+import { authApi, githubAuthApi } from '../../api/client';
+import { getAuthClientType, rememberAuthClientType, withAuthClientType } from '../lib/clientType';
+import { completeAuth } from '../lib/completeAuth';
 
 export function LoginPage() {
   const navigate = useNavigate();

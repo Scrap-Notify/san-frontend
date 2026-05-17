@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
-import { authApi, authTokenStorage, githubApi, statisticsApi } from '../api/client';
+import { authApi, authTokenStorage, githubApi, statisticsApi } from '../../api/client';
 
 const sessionLabel: Record<AuthSession['clientType'], string> = {
   DASHBOARD: '대시보드',

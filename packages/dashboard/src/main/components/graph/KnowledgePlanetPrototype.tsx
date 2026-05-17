@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerE
 import { ArrowLeft } from 'lucide-react';
 import { useArchiveCategories, useArchiveCategoryCards } from '@san/shared';
 import planetSource from '../../assets/ph1_real_sphere.png';
-import type { GraphCategory, GraphLeaf } from './graph/types';
+import type { GraphCategory, GraphLeaf } from '../../types/graph';
 import { CategoryTreeView } from './CategoryTreeView';
 import {
   createCanopyLeafPositions,
   createPlanetMarkerPositions,
   createPlanetMarkerSpherePoints,
-} from './graph/layout';
-import { graphFixtureCategories, graphFixtureLeavesByCategory } from './graph/fixtures';
+} from './layout';
+import { graphFixtureCategories, graphFixtureLeavesByCategory } from './fixtures';
 
 type Rotation = {
   x: number;

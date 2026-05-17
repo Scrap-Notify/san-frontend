@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiProvider } from '@san/shared';
 import { scrapsApi, cardsApi, archiveApi } from './api/client';
 import { router } from './router';
-import { ToastProvider } from './components/toast/ToastProvider';
+import { ToastProvider } from './components/shared/toast/ToastProvider';
 import './index.css';
 
 const queryClient = new QueryClient({

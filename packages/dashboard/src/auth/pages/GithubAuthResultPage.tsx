@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage } from '@san/shared';
-import { githubAuthApi } from '../api/client';
-import { consumeRememberedAuthClientType, getAuthClientType, withAuthClientType } from './clientType';
-import { completeAuth } from './completeAuth';
+import { githubAuthApi } from '../../api/client';
+import { consumeRememberedAuthClientType, getAuthClientType, withAuthClientType } from '../lib/clientType';
+import { completeAuth } from '../lib/completeAuth';
 
 const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
   A008: 'GitHub authentication failed. Please try again.',

@@ -2,10 +2,10 @@ import { type FormEvent, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { getApiErrorMessage } from '@san/shared';
-import { authApi } from '../api/client';
-import { getAuthClientType, withAuthClientType } from './clientType';
-import { completeAuth } from './completeAuth';
-import { useToast } from '../components/toast/toastContext';
+import { authApi } from '../../api/client';
+import { getAuthClientType, withAuthClientType } from '../lib/clientType';
+import { completeAuth } from '../lib/completeAuth';
+import { useToast } from '../../components/shared/toast/toastContext';
 
 type UsernameCheckStatus = 'idle' | 'checking' | 'available' | 'unavailable';
 

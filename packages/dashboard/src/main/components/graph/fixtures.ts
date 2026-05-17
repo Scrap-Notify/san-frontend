@@ -1,4 +1,4 @@
-import type { GraphCategory, GraphLeaf } from './types';
+import type { GraphCategory, GraphLeaf } from '../../types/graph';
 
 export const graphFixtureCategories: Omit<GraphCategory, 'position' | 'sphere'>[] = [
   { id: 'nature', name: '자연' },

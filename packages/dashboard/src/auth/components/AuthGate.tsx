@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ErrorFallback } from '@san/ui';
-import { authTokenStorage } from '../api/client';
+import { authTokenStorage } from '../../api/client';
 
 interface AuthGateProps {
   children: ReactNode;

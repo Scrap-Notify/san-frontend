@@ -3,8 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, Filter, Search, ExternalLink, Quote as QuoteIcon, MessageSquare, Clock, Globe, ArrowRight, Share2, Bookmark, Calendar, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import type { SearchCardResult, SearchParams } from '@san/shared';
-import { searchApi } from '../api/client';
-import { ContentEmptyState } from '../components/empty/ContentEmptyState';
+import { searchApi } from '../../api/client';
+import { ContentEmptyState } from '../../components/shared/empty/ContentEmptyState';
 
 interface SearchFilters {
   tag: string;

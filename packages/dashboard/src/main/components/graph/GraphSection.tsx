@@ -1,4 +1,4 @@
-import { HomeSectionTitle } from './HomeSectionTitle';
+import { HomeSectionTitle } from '../layout/HomeSectionTitle';
 import { KnowledgePlanetPrototype } from './KnowledgePlanetPrototype';
 
 export function GraphSection() {

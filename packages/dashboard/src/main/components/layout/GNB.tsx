@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, User, X } from 'lucide-react';
 import { authTokenStorage } from '@dashboard/api/client';
-import { SearchBar } from './SearchBar';
+import { SearchBar } from '../search/SearchBar';
 import githubSvg from '@ui/assets/icons/github.svg';
 import sanLogoSvg from '@ui/assets/brand/SAN_LOGO.svg';
 import sanTypoSvg from '@ui/assets/brand/SAN_TYPO.svg';
