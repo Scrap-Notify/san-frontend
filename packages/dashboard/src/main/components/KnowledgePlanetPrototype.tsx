@@ -10,6 +10,7 @@ import planetImage from '../../assets/ph1_sphere.png';
 import treeImage from '../../assets/ph2_tree.png';
 import { graphCategories, graphLeavesByCategory } from './graph/mockGraphData';
 import type { GraphCategory, GraphLeaf } from './graph/types';
+import { createCanopyLeafPositions, createPlanetMarkerPositions } from './graph/layout';
 
 export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
@@ -22,12 +23,20 @@ export function KnowledgePlanetPrototype() {
 
   const categories = useMemo<GraphCategory[]>(() => {
     const apiCategories = categoriesQuery.data?.categories;
-    if (!apiCategories?.length) return graphCategories;
+    if (!apiCategories?.length) {
+      const fallbackPositions = createPlanetMarkerPositions(graphCategories.length);
+      return graphCategories.map((category, index) => ({
+        ...category,
+        position: fallbackPositions[index] ?? category.position,
+      }));
+    }
+
+    const positions = createPlanetMarkerPositions(apiCategories.length);
 
     return apiCategories.map((category, index) => ({
       id: category.categoryId,
       name: category.categoryName,
-      position: getCategoryPosition(index),
+      position: positions[index],
     }));
   }, [categoriesQuery.data?.categories]);
 
@@ -40,14 +49,24 @@ export function KnowledgePlanetPrototype() {
 
   const leaves = useMemo<GraphLeaf[]>(() => {
     const apiCards = cardsQuery.data?.cards;
-    if (!apiCards?.length) return graphLeavesByCategory[selectedCategoryId ?? 'nature'] ?? [];
+    if (!apiCards?.length) {
+      const fallbackLeaves = graphLeavesByCategory[selectedCategoryId ?? 'nature'] ?? [];
+      const fallbackPositions = createCanopyLeafPositions(fallbackLeaves.length);
+
+      return fallbackLeaves.map((leaf, index) => ({
+        ...leaf,
+        position: fallbackPositions[index] ?? leaf.position,
+      }));
+    }
+
+    const positions = createCanopyLeafPositions(apiCards.length);
 
     return apiCards.map((card, index) => ({
       id: card.cardId,
       title: card.title,
       tags: card.tags.map((tag) => tag.tagName),
       collectedAt: formatArchiveDate(card.createdAt),
-      position: getLeafPosition(index),
+      position: positions[index],
     }));
   }, [cardsQuery.data?.cards, selectedCategoryId]);
 
@@ -223,33 +242,6 @@ export function KnowledgePlanetPrototype() {
       </div>
     </section>
   );
-}
-
-function getCategoryPosition(index: number) {
-  const positions = [
-    { top: '23%', left: '34%' },
-    { top: '34%', left: '62%' },
-    { top: '55%', left: '28%' },
-    { top: '59%', left: '70%' },
-    { top: '76%', left: '48%' },
-  ];
-
-  return positions[index % positions.length];
-}
-
-function getLeafPosition(index: number) {
-  const positions = [
-    { top: '24%', left: '38%' },
-    { top: '34%', left: '22%' },
-    { top: '18%', left: '62%' },
-    { top: '40%', left: '72%' },
-    { top: '58%', left: '58%' },
-    { top: '30%', left: '48%' },
-    { top: '48%', left: '34%' },
-    { top: '22%', left: '78%' },
-  ];
-
-  return positions[index % positions.length];
 }
 
 function formatArchiveDate(value: string) {
