@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useArchiveCategories, useArchiveCategoryCards } from '@san/shared';
-import planetSource from '../../assets/ph1_real_sphere.png';
+import planetSource from '../../../assets/ph1_real_sphere.png';
 import type { GraphCategory, GraphLeaf } from '../../types/graph';
 import { CategoryTreeView } from './CategoryTreeView';
 import {

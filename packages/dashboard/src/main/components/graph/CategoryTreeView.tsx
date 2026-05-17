@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import bareTreeSource from '../../assets/ph2_bare_tree_tp.png';
+import bareTreeSource from '../../../assets/ph2_bare_tree_tp.png';
 import type { GraphLeaf } from '../../types/graph';
 
 type CategoryTreeViewProps = {
