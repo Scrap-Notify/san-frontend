@@ -2,83 +2,14 @@ import { useMemo, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import planetImage from '../../assets/ph1_sphere.png';
 import treeImage from '../../assets/ph2_tree.png';
-
-type Category = {
-  id: string;
-  label: string;
-  top: string;
-  left: string;
-};
-
-type Leaf = {
-  id: string;
-  title: string;
-  summary: string;
-  tags: string[];
-  collectedAt: string;
-  top: string;
-  left: string;
-};
-
-const categories: Category[] = [
-  { id: 'nature', label: '자연', top: '23%', left: '34%' },
-  { id: 'science', label: '과학', top: '34%', left: '62%' },
-  { id: 'history', label: '역사', top: '55%', left: '28%' },
-  { id: 'art', label: '예술', top: '59%', left: '70%' },
-  { id: 'philosophy', label: '철학', top: '76%', left: '48%' },
-];
-
-const leaves: Leaf[] = [
-  {
-    id: 'cycle',
-    title: '자연의 순환',
-    summary: '모든 생명은 서로 연결되어 순환한다. 작은 시작이 모여 거대한 변화를 만든다.',
-    tags: ['자연', '순환'],
-    collectedAt: '2024.05.31',
-    top: '24%',
-    left: '38%',
-  },
-  {
-    id: 'water',
-    title: '물의 지혜',
-    summary: '흐름은 가장 낮은 곳을 향하지만, 결국 가장 넓은 생태계를 살린다.',
-    tags: ['자연', '순환'],
-    collectedAt: '2024.05.24',
-    top: '34%',
-    left: '22%',
-  },
-  {
-    id: 'light',
-    title: '빛의 언어',
-    summary: '빛은 닿는 곳마다 형태와 온도를 바꾸며 보이지 않던 결을 드러낸다.',
-    tags: ['자연', '감각'],
-    collectedAt: '2024.05.19',
-    top: '18%',
-    left: '62%',
-  },
-  {
-    id: 'wind',
-    title: '바람의 기억',
-    summary: '보이지 않는 움직임도 흔적을 남긴다. 방향은 사라져도 변화는 남는다.',
-    tags: ['감각', '기억'],
-    collectedAt: '2024.05.12',
-    top: '40%',
-    left: '72%',
-  },
-  {
-    id: 'time',
-    title: '시간의 흐름',
-    summary: '시간은 겹겹이 쌓여 풍경을 만들고, 우리는 그 층위 위를 걷는다.',
-    tags: ['기억', '순환'],
-    collectedAt: '2024.05.03',
-    top: '58%',
-    left: '58%',
-  },
-];
+import { graphCategories, graphLeavesByCategory } from './graph/mockGraphData';
+import type { GraphLeaf } from './graph/types';
 
 export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('nature');
   const [selectedLeafId, setSelectedLeafId] = useState<string | null>(null);
+  const leaves = graphLeavesByCategory[selectedCategoryId] ?? [];
 
   const selectedLeaf = leaves.find((leaf) => leaf.id === selectedLeafId) ?? null;
   const relatedLeafIds = useMemo(() => {
@@ -89,10 +20,10 @@ export function KnowledgePlanetPrototype() {
         .filter((leaf) => leaf.id !== selectedLeaf.id && leaf.tags.some((tag) => selectedLeaf.tags.includes(tag)))
         .map((leaf) => leaf.id),
     );
-  }, [selectedLeaf]);
+  }, [leaves, selectedLeaf]);
 
   const sharedTagLinks = useMemo(() => {
-    const links: Array<{ from: Leaf; to: Leaf }> = [];
+    const links: Array<{ from: GraphLeaf; to: GraphLeaf }> = [];
 
     leaves.forEach((from, index) => {
       leaves.slice(index + 1).forEach((to) => {
@@ -103,7 +34,7 @@ export function KnowledgePlanetPrototype() {
     });
 
     return links;
-  }, []);
+  }, [leaves]);
 
   const handleBack = () => {
     if (selectedLeafId) {
@@ -139,20 +70,24 @@ export function KnowledgePlanetPrototype() {
         <div className="relative aspect-square w-[min(72vw,32rem)] overflow-hidden rounded-full bg-[#101417] shadow-[0_0_60px_rgba(0,255,194,0.08)]">
           <img src={planetImage} alt="Knowledge Planet" className="h-full w-full object-cover" />
 
-          {categories.map((category) => (
+          {graphCategories.map((category) => (
             <button
               key={category.id}
               type="button"
-              onClick={() => setView('tree')}
+              onClick={() => {
+                setSelectedCategoryId(category.id);
+                setSelectedLeafId(null);
+                setView('tree');
+              }}
               className="group absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ top: category.top, left: category.left }}
+              style={{ top: category.position.top, left: category.position.left }}
             >
               <span className="block h-3 w-3 rounded-full bg-[#00ffc2] shadow-[0_0_18px_rgba(0,255,194,0.95)] transition duration-300 group-hover:scale-125" />
               <span className="absolute left-1/2 top-5 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#00ffc2]/20 bg-[#101417]/85 px-3 py-1 text-xs text-white/80 backdrop-blur-sm">
-                {category.label}
+                {category.name}
               </span>
               <span className="pointer-events-none absolute left-1/2 top-11 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#00ffc2] px-3 py-1 text-xs font-semibold text-[#101417] opacity-0 transition duration-300 group-hover:opacity-100">
-                {category.label} 보기
+                {category.name} 보기
               </span>
             </button>
           ))}
@@ -172,10 +107,10 @@ export function KnowledgePlanetPrototype() {
               {sharedTagLinks.map(({ from, to }) => (
                 <line
                   key={`${from.id}-${to.id}`}
-                  x1={parseFloat(from.left)}
-                  y1={parseFloat(from.top)}
-                  x2={parseFloat(to.left)}
-                  y2={parseFloat(to.top)}
+                  x1={parseFloat(from.position.left)}
+                  y1={parseFloat(from.position.top)}
+                  x2={parseFloat(to.position.left)}
+                  y2={parseFloat(to.position.top)}
                   stroke="#00ffc2"
                   strokeOpacity="0.3"
                   strokeDasharray="4 6"
@@ -199,8 +134,8 @@ export function KnowledgePlanetPrototype() {
                       : 'border-[#00ffc2]/30 bg-[#1e5056]/40 hover:bg-[#1e5056]/60 hover:shadow-[0_0_20px_rgba(0,255,194,0.4)]'
                   }`}
                   style={{
-                    top: leaf.top,
-                    left: leaf.left,
+                    top: leaf.position.top,
+                    left: leaf.position.left,
                     borderRadius: '60% 40% 60% 40%',
                   }}
                 >
