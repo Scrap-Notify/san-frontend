@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import {
   useArchiveCardTagRelations,
@@ -6,9 +6,14 @@ import {
   useArchiveCategoryCards,
   useCardDetail,
 } from '@san/shared';
-import { graphCategories, graphLeavesByCategory } from './graph/mockGraphData';
+import planetTexture from '../../assets/ph1_sphere_tp.png';
 import type { GraphCategory, GraphLeaf } from './graph/types';
-import { createCanopyLeafPositions, createPlanetMarkerPositions } from './graph/layout';
+import {
+  createCanopyLeafPositions,
+  createPlanetMarkerPositions,
+  createPlanetMarkerSpherePoints,
+} from './graph/layout';
+import { graphFixtureCategories, graphFixtureLeavesByCategory } from './graph/fixtures';
 
 type Rotation = {
   x: number;
@@ -19,32 +24,46 @@ export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedLeafId, setSelectedLeafId] = useState<string | null>(null);
-  const [rotation, setRotation] = useState<Rotation>({ x: -8, y: 18 });
+  const [renderRotation, setRenderRotation] = useState<Rotation>({ x: -8, y: 18 });
   const [zoom, setZoom] = useState(1);
-  const dragState = useRef<{ x: number; y: number } | null>(null);
+  const [isDraggingPlanet, setIsDraggingPlanet] = useState(false);
+  const dragState = useRef<{ x: number; y: number; pointerId: number } | null>(null);
+  const rotationRef = useRef<Rotation>({ x: -8, y: 18 });
+  const animationFrameRef = useRef<number | null>(null);
+  const inertiaFrameRef = useRef<number | null>(null);
+  const velocityRef = useRef<Rotation>({ x: 0, y: 0 });
 
   const categoriesQuery = useArchiveCategories();
   const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
   const relationsQuery = useArchiveCardTagRelations(selectedLeafId);
   const detailQuery = useCardDetail(selectedLeafId);
+  const useFixtureData = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES === 'true';
 
   const categories = useMemo<GraphCategory[]>(() => {
     const apiCategories = categoriesQuery.data?.categories;
-    if (!apiCategories?.length) {
-      const fallbackPositions = createPlanetMarkerPositions(graphCategories.length);
-      return graphCategories.map((category, index) => ({
+    if (!apiCategories?.length && !useFixtureData) return [];
+
+    if (!apiCategories?.length && useFixtureData) {
+      const positions = createPlanetMarkerPositions(graphFixtureCategories.length);
+      const spherePoints = createPlanetMarkerSpherePoints(graphFixtureCategories.length);
+
+      return graphFixtureCategories.map((category, index) => ({
         ...category,
-        position: fallbackPositions[index] ?? category.position,
+        position: positions[index],
+        sphere: spherePoints[index],
       }));
     }
 
-    const positions = createPlanetMarkerPositions(apiCategories.length);
-    return apiCategories.map((category, index) => ({
+    const resolvedCategories = apiCategories ?? [];
+    const positions = createPlanetMarkerPositions(resolvedCategories.length);
+    const spherePoints = createPlanetMarkerSpherePoints(resolvedCategories.length);
+    return resolvedCategories.map((category, index) => ({
       id: category.categoryId,
       name: category.categoryName,
       position: positions[index],
+      sphere: spherePoints[index],
     }));
-  }, [categoriesQuery.data?.categories]);
+  }, [categoriesQuery.data?.categories, useFixtureData]);
 
   useEffect(() => {
     if (!categoriesQuery.data?.categories.length) return;
@@ -54,24 +73,28 @@ export function KnowledgePlanetPrototype() {
 
   const leaves = useMemo<GraphLeaf[]>(() => {
     const apiCards = cardsQuery.data?.cards;
-    if (!apiCards?.length) {
-      const fallbackLeaves = graphLeavesByCategory[selectedCategoryId ?? 'nature'] ?? [];
-      const fallbackPositions = createCanopyLeafPositions(fallbackLeaves.length);
-      return fallbackLeaves.map((leaf, index) => ({
+    if (!apiCards?.length && !useFixtureData) return [];
+
+    if (!apiCards?.length && useFixtureData) {
+      const fixtureLeaves = graphFixtureLeavesByCategory[selectedCategoryId ?? 'nature'] ?? [];
+      const positions = createCanopyLeafPositions(fixtureLeaves.length);
+
+      return fixtureLeaves.map((leaf, index) => ({
         ...leaf,
-        position: fallbackPositions[index] ?? leaf.position,
+        position: positions[index],
       }));
     }
 
-    const positions = createCanopyLeafPositions(apiCards.length);
-    return apiCards.map((card, index) => ({
+    const resolvedCards = apiCards ?? [];
+    const positions = createCanopyLeafPositions(resolvedCards.length);
+    return resolvedCards.map((card, index) => ({
       id: card.cardId,
       title: card.title,
       tags: card.tags.map((tag) => tag.tagName),
       collectedAt: formatArchiveDate(card.createdAt),
       position: positions[index],
     }));
-  }, [cardsQuery.data?.cards, selectedCategoryId]);
+  }, [cardsQuery.data?.cards, selectedCategoryId, useFixtureData]);
 
   const selectedLeaf = leaves.find((leaf) => leaf.id === selectedLeafId) ?? null;
   const relatedLeafIds = useMemo(() => {
@@ -120,29 +143,86 @@ export function KnowledgePlanetPrototype() {
   };
 
   const handlePlanetPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    dragState.current = { x: event.clientX, y: event.clientY };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if ((event.target as HTMLElement).closest('button')) return;
+    if (inertiaFrameRef.current !== null) {
+      window.cancelAnimationFrame(inertiaFrameRef.current);
+      inertiaFrameRef.current = null;
+    }
+    velocityRef.current = { x: 0, y: 0 };
+    dragState.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    setIsDraggingPlanet(true);
   };
 
   const handlePlanetPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!dragState.current) return;
+    if (dragState.current.pointerId !== event.pointerId) return;
     const deltaX = event.clientX - dragState.current.x;
     const deltaY = event.clientY - dragState.current.y;
-    dragState.current = { x: event.clientX, y: event.clientY };
+    dragState.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
 
-    setRotation((current) => ({
-      x: clamp(current.x - deltaY * 0.25, -35, 35),
-      y: current.y + deltaX * 0.3,
-    }));
+    const velocityX = -deltaY * 0.72;
+    const velocityY = deltaX * 1.08;
+
+    rotationRef.current = {
+      x: clamp(rotationRef.current.x + velocityX, -45, 45),
+      y: rotationRef.current.y + velocityY,
+    };
+    velocityRef.current = { x: velocityX, y: velocityY };
+    scheduleRotationRender();
   };
 
-  const handlePlanetPointerUp = () => {
+  const handlePlanetPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragState.current?.pointerId !== event.pointerId) return;
     dragState.current = null;
+    setIsDraggingPlanet(false);
+    startInertia();
   };
 
   const handlePlanetWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
     event.preventDefault();
     setZoom((current) => clamp(current - event.deltaY * 0.0012, 0.84, 1.18));
+  };
+
+  useEffect(() => () => {
+    if (animationFrameRef.current !== null) {
+      window.cancelAnimationFrame(animationFrameRef.current);
+    }
+    if (inertiaFrameRef.current !== null) {
+      window.cancelAnimationFrame(inertiaFrameRef.current);
+    }
+  }, []);
+
+  const scheduleRotationRender = () => {
+    if (animationFrameRef.current !== null) return;
+
+    animationFrameRef.current = window.requestAnimationFrame(() => {
+      animationFrameRef.current = null;
+      setRenderRotation({ ...rotationRef.current });
+    });
+  };
+
+  const startInertia = () => {
+    const tick = () => {
+      velocityRef.current = {
+        x: velocityRef.current.x * 0.92,
+        y: velocityRef.current.y * 0.92,
+      };
+
+      const hasMotion = Math.abs(velocityRef.current.x) > 0.05 || Math.abs(velocityRef.current.y) > 0.05;
+      if (!hasMotion) {
+        inertiaFrameRef.current = null;
+        return;
+      }
+
+      rotationRef.current = {
+        x: clamp(rotationRef.current.x + velocityRef.current.x, -45, 45),
+        y: rotationRef.current.y + velocityRef.current.y,
+      };
+      scheduleRotationRender();
+      inertiaFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    inertiaFrameRef.current = window.requestAnimationFrame(tick);
   };
 
   return (
@@ -166,7 +246,7 @@ export function KnowledgePlanetPrototype() {
         }`}
       >
         <div
-          className="relative aspect-square w-[min(72vw,32rem)] touch-none"
+          className="relative aspect-square w-[min(72vw,32rem)] cursor-grab touch-none active:cursor-grabbing"
           onPointerDown={handlePlanetPointerDown}
           onPointerMove={handlePlanetPointerMove}
           onPointerUp={handlePlanetPointerUp}
@@ -174,34 +254,58 @@ export function KnowledgePlanetPrototype() {
           onWheel={handlePlanetWheel}
         >
           <div
-            className="absolute inset-0 transition-transform duration-300 ease-out"
-            style={{
-              transform: `scale(${zoom}) perspective(900px) rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
-            }}
+            className={`pointer-events-none absolute inset-0 ${isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'}`}
+            style={{ transform: `scale(${zoom})` }}
           >
-            <div className="absolute inset-0 rounded-full border border-[#00ffc2]/20 bg-[radial-gradient(circle_at_32%_28%,rgba(133,255,220,0.22),transparent_18%),radial-gradient(circle_at_62%_38%,rgba(30,80,86,0.9),transparent_28%),radial-gradient(circle_at_45%_70%,rgba(12,25,28,0.98),rgba(7,11,13,1)_72%)] shadow-[inset_-36px_-24px_70px_rgba(0,0,0,0.6),0_0_80px_rgba(0,255,194,0.16)]" />
-            <div className="absolute inset-[8%] rounded-full opacity-75 [background-image:radial-gradient(circle_at_20%_28%,rgba(0,255,194,0.18)_0_7%,transparent_8%),radial-gradient(circle_at_68%_24%,rgba(0,255,194,0.14)_0_8%,transparent_9%),radial-gradient(circle_at_56%_64%,rgba(0,255,194,0.12)_0_10%,transparent_11%),radial-gradient(circle_at_30%_70%,rgba(0,255,194,0.08)_0_9%,transparent_10%)] blur-[1px]" />
+            <div className="absolute inset-0 overflow-hidden rounded-full border border-[#00ffc2]/20 bg-[radial-gradient(circle_at_32%_28%,rgba(133,255,220,0.22),transparent_18%),radial-gradient(circle_at_62%_38%,rgba(30,80,86,0.9),transparent_28%),radial-gradient(circle_at_45%_70%,rgba(12,25,28,0.98),rgba(7,11,13,1)_72%)] shadow-[inset_-36px_-24px_70px_rgba(0,0,0,0.6),0_0_80px_rgba(0,255,194,0.16)]">
+              <div
+                className={`absolute inset-[-8%] rounded-full bg-cover bg-center opacity-45 mix-blend-screen ${
+                  isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'
+                }`}
+                style={{
+                  backgroundImage: `url(${planetTexture})`,
+                  transform: `translate3d(${wrapDegrees(renderRotation.y) * 0.12}px, ${renderRotation.x * -0.08}px, 0) scale(1.16)`,
+                }}
+              />
+              <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_28%_24%,rgba(255,255,255,0.22),transparent_24%),radial-gradient(circle_at_68%_72%,rgba(0,0,0,0.58),transparent_38%)]" />
+            </div>
             <div className="absolute inset-[-4%] rounded-full border border-[#00ffc2]/15 blur-md" />
           </div>
 
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              type="button"
-              onClick={() => {
-                setSelectedCategoryId(category.id);
-                setSelectedLeafId(null);
-                setView('tree');
-              }}
-              className="group absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ top: category.position.top, left: category.position.left }}
-            >
-              <span className="block h-3 w-3 rounded-full bg-[#00ffc2] shadow-[0_0_18px_rgba(0,255,194,0.95)] transition duration-300 group-hover:scale-125" />
-              <span className="absolute left-1/2 top-5 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#00ffc2]/20 bg-[#101417]/85 px-3 py-1 text-xs text-white/80 backdrop-blur-sm">
-                {category.name}
-              </span>
-            </button>
-          ))}
+          {categories.map((category) => {
+            const projection = projectSpherePoint(category.sphere.latitude, category.sphere.longitude, renderRotation);
+
+            return (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => {
+                  setSelectedCategoryId(category.id);
+                  setSelectedLeafId(null);
+                  setView('tree');
+                }}
+                className="group absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-all duration-200"
+                style={{
+                  top: `${projection.y}%`,
+                  left: `${projection.x}%`,
+                  opacity: projection.visible ? projection.opacity : 0,
+                  transform: `translate(-50%, -50%) scale(${projection.scale})`,
+                  pointerEvents: projection.visible ? 'auto' : 'none',
+                } satisfies CSSProperties}
+              >
+                <span className="block h-3 w-3 rounded-full bg-[#00ffc2] shadow-[0_0_18px_rgba(0,255,194,0.95)] transition duration-300 group-hover:scale-125" />
+                <span className="absolute left-1/2 top-5 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#00ffc2]/20 bg-[#101417]/85 px-3 py-1 text-xs text-white/80 backdrop-blur-sm">
+                  {category.name}
+                </span>
+              </button>
+            );
+          })}
+
+          {!categoriesQuery.isPending && categories.length === 0 ? (
+            <div className="absolute inset-x-0 bottom-8 text-center text-sm text-white/45">
+              표시할 아카이브 카테고리가 없습니다.
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -255,6 +359,12 @@ export function KnowledgePlanetPrototype() {
                 </button>
               );
             })}
+
+            {!cardsQuery.isPending && leaves.length === 0 ? (
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-sm text-white/45">
+                이 카테고리에는 아직 지식 카드가 없습니다.
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -296,8 +406,9 @@ export function KnowledgePlanetPrototype() {
 function SceneBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(0,255,194,0.08),transparent_28%),radial-gradient(circle_at_50%_100%,rgba(30,80,86,0.28),transparent_34%)]" />
-      <div className="absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00ffc2]/10 blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_44%,rgba(0,255,194,0.06),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(30,80,86,0.24),transparent_36%)]" />
+      <div className="absolute left-1/2 top-1/2 h-[31rem] w-[31rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,255,194,0.18)_0%,rgba(0,255,194,0.08)_34%,rgba(0,255,194,0)_72%)] blur-2xl" />
+      <div className="absolute left-1/2 top-1/2 h-[25rem] w-[25rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(133,255,220,0.1)_0%,rgba(133,255,220,0)_70%)] blur-xl" />
     </div>
   );
 }
@@ -352,4 +463,35 @@ function getFocusedRelationOpacity(strength: number) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function projectSpherePoint(latitude: number, longitude: number, rotation: Rotation) {
+  const lat = toRadians(latitude);
+  const lon = toRadians(longitude + rotation.y);
+  const pitch = toRadians(rotation.x);
+
+  const x = Math.cos(lat) * Math.sin(lon);
+  const yBase = Math.sin(lat);
+  const zBase = Math.cos(lat) * Math.cos(lon);
+
+  const y = yBase * Math.cos(pitch) - zBase * Math.sin(pitch);
+  const z = yBase * Math.sin(pitch) + zBase * Math.cos(pitch);
+  const visible = z > -0.08;
+  const depth = clamp((z + 1) / 2, 0, 1);
+
+  return {
+    x: 50 + x * 38,
+    y: 50 - y * 38,
+    visible,
+    scale: 0.72 + depth * 0.4,
+    opacity: 0.28 + depth * 0.72,
+  };
+}
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function wrapDegrees(value: number) {
+  return ((value % 360) + 360) % 360 - 180;
 }

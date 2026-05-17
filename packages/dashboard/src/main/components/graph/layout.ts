@@ -23,6 +23,20 @@ export function createPlanetMarkerPositions(count: number): Position[] {
   });
 }
 
+export function createPlanetMarkerSpherePoints(count: number) {
+  if (count <= 0) return [];
+
+  return Array.from({ length: count }, (_, index) => {
+    const longitude = -140 + (280 / Math.max(count, 1)) * index;
+    const latitudePattern = [26, 10, -12, -22, -36, 18, -4, 34];
+
+    return {
+      latitude: latitudePattern[index % latitudePattern.length],
+      longitude,
+    };
+  });
+}
+
 export function createCanopyLeafPositions(count: number): Position[] {
   if (count <= 0) return [];
 

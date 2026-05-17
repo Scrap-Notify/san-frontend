@@ -5,6 +5,10 @@ export type GraphCategory = {
     top: string;
     left: string;
   };
+  sphere: {
+    latitude: number;
+    longitude: number;
+  };
 };
 
 export type GraphLeaf = {
