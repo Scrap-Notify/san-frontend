@@ -4,6 +4,8 @@ import type {
   TilGenerateRequest,
   TilGenerationJobResponse,
   TilGithubCommitJobResponse,
+  TilGithubContributionParams,
+  TilGithubContributionResponse,
   TilRecallCardsResponse,
   TilResponse,
   TilSourcesResponse,
@@ -45,6 +47,11 @@ export function createTilApi(apiClient: AxiosInstance) {
     commitToGithub: (summaryId: string): Promise<TilGithubCommitJobResponse> =>
       apiClient
         .post<ApiResponse<TilGithubCommitJobResponse>>(`/til/${summaryId}/github-commit`)
+        .then((response) => unwrapApiResponse(response.data)),
+
+    getGithubContributions: (params?: TilGithubContributionParams): Promise<TilGithubContributionResponse> =>
+      apiClient
+        .get<ApiResponse<TilGithubContributionResponse>>('/til/github-commits/contributions', { params })
         .then((response) => unwrapApiResponse(response.data)),
   };
 }

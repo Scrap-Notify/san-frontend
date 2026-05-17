@@ -1,10 +1,11 @@
 import { ExternalLink, FolderGit2, GitBranch, RefreshCw, Loader2, Search, Link2, TerminalSquare, AlertTriangle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getApiErrorMessage, type GithubRepository } from '@san/shared';
-import { githubApi } from '../api/client';
+import { getApiErrorMessage, type GithubRepository, type TilGithubContributionResponse } from '@san/shared';
+import { githubApi, tilApi } from '../api/client';
 import githubSvg from '@ui/assets/icons/github.svg';
 import { InlineActionToast } from '../components/toast/InlineActionToast';
+import { GithubContributionGraph } from './components/GithubContributionGraph';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
   A009: 'GitHub 계정이 연동되어 있지 않습니다.',
@@ -40,6 +41,24 @@ function RepositorySkeleton() {
   );
 }
 
+function formatDateParam(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getRecentSixMonthRange() {
+  const to = new Date();
+  const from = new Date(to);
+  from.setMonth(from.getMonth() - 6);
+
+  return {
+    from: formatDateParam(from),
+    to: formatDateParam(to),
+  };
+}
+
 export function SettingsIntegrationsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -57,6 +76,9 @@ export function SettingsIntegrationsPage() {
   const [isLinking, setIsLinking] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [connectingRepoId, setConnectingRepoId] = useState<number | null>(null);
+  const [githubContribution, setGithubContribution] = useState<TilGithubContributionResponse | null>(null);
+  const [isLoadingContribution, setIsLoadingContribution] = useState(false);
+  const [contributionError, setContributionError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -204,6 +226,32 @@ export function SettingsIntegrationsPage() {
       setErrorMessage(getApiErrorMessage(error, '레포지토리 연결 해제에 실패했습니다.'));
     }
   };
+
+  const loadGithubContributions = useCallback(async () => {
+    if (!isGithubLinked) {
+      setGithubContribution(null);
+      setContributionError(null);
+      return;
+    }
+
+    setIsLoadingContribution(true);
+    setContributionError(null);
+
+    try {
+      const range = getRecentSixMonthRange();
+      const contribution = await tilApi.getGithubContributions(range);
+      setGithubContribution(contribution);
+    } catch {
+      setGithubContribution(null);
+      setContributionError('TIL 커밋 기록을 불러오지 못했습니다.');
+    } finally {
+      setIsLoadingContribution(false);
+    }
+  }, [isGithubLinked]);
+
+  useEffect(() => {
+    void loadGithubContributions();
+  }, [loadGithubContributions]);
 
   const filteredAvailableRepos = useMemo(() => {
     const connectedIds = new Set(connectedRepositories.map(r => r.githubRepositoryId));
@@ -413,7 +461,7 @@ export function SettingsIntegrationsPage() {
           <div className={`flex flex-col overflow-hidden rounded-xl bg-transparent p-4 ${
             isGithubLinked && connectedRepositories.length > 0
               ? 'border border-transparent'
-              : 'h-[460px] border border-white/5'
+              : 'min-h-[220px] border border-white/10 bg-[#151718]/45'
           }`}>
             {!isGithubLinked || (!isLoadingConnected && connectedRepositories.length === 0) ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
@@ -491,6 +539,15 @@ export function SettingsIntegrationsPage() {
               </div>
             )}
           </div>
+
+          {isGithubLinked && (
+            <GithubContributionGraph
+              contribution={githubContribution}
+              isLoading={isLoadingContribution}
+              error={contributionError}
+              onRetry={loadGithubContributions}
+            />
+          )}
         </div>
 
       </div>
