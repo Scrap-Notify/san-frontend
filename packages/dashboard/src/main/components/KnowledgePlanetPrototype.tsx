@@ -37,7 +37,7 @@ export function KnowledgePlanetPrototype() {
   const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
   const relationsQuery = useArchiveCardTagRelations(selectedLeafId);
   const detailQuery = useCardDetail(selectedLeafId);
-  const useFixtureData = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES === 'true';
+  const useFixtureData = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES !== 'false';
 
   const categories = useMemo<GraphCategory[]>(() => {
     const apiCategories = categoriesQuery.data?.categories;
@@ -179,6 +179,7 @@ export function KnowledgePlanetPrototype() {
   };
 
   const handlePlanetWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
+    if (!event.ctrlKey) return;
     event.preventDefault();
     setZoom((current) => clamp(current - event.deltaY * 0.0012, 0.84, 1.18));
   };
@@ -257,9 +258,9 @@ export function KnowledgePlanetPrototype() {
             className={`pointer-events-none absolute inset-0 ${isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'}`}
             style={{ transform: `scale(${zoom})` }}
           >
-            <div className="absolute inset-0 overflow-hidden rounded-full border border-[#00ffc2]/20 bg-[radial-gradient(circle_at_32%_28%,rgba(133,255,220,0.22),transparent_18%),radial-gradient(circle_at_62%_38%,rgba(30,80,86,0.9),transparent_28%),radial-gradient(circle_at_45%_70%,rgba(12,25,28,0.98),rgba(7,11,13,1)_72%)] shadow-[inset_-36px_-24px_70px_rgba(0,0,0,0.6),0_0_80px_rgba(0,255,194,0.16)]">
+            <div className="absolute inset-0 overflow-hidden rounded-full border border-[#00ffc2]/5 bg-[radial-gradient(circle_at_32%_28%,rgba(133,255,220,0.22),transparent_18%),radial-gradient(circle_at_62%_38%,rgba(30,80,86,0.9),transparent_28%),radial-gradient(circle_at_45%_70%,rgba(12,25,28,0.98),rgba(7,11,13,1)_72%)] shadow-[inset_-36px_-24px_70px_rgba(0,0,0,0.6),0_0_80px_rgba(0,255,194,0.16)]">
               <div
-                className={`absolute inset-[-8%] rounded-full bg-cover bg-center opacity-45 mix-blend-screen ${
+                className={`absolute inset-[-8%] rounded-full bg-cover bg-center opacity-70 mix-blend-screen ${
                   isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'
                 }`}
                 style={{
