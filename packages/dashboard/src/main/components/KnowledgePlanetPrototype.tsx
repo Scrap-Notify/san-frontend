@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import {
-  useArchiveCardTagRelations,
-  useArchiveCategories,
-  useArchiveCategoryCards,
-  useCardDetail,
-} from '@san/shared';
+import { useArchiveCategories, useArchiveCategoryCards } from '@san/shared';
 import planetSource from '../../assets/ph1_real_sphere.png';
 import type { GraphCategory, GraphLeaf } from './graph/types';
+import { CategoryTreeView } from './CategoryTreeView';
 import {
   createCanopyLeafPositions,
   createPlanetMarkerPositions,
@@ -25,7 +21,6 @@ const restingRotationBase: Rotation = { x: -8, y: 18 };
 export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedLeafId, setSelectedLeafId] = useState<string | null>(null);
   const [renderRotation, setRenderRotation] = useState<Rotation>(restingRotationBase);
   const [zoom, setZoom] = useState(1);
   const [isDraggingPlanet, setIsDraggingPlanet] = useState(false);
@@ -40,8 +35,6 @@ export function KnowledgePlanetPrototype() {
 
   const categoriesQuery = useArchiveCategories();
   const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
-  const relationsQuery = useArchiveCardTagRelations(selectedLeafId);
-  const detailQuery = useCardDetail(selectedLeafId);
   const useFixtureData = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES !== 'false';
 
   const categories = useMemo<GraphCategory[]>(() => {
@@ -81,7 +74,8 @@ export function KnowledgePlanetPrototype() {
     if (!apiCards?.length && !useFixtureData) return [];
 
     if (!apiCards?.length && useFixtureData) {
-      const fixtureLeaves = graphFixtureLeavesByCategory[selectedCategoryId ?? 'nature'] ?? [];
+      const fixtureLeaves =
+        graphFixtureLeavesByCategory[selectedCategoryId ?? 'nature'] ?? graphFixtureLeavesByCategory.nature ?? [];
       const positions = createCanopyLeafPositions(fixtureLeaves.length);
 
       return fixtureLeaves.map((leaf, index) => ({
@@ -101,49 +95,7 @@ export function KnowledgePlanetPrototype() {
     }));
   }, [cardsQuery.data?.cards, selectedCategoryId, useFixtureData]);
 
-  const selectedLeaf = leaves.find((leaf) => leaf.id === selectedLeafId) ?? null;
-  const relatedLeafIds = useMemo(() => {
-    if (!selectedLeaf) return new Set<string>();
-    const apiRelatedIds = relationsQuery.data?.relatedCards.map((card) => card.cardId);
-    if (apiRelatedIds?.length) {
-      return new Set(apiRelatedIds.filter((cardId) => leaves.some((leaf) => leaf.id === cardId)));
-    }
-
-    return new Set(
-      leaves
-        .filter((leaf) => leaf.id !== selectedLeaf.id && leaf.tags.some((tag) => selectedLeaf.tags.includes(tag)))
-        .map((leaf) => leaf.id),
-    );
-  }, [leaves, relationsQuery.data?.relatedCards, selectedLeaf]);
-
-  const hasFocus = Boolean(selectedLeaf);
-  const sharedTagLinks = useMemo(() => {
-    const links: Array<{ from: GraphLeaf; to: GraphLeaf; strength: number }> = [];
-
-    if (selectedLeaf && relationsQuery.data?.relatedCards.length) {
-      relationsQuery.data.relatedCards.forEach((relatedCard) => {
-        const relatedLeaf = leaves.find((leaf) => leaf.id === relatedCard.cardId);
-        if (!relatedLeaf) return;
-        links.push({ from: selectedLeaf, to: relatedLeaf, strength: relatedCard.matchedTagCount });
-      });
-      return links;
-    }
-
-    leaves.forEach((from, index) => {
-      leaves.slice(index + 1).forEach((to) => {
-        const sharedTagCount = from.tags.filter((tag) => to.tags.includes(tag)).length;
-        if (sharedTagCount > 0) links.push({ from, to, strength: sharedTagCount });
-      });
-    });
-
-    return links;
-  }, [leaves, relationsQuery.data?.relatedCards, selectedLeaf]);
-
   const handleBack = () => {
-    if (selectedLeafId) {
-      setSelectedLeafId(null);
-      return;
-    }
     setView('planet');
   };
 
@@ -167,12 +119,12 @@ export function KnowledgePlanetPrototype() {
     const deltaY = event.clientY - dragState.current.y;
     dragState.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
 
-    const inputX = -deltaY * 0.16;
-    const inputY = deltaX * 0.24;
+    const inputX = -deltaY * 0.24;
+    const inputY = deltaX * 0.36;
 
     targetRotationRef.current = {
-      x: clamp(restingRotationRef.current.x + clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + inputX, -10, 10), -18, 8),
-      y: restingRotationRef.current.y + clamp(targetRotationRef.current.y - restingRotationRef.current.y + inputY, -14, 14),
+      x: clamp(restingRotationRef.current.x + clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + inputX, -14, 14), -22, 12),
+      y: restingRotationRef.current.y + clamp(targetRotationRef.current.y - restingRotationRef.current.y + inputY, -20, 20),
     };
     velocityRef.current = {
       x: lerp(velocityRef.current.x, inputX, 0.22),
@@ -210,8 +162,8 @@ export function KnowledgePlanetPrototype() {
     animationFrameRef.current = window.requestAnimationFrame(() => {
       animationFrameRef.current = null;
       rotationRef.current = {
-        x: roundTo(lerpAngle(rotationRef.current.x, targetRotationRef.current.x, isDraggingRef.current ? 0.18 : 0.16), 3),
-        y: roundTo(lerp(rotationRef.current.y, targetRotationRef.current.y, isDraggingRef.current ? 0.18 : 0.16), 3),
+        x: roundTo(lerpAngle(rotationRef.current.x, targetRotationRef.current.x, isDraggingRef.current ? 0.22 : 0.16), 3),
+        y: roundTo(lerp(rotationRef.current.y, targetRotationRef.current.y, isDraggingRef.current ? 0.22 : 0.16), 3),
       };
       setRenderRotation({ ...rotationRef.current });
 
@@ -244,13 +196,13 @@ export function KnowledgePlanetPrototype() {
       targetRotationRef.current = {
         x: clamp(
           restingRotationRef.current.x +
-            clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + velocityRef.current.x * 0.22, -10, 10),
-          -18,
-          8,
+            clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + velocityRef.current.x * 0.24, -14, 14),
+          -22,
+          12,
         ),
         y:
           restingRotationRef.current.y +
-          clamp(targetRotationRef.current.y - restingRotationRef.current.y + velocityRef.current.y * 0.22, -14, 14),
+          clamp(targetRotationRef.current.y - restingRotationRef.current.y + velocityRef.current.y * 0.24, -20, 20),
       };
       scheduleRotationRender();
       inertiaFrameRef.current = window.requestAnimationFrame(tick);
@@ -324,14 +276,13 @@ export function KnowledgePlanetPrototype() {
                 type="button"
                 onClick={() => {
                   setSelectedCategoryId(category.id);
-                  setSelectedLeafId(null);
                   setView('tree');
                 }}
                 className="group/marker absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-all duration-300"
                 style={{
                   top: `${projection.y}%`,
                   left: `${projection.x}%`,
-                  opacity: projection.visible ? projection.opacity : 0,
+                  opacity: projection.visible ? 1 : 0,
                   transform: `translate(-50%, -50%) scale(${projection.scale})`,
                   pointerEvents: projection.visible ? 'auto' : 'none',
                 } satisfies CSSProperties}
@@ -341,7 +292,7 @@ export function KnowledgePlanetPrototype() {
                   style={{
                     width: `${projection.glowSize}px`,
                     height: `${projection.glowSize}px`,
-                    opacity: projection.markerOpacity,
+                    opacity: 1,
                   }}
                 />
                 <span
@@ -356,7 +307,7 @@ export function KnowledgePlanetPrototype() {
                   style={{
                     width: `${projection.coreSize}px`,
                     height: `${projection.coreSize}px`,
-                    opacity: projection.markerOpacity,
+                    opacity: 1,
                   }}
                 />
                 <span className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs text-white/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-300 group-hover/marker:translate-y-0 group-hover/marker:opacity-100">
@@ -379,90 +330,7 @@ export function KnowledgePlanetPrototype() {
           view === 'tree' ? 'scale-100 opacity-100' : 'pointer-events-none scale-75 opacity-0'
         }`}
       >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative h-full w-full max-w-[58rem]">
-            <TreeIllustration />
-
-            <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {sharedTagLinks.map(({ from, to, strength }) => (
-                <line
-                  key={`${from.id}-${to.id}`}
-                  x1={parseFloat(from.position.left)}
-                  y1={parseFloat(from.position.top)}
-                  x2={parseFloat(to.position.left)}
-                  y2={parseFloat(to.position.top)}
-                  stroke="#00ffc2"
-                  strokeOpacity={hasFocus ? getFocusedRelationOpacity(strength) : getRelationOpacity(strength)}
-                  strokeDasharray="4 6"
-                  strokeWidth={getRelationStrokeWidth(strength)}
-                />
-              ))}
-            </svg>
-
-            {leaves.map((leaf) => {
-              const isSelected = leaf.id === selectedLeafId;
-              const isRelated = relatedLeafIds.has(leaf.id);
-              const isDimmed = hasFocus && !isSelected && !isRelated;
-
-              return (
-                <button
-                  key={leaf.id}
-                  type="button"
-                  onClick={() => setSelectedLeafId(leaf.id)}
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 border px-4 py-3 text-left text-sm transition-all duration-300 ${
-                    isSelected || isRelated
-                      ? 'border-[#00ffc2]/80 bg-[#1e5056]/60 shadow-[0_0_28px_rgba(0,255,194,0.75)]'
-                      : 'border-[#00ffc2]/30 bg-[#1e5056]/40 hover:bg-[#1e5056]/60 hover:shadow-[0_0_20px_rgba(0,255,194,0.4)]'
-                  } ${isDimmed ? 'opacity-35 saturate-50' : 'opacity-100'}`}
-                  style={{
-                    top: leaf.position.top,
-                    left: leaf.position.left,
-                    borderRadius: '60% 40% 60% 40%',
-                  }}
-                >
-                  <span className="block min-w-[6rem] text-xs font-medium text-white/90">{leaf.title}</span>
-                </button>
-              );
-            })}
-
-            {!cardsQuery.isPending && leaves.length === 0 ? (
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-sm text-white/45">
-                이 카테고리에는 아직 지식 카드가 없습니다.
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <aside
-          className={`absolute right-0 top-0 z-20 flex h-full w-full max-w-md flex-col justify-center border-l border-[#00ffc2]/10 bg-[#101417]/90 p-6 backdrop-blur-md transition-transform duration-500 ${
-            selectedLeaf ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          {selectedLeaf ? (
-            <div
-              className="relative border border-[#00ffc2]/30 bg-[#1e5056]/40 p-6 shadow-[0_0_34px_rgba(0,255,194,0.18)]"
-              style={{ borderRadius: '60% 40% 60% 40%' }}
-            >
-              <p className="mb-3 text-sm text-[#00ffc2]/80">Leaf Detail</p>
-              <h3 className="text-2xl font-semibold">{selectedLeaf.title}</h3>
-              <p className="mt-4 leading-7 text-white/75">
-                {detailQuery.isPending
-                  ? '요약을 불러오는 중입니다.'
-                  : detailQuery.data?.summary?.trim()
-                    ? detailQuery.data.summary
-                    : selectedLeaf.summary ?? '이 카드의 요약은 아직 준비되지 않았습니다.'}
-              </p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {selectedLeaf.tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-[#00ffc2]/10 px-3 py-1 text-sm text-[#00ffc2]">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-5 text-sm text-white/55">수집일 {selectedLeaf.collectedAt}</p>
-            </div>
-          ) : null}
-        </aside>
+        <CategoryTreeView leaves={leaves} isPending={cardsQuery.isPending} selectedCategoryId={selectedCategoryId} />
       </div>
     </section>
   );
@@ -478,31 +346,6 @@ function SceneBackdrop() {
   );
 }
 
-function TreeIllustration() {
-  return (
-    <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <defs>
-        <radialGradient id="canopyGlow" cx="50%" cy="38%" r="45%">
-          <stop offset="0%" stopColor="#00ffc2" stopOpacity="0.28" />
-          <stop offset="100%" stopColor="#00ffc2" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="trunkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#315058" />
-          <stop offset="100%" stopColor="#122328" />
-        </linearGradient>
-      </defs>
-      <ellipse cx="50" cy="38" rx="31" ry="24" fill="url(#canopyGlow)" />
-      <path d="M49 84 C48 73, 48 62, 50 50 C51 43, 49 36, 46 30" stroke="url(#trunkGradient)" strokeWidth="4.8" strokeLinecap="round" fill="none" />
-      <path d="M50 58 C42 48, 34 42, 25 36" stroke="#234149" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-      <path d="M50 54 C58 46, 67 40, 76 33" stroke="#234149" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-      <path d="M49 67 C41 60, 35 57, 29 54" stroke="#1e373d" strokeWidth="2" strokeLinecap="round" fill="none" />
-      <path d="M51 65 C58 58, 66 55, 72 50" stroke="#1e373d" strokeWidth="2" strokeLinecap="round" fill="none" />
-      <path d="M50 83 C44 88, 38 90, 31 91" stroke="#183137" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-      <path d="M50 83 C57 88, 63 90, 70 91" stroke="#183137" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-    </svg>
-  );
-}
-
 function formatArchiveDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -512,18 +355,6 @@ function formatArchiveDate(value: string) {
     month: '2-digit',
     day: '2-digit',
   }).format(date);
-}
-
-function getRelationOpacity(strength: number) {
-  return Math.min(0.22 + strength * 0.16, 0.82);
-}
-
-function getRelationStrokeWidth(strength: number) {
-  return Math.min(0.28 + strength * 0.18, 1.1);
-}
-
-function getFocusedRelationOpacity(strength: number) {
-  return Math.min(0.36 + strength * 0.2, 0.92);
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -566,11 +397,11 @@ function projectSpherePoint(latitude: number, longitude: number, rotation: Rotat
     y: 50 - y * 38,
     visible,
     scale: 0.72 + depth * 0.4,
-    opacity: 0.28 + depth * 0.72,
-    markerOpacity: 0.38 + depth * 0.56,
-    coreSize: 2.2 + depth * 2.2,
-    glowSize: 18 + depth * 12,
-    pulseSize: 8 + depth * 6,
+    opacity: 1,
+    markerOpacity: 1,
+    coreSize: 7 + depth * 5,
+    glowSize: 28 + depth * 18,
+    pulseSize: 14 + depth * 10,
   };
 }
 
