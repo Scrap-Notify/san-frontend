@@ -86,18 +86,34 @@ export function KnowledgePlanetPrototype() {
   }, [leaves, relationsQuery.data?.relatedCards, selectedLeaf]);
 
   const sharedTagLinks = useMemo(() => {
-    const links: Array<{ from: GraphLeaf; to: GraphLeaf }> = [];
+    const links: Array<{ from: GraphLeaf; to: GraphLeaf; strength: number }> = [];
+
+    if (selectedLeaf && relationsQuery.data?.relatedCards.length) {
+      relationsQuery.data.relatedCards.forEach((relatedCard) => {
+        const relatedLeaf = leaves.find((leaf) => leaf.id === relatedCard.cardId);
+        if (!relatedLeaf) return;
+
+        links.push({
+          from: selectedLeaf,
+          to: relatedLeaf,
+          strength: relatedCard.matchedTagCount,
+        });
+      });
+
+      return links;
+    }
 
     leaves.forEach((from, index) => {
       leaves.slice(index + 1).forEach((to) => {
-        if (from.tags.some((tag) => to.tags.includes(tag))) {
-          links.push({ from, to });
+        const sharedTagCount = from.tags.filter((tag) => to.tags.includes(tag)).length;
+        if (sharedTagCount > 0) {
+          links.push({ from, to, strength: sharedTagCount });
         }
       });
     });
 
     return links;
-  }, [leaves]);
+  }, [leaves, relationsQuery.data?.relatedCards, selectedLeaf]);
 
   const handleBack = () => {
     if (selectedLeafId) {
@@ -167,7 +183,7 @@ export function KnowledgePlanetPrototype() {
             <img src={treeImage} alt="Knowledge Tree" className="absolute inset-0 h-full w-full object-contain" />
 
             <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-              {sharedTagLinks.map(({ from, to }) => (
+              {sharedTagLinks.map(({ from, to, strength }) => (
                 <line
                   key={`${from.id}-${to.id}`}
                   x1={parseFloat(from.position.left)}
@@ -175,9 +191,9 @@ export function KnowledgePlanetPrototype() {
                   x2={parseFloat(to.position.left)}
                   y2={parseFloat(to.position.top)}
                   stroke="#00ffc2"
-                  strokeOpacity="0.3"
+                  strokeOpacity={getRelationOpacity(strength)}
                   strokeDasharray="4 6"
-                  strokeWidth="0.35"
+                  strokeWidth={getRelationStrokeWidth(strength)}
                 />
               ))}
             </svg>
@@ -253,4 +269,12 @@ function formatArchiveDate(value: string) {
     month: '2-digit',
     day: '2-digit',
   }).format(date);
+}
+
+function getRelationOpacity(strength: number) {
+  return Math.min(0.22 + strength * 0.16, 0.82);
+}
+
+function getRelationStrokeWidth(strength: number) {
+  return Math.min(0.28 + strength * 0.18, 1.1);
 }
