@@ -21,6 +21,7 @@ const restingRotationBase: Rotation = { x: -8, y: 18 };
 export function KnowledgePlanetPrototype() {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [treeEnterToken, setTreeEnterToken] = useState(0);
   const [renderRotation, setRenderRotation] = useState<Rotation>(restingRotationBase);
   const [zoom, setZoom] = useState(1);
   const [isDraggingPlanet, setIsDraggingPlanet] = useState(false);
@@ -274,10 +275,11 @@ export function KnowledgePlanetPrototype() {
               <button
                 key={category.id}
                 type="button"
-                onClick={() => {
-                  setSelectedCategoryId(category.id);
-                  setView('tree');
-                }}
+              onClick={() => {
+                setSelectedCategoryId(category.id);
+                setTreeEnterToken((current) => current + 1);
+                setView('tree');
+              }}
                 className="group/marker absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-all duration-300"
                 style={{
                   top: `${projection.y}%`,
@@ -330,7 +332,12 @@ export function KnowledgePlanetPrototype() {
           view === 'tree' ? 'scale-100 opacity-100' : 'pointer-events-none scale-75 opacity-0'
         }`}
       >
-        <CategoryTreeView leaves={leaves} isPending={cardsQuery.isPending} selectedCategoryId={selectedCategoryId} />
+        <CategoryTreeView
+          leaves={leaves}
+          isPending={cardsQuery.isPending}
+          selectedCategoryId={selectedCategoryId}
+          enterToken={treeEnterToken}
+        />
       </div>
     </section>
   );
