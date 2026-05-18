@@ -135,6 +135,16 @@ export function createAuthApi(apiClient: AxiosInstance) {
         .post<ApiResponse<TokenResponse>>('/auth/bridge/token', payload, publicRequest)
         .then((response) => unwrapApiResponse(response.data)),
 
+    createDashboardBridgeTicket: (): Promise<BridgeTicketResponse> =>
+      apiClient
+        .post<ApiResponse<BridgeTicketResponse>>('/auth/bridge/dashboard-ticket')
+        .then((response) => unwrapApiResponse(response.data)),
+
+    exchangeDashboardBridgeToken: (payload: BridgeTokenRequest): Promise<TokenResponse> =>
+      apiClient
+        .post<ApiResponse<TokenResponse>>('/auth/bridge/dashboard-token', payload, publicRequest)
+        .then((response) => unwrapApiResponse(response.data)),
+
     withdraw: (payload: WithdrawRequest): Promise<void> =>
       apiClient.delete<ApiResponse<void>>('/auth/withdraw', { data: payload }).then(() => undefined),
   };
