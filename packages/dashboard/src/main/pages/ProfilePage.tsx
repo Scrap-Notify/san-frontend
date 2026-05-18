@@ -10,6 +10,7 @@ import {
   setExtensionTilRecallSettings,
   type TilRecallSettings,
 } from '../../api/extensionAuth';
+import { useToast } from '../../components/shared/toast/toastContext';
 
 const sessionLabel: Record<AuthSession['clientType'], string> = {
   DASHBOARD: '대시보드',
@@ -56,6 +57,7 @@ function formatRecallTimeLabel(time: string) {
 export function ProfilePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [revokeSessionId, setRevokeSessionId] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -170,14 +172,27 @@ export function ProfilePage() {
     try {
       const savedSettings = await setExtensionTilRecallSettings(nextSettings);
       setRecallSettings(savedSettings);
+      showToast({
+        type: 'success',
+        title: '저장됐어요',
+        description: formatRecallTimeLabel(savedSettings.time),
+        duration: 2200,
+      });
     } catch (error) {
       console.warn('[SAN:recall-settings] failed to save recall settings', error);
       setRecallSettings(previousSettings);
-      setRecallSettingsError('알림 설정을 저장하지 못했어요. 익스텐션 연결을 확인해 주세요.');
+      const message = '알림 설정을 저장하지 못했어요. 익스텐션 연결을 확인해 주세요.';
+      setRecallSettingsError(message);
+      showToast({
+        type: 'error',
+        title: '저장 실패',
+        description: '익스텐션 연결을 확인해 주세요.',
+        duration: 2600,
+      });
     } finally {
       setIsRecallSettingsSaving(false);
     }
-  }, [recallSettings]);
+  }, [recallSettings, showToast]);
 
   const openShortcutSettings = useCallback(async () => {
     setShortcutSettingsMessage(null);
@@ -559,12 +574,10 @@ function ProfileSettingsCards({
               <p className="text-sm font-bold text-white">Recall 리마인더</p>
               <p className="mt-1 text-xs text-white/42">저장한 노트 복습 알림을 받습니다.</p>
             </div>
-            {isRecallSettingsSaving && (
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-primary-signal">
-                <Loader2 size={12} className="animate-spin" />
-                저장 중
-              </span>
-            )}
+            <RecallSaveStatus
+              isSaving={isRecallSettingsSaving}
+              error={recallSettingsError}
+            />
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -625,14 +638,32 @@ function ProfileSettingsCards({
           </div>
         </div>
 
-        {recallSettingsError && (
-          <p className="mt-5 rounded-md border border-primary-signal/15 bg-primary-signal/8 px-3 py-2 text-xs text-primary-signal/80">
-            {recallSettingsError}
-          </p>
-        )}
       </section>
     </section>
   );
+}
+
+function RecallSaveStatus({
+  isSaving,
+  error,
+}: {
+  isSaving: boolean;
+  error: string | null;
+}) {
+  if (isSaving) {
+    return (
+      <span className="flex items-center gap-1.5 text-[11px] font-semibold text-primary-signal">
+        <Loader2 size={12} className="animate-spin" />
+        저장 중
+      </span>
+    );
+  }
+
+  if (error) {
+    return <span className="text-[11px] font-semibold text-red-300">저장 실패</span>;
+  }
+
+  return null;
 }
 
 function ShortcutRow({ label, shortcut }: { label: string; shortcut: string }) {
