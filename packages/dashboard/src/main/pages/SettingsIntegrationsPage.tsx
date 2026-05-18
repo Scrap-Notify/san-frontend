@@ -263,7 +263,7 @@ export function SettingsIntegrationsPage() {
   const hasConnectedRepository = connectedRepositories.length > 0;
 
   return (
-    <section className="w-full min-w-0 space-y-lg py-dashboard-gap text-text-primary max-w-[1200px] mx-auto">
+    <section className="mx-auto w-full max-w-[1200px] space-y-8 py-12 text-text-primary">
 
       {/* ── 상단: GitHub 연동 상태 카드 ── */}
       <div className="rounded-xl border border-text-secondary/5 bg-surface-lowest p-8 shadow-sm">

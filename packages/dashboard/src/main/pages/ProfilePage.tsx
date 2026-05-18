@@ -153,7 +153,7 @@ export function ProfilePage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-[720px] py-6 text-text-primary">
+    <section className="mx-auto w-full max-w-[720px] py-12 text-text-primary">
       <header className="mb-7 border-b border-text-secondary/8 pb-6">
         <h1 className="bg-gradient-to-r from-text-primary to-text-secondary bg-clip-text text-h1-bold text-transparent">
           마이 프로필

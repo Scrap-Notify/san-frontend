@@ -129,7 +129,7 @@ export function TilPage() {
     return (
         <section className="flex h-auto w-full flex-col overflow-hidden bg-background text-text-primary lg:h-[calc(100vh-104px)]">
             <div className="flex h-full w-full flex-col lg:min-h-0 lg:flex-row">
-            <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-5 pt-1 md:px-3 lg:order-1">
+            <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-5 pt-12 md:px-3 lg:order-1">
                 <header className="mb-4 flex flex-col gap-2">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
                         <span className="text-primary-signal">T</span>

@@ -172,7 +172,7 @@ export function KnowledgeCardDetailPage() {
   }
 
   return (
-    <section className="flex w-full min-w-0 flex-col gap-8 text-text-primary">
+    <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           <button

@@ -208,7 +208,7 @@ function SearchPage({
   }, [inputValue, keyword, onSearchChange]);
 
   return (
-    <section className="flex w-full min-w-0 flex-col gap-12 py-12 text-text-primary">
+    <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-4">
         <h1 className="text-4xl font-extrabold tracking-tight text-text-primary">Archive</h1>
