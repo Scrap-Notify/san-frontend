@@ -9,6 +9,7 @@ import {
 } from '@san/shared';
 import { asyncJobsApi, cardsApi, scrapsApi, s3Api } from '@extension/api/client';
 import type { PendingScrap, SavedInsight } from '@extension/types';
+import { normalizeHttpUrl, normalizeSavedInsight } from '@extension/utils/scrap';
 
 const STORAGE_KEY = 'san:saved-insights';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
@@ -69,35 +70,46 @@ function toSavedInsight(scrap: PendingScrap): SavedInsight {
 }
 
 function toCreateScrapRequest(scrap: PendingScrap, imageObjectKey?: string | null): CreateScrapRequest {
+  const normalizedSourceUrl = normalizeHttpUrl(scrap.source_url);
+  const normalizedRawContent = scrap.raw_content?.trim() ?? '';
+  const inferredUrl = normalizedSourceUrl ?? normalizeHttpUrl(normalizedRawContent);
+
   if (scrap.source_type === 'LINK') {
     return {
-      sourceUrl: scrap.source_url,
-      rawContent: scrap.source_url ?? scrap.raw_content ?? scrap.title,
+      sourceUrl: inferredUrl,
+      rawContent: inferredUrl ?? scrap.raw_content ?? scrap.title,
     };
   }
 
   if (scrap.source_type === 'IMAGE') {
     return {
-      sourceUrl: scrap.source_url,
+      sourceUrl: normalizedSourceUrl,
       rawContent: scrap.image_url ?? scrap.raw_content ?? scrap.image_file_name ?? scrap.title,
       imageObjectKey,
     };
   }
 
   return {
-    sourceUrl: scrap.source_url,
-    rawContent: scrap.raw_content ?? scrap.source_url ?? scrap.image_file_name ?? scrap.title,
+    sourceUrl: inferredUrl ?? normalizedSourceUrl,
+    rawContent: scrap.raw_content ?? normalizedSourceUrl ?? scrap.image_file_name ?? scrap.title,
   };
 }
 
 export async function loadSavedInsights(): Promise<SavedInsight[]> {
   const stored = await chrome.storage.local.get(STORAGE_KEY);
   const value = stored[STORAGE_KEY];
-  return Array.isArray(value) ? value : [];
+  if (!Array.isArray(value)) return [];
+  const normalized = value
+    .filter((item): item is SavedInsight => Boolean(item) && typeof item === 'object')
+    .map((item) => normalizeSavedInsight(item));
+  if (JSON.stringify(value) !== JSON.stringify(normalized)) {
+    await chrome.storage.local.set({ [STORAGE_KEY]: normalized });
+  }
+  return normalized;
 }
 
 export async function saveInsights(cards: SavedInsight[]) {
-  await chrome.storage.local.set({ [STORAGE_KEY]: cards });
+  await chrome.storage.local.set({ [STORAGE_KEY]: cards.map((card) => normalizeSavedInsight(card)) });
 }
 
 export async function loadPendingScrap(): Promise<PendingScrap | null> {

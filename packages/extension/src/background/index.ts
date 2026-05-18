@@ -1,5 +1,6 @@
 // packages/extension/src/background/index.ts
 import type { ExtensionMessage, PendingScrap } from '@extension/types/index';
+import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
 
 const DEBUG_PREFIX = '[SAN:background]';
 const defaultBaseURL = import.meta.env.PROD
@@ -256,11 +257,16 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'san-scrap-page') {
     pushToSidePanel(metadata);
   } else if (info.menuItemId === 'san-scrap-selection' && info.selectionText) {
-    pushToSidePanel({
-      ...metadata,
-      source_type: 'TEXT',
-      raw_content: info.selectionText,
-    });
+    const selectionText = info.selectionText.trim();
+    pushToSidePanel(
+      isHttpUrl(selectionText)
+        ? createLinkScrap(selectionText)
+        : {
+            ...metadata,
+            source_type: 'TEXT',
+            raw_content: info.selectionText,
+          }
+    );
   }
 });
 

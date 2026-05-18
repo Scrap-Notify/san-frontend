@@ -24,6 +24,7 @@ import SidePanelNavbar from './components/layout/SidePanelNavbar';
 import { CreatedKnowledgeCard } from './components/knowledge/CreatedKnowledgeCard';
 import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCard';
 import { ExtensionAuthCard } from './components/auth/ExtensionAuthCard';
+import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
@@ -582,26 +583,28 @@ export default function SidePanel() {
   }, [hydrateServerSources, isAuthenticated, knowledgeSearchCards]);
 
   const handleTextDrop = useCallback(async (text: string) => {
-    const metadata = await requestActiveTabMetadata();
     await deletePendingImageFile(pendingScrap?.image_blob_id);
-    const nextPending: PendingScrap = {
-      ...(metadata ?? {
-        source_type: 'TEXT',
-        source_url: null,
-        raw_content: null,
-        image_url: null,
-        title: 'Dragged text',
-        domain: '',
-        favicon: null,
-      }),
-      source_type: 'TEXT',
-      raw_content: text,
-      image_blob_id: null,
-    };
+    const trimmedText = text.trim();
+    const nextPending: PendingScrap = isHttpUrl(trimmedText)
+      ? createLinkScrap(trimmedText)
+      : {
+          ...((await requestActiveTabMetadata()) ?? {
+            source_type: 'TEXT',
+            source_url: null,
+            raw_content: null,
+            image_url: null,
+            title: 'Dragged text',
+            domain: '',
+            favicon: null,
+          }),
+          source_type: 'TEXT',
+          raw_content: text,
+          image_blob_id: null,
+        };
 
     clearResultState();
     debugLog('drop zone text received', {
-      length: text.length,
+      length: trimmedText.length,
       source_url: nextPending.source_url,
       title: nextPending.title,
     });
