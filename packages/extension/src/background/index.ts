@@ -15,6 +15,7 @@ const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const SESSION_ID_KEY = 'san_session_id';
 const CLIENT_TYPE_KEY = 'san_client_type';
+const ACCESS_TOKEN_EXPIRES_AT_KEY = 'san_access_token_expires_at';
 const TIL_RECALL_SETTINGS_KEY = 'san:til-recall-settings';
 const TIL_RECALL_LAST_NOTIFIED_KEY = 'san:til-recall-last-notified-date';
 const TIL_RECALL_NOTIFICATION_TARGETS_KEY = 'san:til-recall-notification-targets';
@@ -38,6 +39,7 @@ interface AuthSyncMessage {
   refreshToken?: string;
   sessionId?: string;
   clientType?: 'DASHBOARD' | 'EXTENSION';
+  expiresIn?: number;
 }
 
 interface AuthClearMessage {
@@ -60,6 +62,7 @@ interface TokenResponse {
   accessToken: string;
   refreshToken: string;
   sessionId: string;
+  expiresIn?: number;
 }
 
 interface TilResponse {
@@ -637,6 +640,7 @@ async function reissueStoredTokens() {
     [ACCESS_TOKEN_KEY]: payload.data.accessToken,
     [REFRESH_TOKEN_KEY]: payload.data.refreshToken,
     [CLIENT_TYPE_KEY]: 'EXTENSION',
+    ...(payload.data.expiresIn ? { [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + payload.data.expiresIn * 1000) } : {}),
     ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
   });
 
@@ -669,6 +673,7 @@ async function exchangeAndSyncBridgeToken(message: LoginBridgeTicketMessage) {
     refreshToken: payload.data.refreshToken,
     sessionId: payload.data.sessionId,
     clientType: 'EXTENSION',
+    expiresIn: payload.data.expiresIn,
   });
 }
 
@@ -681,6 +686,7 @@ async function syncAuthTokens(message: AuthSyncMessage) {
     [ACCESS_TOKEN_KEY]: message.accessToken,
     [REFRESH_TOKEN_KEY]: message.refreshToken,
     [CLIENT_TYPE_KEY]: message.clientType ?? 'EXTENSION',
+    ...(message.expiresIn ? { [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + message.expiresIn * 1000) } : {}),
     ...(message.sessionId ? { [SESSION_ID_KEY]: message.sessionId } : {}),
   });
   notifyAuthStateChanged(true);
@@ -696,6 +702,7 @@ async function clearAuthTokens() {
     REFRESH_TOKEN_KEY,
     SESSION_ID_KEY,
     CLIENT_TYPE_KEY,
+    ACCESS_TOKEN_EXPIRES_AT_KEY,
   ]);
   notifyAuthStateChanged(false);
 }
