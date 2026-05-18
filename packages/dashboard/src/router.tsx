@@ -1,16 +1,17 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
-import { LoginPage } from './auth/LoginPage';
-import { HomePage } from './main/HomePage';
-import { Signup } from './auth/SignUpPage';
-import { ResultPage } from './github/ResultPage';
-import { GithubAuthResultPage } from './auth/GithubAuthResultPage';
-import { SettingsIntegrationsPage } from './main/SettingsIntegrationsPage';
-import { TilPage } from './til/TilPage';
-import { ProfilePage } from './main/ProfilePage';
-import { NotFoundPage } from './main/NotFoundPage';
-import { AuthGate } from './auth/AuthGate';
-import { KnowledgeCardDetailPage } from './cards/KnowledgeCardDetailPage';
+import { LoginPage } from './auth/pages/LoginPage';
+import { HomePage } from './main/pages/HomePage';
+import { Signup } from './auth/pages/SignUpPage';
+import { ArchiveCategoryPage } from './main/pages/ArchiveCategoryPage';
+import { ResultPage } from './github/pages/ResultPage';
+import { GithubAuthResultPage } from './auth/pages/GithubAuthResultPage';
+import { SettingsIntegrationsPage } from './main/pages/SettingsIntegrationsPage';
+import { TilPage } from './til/pages/TilPage';
+import { ProfilePage } from './main/pages/ProfilePage';
+import { NotFoundPage } from './main/pages/NotFoundPage';
+import { AuthGate } from './auth/components/AuthGate';
+import { KnowledgeCardDetailPage } from './cards/pages/KnowledgeCardDetailPage';
 
 export const router = createBrowserRouter([
   {
@@ -41,12 +42,24 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: '/result',
+        path: '/archive',
         element: (
           <AuthGate>
             <ResultPage />
           </AuthGate>
         ),
+      },
+      {
+        path: '/archive/:categoryId',
+        element: (
+          <AuthGate>
+            <ArchiveCategoryPage />
+          </AuthGate>
+        ),
+      },
+      {
+        path: '/result',
+        element: <LegacyResultRedirect />,
       },
       {
         path: '/til',
@@ -99,3 +112,8 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
+function LegacyResultRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/archive${location.search}`} replace />;
+}

@@ -1,6 +1,7 @@
 import {
   createApiClient,
   createAsyncJobsApi,
+  createArchiveApi,
   createAuthApi,
   createCardsApi,
   createFeedbackApi,
@@ -44,6 +45,7 @@ export const feedbackApi = createFeedbackApi(apiClient);
 export const searchApi = createSearchApi(apiClient);
 export const scrapsApi = createScrapsApi(apiClient);
 export const cardsApi = createCardsApi(apiClient);
+export const archiveApi = createArchiveApi(apiClient);
 export const tilApi = createTilApi(apiClient);
 export const asyncJobsApi = createAsyncJobsApi(apiClient);
 export const statisticsApi = createStatisticsApi(apiClient);

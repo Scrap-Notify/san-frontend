@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AlertTriangle, ChevronLeft, ChevronRight, GitCommitHorizontal, MoreHorizontal, MoreVertical, Trash2, PanelLeft, X } from 'lucide-react';
-import { CollectedDataPanel } from './components/CollectedDataPanel';
-import { TILEditor } from './components/TILEditor';
-import { useTilPageLogic } from './hooks/useTilPageLogic';
-import { TILModeTabs, type TILMode } from './components/TILModeTabs';
+import { CollectedDataPanel } from '../components/CollectedDataPanel';
+import { TILEditor } from '../components/TILEditor';
+import { useTilPageLogic } from '../hooks/useTilPageLogic';
+import { TILModeTabs, type TILMode } from '../components/TILModeTabs';
 import type { TilResponse } from '@san/shared';
 
 export function TilPage() {

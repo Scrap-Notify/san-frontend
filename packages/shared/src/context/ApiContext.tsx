@@ -2,6 +2,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import type { ScrapsApi } from '../api/scraps';
 import type { CardsApi } from '../api/cards';
+import type { ArchiveApi } from '../api/archive';
 
 // ----------------------------
 // Context 타입 정의
@@ -9,6 +10,7 @@ import type { CardsApi } from '../api/cards';
 interface ApiContextValue {
   scrapsApi: ScrapsApi;
   cardsApi: CardsApi;
+  archiveApi: ArchiveApi;
 }
 
 const ApiContext = createContext<ApiContextValue | null>(null);
@@ -21,12 +23,13 @@ const ApiContext = createContext<ApiContextValue | null>(null);
 interface ApiProviderProps {
   scrapsApi: ScrapsApi;
   cardsApi: CardsApi;
+  archiveApi: ArchiveApi;
   children: ReactNode;
 }
 
-export function ApiProvider({ scrapsApi, cardsApi, children }: ApiProviderProps) {
+export function ApiProvider({ scrapsApi, cardsApi, archiveApi, children }: ApiProviderProps) {
   return (
-    <ApiContext.Provider value={{ scrapsApi, cardsApi }}>
+    <ApiContext.Provider value={{ scrapsApi, cardsApi, archiveApi }}>
       {children}
     </ApiContext.Provider>
   );

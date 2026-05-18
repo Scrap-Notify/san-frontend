@@ -14,7 +14,7 @@ import type {
     TilJobTone,
     TilUpdateMutation,
 } from '@dashboard/til/types';
-import { ContentEmptyState } from '@dashboard/components/empty/ContentEmptyState';
+import { ContentEmptyState } from '@dashboard/components/shared/empty/ContentEmptyState';
 
 const STATUS_MESSAGE_VISIBLE_MS = 3500;
 

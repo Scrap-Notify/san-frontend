@@ -49,4 +49,13 @@ export type {
   TilSourcesResponse,
   TilUpdateRequest,
 } from './til';
+export type {
+  ArchiveCardTagRelationResponse,
+  ArchiveCardTagResponse,
+  ArchiveCategoryCardListResponse,
+  ArchiveCategoryCardResponse,
+  ArchiveCategoryListResponse,
+  ArchiveCategoryResponse,
+  ArchiveRelatedCardResponse,
+} from './archive';
 export { toKnowledgeCardView } from './knowledge';

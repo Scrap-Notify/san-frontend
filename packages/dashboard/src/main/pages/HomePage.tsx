@@ -1,5 +1,5 @@
-import { ArchiveSection } from './components/ArchiveSection';
-import { GraphSection } from './components/GraphSection';
+import { ArchiveSection } from '../components/archive/ArchiveSection';
+import { GraphSection } from '../components/graph/GraphSection';
 import { useLocation } from 'react-router-dom';
 
 export function HomePage() {

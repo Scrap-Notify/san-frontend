@@ -35,6 +35,8 @@ export { createScrapsApi } from './scraps';
 export type { ScrapsApi } from './scraps';
 export { createCardsApi } from './cards';
 export type { CardsApi } from './cards';
+export { createArchiveApi } from './archive';
+export type { ArchiveApi } from './archive';
 export { createSearchApi } from './search';
 export type { SearchApi } from './search';
 export { createS3Api, getS3ImageFileValidationError } from './s3';

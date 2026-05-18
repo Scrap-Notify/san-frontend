@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { ErrorFallback } from '@san/ui';
 import { authTokenStorage } from '@dashboard/api/client';
-import { useArchiveCards } from '@dashboard/hooks/useArchiveCards';
+import { useArchiveCards } from '@dashboard/main/hooks/useArchiveCards';
 import { HomeKnowledgeCardsEmptyState } from './HomeEmptyStates';
-import { HomeSectionTitle } from './HomeSectionTitle';
+import { HomeSectionTitle } from '../layout/HomeSectionTitle';
 
 export function ArchiveSection() {
   const navigate = useNavigate();

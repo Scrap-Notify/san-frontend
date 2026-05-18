@@ -2,10 +2,10 @@ import { ExternalLink, FolderGit2, GitBranch, RefreshCw, Loader2, Search, Link2,
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository, type TilGithubContributionResponse } from '@san/shared';
-import { githubApi, tilApi } from '../api/client';
+import { githubApi, tilApi } from '../../api/client';
 import githubSvg from '@ui/assets/icons/github.svg';
-import { InlineActionToast } from '../components/toast/InlineActionToast';
-import { GithubContributionGraph } from './components/GithubContributionGraph';
+import { InlineActionToast } from '../../components/shared/toast/InlineActionToast';
+import { GithubContributionGraph } from '../components/github/GithubContributionGraph';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
   A009: 'GitHub 계정이 연동되어 있지 않습니다.',
