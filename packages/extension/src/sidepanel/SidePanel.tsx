@@ -834,7 +834,7 @@ export default function SidePanel() {
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background px-4 pb-4 text-text-primary">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background text-text-primary">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <SidePanelNavbar
           isAuthenticated={isAuthenticated}
@@ -877,7 +877,7 @@ export default function SidePanel() {
           </div>
         )}
         <GlowBackground />
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-2 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
           {isAuthCardOpen && !isAuthenticated ? (
             <ExtensionAuthCard

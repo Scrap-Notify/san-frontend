@@ -25,7 +25,7 @@ export default function SidePanelNavbar({
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   return (
-    <div className="sticky top-0 z-20 -mx-4 flex h-16 items-center justify-between border-b border-action-accent/15 glass-panel bg-background/95 px-4 backdrop-blur-md">
+    <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-action-accent/15 glass-panel bg-background/95 px-4 backdrop-blur-md">
       <div className="flex min-w-0 flex-1 items-center">
         <button
           type="button"
