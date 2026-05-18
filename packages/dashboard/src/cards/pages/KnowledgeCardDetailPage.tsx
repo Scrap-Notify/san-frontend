@@ -465,12 +465,10 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
             </a>
           ) : null}
           {data.source.previewUrl ? (
-            <img src={data.source.previewUrl} alt="" className="max-h-40 w-full rounded-xl object-cover" />
+            <SourceImagePreview src={data.source.previewUrl} />
           ) : null}
           {data.source.type === 'TEXT' && data.source.rawContent ? (
-            <p className="line-clamp-6 whitespace-pre-wrap rounded-xl border border-white/5 bg-[#0B0D0F]/60 p-3 text-sm leading-6 text-white/50">
-              {data.source.rawContent}
-            </p>
+            <ExpandableSourceText text={data.source.rawContent} />
           ) : null}
         </div>
       </div>
@@ -543,6 +541,73 @@ function MetaRow({ label, value }: { label: string; value: string }) {
       <dt className="shrink-0 text-white/35">{label}</dt>
       <dd className="min-w-0 truncate text-right font-medium text-white/65">{value}</dd>
     </div>
+  );
+}
+
+function ExpandableSourceText({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const lineCount = text.split('\n').length;
+  const isLong = text.length > 360 || lineCount > 6;
+
+  return (
+    <div className="rounded-xl border border-white/5 bg-[#0B0D0F]/60 p-3">
+      <p
+        className={[
+          'whitespace-pre-wrap text-sm leading-6 text-white/50',
+          !expanded && isLong ? 'line-clamp-6' : '',
+        ].join(' ')}
+      >
+        {text}
+      </p>
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="mt-2 text-xs font-medium text-[#4ade80] transition-colors hover:text-[#4ade80]/80"
+        >
+          {expanded ? '접기' : '전체 보기'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SourceImagePreview({ src }: { src: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        className="group/img w-full rounded-xl border border-white/5 bg-[#0B0D0F]/60 p-1 transition hover:border-white/10"
+      >
+        <img
+          src={src}
+          alt=""
+          className="max-h-48 w-full rounded-lg object-contain"
+        />
+        <span className="mt-1 block text-center text-[10px] text-white/25 transition-colors group-hover/img:text-white/40">
+          클릭하여 원본 보기
+        </span>
+      </button>
+
+      {expanded && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setExpanded(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setExpanded(false)}
+          role="button"
+          tabIndex={0}
+        >
+          <img
+            src={src}
+            alt=""
+            className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
+          />
+        </div>
+      )}
+    </>
   );
 }
 
