@@ -210,12 +210,6 @@ export function ProfilePage() {
   const selectedRecallTimeLabel = RECALL_TIME_OPTIONS.find((option) => option.value === recallSettings.time)?.label
     ?? formatRecallTimeLabel(recallSettings.time);
 
-  useEffect(() => {
-    if (recallTimeDisabled) {
-      setIsRecallTimeMenuOpen(false);
-    }
-  }, [recallTimeDisabled]);
-
   const handleLogout = async () => {
     setIsLoggingOut(true);
 
@@ -514,6 +508,8 @@ function ProfileSettingsCards({
   openShortcutSettings: () => Promise<void>;
   shortcutSettingsMessage: string | null;
 }) {
+  const recallTimeMenuVisible = isRecallTimeMenuOpen && !recallTimeDisabled;
+
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)]">
       <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
@@ -602,11 +598,11 @@ function ProfileSettingsCards({
                 <span>{selectedRecallTimeLabel}</span>
                 <ChevronDown
                   size={14}
-                  className={`shrink-0 transition ${isRecallTimeMenuOpen ? 'rotate-180' : ''}`}
+                  className={`shrink-0 transition ${recallTimeMenuVisible ? 'rotate-180' : ''}`}
                 />
               </button>
 
-              {isRecallTimeMenuOpen && (
+              {recallTimeMenuVisible && (
                 <div className="absolute right-0 top-11 z-20 w-[142px] overflow-hidden rounded-lg border border-primary-signal/20 bg-[#101615] shadow-[0_18px_40px_rgba(0,0,0,0.42)]">
                   <div className="max-h-[216px] overflow-y-auto p-1.5">
                     {RECALL_TIME_OPTIONS.map((option) => {
