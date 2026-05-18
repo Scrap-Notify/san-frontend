@@ -685,8 +685,23 @@ export default function SidePanel() {
   }, [isAuthenticated]);
 
   const openDashboardCardDetail = useCallback((cardId: string) => {
-    if (!isAuthenticated) return;
-    chrome.tabs.create({ url: new URL(`/cards/${cardId}`, dashboardBaseUrl).toString() });
+    if (!isAuthenticated) {
+      chrome.tabs.create({ url: dashboardLoginUrl.toString() });
+      return;
+    }
+
+    void (async () => {
+      try {
+        const { ticket } = await authApi.createDashboardBridgeTicket();
+        const dashboardBridgeUrl = new URL('/auth/bridge/dashboard', dashboardBaseUrl);
+        dashboardBridgeUrl.searchParams.set('ticket', ticket);
+        dashboardBridgeUrl.searchParams.set('redirect', `/cards/${cardId}`);
+        await chrome.tabs.create({ url: dashboardBridgeUrl.toString() });
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to open dashboard card detail with bridge login', error);
+        await chrome.tabs.create({ url: dashboardLoginUrl.toString() });
+      }
+    })();
   }, [isAuthenticated]);
 
   const handleProfileButtonClick = useCallback(() => {
