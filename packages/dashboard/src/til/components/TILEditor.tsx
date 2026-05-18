@@ -356,22 +356,22 @@ export function TILEditor({
                                     remarkPlugins={[remarkGfm]}
                                     components={{
                                         h1: ({ children }) => (
-                                            <h1 className="mb-6 border-b border-primary-signal/20 pb-4 text-3xl font-bold leading-tight text-primary-signal">
+                                            <h1 className="mb-6 border-b border-white/10 pb-4 text-3xl font-bold leading-tight text-white">
                                                 {children}
                                             </h1>
                                         ),
                                         h2: ({ children }) => (
-                                            <h2 className="mb-4 mt-8 text-2xl font-bold leading-tight text-primary-signal">
+                                            <h2 className="mb-4 mt-8 text-2xl font-bold leading-tight text-white">
                                                 {children}
                                             </h2>
                                         ),
                                         h3: ({ children }) => (
-                                            <h3 className="mb-3 mt-6 text-xl font-semibold leading-snug text-text-primary">
+                                            <h3 className="mb-3 mt-6 text-xl font-semibold leading-snug text-white">
                                                 {children}
                                             </h3>
                                         ),
                                         h4: ({ children }) => (
-                                            <h4 className="mb-2 mt-5 text-lg font-semibold leading-snug text-text-primary">
+                                            <h4 className="mb-2 mt-5 text-lg font-semibold leading-snug text-white">
                                                 {children}
                                             </h4>
                                         ),
@@ -392,7 +392,7 @@ export function TILEditor({
                                             <li className="pl-1 leading-7 marker:text-primary-signal">{children}</li>
                                         ),
                                         strong: ({ children }) => (
-                                            <strong className="font-bold text-primary-signal">{children}</strong>
+                                            <strong className="font-bold text-white">{children}</strong>
                                         ),
                                         em: ({ children }) => (
                                             <em className="text-text-secondary">{children}</em>
