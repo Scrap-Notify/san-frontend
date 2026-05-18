@@ -79,7 +79,12 @@ export function TopNavBar({
         aria-label="GitHub settings"
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-text-primary/5 hover:text-text-primary"
       >
-        <img src={githubSvg} alt="" aria-hidden="true" className="h-[22px] w-[22px] opacity-70 transition hover:opacity-100" style={{ filter: 'invert(1)' }} />
+        <img
+          src={githubSvg}
+          alt=""
+          aria-hidden="true"
+          className="gnb-github-icon h-[22px] w-[22px] opacity-70 transition hover:opacity-100"
+        />
       </button>
 
       <button

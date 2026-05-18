@@ -110,19 +110,6 @@
   pointer-events: none;
 }
 
-.san-feedback-mascot::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 2px;
-  width: 82px;
-  height: 82px;
-  border-radius: 9999px;
-  transform: translateX(-50%);
-  background: radial-gradient(circle, var(--color-helper-glow) 0%, rgba(74, 222, 128, 0.10) 38%, transparent 72%);
-  filter: blur(18px);
-}
-
 .san-feedback-mascot__image-wrap {
   position: relative;
   z-index: 1;
@@ -140,7 +127,7 @@
   object-position: center top;
   transform-origin: 50% 84%;
   animation: san-feedback-mascot-bounce 7s ease-in-out infinite;
-  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.12)) drop-shadow(0 0 18px var(--color-helper-glow));
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.18));
 }
 
 .san-feedback-bubble {
@@ -209,6 +196,14 @@ body {
 .dashboard-shell {
   width: 100%;
   padding-inline: clamp(32px, 6vw, 120px);
+}
+
+.gnb-github-icon {
+  filter: invert(1);
+}
+
+:root[data-theme='light'] .gnb-github-icon {
+  filter: none;
 }
 
 .auth-shell {
