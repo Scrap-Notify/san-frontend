@@ -68,10 +68,16 @@ export function TopNavBar({
     setIsMenuOpen(false);
   };
 
-  const navActions = (
-    <>
-      <SearchBar placeholder={searchPlaceholder} onSearch={handleSearch} />
+  const searchControl = (
+    <SearchBar
+      placeholder={searchPlaceholder}
+      onSearch={handleSearch}
+      className="w-full min-w-0 lg:w-[min(26vw,18rem)]"
+    />
+  );
 
+  const actionControls = (
+    <>
       <button
         onClick={handleGithubClick}
         aria-label="GitHub settings"
@@ -130,8 +136,11 @@ export function TopNavBar({
       </div>
 
       {/* Right side Desktop */}
-      <div className="hidden items-center gap-5 lg:flex">
-        {navActions}
+      <div className="ml-auto hidden min-w-0 items-center justify-end gap-6 lg:flex">
+        {searchControl}
+        <div className="flex shrink-0 items-center gap-4">
+          {actionControls}
+        </div>
       </div>
 
       {/* Mobile Menu Toggle */}
@@ -151,8 +160,11 @@ export function TopNavBar({
           <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-primary-signal' : 'text-text-secondary'}`}>Home</button>
           <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'TIL' ? 'text-primary-signal' : 'text-text-secondary'}`}>TIL</button>
           <button onClick={() => { navigate('/archive'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}>Archive</button>
-          <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
-            {navActions}
+          <div className="mt-4 flex items-center justify-between gap-4 border-t border-white/5 pt-4">
+            {searchControl}
+            <div className="flex shrink-0 items-center gap-2">
+              {actionControls}
+            </div>
           </div>
         </div>
       )}

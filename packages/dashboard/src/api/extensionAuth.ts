@@ -2,6 +2,9 @@ import type { AuthTokens } from '@san/shared';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
+const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
+const SET_TIL_RECALL_SETTINGS_MESSAGE = 'SET_TIL_RECALL_SETTINGS';
+const OPEN_EXTENSION_SHORTCUT_SETTINGS_MESSAGE = 'OPEN_EXTENSION_SHORTCUT_SETTINGS';
 const DEBUG_PREFIX = '[SAN:extension-auth]';
 const DASHBOARD_MESSAGE_SOURCE = 'SAN_DASHBOARD';
 const EXTENSION_MESSAGE_SOURCE = 'SAN_EXTENSION';
@@ -22,6 +25,7 @@ interface ExtensionMessageResponse {
   ok?: boolean;
   hasAccessToken?: boolean;
   hasRefreshToken?: boolean;
+  settings?: TilRecallSettings;
 }
 
 interface ExtensionBridgeResponseMessage {
@@ -34,6 +38,11 @@ declare global {
   interface Window {
     chrome?: ChromeRuntimeBridge;
   }
+}
+
+export interface TilRecallSettings {
+  enabled: boolean;
+  time: string;
 }
 
 export async function syncExtensionAuth(tokens: AuthTokens): Promise<void> {
@@ -65,6 +74,38 @@ export async function syncExtensionBridgeTicket(ticket: string): Promise<void> {
   );
 }
 
+export async function getExtensionTilRecallSettings(): Promise<TilRecallSettings> {
+  const response = await deliverExtensionMessageWithResponse(
+    { type: GET_TIL_RECALL_SETTINGS_MESSAGE },
+    isConfirmedTilRecallSettingsResponse
+  );
+
+  return response.settings;
+}
+
+export async function setExtensionTilRecallSettings(settings: TilRecallSettings): Promise<TilRecallSettings> {
+  const response = await deliverExtensionMessageWithResponse(
+    {
+      type: SET_TIL_RECALL_SETTINGS_MESSAGE,
+      payload: settings,
+    },
+    isConfirmedTilRecallSettingsResponse
+  );
+
+  return response.settings;
+}
+
+export async function openExtensionShortcutSettings(): Promise<void> {
+  await deliverExtensionMessageWithResponse(
+    { type: OPEN_EXTENSION_SHORTCUT_SETTINGS_MESSAGE },
+    isConfirmedOkResponse
+  );
+}
+
+function isConfirmedOkResponse(response: ExtensionMessageResponse | undefined): { ok: true } | null {
+  return response?.ok === true ? { ok: true } : null;
+}
+
 async function deliverExtensionAuthMessage(message: unknown, expectStoredTokens: boolean): Promise<void> {
   console.info(DEBUG_PREFIX, 'extension auth sync started', {
     directRuntimeAvailable: typeof window.chrome?.runtime?.sendMessage === 'function',
@@ -87,6 +128,18 @@ async function deliverExtensionAuthMessage(message: unknown, expectStoredTokens:
   }
 }
 
+async function deliverExtensionMessageWithResponse<T>(
+  message: unknown,
+  confirmResponse: (response: ExtensionMessageResponse | undefined) => T | null
+): Promise<T> {
+  const attempts = [
+    sendExtensionMessageWithResponse(message, confirmResponse),
+    postDashboardMessageWithResponse(message, confirmResponse),
+  ];
+
+  return waitForFirstConfirmedResponse(attempts);
+}
+
 function waitForFirstConfirmed(attempts: Promise<void>[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const errors: string[] = [];
@@ -102,6 +155,39 @@ function waitForFirstConfirmed(attempts: Promise<void>[]): Promise<void> {
 
           settled = true;
           resolve();
+        })
+        .catch((error: unknown) => {
+          if (settled) {
+            return;
+          }
+
+          rejectedCount += 1;
+          errors.push(normalizeError(error));
+
+          if (rejectedCount === attempts.length) {
+            settled = true;
+            reject(new AuthSyncError(errors));
+          }
+        });
+    });
+  });
+}
+
+function waitForFirstConfirmedResponse<T>(attempts: Promise<T>[]): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const errors: string[] = [];
+    let rejectedCount = 0;
+    let settled = false;
+
+    attempts.forEach((attempt) => {
+      attempt
+        .then((response) => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          resolve(response);
         })
         .catch((error: unknown) => {
           if (settled) {
@@ -165,6 +251,55 @@ async function postDashboardMessage(message: unknown, expectStoredTokens: boolea
   });
 }
 
+async function postDashboardMessageWithResponse<T>(
+  message: unknown,
+  confirmResponse: (response: ExtensionMessageResponse | undefined) => T | null
+): Promise<T> {
+  const requestId = createRequestId();
+
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      window.removeEventListener('message', handleBridgeResponse);
+      reject(new Error('Timed out waiting for extension content-script bridge'));
+    }, BRIDGE_TIMEOUT_MS);
+
+    const handleBridgeResponse = (event: MessageEvent<ExtensionBridgeResponseMessage>) => {
+      if (event.source !== window || event.origin !== window.location.origin) {
+        return;
+      }
+
+      if (
+        event.data?.source !== EXTENSION_MESSAGE_SOURCE
+        || event.data.requestId !== requestId
+      ) {
+        return;
+      }
+
+      window.clearTimeout(timeoutId);
+      window.removeEventListener('message', handleBridgeResponse);
+
+      const response = event.data.response as ExtensionMessageResponse | undefined;
+      const confirmedResponse = confirmResponse(response);
+      if (!confirmedResponse) {
+        reject(new Error('Extension content-script bridge did not confirm message'));
+        return;
+      }
+
+      resolve(confirmedResponse);
+    };
+
+    window.addEventListener('message', handleBridgeResponse);
+    window.postMessage(
+      {
+        source: DASHBOARD_MESSAGE_SOURCE,
+        requestId,
+        payload: message,
+      },
+      window.location.origin
+    );
+  });
+}
+
 async function sendExtensionMessage(message: unknown, expectStoredTokens: boolean): Promise<void> {
   const extensionId = import.meta.env.VITE_SAN_EXTENSION_ID;
 
@@ -202,6 +337,46 @@ async function sendExtensionMessage(message: unknown, expectStoredTokens: boolea
   });
 }
 
+async function sendExtensionMessageWithResponse<T>(
+  message: unknown,
+  confirmResponse: (response: ExtensionMessageResponse | undefined) => T | null
+): Promise<T> {
+  const extensionId = import.meta.env.VITE_SAN_EXTENSION_ID;
+
+  if (!extensionId || typeof window.chrome?.runtime?.sendMessage !== 'function') {
+    throw new Error('Chrome runtime bridge is unavailable');
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error('Timed out waiting for extension runtime bridge'));
+    }, BRIDGE_TIMEOUT_MS);
+
+    window.chrome?.runtime?.sendMessage?.(
+      extensionId,
+      message,
+      (response?: unknown) => {
+        window.clearTimeout(timeoutId);
+        const lastError = window.chrome?.runtime?.lastError;
+
+        if (lastError?.message) {
+          reject(new Error(lastError.message));
+          return;
+        }
+
+        const confirmedResponse = confirmResponse(response as ExtensionMessageResponse | undefined);
+
+        if (!confirmedResponse) {
+          reject(new Error('Extension did not confirm message'));
+          return;
+        }
+
+        resolve(confirmedResponse);
+      }
+    );
+  });
+}
+
 function createRequestId() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
@@ -227,6 +402,24 @@ function isConfirmedExtensionResponse(
   }
 
   return response.hasAccessToken === true && response.hasRefreshToken === true;
+}
+
+function isConfirmedTilRecallSettingsResponse(
+  response: ExtensionMessageResponse | undefined
+): { settings: TilRecallSettings } | null {
+  if (response?.ok !== true || !isTilRecallSettings(response.settings)) {
+    return null;
+  }
+
+  return { settings: response.settings };
+}
+
+function isTilRecallSettings(value: unknown): value is TilRecallSettings {
+  if (!value || typeof value !== 'object') return false;
+  const maybe = value as Partial<TilRecallSettings>;
+  return typeof maybe.enabled === 'boolean'
+    && typeof maybe.time === 'string'
+    && /^([01]\d|2[0-3]):[0-5]\d$/.test(maybe.time);
 }
 
 class AuthSyncError extends Error {

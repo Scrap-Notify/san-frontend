@@ -20,6 +20,11 @@ export interface SavedInsight extends PendingScrap {
   created_at: string;
 }
 
+export interface TilRecallSettings {
+  enabled: boolean;
+  time: string;
+}
+
 export type MessageType =
   | 'REQUEST_METADATA'
   | 'SCRAP_SELECTION'
@@ -27,11 +32,14 @@ export type MessageType =
   | 'SAN_AUTH_SYNC'
   | 'SAN_AUTH_CLEAR'
   | 'SAN_AUTH_STATE_CHANGED'
-  | 'LOGIN_BRIDGE_TICKET';
+  | 'LOGIN_BRIDGE_TICKET'
+  | 'GET_TIL_RECALL_SETTINGS'
+  | 'SET_TIL_RECALL_SETTINGS'
+  | 'OPEN_EXTENSION_SHORTCUT_SETTINGS';
 
 export interface ExtensionMessage {
   type: MessageType;
-  payload?: PendingScrap;
+  payload?: PendingScrap | TilRecallSettings;
   accessToken?: string;
   refreshToken?: string;
   sessionId?: string;
