@@ -13,7 +13,7 @@ interface ExtensionAuthCardProps {
 }
 
 const inputClass =
-  'block h-12 w-full rounded-xl border border-text-secondary/10 bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+  'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
 
 export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionAuthCardProps) {
   const [mode, setMode] = useState<AuthMode>('login');

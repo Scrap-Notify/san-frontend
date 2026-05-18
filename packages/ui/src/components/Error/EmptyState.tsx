@@ -143,7 +143,7 @@ export function EmptyState({
               onClick={secondaryAction.onClick}
               className={[
                 'inline-flex items-center justify-center rounded-full',
-                'border border-text-secondary/10 bg-surface-lowest/70 font-semibold text-text-secondary transition hover:bg-surface-container/80 hover:text-text-primary',
+                'border border-text-secondary/10 glass-panel bg-surface-lowest/70 font-semibold text-text-secondary transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary',
                 isFull ? 'min-h-11 px-6 text-body-sm-bold' : 'min-h-9 px-4 text-caption-bold',
               ].join(' ')}
             >

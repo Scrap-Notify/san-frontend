@@ -7,7 +7,7 @@ interface ArchiveItemProps {
 
 export default function ArchiveItem({ title, meta, sourceType, content }: ArchiveItemProps) {
   return (
-    <article className="rounded-leaf border border-text-secondary/12 bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
+    <article className="rounded-leaf border border-text-secondary/12 glass-card bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
       <h3 className="line-clamp-1 cursor-text select-text text-body-main-bold text-text-primary">
         {title}
       </h3>

@@ -114,7 +114,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
       }}
     >
       <div
-        className="max-h-[calc(100vh-48px)] w-full max-w-[460px] overflow-y-auto rounded-xl border border-text-secondary/15 bg-surface-lowest/72 shadow-[0_24px_80px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="max-h-[calc(100vh-48px)] w-full max-w-[460px] overflow-y-auto rounded-xl border border-text-secondary/15 glass-popover bg-surface-lowest/72 shadow-[0_24px_80px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4 border-b border-text-secondary/5 px-5 py-4">
@@ -127,7 +127,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="rounded-md p-2 text-text-primary/35 transition hover:bg-surface-container/80 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md p-2 text-text-primary/35 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="피드백 닫기"
           >
             <X size={18} />
@@ -168,10 +168,10 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                       className={`flex min-h-[48px] items-center gap-2 rounded-md border px-2.5 text-left backdrop-blur-xl transition ${
                         selected
                           ? item.activeClassName
-                          : 'border-text-secondary/10 bg-surface-lowest/75 text-text-primary/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-text-secondary/20 hover:bg-surface-container/80 hover:text-text-primary hover:shadow-[0_0_18px_rgba(255,255,255,0.05)]'
+                          : 'border-text-secondary/10 glass-popover bg-surface-lowest/75 text-text-primary/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-text-secondary/20 hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary hover:shadow-[0_0_18px_rgba(255,255,255,0.05)]'
                       }`}
                     >
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${selected ? item.iconClassName : 'bg-surface-container/80 text-text-primary/35'}`}>
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${selected ? item.iconClassName : 'glass-card bg-surface-container/80 text-text-primary/35'}`}>
                         <Icon size={15} strokeWidth={1.8} />
                       </span>
                       <span className="min-w-0">
@@ -196,7 +196,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                 }}
                 maxLength={5000}
                 placeholder="편하게 의견을 남겨주세요. 사소한 불편이나 떠오른 아이디어도 좋아요."
-                className="min-h-28 resize-none rounded-lg border border-text-secondary/10 bg-surface-container/80 px-4 py-3 text-sm leading-relaxed text-text-primary outline-none transition placeholder:text-text-primary/25 focus:border-primary-signal/45"
+                className="min-h-28 resize-none rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 px-4 py-3 text-sm leading-relaxed text-text-primary outline-none transition placeholder:text-text-primary/25 focus:border-primary-signal/45"
               />
             </label>
 
@@ -207,7 +207,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                 onChange={(event) => setContact(event.target.value)}
                 maxLength={255}
                 placeholder="보내주신 의견에 감사의 마음을 담아 작은 선물을 전할 수 있어요."
-                className="h-11 rounded-lg border border-text-secondary/10 bg-surface-container/80 px-4 text-sm text-text-primary outline-none transition placeholder:text-text-primary/25 focus:border-primary-signal/45"
+                className="h-11 rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 px-4 text-sm text-text-primary outline-none transition placeholder:text-text-primary/25 focus:border-primary-signal/45"
               />
             </label>
 

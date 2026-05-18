@@ -37,7 +37,7 @@ export function KnowledgeSearchBar({
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         placeholder={SEARCH_PLACEHOLDER}
-        className="h-10 w-full rounded-full border border-primary-signal/15 bg-surface-container/45 pl-4 pr-10 text-left text-body-sm text-text-primary outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/40 focus:bg-surface-container/75 disabled:cursor-not-allowed disabled:opacity-60 [&::-webkit-search-cancel-button]:hidden"
+        className="h-10 w-full rounded-full border border-primary-signal/15 glass-panel bg-surface-container/45 pl-4 pr-10 text-left text-body-sm text-text-primary outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/40 focus:bg-surface-container/75 disabled:cursor-not-allowed disabled:opacity-60 [&::-webkit-search-cancel-button]:hidden"
       />
     </form>
   );

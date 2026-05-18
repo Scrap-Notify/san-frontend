@@ -323,7 +323,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                       />
                     </span>
                     <span
-                      className="pointer-events-none absolute left-1/2 top-[28px] -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-text-secondary/10 bg-surface-lowest/70 px-3 py-1 text-xs text-text-primary/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-[opacity,transform] duration-180 ease-out"
+                      className="pointer-events-none absolute left-1/2 top-[28px] -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-3 py-1 text-xs text-text-primary/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-[opacity,transform] duration-180 ease-out"
                       style={{
                         opacity: isActive ? 1 : 0,
                         transform: isActive ? 'translate(-50%, 0)' : 'translate(-50%, 4px)',
@@ -339,7 +339,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                 <button
                   type="button"
                   onClick={() => navigate('/result')}
-                  className="absolute left-[74%] top-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-text-secondary/12 bg-surface-lowest/75 px-3 py-1 text-xs text-text-primary/78 backdrop-blur-sm transition hover:bg-surface-container/80"
+                  className="absolute left-[74%] top-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-text-secondary/12 glass-popover bg-surface-lowest/75 px-3 py-1 text-xs text-text-primary/78 backdrop-blur-sm transition hover:bg-surface-container/90 bg-surface-container/80"
                   style={{
                     opacity: activeLeafId ? 0.78 : 0.9,
                     transform: 'translate(-50%, -50%)',

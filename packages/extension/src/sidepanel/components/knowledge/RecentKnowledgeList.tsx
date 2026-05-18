@@ -127,7 +127,7 @@ function KnowledgeCardArticle({
     : (source ? getSourceIcon(source) : FileText);
 
   return (
-    <article className="rounded-leaf border border-text-secondary/12 bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
+    <article className="rounded-leaf border border-text-secondary/12 glass-card bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
       <div className="flex items-start justify-between gap-3">
         <h3
           className={[

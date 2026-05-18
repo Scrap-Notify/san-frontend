@@ -162,7 +162,7 @@ export function ProfilePage() {
       </header>
 
       <div className="space-y-6">
-        <section className="rounded-lg border border-text-secondary/[0.07] bg-surface-container/70 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.2)]">
+        <section className="rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.2)]">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-text-primary/10 text-lg font-black text-primary-signal">
@@ -178,7 +178,7 @@ export function ProfilePage() {
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-surface-container/60 px-4 text-xs font-bold text-text-primary/80 transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-md glass-card bg-surface-container/60 px-4 text-xs font-bold text-text-primary/80 transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoggingOut ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
               {isLoggingOut ? '로그아웃 중' : '로그아웃'}
@@ -250,7 +250,7 @@ export function ProfilePage() {
               sessions.map((session) => (
                 <div
                   key={`${session.clientType}-${session.sessionId}`}
-                  className="flex flex-col gap-4 rounded-lg border border-text-secondary/[0.07] bg-surface-container/70 px-5 py-4 transition-colors hover:border-text-secondary/[0.12] sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 px-5 py-4 transition-colors hover:border-text-secondary/[0.12] sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -279,7 +279,7 @@ export function ProfilePage() {
                       type="button"
                       onClick={() => void handleRevokeSession(session)}
                       disabled={revokeSessionId === session.sessionId}
-                      className="h-8 shrink-0 rounded-md bg-surface-container/60 px-3 text-xs font-bold text-text-primary/70 transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="h-8 shrink-0 rounded-md glass-card bg-surface-container/60 px-3 text-xs font-bold text-text-primary/70 transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {revokeSessionId === session.sessionId ? '폐기 중' : '폐기'}
                     </button>
@@ -317,7 +317,7 @@ export function ProfilePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/70 px-4 backdrop-blur-sm">
           <form
             onSubmit={handleWithdraw}
-            className="w-full max-w-[360px] rounded-3xl border border-text-secondary/10 bg-surface-container/80 p-6 shadow-2xl"
+            className="w-full max-w-[360px] rounded-3xl border border-text-secondary/10 glass-card bg-surface-container/80 p-6 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -345,7 +345,7 @@ export function ProfilePage() {
               autoComplete="current-password"
               placeholder="비밀번호 입력"
               onChange={(event) => setWithdrawPassword(event.target.value)}
-              className="mt-6 h-12 w-full rounded-xl border border-text-secondary/10 bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/25 focus:border-red-300/50"
+              className="mt-6 h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/25 focus:border-red-300/50"
             />
             <p className="mt-2 min-h-[18px] text-xs text-red-300">{withdrawError || ''}</p>
 

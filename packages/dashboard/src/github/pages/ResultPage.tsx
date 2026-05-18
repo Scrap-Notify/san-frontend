@@ -225,7 +225,7 @@ function SearchPage({
         </p>
       </header>
 
-      <div className="group flex flex-col gap-8 rounded-[32px] md:rounded-[40px] bg-surface-container/80 p-6 md:p-10 shadow-3xl border border-text-secondary/5 transition-all hover:border-text-secondary/10">
+      <div className="group flex flex-col gap-8 rounded-[32px] md:rounded-[40px] glass-card bg-surface-container/80 p-6 md:p-10 shadow-3xl border border-text-secondary/5 transition-all hover:border-text-secondary/10">
         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 rounded-tl-[24px] rounded-br-[24px] rounded-tr-lg rounded-bl-lg bg-text-primary/[0.03] px-6 py-4 border border-text-secondary/5 focus-within:border-action-accent/40 transition-all">
             <span className="text-[11px] font-black text-text-primary/30 uppercase tracking-widest">날짜 범위</span>
@@ -371,7 +371,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
         <div className="absolute inset-0 bg-scrim/20 group-hover:bg-transparent transition-colors z-0" />
         <div className="absolute inset-0 p-10 z-20 flex flex-col">
           <div className="flex justify-between items-start mb-auto">
-            <span className="rounded-xl bg-surface-lowest/60 backdrop-blur-xl px-4 py-1.5 text-[10px] font-black tracking-widest text-action-accent border border-text-secondary/10 uppercase">{card.categoryName || 'MEDIA'}</span>
+            <span className="rounded-xl glass-panel bg-surface-lowest/60 backdrop-blur-xl px-4 py-1.5 text-[10px] font-black tracking-widest text-action-accent border border-text-secondary/10 uppercase">{card.categoryName || 'MEDIA'}</span>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-text-primary/10 backdrop-blur-md text-text-primary border border-text-secondary/10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
                <ExternalLink size={18} />
             </div>

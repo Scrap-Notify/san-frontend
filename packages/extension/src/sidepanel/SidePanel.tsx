@@ -860,7 +860,7 @@ export default function SidePanel() {
                   type="button"
                   onClick={handleCancelLogout}
                   disabled={isLoggingOut}
-                  className="h-9 rounded-md border border-text-secondary/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-9 rounded-md border border-text-secondary/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/90 bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   취소
                 </button>

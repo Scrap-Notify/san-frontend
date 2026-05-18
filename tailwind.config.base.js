@@ -73,8 +73,8 @@ module.exports = {
   
         // 4. 발광 효과 (Glowing Roots 컨셉)
         boxShadow: {
-          'neon': '0 0 12px 0 #00ffc2',
-          'neon-sm': '0 0 6px 0 rgba(0, 255, 194, 0.6)',
+          'neon': 'var(--shadow-neon)',
+          'neon-sm': 'var(--shadow-neon-sm)',
         },
   
         // 5. 기본 폰트 설정

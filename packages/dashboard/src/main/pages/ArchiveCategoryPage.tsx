@@ -140,7 +140,7 @@ function FilterPanel({
   }, [inputValue, keyword, onKeywordChange]);
 
   return (
-    <div className="flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 bg-surface-container/80 p-6">
+    <div className="flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
       <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-primary/25" />
         <input
@@ -179,7 +179,7 @@ function ArchiveCard({ title, subtitle, onClick }: { title: string; subtitle: st
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-48 flex-col justify-between rounded-[28px] border border-text-secondary/5 bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
+      className="flex min-h-48 flex-col justify-between rounded-[28px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
     >
       <h2 className="text-xl font-bold leading-snug text-text-primary">{title}</h2>
       <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-text-primary/45">{subtitle}</p>

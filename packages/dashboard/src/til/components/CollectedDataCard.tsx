@@ -28,7 +28,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
     };
 
     const cardBaseClass =
-        'group relative w-full flex-shrink-0 overflow-hidden rounded-tl-[30px] rounded-br-[30px] rounded-tr-[10px] rounded-bl-[10px] border border-text-secondary/[0.08] bg-surface-lowest/75 shadow-[0_14px_30px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-md transition-colors hover:border-text-secondary/[0.13] hover:bg-surface-container/80';
+        'group relative w-full flex-shrink-0 overflow-hidden rounded-tl-[30px] rounded-br-[30px] rounded-tr-[10px] rounded-bl-[10px] border border-text-secondary/[0.08] glass-popover bg-surface-lowest/75 shadow-[0_14px_30px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-md transition-colors hover:border-text-secondary/[0.13] hover:bg-surface-container/90 bg-surface-container/80';
 
     const cardContent = (
         <>

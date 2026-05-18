@@ -26,13 +26,13 @@ export function ArchiveFolderGrid() {
               key={category.categoryId}
               type="button"
               onClick={() => navigate(`/archive/${category.categoryId}`)}
-              className="group flex min-h-[180px] flex-col justify-between rounded-[32px] border border-text-secondary/10 bg-surface-container/80 p-8 text-left transition-all duration-300 hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
+              className="group flex min-h-[180px] flex-col justify-between rounded-[32px] border border-text-secondary/10 glass-card bg-surface-container/80 p-8 text-left transition-all duration-300 hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
             >
               <div className="flex items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-action-accent/10 text-action-accent">
                   <FolderOpen size={22} />
                 </div>
-                <span className="rounded-full border border-text-secondary/10 bg-surface-lowest/70 px-3 py-1 text-xs font-bold text-text-secondary/70">
+                <span className="rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-3 py-1 text-xs font-bold text-text-secondary/70">
                   {category.cardCount} CARDS
                 </span>
               </div>

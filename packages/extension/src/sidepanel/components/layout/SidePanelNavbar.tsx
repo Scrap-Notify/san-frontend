@@ -25,7 +25,7 @@ export default function SidePanelNavbar({
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   return (
-    <div className="sticky top-0 z-20 -mx-4 flex h-16 items-center justify-between border-b border-action-accent/15 bg-background/95 px-4 backdrop-blur-md">
+    <div className="sticky top-0 z-20 -mx-4 flex h-16 items-center justify-between border-b border-action-accent/15 glass-panel bg-background/95 px-4 backdrop-blur-md">
       <div className="flex min-w-0 flex-1 items-center">
         <button
           type="button"
@@ -94,7 +94,7 @@ export default function SidePanelNavbar({
           </button>
 
           {isAuthenticated && isProfileMenuOpen && (
-            <div className="absolute right-0 top-10 w-32 overflow-hidden rounded-lg border border-text-secondary/[0.16] bg-surface-lowest/80 p-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl">
+            <div className="absolute right-0 top-10 w-32 overflow-hidden rounded-lg border border-text-secondary/[0.16] glass-popover bg-surface-lowest/80 p-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl">
               <button
                 type="button"
                 onClick={onLogoutClick}

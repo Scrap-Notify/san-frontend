@@ -93,7 +93,7 @@ export function Signup() {
   };
 
   const inputClass =
-    'block h-12 w-full rounded-xl border border-text-secondary/10 bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+    'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background">
@@ -112,7 +112,7 @@ export function Signup() {
       {/* 오른쪽 카드 */}
       <div className="relative z-10 flex w-full items-center justify-center px-4 py-10 sm:px-8 lg:w-1/2 lg:px-16">
         <div
-          className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-text-secondary/15 bg-surface-container/80 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
+          className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-text-secondary/15 glass-card bg-surface-container/80 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
           style={{ padding: '32px', height: '600px' }}
         >
           {/* 헤더 */}

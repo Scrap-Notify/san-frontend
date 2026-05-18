@@ -99,7 +99,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => vo
       <button
         type="button"
         onClick={onDismiss}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-secondary/60 transition hover:bg-surface-lowest/70 hover:text-text-primary"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-secondary/60 transition hover:bg-surface-lowest/80 bg-surface-lowest/70 hover:text-text-primary"
         aria-label="알림 닫기"
       >
         <X size={15} aria-hidden="true" />
@@ -119,7 +119,7 @@ function ErrorToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: () 
       className={[
         'pointer-events-auto flex h-14 w-full max-w-[320px] self-end items-center gap-5 px-4 text-left',
         'rounded-tl-[48px] rounded-br-lg rounded-tr-lg rounded-bl-[48px]',
-        'border border-text-secondary/5 bg-surface-container/60 backdrop-blur-xl',
+        'border border-text-secondary/5 glass-card bg-surface-container/60 backdrop-blur-xl',
         'transition hover:border-primary-signal/10 hover:bg-surface-container/75',
       ].join(' ')}
     >

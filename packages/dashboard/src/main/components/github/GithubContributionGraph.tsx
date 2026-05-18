@@ -5,7 +5,7 @@ import type { TilGithubContributionDayResponse, TilGithubContributionResponse } 
 type ContributionCell = TilGithubContributionDayResponse | null;
 
 const CONTRIBUTION_LEVEL_CLASS = [
-  'border-text-secondary/10 bg-surface-lowest/75',
+  'border-text-secondary/10 glass-popover bg-surface-lowest/75',
   'border-[var(--color-action-accent)]/10 bg-[var(--color-action-accent)]/20',
   'border-[var(--color-action-accent)]/15 bg-[var(--color-action-accent)]/35',
   'border-[var(--color-action-accent)]/20 bg-[var(--color-action-accent)]/55',
@@ -102,7 +102,7 @@ export function GithubContributionGraph({
   const yearText = contribution ? `${formatContributionDate(contribution.from)} - ${formatContributionDate(contribution.to)}` : '';
 
   return (
-    <div className="rounded-lg border border-text-secondary/10 bg-surface-container/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <div className="rounded-lg border border-text-secondary/10 glass-card bg-surface-container/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-text-primary">
@@ -163,7 +163,7 @@ export function GithubContributionGraph({
                         {Array.from({ length: 7 }, (_, dayIndex) => (
                           <span
                             key={dayIndex}
-                            className="animate-pulse rounded-[2px] border border-text-secondary/10 bg-surface-lowest/70"
+                            className="animate-pulse rounded-[2px] border border-text-secondary/10 glass-panel bg-surface-lowest/70"
                             style={{ width: CELL_SIZE, height: CELL_SIZE }}
                           />
                         ))}

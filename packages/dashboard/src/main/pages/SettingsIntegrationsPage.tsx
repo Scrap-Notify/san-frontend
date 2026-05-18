@@ -29,7 +29,7 @@ function RepositorySkeleton() {
   return (
     <ul className="flex flex-col gap-3">
       {[1, 2, 3, 4].map((key) => (
-        <li key={key} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 bg-surface-container/80 p-4">
+        <li key={key} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 p-4">
           <div className="min-w-0 flex-1 animate-pulse">
             <div className="h-4 w-2/3 rounded bg-text-primary/10"></div>
             <div className="mt-2 h-3 w-1/3 rounded bg-text-primary/5"></div>
@@ -361,7 +361,7 @@ export function SettingsIntegrationsPage() {
             </span>
           </div>
 
-          <div className="flex h-[460px] flex-col overflow-hidden rounded-xl border border-text-secondary/5 bg-surface-lowest/80">
+          <div className="flex h-[460px] flex-col overflow-hidden rounded-xl border border-text-secondary/5 glass-popover bg-surface-lowest/80">
             {/* 검색바 */}
             <div className="border-b border-text-secondary/5 p-4">
               <div className="relative">
@@ -372,7 +372,7 @@ export function SettingsIntegrationsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={!isGithubLinked || isLoadingAvailable}
-                  className="w-full rounded-lg border border-text-secondary/10 bg-surface-container/80 py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-secondary/30 outline-none transition focus:border-text-secondary/20 disabled:opacity-50"
+                  className="w-full rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-secondary/30 outline-none transition focus:border-text-secondary/20 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -400,7 +400,7 @@ export function SettingsIntegrationsPage() {
               ) : filteredAvailableRepos.length > 0 ? (
                 <ul className="flex flex-col gap-3">
                   {filteredAvailableRepos.map((repo) => (
-                    <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 bg-surface-container/80 p-4 transition hover:bg-text-primary/[0.04]">
+                    <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 p-4 transition hover:bg-text-primary/[0.04]">
                       <div className="flex min-w-0 items-center gap-4">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-text-primary/5 text-text-primary/40">
                           <FolderGit2 size={20} />
@@ -461,7 +461,7 @@ export function SettingsIntegrationsPage() {
           <div className={`flex flex-col overflow-hidden rounded-xl bg-transparent p-4 ${
             isGithubLinked && connectedRepositories.length > 0
               ? 'border border-transparent'
-              : 'min-h-[220px] border border-text-secondary/10 bg-surface-container/45'
+              : 'min-h-[220px] border border-text-secondary/10 glass-panel bg-surface-container/45'
           }`}>
             {!isGithubLinked || (!isLoadingConnected && connectedRepositories.length === 0) ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
@@ -488,7 +488,7 @@ export function SettingsIntegrationsPage() {
               <div className="flex min-h-0 flex-1 flex-col">
                 <ul className="flex min-h-0 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   {connectedRepositories.map((repo) => (
-                    <li key={repo.githubRepositoryId} className="rounded-lg border border-text-secondary/10 bg-surface-container/80 p-4 ring-1 ring-action-accent/15">
+                    <li key={repo.githubRepositoryId} className="rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 p-4 ring-1 ring-action-accent/15">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-4">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-text-primary/5">
@@ -518,7 +518,7 @@ export function SettingsIntegrationsPage() {
                       </div>
 
                       <div className="mt-4 flex items-center justify-between gap-3 border-t border-text-secondary/5 pt-3">
-                        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-text-secondary/10 bg-surface-container/45 px-2.5 py-1 text-xs font-medium text-text-primary/55">
+                        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-text-secondary/10 glass-panel bg-surface-container/45 px-2.5 py-1 text-xs font-medium text-text-primary/55">
                           <GitBranch size={13} />
                           <span className="truncate">{repo.defaultBranch}</span>
                         </span>

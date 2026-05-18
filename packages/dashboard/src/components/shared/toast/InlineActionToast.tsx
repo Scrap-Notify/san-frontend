@@ -15,7 +15,7 @@ export function InlineActionToast({ message, actionLabel = '다시 확인하기'
       className={[
         'pointer-events-none absolute bottom-full left-0 mb-3 flex h-14 w-full min-w-[260px] items-center gap-4 px-4',
         'rounded-tl-[48px] rounded-br-lg rounded-tr-lg rounded-bl-[48px]',
-        'border border-red-400/20 bg-surface-lowest/80 backdrop-blur-xl',
+        'border border-red-400/20 glass-popover bg-surface-lowest/80 backdrop-blur-xl',
         'shadow-[0_8px_24px_rgba(0,0,0,0.22)]',
       ].join(' ')}
     >

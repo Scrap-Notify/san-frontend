@@ -60,7 +60,7 @@ export interface KnowledgeCardDetailData {
   }>;
 }
 
-const sectionCardClass = 'rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 bg-surface-container/80 p-6 shadow-md';
+const sectionCardClass = 'rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 glass-card bg-surface-container/80 p-6 shadow-md';
 const panelCardClass = 'rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-text-secondary/5 bg-surface-low p-5';
 const REFINE_POLL_INTERVAL_MS = 2000;
 const REFINE_POLL_TIMEOUT_MS = 30000;
@@ -289,7 +289,7 @@ function ProcessedTextSection({
       {hasRefinedContent ? (
         <>
           {isEditing && (
-            <div className="mt-4 flex items-center gap-1 overflow-x-auto rounded-xl border border-text-secondary/5 bg-surface-lowest/60 px-2.5 py-2 text-text-primary/40">
+            <div className="mt-4 flex items-center gap-1 overflow-x-auto rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 px-2.5 py-2 text-text-primary/40">
               <ToolbarButton icon={<Heading size={13} />} title="Heading" onClick={() => handleFormat('heading')} />
               <ToolbarButton icon={<Bold size={13} strokeWidth={2.5} />} title="Bold" onClick={() => handleFormat('bold')} />
               <ToolbarButton icon={<Italic size={13} strokeWidth={2.5} />} title="Italic" onClick={() => handleFormat('italic')} />
@@ -342,7 +342,7 @@ function ProcessedTextSection({
               />
             </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-text-secondary/5 bg-surface-lowest/60 px-4 py-5 sm:px-6">
+            <div className="mt-6 rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 px-4 py-5 sm:px-6">
               <article className="max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                   {editValue}
@@ -383,7 +383,7 @@ function ProcessedTextSection({
           )}
         </>
       ) : isCheckingRefinedContent ? (
-        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-text-secondary/5 bg-surface-lowest/60 p-6 text-center">
+        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
             <Loader2 size={24} className="animate-spin text-primary-signal" aria-hidden="true" />
             <p className="text-base font-semibold text-text-primary/70">1차 정제 데이터를 확인하는 중입니다.</p>
@@ -395,7 +395,7 @@ function ProcessedTextSection({
           </div>
         </div>
       ) : (
-        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-text-secondary/5 bg-surface-lowest/60 p-6 text-center">
+        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
             <BookOpen size={24} className="text-text-primary/25" aria-hidden="true" />
             <p className="text-base font-semibold text-text-primary/70">1차 정제 데이터가 없습니다.</p>
@@ -511,7 +511,7 @@ function DetailStatus({ title, description, tone = 'default' }: { title: string;
 
   return (
     <section className="grid min-h-[calc(100vh-14rem)] w-full place-items-center text-text-primary">
-      <div className="flex max-w-xl flex-col items-center gap-4 rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 bg-surface-container/80 p-8 text-center">
+      <div className="flex max-w-xl flex-col items-center gap-4 rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 glass-card bg-surface-container/80 p-8 text-center">
         <Icon className={tone === 'error' ? 'text-red-400' : 'animate-spin text-primary-signal'} size={28} aria-hidden="true" />
         <h1 className="text-xl font-bold">{title}</h1>
         <p className="text-sm leading-6 text-text-primary/45">{description}</p>
@@ -550,7 +550,7 @@ function ExpandableSourceText({ text }: { text: string }) {
   const isLong = text.length > 360 || lineCount > 6;
 
   return (
-    <div className="rounded-xl border border-text-secondary/5 bg-surface-lowest/60 p-3">
+    <div className="rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-3">
       <p
         className={[
           'whitespace-pre-wrap text-sm leading-6 text-text-primary/50',
@@ -580,7 +580,7 @@ function SourceImagePreview({ src }: { src: string }) {
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        className="group/img w-full rounded-xl border border-text-secondary/5 bg-surface-lowest/60 p-1 transition hover:border-text-secondary/10"
+        className="group/img w-full rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-1 transition hover:border-text-secondary/10"
       >
         <img
           src={src}

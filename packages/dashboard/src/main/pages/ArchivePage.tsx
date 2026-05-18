@@ -16,7 +16,7 @@ export function ArchivePage() {
           <h1 className="text-4xl font-extrabold tracking-tight">Archive</h1>
           <p className="text-text-primary/50">??? ???? ??? ? ??????. ?? ??? ?????.</p>
         </header>
-        <div className="rounded-[32px] border border-text-secondary/5 bg-surface-container/80 p-8">
+        <div className="rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-8">
           <div className="mb-3 flex items-center gap-3 text-action-accent">
             <Search size={18} />
             <span className="text-sm font-bold">?{keyword}? ?? ???</span>
@@ -84,7 +84,7 @@ function CategoryGrid({
           key={category.categoryId}
           type="button"
           onClick={() => onSelect(category.categoryId)}
-          className="group flex min-h-40 flex-col justify-between rounded-[28px] border border-text-secondary/5 bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
+          className="group flex min-h-40 flex-col justify-between rounded-[28px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
         >
           <div className="flex items-center justify-between">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-action-accent/10 text-action-accent">

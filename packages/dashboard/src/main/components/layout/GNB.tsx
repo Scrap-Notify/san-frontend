@@ -97,7 +97,7 @@ export function TopNavBar({
   );
 
   return (
-    <header className="flex w-full items-center justify-between border-b border-action-accent/10 bg-surface-lowest/82 px-4 py-4 shadow-[0_14px_42px_rgba(0,0,0,0.34),0_0_32px_rgba(115,255,207,0.06)] backdrop-blur-2xl md:px-8">
+    <header className="flex w-full items-center justify-between border-b border-action-accent/10 glass-popover bg-surface-lowest/82 px-4 py-4 shadow-[0_14px_42px_rgba(0,0,0,0.34),0_0_32px_rgba(115,255,207,0.06)] backdrop-blur-2xl md:px-8">
       {/* Left side */}
       <div className="flex items-center gap-10">
         <button

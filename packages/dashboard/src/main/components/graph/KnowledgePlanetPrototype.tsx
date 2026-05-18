@@ -221,7 +221,7 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
         <button
           type="button"
           onClick={handleBack}
-          className="absolute left-5 top-5 z-30 inline-flex items-center gap-2 rounded-full border border-text-secondary/10 bg-surface-lowest/70 px-4 py-2 text-sm text-text-primary/80 transition hover:border-primary-signal/40 hover:text-primary-signal"
+          className="absolute left-5 top-5 z-30 inline-flex items-center gap-2 rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-4 py-2 text-sm text-text-primary/80 transition hover:border-primary-signal/40 hover:text-primary-signal"
         >
           <ArrowLeft size={16} />
           뒤로가기
@@ -313,7 +313,7 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
                     opacity: 1,
                   }}
                 />
-                <span className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-text-secondary/10 bg-surface-lowest/70 px-3 py-1 text-xs text-text-primary/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-300 group-hover/marker:translate-y-0 group-hover/marker:opacity-100">
+                <span className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-3 py-1 text-xs text-text-primary/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-300 group-hover/marker:translate-y-0 group-hover/marker:opacity-100">
                   {category.name}
                 </span>
               </button>

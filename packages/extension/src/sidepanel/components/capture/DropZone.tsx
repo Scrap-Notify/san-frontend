@@ -107,7 +107,7 @@ export const DropZone = ({
             ? 'border-dashed border-action-accent bg-action-accent/10 shadow-neon glow-neon'
             : pendingScrap
               ? 'border-solid border-action-accent/40 bg-surface-container/90 shadow-neon'
-              : 'border-dashed border-action-accent/30 hover:border-action-accent/50 hover:bg-surface-container/80',
+              : 'border-dashed border-action-accent/30 hover:border-action-accent/50 hover:bg-surface-container/90 bg-surface-container/80',
           !pendingScrap && !isEditing ? 'cursor-text items-center justify-center' : 'cursor-default',
         ].join(' ')}
         onClick={() => !pendingScrap && setIsEditing(true)}
@@ -126,7 +126,7 @@ export const DropZone = ({
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="rounded-full px-3 py-1.5 text-body-sm-bold text-text-secondary transition hover:bg-surface-lowest/70 hover:text-text-primary"
+                className="rounded-full px-3 py-1.5 text-body-sm-bold text-text-secondary transition hover:bg-surface-lowest/80 bg-surface-lowest/70 hover:text-text-primary"
               >
                 취소
               </button>

@@ -88,7 +88,7 @@ export function RelatedCards({
       {cards.map((card) => (
         <article
           key={card.cardId}
-          className="flex flex-col gap-3 p-5 rounded-leaf bg-surface-container/80 border border-text-secondary/20"
+          className="flex flex-col gap-3 p-5 rounded-leaf glass-card bg-surface-container/80 border border-text-secondary/20"
         >
           <div className="flex items-start justify-between gap-3">
             <p className="text-body-main-bold text-text-primary line-clamp-1">{card.title}</p>
