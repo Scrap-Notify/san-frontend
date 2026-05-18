@@ -25,6 +25,7 @@ const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const SESSION_ID_KEY = 'san_session_id';
 const CLIENT_TYPE_KEY = 'san_client_type';
+const ACCESS_TOKEN_EXPIRES_AT_KEY = 'san_access_token_expires_at';
 
 async function getStorageValue(key: string): Promise<string | null> {
   const stored = await chrome.storage.local.get(key);
@@ -34,13 +35,25 @@ async function getStorageValue(key: string): Promise<string | null> {
 const tokenProvider: TokenProvider = {
   getToken: () => getStorageValue(ACCESS_TOKEN_KEY),
   getRefreshToken: () => getStorageValue(REFRESH_TOKEN_KEY),
-  setTokens: async ({ accessToken, refreshToken, sessionId, clientType }: AuthTokens) => {
+  getAccessTokenExpiresAt: async () => {
+    const value = await getStorageValue(ACCESS_TOKEN_EXPIRES_AT_KEY);
+    return value ? Number(value) : null;
+  },
+  setTokens: async ({ accessToken, refreshToken, sessionId, clientType, expiresIn }: AuthTokens) => {
     await chrome.storage.local.set({
       [ACCESS_TOKEN_KEY]: accessToken,
       [REFRESH_TOKEN_KEY]: refreshToken,
       [CLIENT_TYPE_KEY]: clientType ?? 'EXTENSION',
       ...(sessionId ? { [SESSION_ID_KEY]: sessionId } : {}),
     });
+
+    if (expiresIn) {
+      await chrome.storage.local.set({
+        [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + expiresIn * 1000),
+      });
+    } else {
+      await chrome.storage.local.remove(ACCESS_TOKEN_EXPIRES_AT_KEY);
+    }
   },
   clearToken: async () => {
     await chrome.storage.local.remove([
@@ -48,6 +61,7 @@ const tokenProvider: TokenProvider = {
       REFRESH_TOKEN_KEY,
       SESSION_ID_KEY,
       CLIENT_TYPE_KEY,
+      ACCESS_TOKEN_EXPIRES_AT_KEY,
     ]);
   },
 };

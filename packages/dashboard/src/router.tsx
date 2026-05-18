@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { LoginPage } from './auth/pages/LoginPage';
 import { HomePage } from './main/pages/HomePage';
@@ -6,12 +6,14 @@ import { Signup } from './auth/pages/SignUpPage';
 import { ArchiveCategoryPage } from './main/pages/ArchiveCategoryPage';
 import { ResultPage } from './github/pages/ResultPage';
 import { GithubAuthResultPage } from './auth/pages/GithubAuthResultPage';
+import { DashboardBridgeLoginPage } from './auth/DashboardBridgeLoginPage';
 import { SettingsIntegrationsPage } from './main/pages/SettingsIntegrationsPage';
 import { TilPage } from './til/pages/TilPage';
 import { ProfilePage } from './main/pages/ProfilePage';
 import { NotFoundPage } from './main/pages/NotFoundPage';
 import { AuthGate } from './auth/components/AuthGate';
 import { KnowledgeCardDetailPage } from './cards/pages/KnowledgeCardDetailPage';
+import { LegacyResultRedirect } from './LegacyResultRedirect';
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +35,10 @@ export const router = createBrowserRouter([
   {
     path: '/auth/github/failure',
     element: <GithubAuthResultPage />,
+  },
+  {
+    path: '/auth/bridge/dashboard',
+    element: <DashboardBridgeLoginPage />,
   },
   {
     element: <MainLayout />,
@@ -112,8 +118,3 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
-
-function LegacyResultRedirect() {
-  const location = useLocation();
-  return <Navigate to={`/archive${location.search}`} replace />;
-}

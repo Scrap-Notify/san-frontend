@@ -616,8 +616,22 @@ export default function SidePanel() {
     chrome.tabs.create({ url: dashboardGithubLoginUrl.toString() });
   }, []);
 
-  const openDashboard = useCallback(() => {
-    chrome.tabs.create({ url: isAuthenticated ? dashboardBaseUrl : dashboardLoginUrl.toString() });
+  const openDashboard = useCallback(async () => {
+    if (!isAuthenticated) {
+      await chrome.tabs.create({ url: dashboardLoginUrl.toString() });
+      return;
+    }
+
+    try {
+      const { ticket } = await authApi.createDashboardBridgeTicket();
+      const dashboardBridgeUrl = new URL('/auth/bridge/dashboard', dashboardBaseUrl);
+      dashboardBridgeUrl.searchParams.set('ticket', ticket);
+      dashboardBridgeUrl.searchParams.set('redirect', '/');
+      await chrome.tabs.create({ url: dashboardBridgeUrl.toString() });
+    } catch (error) {
+      console.error(DEBUG_PREFIX, 'failed to open dashboard with bridge login', error);
+      await chrome.tabs.create({ url: dashboardLoginUrl.toString() });
+    }
   }, [isAuthenticated]);
 
   const handleProfileButtonClick = useCallback(() => {

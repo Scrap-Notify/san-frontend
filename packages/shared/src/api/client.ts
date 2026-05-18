@@ -9,11 +9,13 @@ export interface AuthTokens {
   refreshToken: string;
   sessionId?: string;
   clientType?: AuthClientType;
+  expiresIn?: number;
 }
 
 export interface TokenProvider {
   getToken: () => Promise<string | null>;
   getRefreshToken?: () => Promise<string | null>;
+  getAccessTokenExpiresAt?: () => Promise<number | null>;
   setTokens?: (tokens: AuthTokens) => Promise<void>;
   clearToken: () => Promise<void>;
 }
@@ -37,12 +39,49 @@ interface RetriableRequestConfig extends InternalAxiosRequestConfig {
   _skipAuth?: boolean;
 }
 
+const ACCESS_TOKEN_REFRESH_LEEWAY_MS = 60_000;
+
 export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
   const client = axios.create({
     baseURL,
     timeout: 10_000,
     withCredentials: true,
   });
+  let refreshPromise: Promise<TokenResponse> | null = null;
+
+  async function reissueAccessToken() {
+    if (!tokenProvider.getRefreshToken || !tokenProvider.setTokens) {
+      throw new Error('Token refresh is unavailable');
+    }
+
+    if (!refreshPromise) {
+      refreshPromise = tokenProvider.getRefreshToken()
+        .then((refreshToken) => {
+          if (!refreshToken) {
+            throw new Error('Missing refresh token');
+          }
+
+          return axios.post<ApiResponse<TokenResponse>>(
+            '/auth/reissue',
+            { refreshToken },
+            {
+              baseURL,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+        })
+        .then((response) => unwrapApiResponse(response.data))
+        .then(async (tokens) => {
+          await tokenProvider.setTokens?.(tokens);
+          return tokens;
+        })
+        .finally(() => {
+          refreshPromise = null;
+        });
+    }
+
+    return refreshPromise;
+  }
 
   client.interceptors.request.use(
     async (config) => {
@@ -60,7 +99,23 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
         return config;
       }
 
-      const token = await tokenProvider.getToken();
+      let token = await tokenProvider.getToken();
+      const expiresAt = await tokenProvider.getAccessTokenExpiresAt?.();
+      const shouldRefresh =
+        token &&
+        expiresAt !== null &&
+        expiresAt !== undefined &&
+        expiresAt - Date.now() <= ACCESS_TOKEN_REFRESH_LEEWAY_MS;
+
+      if (shouldRefresh && tokenProvider.getRefreshToken && tokenProvider.setTokens) {
+        try {
+          token = (await reissueAccessToken()).accessToken;
+        } catch {
+          await tokenProvider.clearToken();
+          token = null;
+        }
+      }
+
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -88,22 +143,7 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
         originalRequest._retry = true;
 
         try {
-          const refreshToken = await tokenProvider.getRefreshToken();
-          if (!refreshToken) {
-            throw new Error('Missing refresh token');
-          }
-
-          const response = await axios.post<ApiResponse<TokenResponse>>(
-            '/auth/reissue',
-            { refreshToken },
-            {
-              baseURL,
-              headers: { 'Content-Type': 'application/json' },
-            }
-          );
-
-          const tokens = unwrapApiResponse(response.data);
-          await tokenProvider.setTokens(tokens);
+          const tokens = await reissueAccessToken();
           originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
 
           return client(originalRequest);

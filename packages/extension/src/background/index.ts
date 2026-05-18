@@ -15,6 +15,7 @@ const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const SESSION_ID_KEY = 'san_session_id';
 const CLIENT_TYPE_KEY = 'san_client_type';
+const ACCESS_TOKEN_EXPIRES_AT_KEY = 'san_access_token_expires_at';
 const TIL_RECALL_SETTINGS_KEY = 'san:til-recall-settings';
 const TIL_RECALL_LAST_NOTIFIED_KEY = 'san:til-recall-last-notified-date';
 const TIL_RECALL_NOTIFICATION_TARGETS_KEY = 'san:til-recall-notification-targets';
@@ -38,6 +39,7 @@ interface AuthSyncMessage {
   refreshToken?: string;
   sessionId?: string;
   clientType?: 'DASHBOARD' | 'EXTENSION';
+  expiresIn?: number;
 }
 
 interface AuthClearMessage {
@@ -60,6 +62,7 @@ interface TokenResponse {
   accessToken: string;
   refreshToken: string;
   sessionId: string;
+  expiresIn?: number;
 }
 
 interface TilResponse {
@@ -639,6 +642,7 @@ async function reissueStoredTokens() {
     [CLIENT_TYPE_KEY]: 'EXTENSION',
     ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
   });
+  await updateAccessTokenExpiresAt(payload.data.expiresIn);
 
   return payload.data.accessToken;
 }
@@ -669,6 +673,7 @@ async function exchangeAndSyncBridgeToken(message: LoginBridgeTicketMessage) {
     refreshToken: payload.data.refreshToken,
     sessionId: payload.data.sessionId,
     clientType: 'EXTENSION',
+    expiresIn: payload.data.expiresIn,
   });
 }
 
@@ -683,11 +688,23 @@ async function syncAuthTokens(message: AuthSyncMessage) {
     [CLIENT_TYPE_KEY]: message.clientType ?? 'EXTENSION',
     ...(message.sessionId ? { [SESSION_ID_KEY]: message.sessionId } : {}),
   });
+  await updateAccessTokenExpiresAt(message.expiresIn);
   notifyAuthStateChanged(true);
   void ensureTilRecallSettings();
   void scheduleNextTilRecallAlarm();
 
   return readStoredAuthState();
+}
+
+async function updateAccessTokenExpiresAt(expiresIn?: number) {
+  if (expiresIn) {
+    await chrome.storage.local.set({
+      [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + expiresIn * 1000),
+    });
+    return;
+  }
+
+  await chrome.storage.local.remove(ACCESS_TOKEN_EXPIRES_AT_KEY);
 }
 
 async function clearAuthTokens() {
@@ -696,6 +713,7 @@ async function clearAuthTokens() {
     REFRESH_TOKEN_KEY,
     SESSION_ID_KEY,
     CLIENT_TYPE_KEY,
+    ACCESS_TOKEN_EXPIRES_AT_KEY,
   ]);
   notifyAuthStateChanged(false);
 }

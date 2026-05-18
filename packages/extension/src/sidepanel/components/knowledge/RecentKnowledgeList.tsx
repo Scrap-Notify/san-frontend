@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import type { KnowledgeCardResponse } from '@san/shared';
 import type { SavedInsight } from '@extension/types';
-import { ChevronsDownUp, Copy, FileText, Image, Link, Loader2, PackageOpen } from 'lucide-react';
+import { Check, ChevronsDownUp, Copy, FileText, Image, Link, Loader2, PackageOpen } from 'lucide-react';
 
 const RECENT_TITLE = '\uCD5C\uADFC \uC9C0\uC2DD';
 const LOADING_MESSAGE = '\uC800\uC7A5\uD55C \uC9C0\uC2DD\uC744 \uBD88\uB7EC\uC624\uB294 \uC911\uC774\uC5D0\uC694.';
@@ -73,9 +73,13 @@ async function copyCard(card: KnowledgeCardResponse) {
 function KnowledgeCardArticle({
   card,
   source,
+  isCopied,
+  onCopy,
 }: {
   card: KnowledgeCardResponse;
   source?: SavedInsight;
+  isCopied: boolean;
+  onCopy: (card: KnowledgeCardResponse) => void;
 }) {
   const [isSourceOpen, setIsSourceOpen] = useState(false);
   const sourceContent = source ? getSourceContent(source) : null;
@@ -111,14 +115,15 @@ function KnowledgeCardArticle({
           ) : null}
           <button
             type="button"
-            onClick={() => {
-              void copyCard(card);
-            }}
-            className="rounded-full p-1 text-text-secondary/75 transition hover:bg-white/5 hover:text-primary-signal active:translate-y-px"
-            aria-label="Copy card"
-            title="Copy card"
+            onClick={() => onCopy(card)}
+            className={[
+              'rounded-full p-1 transition hover:bg-white/5 active:translate-y-px',
+              isCopied ? 'text-primary-signal' : 'text-text-secondary/75 hover:text-primary-signal',
+            ].join(' ')}
+            aria-label={isCopied ? 'Copied' : 'Copy card'}
+            title={isCopied ? 'Copied' : 'Copy card'}
           >
-            <Copy size={15} aria-hidden="true" />
+            {isCopied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -200,6 +205,21 @@ export function RecentKnowledgeList({
   emptyDescription = EMPTY_DESCRIPTION,
   sourceByCardId,
 }: RecentKnowledgeListProps) {
+  const [copiedCardId, setCopiedCardId] = useState<string | null>(null);
+
+  const handleCopy = (card: KnowledgeCardResponse) => {
+    void copyCard(card)
+      .then(() => {
+        setCopiedCardId(card.cardId);
+        window.setTimeout(() => {
+          setCopiedCardId((currentCardId) => (currentCardId === card.cardId ? null : currentCardId));
+        }, 1200);
+      })
+      .catch((error) => {
+        console.error('[SAN:sidepanel] failed to copy card', error);
+      });
+  };
+
   return (
     <section className={['flex flex-col', isScrollable ? 'min-h-0 flex-1' : 'shrink-0'].join(' ')}>
       <div className="mb-3 flex h-11 shrink-0 items-center justify-between gap-3">
@@ -272,6 +292,8 @@ export function RecentKnowledgeList({
                 key={card.cardId}
                 card={card}
                 source={sourceByCardId?.[card.cardId]}
+                isCopied={copiedCardId === card.cardId}
+                onCopy={handleCopy}
               />
             ))}
           </div>
