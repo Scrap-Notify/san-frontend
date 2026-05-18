@@ -129,7 +129,7 @@ export function TilPage() {
     return (
         <section className="flex h-auto w-full flex-col overflow-hidden bg-background text-text-primary lg:h-[calc(100vh-104px)]">
             <div className="flex h-full w-full flex-col lg:min-h-0 lg:flex-row">
-            <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-5 pt-12 md:px-3 lg:order-1">
+            <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-0 pb-5 pt-12 md:px-1 lg:order-1 lg:pr-8">
                 <header className="mb-4 flex flex-col gap-2">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
                         <span className="text-primary-signal">T</span>
@@ -243,17 +243,18 @@ export function TilPage() {
                             <div className="hidden h-4 w-px bg-text-primary/10 md:block" />
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-end md:w-auto">
                             <TILModeTabs activeTab={activeTab} onChange={setActiveTab} />
 
                             <button
                                 type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
-                                className="flex h-9 w-[132px] shrink-0 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-action-accent px-4 text-sm font-medium text-text-on-accent transition-colors hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex h-10 w-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-action-accent px-0 text-sm font-medium text-text-on-accent transition-colors hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:opacity-50 sm:w-[104px] sm:min-w-[104px] sm:px-3 md:w-[132px] md:min-w-[132px] md:gap-2 md:px-4"
+                                title={isCommitting ? 'Committing...' : 'Commit'}
                             >
                                 <GitCommitHorizontal size={15} />
-                                {isCommitting ? 'Committing...' : 'Commit'}
+                                <span className="hidden sm:inline">{isCommitting ? 'Committing...' : 'Commit'}</span>
                             </button>
                         </div>
                     </div>
@@ -458,7 +459,7 @@ export function TilPage() {
                 </div>
             </div>
 
-            <aside className="order-2 flex min-h-0 w-full shrink-0 border-t border-text-secondary/10 bg-transparent lg:order-2 lg:w-[360px] lg:border-l lg:border-t-0">
+            <aside className="order-2 flex min-h-0 w-full shrink-0 border-t border-text-secondary/10 bg-transparent lg:order-2 lg:w-[392px] lg:border-l lg:border-t-0 lg:pl-8 lg:pt-12">
                 <CollectedDataPanel
                     sourcesQuery={sourcesQuery}
                     recallCardsQuery={recallCardsQuery}
