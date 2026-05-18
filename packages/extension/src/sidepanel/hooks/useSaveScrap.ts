@@ -203,19 +203,20 @@ export function useSaveScrap({
       const request = toCreateScrapRequest(pendingScrap, imageObjectKey);
       setSavingLabel('Saving scrap...');
       const response = await scrapsApi.create(request);
+      const isDuplicateScrap = response.duplicated ?? cards.some((item) => item.id === response.scrapId);
       const saved = {
         ...toSavedInsight(pendingScrap),
         id: response.scrapId,
         created_at: response.createdAt,
       };
-      const nextCards = response.duplicated ? cards : [saved, ...cards];
+      const nextCards = isDuplicateScrap ? cards : [saved, ...cards];
       setCards(nextCards);
       setPendingScrap(null);
       setPendingImageFile(null);
       await savePendingScrap(null);
       await saveInsights(nextCards);
       await deletePendingImageFile(pendingScrap.image_blob_id);
-      if (response.duplicated) {
+      if (isDuplicateScrap) {
         setSaveNotice(DUPLICATE_SCRAP_NOTICE);
       }
 
