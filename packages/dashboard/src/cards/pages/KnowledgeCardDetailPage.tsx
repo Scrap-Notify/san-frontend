@@ -1,16 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import Editor, { type OnMount } from '@monaco-editor/react';
+import type * as monaco from 'monaco-editor';
 import {
   AlertCircle,
   ArrowLeft,
+  Bold,
+  BookOpen,
   CheckCircle2,
+  Code,
+  Eye,
   FileText,
-  Hash,
+  Heading,
   Image,
+  Italic,
   Link as LinkIcon,
+  List,
+  ListOrdered,
   Loader2,
-  Sparkles,
+  PenLine,
+  Quote,
+  RotateCcw,
+  Save,
   Tags,
 } from 'lucide-react';
 import { useCardDetail, useSimilarCards, type KnowledgeCardDetailResponse, type KnowledgeCardResponse } from '@san/shared';
@@ -50,6 +64,52 @@ const sectionCardClass = 'rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rou
 const panelCardClass = 'rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#181c1f] p-5';
 const REFINE_POLL_INTERVAL_MS = 2000;
 const REFINE_POLL_TIMEOUT_MS = 30000;
+
+const mdComponents = {
+  h1: ({ children }: { children?: React.ReactNode }) => (
+    <h1 className="mb-5 border-b border-[#4ade80]/20 pb-3 text-2xl font-bold text-white">{children}</h1>
+  ),
+  h2: ({ children }: { children?: React.ReactNode }) => (
+    <h2 className="mb-3 mt-7 text-xl font-bold text-white">{children}</h2>
+  ),
+  h3: ({ children }: { children?: React.ReactNode }) => (
+    <h3 className="mb-2 mt-5 text-lg font-semibold text-white/90">{children}</h3>
+  ),
+  h4: ({ children }: { children?: React.ReactNode }) => (
+    <h4 className="mb-2 mt-4 text-base font-semibold text-white/90">{children}</h4>
+  ),
+  p: ({ children }: { children?: React.ReactNode }) => (
+    <p className="mb-4 leading-7 text-white/70">{children}</p>
+  ),
+  ul: ({ children }: { children?: React.ReactNode }) => (
+    <ul className="mb-4 list-disc space-y-1.5 pl-6 text-white/70">{children}</ul>
+  ),
+  ol: ({ children }: { children?: React.ReactNode }) => (
+    <ol className="mb-4 list-decimal space-y-1.5 pl-6 text-white/70">{children}</ol>
+  ),
+  li: ({ children }: { children?: React.ReactNode }) => (
+    <li className="pl-1 leading-7 marker:text-[#4ade80]">{children}</li>
+  ),
+  strong: ({ children }: { children?: React.ReactNode }) => (
+    <strong className="font-bold text-white/90">{children}</strong>
+  ),
+  em: ({ children }: { children?: React.ReactNode }) => (
+    <em className="text-white/50">{children}</em>
+  ),
+  blockquote: ({ children }: { children?: React.ReactNode }) => (
+    <blockquote className="mb-4 border-l-2 border-[#4ade80]/40 bg-[#4ade80]/5 py-2 pl-4 text-white/60">{children}</blockquote>
+  ),
+  code: ({ children }: { children?: React.ReactNode }) => (
+    <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-sm text-[#4ade80]">{children}</code>
+  ),
+  pre: ({ children }: { children?: React.ReactNode }) => (
+    <pre className="mb-4 overflow-x-auto rounded-xl border border-white/5 bg-[#0B0D0F] p-4 text-sm leading-6">{children}</pre>
+  ),
+  a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
+    <a href={href} target="_blank" rel="noreferrer" className="text-[#4ade80] underline decoration-[#4ade80]/40 underline-offset-4">{children}</a>
+  ),
+  hr: () => <hr className="my-6 border-white/10" />,
+};
 
 export function KnowledgeCardDetailPage() {
   const { cardId } = useParams();
@@ -124,18 +184,22 @@ export function KnowledgeCardDetailPage() {
             돌아가기
           </button>
           <p className="text-md font-bold uppercase tracking-wide text-[#4ade80]">지식카드 상세보기</p>
-          <h1 className="mt-3 max-w-4xl text-h1-bold leading-[1.25] text-white md:text-[40px]">
-            {data.finalCard.title}
-          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <h1 className="max-w-4xl text-h1-bold leading-[1.25] text-white md:text-[40px]">
+              {data.finalCard.title}
+            </h1>
+            <span className="shrink-0 rounded-full border border-[#4ade80]/20 bg-[#4ade80]/10 px-3 py-1 text-sm font-semibold text-[#4ade80]">
+              {data.finalCard.categoryName}
+            </span>
+          </div>
           <p className="mt-4 max-w-3xl text-base leading-7 text-white/50">
             원본 데이터에서 AI 1차 정제 텍스트를 거쳐 최종 지식카드가 만들어진 흐름을 확인합니다.
           </p>
         </div>
       </div>
 
-      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex min-w-0 flex-col gap-6">
-          <SourceDataSection source={data.source} />
           <ProcessedTextSection processedText={data.processedText} isCheckingRefinedContent={isCheckingRefinedContent} />
           <FinalKnowledgeCardSection finalCard={data.finalCard} />
         </div>
@@ -145,62 +209,6 @@ export function KnowledgeCardDetailPage() {
   );
 }
 
-function SourceDataSection({ source }: { source: KnowledgeCardDetailData['source'] }) {
-  const SourceIcon = getSourceIcon(source.type);
-
-  return (
-    <section className={sectionCardClass}>
-      <SectionHeader
-        icon={<FileText size={18} />}
-        title="원본 데이터"
-        description="최초 수집된 원본 데이터입니다. 이 영역은 읽기 전용입니다."
-      />
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem]">
-        <div className="min-w-0 rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-5">
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#4ade80]/20 bg-[#4ade80]/5 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#4ade80]">
-              <SourceIcon size={14} aria-hidden="true" />
-              {source.type}
-            </span>
-            <span className="text-xs text-white/40">
-              수집 일시 {source.collectedAt ? formatDateTime(source.collectedAt) : 'API 미제공'}
-            </span>
-          </div>
-
-          {source.url ? (
-            <a
-              href={source.url}
-              target="_blank"
-              rel="noreferrer"
-              className="mb-4 flex min-w-0 items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-4 py-3 text-sm text-white/60 transition hover:border-white/10 hover:text-white"
-            >
-              <LinkIcon size={15} className="shrink-0 text-[#4ade80]" aria-hidden="true" />
-              <span className="truncate">{source.url}</span>
-            </a>
-          ) : null}
-
-          {source.type === 'TEXT' ? (
-            <p className="whitespace-pre-wrap text-sm leading-7 text-white/60">
-              {source.rawContent || '원본 데이터가 비어 있습니다.'}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#181c1f] p-5 text-center">
-          {source.previewUrl ? (
-            <img src={source.previewUrl} alt="" className="max-h-56 rounded-xl object-cover" />
-          ) : (
-            <div className="flex flex-col items-center gap-3 text-white/40">
-              <SourceIcon size={34} strokeWidth={1.5} aria-hidden="true" />
-              <p className="text-sm leading-6">원본 preview URL은 현재 상세 API에서 제공되지 않습니다.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 function ProcessedTextSection({
   processedText,
@@ -209,31 +217,171 @@ function ProcessedTextSection({
   processedText: KnowledgeCardDetailData['processedText'];
   isCheckingRefinedContent: boolean;
 }) {
-  const [value, setValue] = useState(processedText.refinedContent);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(processedText.refinedContent);
   const hasRefinedContent = processedText.refinedContent.trim().length > 0;
+  const hasUnsavedChanges = editValue !== processedText.refinedContent;
 
   useEffect(() => {
-    setValue(processedText.refinedContent);
+    setEditValue(processedText.refinedContent);
   }, [processedText.refinedContent]);
+
+  const handleEditorMount: OnMount = (editor) => {
+    editorRef.current = editor;
+  };
+
+  const handleFormat = (action: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const model = editor.getModel();
+    const selection = editor.getSelection();
+    if (!model || !selection) return;
+
+    const selectedText = model.getValueInRange(selection);
+    let replacement = selectedText;
+
+    switch (action) {
+      case 'heading': replacement = `### ${selectedText || 'Heading'}`; break;
+      case 'bold': replacement = `**${selectedText || 'text'}**`; break;
+      case 'italic': replacement = `*${selectedText || 'text'}*`; break;
+      case 'quote': replacement = `\n> ${selectedText || 'quote'}`; break;
+      case 'code':
+        replacement = selectedText.includes('\n')
+          ? `\`\`\`\n${selectedText || 'code'}\n\`\`\``
+          : `\`${selectedText || 'code'}\``;
+        break;
+      case 'link': replacement = `[${selectedText || 'link'}](url)`; break;
+      case 'ordered-list': replacement = `\n1. ${selectedText || 'item'}`; break;
+      case 'list': replacement = `\n- ${selectedText || 'item'}`; break;
+    }
+
+    editor.executeEdits('toolbar', [
+      { range: selection, text: replacement, forceMoveMarkers: true },
+    ]);
+    setEditValue(model.getValue());
+  };
+
+  const handleReset = () => {
+    setEditValue(processedText.refinedContent);
+  };
 
   return (
     <section className={sectionCardClass}>
-      <SectionHeader
-        icon={<Sparkles size={18} />}
-        title="AI 1차 정제 텍스트"
-        description="원본을 읽기 쉽게 변환한 텍스트입니다. 오타나 OCR 오류 정도는 현재 화면에서만 임시로 수정할 수 있으며, 수정 내용은 저장되지 않고 기존 최종 지식카드에도 자동 반영되지 않습니다."
-      />
+      <div className="flex items-start justify-between gap-4">
+        <SectionHeader
+          icon={<BookOpen size={18} />}
+          title="정제 텍스트"
+          description="원본을 읽기 쉽게 변환한 텍스트입니다."
+        />
+        {hasRefinedContent && (
+          <button
+            type="button"
+            onClick={() => setIsEditing(!isEditing)}
+            className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white/50 transition-colors hover:border-white/20 hover:text-white"
+          >
+            {isEditing ? <Eye size={13} /> : <PenLine size={13} />}
+            {isEditing ? '미리보기' : '편집'}
+          </button>
+        )}
+      </div>
 
       {hasRefinedContent ? (
-        <div className="mt-6 rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-1">
-          <textarea
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-            spellCheck={false}
-            className="min-h-[22rem] w-full resize-y rounded-[14px] bg-transparent px-5 py-4 text-base leading-8 text-white/70 outline-none placeholder:text-white/20 focus:bg-white/[0.02]"
-            aria-label="AI 1차 정제 텍스트"
-          />
-        </div>
+        <>
+          {isEditing && (
+            <div className="mt-4 flex items-center gap-1 overflow-x-auto rounded-xl border border-white/5 bg-[#0B0D0F]/60 px-2.5 py-2 text-white/40">
+              <ToolbarButton icon={<Heading size={13} />} title="Heading" onClick={() => handleFormat('heading')} />
+              <ToolbarButton icon={<Bold size={13} strokeWidth={2.5} />} title="Bold" onClick={() => handleFormat('bold')} />
+              <ToolbarButton icon={<Italic size={13} strokeWidth={2.5} />} title="Italic" onClick={() => handleFormat('italic')} />
+              <ToolbarButton icon={<Quote size={13} />} title="Quote" onClick={() => handleFormat('quote')} />
+              <ToolbarButton icon={<Code size={13} />} title="Code" onClick={() => handleFormat('code')} />
+              <ToolbarButton icon={<LinkIcon size={13} />} title="Link" onClick={() => handleFormat('link')} />
+              <div className="mx-1 h-4 w-px shrink-0 bg-white/10" />
+              <ToolbarButton icon={<ListOrdered size={13} />} title="Ordered List" onClick={() => handleFormat('ordered-list')} />
+              <ToolbarButton icon={<List size={13} />} title="List" onClick={() => handleFormat('list')} />
+            </div>
+          )}
+
+          {isEditing ? (
+            <div className="mt-3 overflow-hidden rounded-2xl border border-white/5 bg-[#1e1e1e]/30">
+              <Editor
+                height="24rem"
+                theme="vs-dark"
+                defaultLanguage="markdown"
+                value={editValue}
+                onChange={(v) => setEditValue(v ?? '')}
+                onMount={handleEditorMount}
+                loading={
+                  <div className="flex h-96 w-full flex-col gap-4 p-6 animate-pulse">
+                    <div className="h-6 w-3/4 rounded bg-white/5" />
+                    <div className="h-4 w-full rounded bg-white/5" />
+                    <div className="h-4 w-2/3 rounded bg-white/5" />
+                  </div>
+                }
+                options={{
+                  fontSize: 15,
+                  fontFamily: 'Pretendard, ui-monospace, monospace',
+                  lineHeight: 26,
+                  wordWrap: 'on',
+                  minimap: { enabled: false },
+                  scrollbar: {
+                    vertical: 'auto',
+                    horizontal: 'auto',
+                    verticalScrollbarSize: 7,
+                    horizontalScrollbarSize: 7,
+                  },
+                  padding: { top: 16, bottom: 40 },
+                  lineNumbers: 'on',
+                  renderLineHighlight: 'all',
+                  quickSuggestions: false,
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                  overviewRulerLanes: 0,
+                  smoothScrolling: true,
+                }}
+              />
+            </div>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-white/5 bg-[#0B0D0F]/60 px-4 py-5 sm:px-6">
+              <article className="max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+                  {editValue}
+                </ReactMarkdown>
+              </article>
+            </div>
+          )}
+
+          {isEditing && (
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <span className="hidden text-xs text-white/25 sm:block">수정 API 연동 준비 중</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={!hasUnsavedChanges}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-white/40 transition-colors hover:text-white disabled:opacity-30"
+                >
+                  <RotateCcw size={12} />
+                  초기화
+                </button>
+                <button
+                  type="button"
+                  disabled
+                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-[#4ade80]/60 px-3 py-1.5 text-xs font-bold text-[#0B0D0F] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Save size={12} />
+                  저장
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!isEditing && processedText.updatedAt && (
+            <div className="mt-3 text-right text-xs text-white/35">
+              정제 일시 {formatDateTime(processedText.updatedAt)}
+            </div>
+          )}
+        </>
       ) : isCheckingRefinedContent ? (
         <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
@@ -249,20 +397,15 @@ function ProcessedTextSection({
       ) : (
         <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
-            <Sparkles size={24} className="text-white/25" aria-hidden="true" />
+            <BookOpen size={24} className="text-white/25" aria-hidden="true" />
             <p className="text-base font-semibold text-white/70">1차 정제 데이터가 없습니다.</p>
             <p className="text-sm leading-6 text-white/40">
-              현재 상세 API에서 정제된 텍스트가 제공되지 않아 
+              현재 상세 API에서 정제된 텍스트가 제공되지 않아
               <br />원본 데이터와 최종 지식카드만 확인할 수 있습니다.
             </p>
           </div>
         </div>
       )}
-
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-white/35">
-        <span>문서 편집기가 아니라 정제 텍스트 확인과 일시적인 보정 용도입니다.</span>
-        {processedText.updatedAt ? <span>정제 일시 {formatDateTime(processedText.updatedAt)}</span> : null}
-      </div>
     </section>
   );
 }
@@ -276,30 +419,17 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
         description="최종 지식카드는 최초 생성 시점의 정제 텍스트를 기준으로 생성되었습니다."
       />
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="min-w-0">
-          <div className="rounded-2xl border border-white/5 bg-[#181c1f] p-5">
-            <p className="text-sm font-bold tracking-wide text-white/35">핵심 요약</p>
-            <ul className="mt-4 space-y-3">
-              {finalCard.keyPoints.map((point) => (
-                <li key={point} className="flex gap-3 text-sm leading-7 text-white/70">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4ade80]" />
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="flex min-w-0 flex-col gap-5">
-          <InfoBlock label="카테고리" value={finalCard.categoryName} />
-          <div className={panelCardClass}>
-            <p className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wide text-white/35">
-              <Tags size={14} aria-hidden="true" />
-              태그
-            </p>
-            <TagList values={finalCard.tags} />
-          </div>
+      <div className="mt-6">
+        <div className="rounded-2xl border border-white/5 bg-[#181c1f] p-5">
+          <p className="text-sm font-bold tracking-wide text-white/35">핵심 요약</p>
+          <ul className="mt-4 space-y-3">
+            {finalCard.keyPoints.map((point) => (
+              <li key={point} className="flex gap-3 text-sm leading-7 text-white/70">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4ade80]" />
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
@@ -307,15 +437,42 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
 }
 
 function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetailData; isLoadingRelated: boolean }) {
+  const SourceIcon = getSourceIcon(data.source.type);
+
   return (
-    <aside className="flex min-w-0 flex-col gap-5 xl:sticky xl:top-28 xl:self-start">
+    <aside className="flex min-w-0 flex-col gap-5 lg:sticky lg:top-28 lg:self-start">
       <div className={panelCardClass}>
-        <p className="text-xs font-bold uppercase tracking-wide text-[#4ade80]">Metadata</p>
-        <dl className="mt-5 space-y-4 text-sm">
-          <MetaRow label="Card ID" value={data.cardId} />
-          <MetaRow label="Source" value={data.source.type} />
-          <MetaRow label="Collected" value={data.source.collectedAt ? formatDateTime(data.source.collectedAt) : 'API 미제공'} />
-        </dl>
+        <p className="text-xs font-bold uppercase tracking-wide text-[#4ade80]">원본 데이터</p>
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4ade80]/20 bg-[#4ade80]/5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[#4ade80]">
+              <SourceIcon size={12} aria-hidden="true" />
+              {data.source.type}
+            </span>
+          </div>
+          <dl className="space-y-3 text-sm">
+            <MetaRow label="수집 일시" value={data.source.collectedAt ? formatDateTime(data.source.collectedAt) : 'API 미제공'} />
+          </dl>
+          {data.source.url ? (
+            <a
+              href={data.source.url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-w-0 items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5 text-sm text-white/60 transition hover:border-white/10 hover:text-white"
+            >
+              <LinkIcon size={14} className="shrink-0 text-[#4ade80]" aria-hidden="true" />
+              <span className="truncate">{data.source.url}</span>
+            </a>
+          ) : null}
+          {data.source.previewUrl ? (
+            <img src={data.source.previewUrl} alt="" className="max-h-40 w-full rounded-xl object-cover" />
+          ) : null}
+          {data.source.type === 'TEXT' && data.source.rawContent ? (
+            <p className="line-clamp-6 whitespace-pre-wrap rounded-xl border border-white/5 bg-[#0B0D0F]/60 p-3 text-sm leading-6 text-white/50">
+              {data.source.rawContent}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <div className={panelCardClass}>
@@ -379,14 +536,6 @@ function SectionHeader({ icon, title, description }: { icon: ReactNode; title: s
   );
 }
 
-function InfoBlock({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={panelCardClass}>
-      <p className="text-sm font-bold tracking-wide text-white/35">{label}</p>
-      <p className="mt-3 text-base font-semibold text-white/80">{value}</p>
-    </div>
-  );
-}
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
@@ -394,6 +543,19 @@ function MetaRow({ label, value }: { label: string; value: string }) {
       <dt className="shrink-0 text-white/35">{label}</dt>
       <dd className="min-w-0 truncate text-right font-medium text-white/65">{value}</dd>
     </div>
+  );
+}
+
+function ToolbarButton({ icon, title, onClick }: { icon: ReactNode; title: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white"
+    >
+      {icon}
+    </button>
   );
 }
 
@@ -427,7 +589,7 @@ function toDetailData(
   similarCards: KnowledgeCardResponse[],
 ): KnowledgeCardDetailData {
   const sourceContent = detail.sourceContent ?? '';
-  const tags = detail.tags ?? [];
+  const tags = [...new Set(detail.tags ?? [])];
 
   return {
     cardId,
