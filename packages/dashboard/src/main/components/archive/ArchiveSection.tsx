@@ -13,16 +13,17 @@ export function ArchiveSection() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { cards, isPending, isError } = useArchiveCards({ limit: 12 }, { enabled: isAuthenticated });
+  const visibleCards = cards.slice(0, 12);
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleScroll = useCallback(() => {
     const carousel = carouselRef.current;
-    if (!carousel || cards.length === 0) return;
+    if (!carousel || visibleCards.length === 0) return;
     const pageIndex = Math.round(carousel.scrollLeft / carousel.clientWidth);
     setActiveIndex(pageIndex);
-  }, [cards.length]);
+  }, [visibleCards.length]);
 
   const scrollCarousel = useCallback((direction: 'previous' | 'next') => {
     const carousel = carouselRef.current;
@@ -44,12 +45,12 @@ export function ArchiveSection() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated || isPending || isError || cards.length === 0 || isHovered || !isPlaying) return;
+    if (!isAuthenticated || isPending || isError || visibleCards.length === 0 || isHovered || !isPlaying) return;
     const interval = setInterval(() => {
       scrollCarousel('next');
     }, 4000);
     return () => clearInterval(interval);
-  }, [cards.length, isAuthenticated, isError, isHovered, isPending, isPlaying, scrollCarousel]);
+  }, [isAuthenticated, isError, isHovered, isPending, isPlaying, scrollCarousel, visibleCards.length]);
 
   useEffect(() => {
     let ignore = false;
@@ -69,8 +70,8 @@ export function ArchiveSection() {
     };
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(cards.length / 3));
-  const hasCards = isAuthenticated && !isPending && !isError && cards.length > 0;
+  const totalPages = Math.max(1, Math.ceil(visibleCards.length / 3));
+  const hasCards = isAuthenticated && !isPending && !isError && visibleCards.length > 0;
 
   return (
     <section className="w-full min-w-0 overflow-hidden pb-xl">
@@ -172,7 +173,7 @@ export function ArchiveSection() {
               <StatusCard message="아카이브 카드를 불러올 수 없습니다." tone="error" />
             ) : null}
 
-            {isAuthenticated && !isPending && !isError && cards.length === 0 ? (
+            {isAuthenticated && !isPending && !isError && visibleCards.length === 0 ? (
               <HomeKnowledgeCardsEmptyState
                 primaryAction={{
                   label: '분석 시작',
@@ -181,7 +182,7 @@ export function ArchiveSection() {
               />
             ) : null}
 
-            {hasCards ? cards.map((card) => {
+            {hasCards ? visibleCards.map((card) => {
               const date = formatRelativeDate(card.created_at);
               const categoryName = card.category_name ?? card.tags[0]?.name ?? 'Uncategorized';
 
