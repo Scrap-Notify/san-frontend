@@ -6,8 +6,8 @@ interface CreatedKnowledgeCardProps {
 
 export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
   return (
-    <div className="px-1 text-body-sm font-medium text-text-secondary">
-      <div className="flex flex-col gap-[calc(var(--spacing-dashboard-gap)/2)]">
+    <div className="px-1">
+      <div className="mb-2 flex h-11 items-center text-body-sm font-bold text-text-secondary/85">
         지식카드 생성
       </div>
 

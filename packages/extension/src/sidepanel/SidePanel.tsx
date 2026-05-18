@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getS3ImageFileValidationError } from '@san/shared';
-import type { KnowledgeCardResponse, KnowledgeCardView, SearchCardResult } from '@san/shared';
+import type {
+  KnowledgeCardDetailResponse,
+  KnowledgeCardResponse,
+  KnowledgeCardView,
+  SearchCardResult,
+} from '@san/shared';
 import { authApi, authTokenStorage, cardsApi, searchApi } from '@extension/api/client';
 import type { ExtensionMessage, PendingScrap, SavedInsight } from '@extension/types';
 import { DropZone } from './components/capture/DropZone';
@@ -19,6 +24,7 @@ import SidePanelNavbar from './components/layout/SidePanelNavbar';
 import { CreatedKnowledgeCard } from './components/knowledge/CreatedKnowledgeCard';
 import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCard';
 import { ExtensionAuthCard } from './components/auth/ExtensionAuthCard';
+import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
@@ -244,6 +250,7 @@ export default function SidePanel() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isAuthCardOpen, setIsAuthCardOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [serverSourceByCardId, setServerSourceByCardId] = useState<Record<string, KnowledgeCardDetailResponse | undefined>>({});
 
   const sourceByCardId = useMemo(() => {
     const entries = cards
@@ -260,6 +267,7 @@ export default function SidePanel() {
       setRecentCards([]);
       setCreatedCard(null);
       setRelatedCards([]);
+      setServerSourceByCardId({});
       setActiveKnowledgeTab('recent');
       return;
     }
@@ -283,6 +291,7 @@ export default function SidePanel() {
         setRecentCards([]);
         setCreatedCard(null);
         setRelatedCards([]);
+        setServerSourceByCardId({});
         setKnowledgeSearchCards([]);
         setHasKnowledgeSearchResult(false);
         setKnowledgeSearchError(null);
@@ -296,6 +305,29 @@ export default function SidePanel() {
       setIsLoadingRecent(false);
     }
   }, []);
+
+  const hydrateServerSources = useCallback(async (nextCards: KnowledgeCardResponse[]) => {
+    const missingCardIds = nextCards
+      .map((card) => card.cardId)
+      .filter((cardId) => !serverSourceByCardId[cardId]);
+
+    if (missingCardIds.length === 0) return;
+
+    const results = await Promise.allSettled(
+      missingCardIds.map(async (cardId) => [cardId, await cardsApi.getDetail(cardId)] as const),
+    );
+
+    const fulfilledEntries = results
+      .filter((result): result is PromiseFulfilledResult<readonly [string, KnowledgeCardDetailResponse]> => result.status === 'fulfilled')
+      .map((result) => result.value);
+
+    if (fulfilledEntries.length === 0) return;
+
+    setServerSourceByCardId((current) => ({
+      ...current,
+      ...Object.fromEntries(fulfilledEntries),
+    }));
+  }, [serverSourceByCardId]);
 
   const {
     isSaving,
@@ -490,6 +522,7 @@ export default function SidePanel() {
         setRecentCards([]);
         setCreatedCard(null);
         setRelatedCards([]);
+        setServerSourceByCardId({});
         setActiveKnowledgeTab('recent');
       }
     };
@@ -534,27 +567,44 @@ export default function SidePanel() {
     };
   }, [refreshRecentCards]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    void hydrateServerSources(recentCards);
+  }, [hydrateServerSources, isAuthenticated, recentCards]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    void hydrateServerSources(relatedCards);
+  }, [hydrateServerSources, isAuthenticated, relatedCards]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    void hydrateServerSources(knowledgeSearchCards);
+  }, [hydrateServerSources, isAuthenticated, knowledgeSearchCards]);
+
   const handleTextDrop = useCallback(async (text: string) => {
-    const metadata = await requestActiveTabMetadata();
     await deletePendingImageFile(pendingScrap?.image_blob_id);
-    const nextPending: PendingScrap = {
-      ...(metadata ?? {
-        source_type: 'TEXT',
-        source_url: null,
-        raw_content: null,
-        image_url: null,
-        title: 'Dragged text',
-        domain: '',
-        favicon: null,
-      }),
-      source_type: 'TEXT',
-      raw_content: text,
-      image_blob_id: null,
-    };
+    const trimmedText = text.trim();
+    const nextPending: PendingScrap = isHttpUrl(trimmedText)
+      ? createLinkScrap(trimmedText)
+      : {
+          ...((await requestActiveTabMetadata()) ?? {
+            source_type: 'TEXT',
+            source_url: null,
+            raw_content: null,
+            image_url: null,
+            title: 'Dragged text',
+            domain: '',
+            favicon: null,
+          }),
+          source_type: 'TEXT',
+          raw_content: text,
+          image_blob_id: null,
+        };
 
     clearResultState();
     debugLog('drop zone text received', {
-      length: text.length,
+      length: trimmedText.length,
       source_url: nextPending.source_url,
       title: nextPending.title,
     });
@@ -634,6 +684,26 @@ export default function SidePanel() {
     }
   }, [isAuthenticated]);
 
+  const openDashboardCardDetail = useCallback((cardId: string) => {
+    if (!isAuthenticated) {
+      chrome.tabs.create({ url: dashboardLoginUrl.toString() });
+      return;
+    }
+
+    void (async () => {
+      try {
+        const { ticket } = await authApi.createDashboardBridgeTicket();
+        const dashboardBridgeUrl = new URL('/auth/bridge/dashboard', dashboardBaseUrl);
+        dashboardBridgeUrl.searchParams.set('ticket', ticket);
+        dashboardBridgeUrl.searchParams.set('redirect', `/cards/${cardId}`);
+        await chrome.tabs.create({ url: dashboardBridgeUrl.toString() });
+      } catch (error) {
+        console.error(DEBUG_PREFIX, 'failed to open dashboard card detail with bridge login', error);
+        await chrome.tabs.create({ url: dashboardLoginUrl.toString() });
+      }
+    })();
+  }, [isAuthenticated]);
+
   const handleProfileButtonClick = useCallback(() => {
     if (!isAuthenticated) {
       setIsAuthCardOpen(true);
@@ -684,6 +754,7 @@ export default function SidePanel() {
       setRecentCards([]);
       setCreatedCard(null);
       setRelatedCards([]);
+      setServerSourceByCardId({});
       setKnowledgeSearchCards([]);
       setHasKnowledgeSearchResult(false);
       setKnowledgeSearchError(null);
@@ -859,6 +930,9 @@ export default function SidePanel() {
                         title={SEARCH_RESULT_TITLE}
                         action={knowledgeSearchAction}
                         sourceByCardId={sourceByCardId}
+                        serverSourceByCardId={serverSourceByCardId}
+                        useServerSources
+                        onOpenCard={openDashboardCardDetail}
                       />
                     ) : activeKnowledgeTab === 'similar' && canOpenSimilarTab ? (
                       <SimilarKnowledgeList
@@ -869,6 +943,9 @@ export default function SidePanel() {
                         title={knowledgeTabs}
                         action={knowledgeSearchAction}
                         sourceByCardId={sourceByCardId}
+                        serverSourceByCardId={serverSourceByCardId}
+                        useServerSources
+                        onOpenCard={openDashboardCardDetail}
                       />
                     ) : (
                       <RecentKnowledgeList
@@ -879,6 +956,9 @@ export default function SidePanel() {
                         title={knowledgeTabs}
                         action={knowledgeSearchAction}
                         sourceByCardId={sourceByCardId}
+                        serverSourceByCardId={serverSourceByCardId}
+                        useServerSources
+                        onOpenCard={openDashboardCardDetail}
                       />
                     )}
                   </>

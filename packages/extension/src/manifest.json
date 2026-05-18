@@ -17,7 +17,7 @@
   "host_permissions": [
     "http://localhost/*",
     "https://k14a309.p.ssafy.io/*"
-  ], 
+  ],
   "externally_connectable": {
     "matches": [
       "http://localhost/*",
@@ -42,8 +42,8 @@
     },
     "capture_image": {
       "suggested_key": {
-        "default": "Alt+Q",
-        "mac": "Alt+Q"
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
       },
       "description": "현재 탭(전체 화면)을 이미지로 캡처"
     }
