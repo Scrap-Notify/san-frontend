@@ -18,7 +18,7 @@ type Rotation = {
 
 const restingRotationBase: Rotation = { x: -8, y: 18 };
 
-export function KnowledgePlanetPrototype() {
+export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?: boolean }) {
   const [view, setView] = useState<'planet' | 'tree'>('planet');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [treeEnterToken, setTreeEnterToken] = useState(0);
@@ -34,11 +34,12 @@ export function KnowledgePlanetPrototype() {
   const velocityRef = useRef<Rotation>({ x: 0, y: 0 });
   const restingRotationRef = useRef<Rotation>(restingRotationBase);
 
-  const categoriesQuery = useArchiveCategories();
+  const categoriesQuery = useArchiveCategories({ enabled: showMarkers });
   const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
   const useFixtureData = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES !== 'false';
 
   const categories = useMemo<GraphCategory[]>(() => {
+    if (!showMarkers) return [];
     const apiCategories = categoriesQuery.data?.categories;
     if (!apiCategories?.length && !useFixtureData) return [];
 
@@ -62,7 +63,7 @@ export function KnowledgePlanetPrototype() {
       position: positions[index],
       sphere: spherePoints[index],
     }));
-  }, [categoriesQuery.data?.categories, useFixtureData]);
+  }, [categoriesQuery.data?.categories, showMarkers, useFixtureData]);
 
   useEffect(() => {
     if (!categoriesQuery.data?.categories.length) return;
@@ -319,7 +320,7 @@ export function KnowledgePlanetPrototype() {
             );
           })}
 
-          {!categoriesQuery.isPending && categories.length === 0 ? (
+          {showMarkers && !categoriesQuery.isPending && categories.length === 0 ? (
             <div className="absolute inset-x-0 bottom-8 text-center text-sm text-white/45">
               표시할 아카이브 카테고리가 없습니다.
             </div>

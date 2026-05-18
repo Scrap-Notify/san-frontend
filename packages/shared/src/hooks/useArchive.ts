@@ -8,12 +8,13 @@ export const archiveKeys = {
   cardRelations: (cardId: string | null | undefined) => [...archiveKeys.all, 'card-relations', cardId] as const,
 };
 
-export function useArchiveCategories() {
+export function useArchiveCategories(options?: { enabled?: boolean }) {
   const { archiveApi } = useApiContext();
 
   return useQuery({
     queryKey: archiveKeys.categories(),
     queryFn: () => archiveApi.getCategories(),
+    enabled: options?.enabled ?? true,
   });
 }
 
