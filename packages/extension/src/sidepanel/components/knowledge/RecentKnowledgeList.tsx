@@ -127,23 +127,31 @@ function KnowledgeCardArticle({
     : (source ? getSourceIcon(source) : FileText);
 
   return (
-    <article
-      className={[
-        'rounded-leaf border border-text-secondary/12 bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container',
-        onOpenCard ? 'cursor-pointer' : '',
-      ].join(' ')}
-      onClick={onOpenCard ? () => onOpenCard(card.cardId) : undefined}
-    >
+    <article className="rounded-leaf border border-text-secondary/12 bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
       <div className="flex items-start justify-between gap-3">
         <h3
           className={[
             'line-clamp-1 select-text text-body-main-bold text-text-primary',
-            onOpenCard ? 'cursor-pointer hover:text-primary-signal' : 'cursor-text',
+            'cursor-text',
           ].join(' ')}
         >
           {card.title}
         </h3>
         <div className="flex shrink-0 items-center gap-1">
+          {onOpenCard ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onOpenCard(card.cardId);
+              }}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption-bold text-text-secondary/75 transition hover:bg-white/5 hover:text-primary-signal active:translate-y-px"
+              aria-label="Open card detail"
+              title="Open card detail"
+            >
+              열기
+            </button>
+          ) : null}
           {hasSource ? (
             <button
               type="button"
