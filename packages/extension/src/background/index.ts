@@ -28,6 +28,21 @@ const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const isDebug = import.meta.env.DEV;
+let lastFocusedWindowId: number | undefined;
+
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId !== chrome.windows.WINDOW_ID_NONE) {
+    lastFocusedWindowId = windowId;
+  }
+});
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  lastFocusedWindowId = activeInfo.windowId;
+});
+
+void chrome.windows.getLastFocused().then((window) => {
+  lastFocusedWindowId = window.id;
+});
 
 function normalizeApiBaseURL(value: string) {
   const trimmed = value.replace(/\/$/, '');
@@ -176,20 +191,13 @@ chrome.commands.onCommand.addListener(async (command) => {
   debugLog('command received', command);
 
   if (command === 'capture_image') {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.id) return;
-
     try {
-      try {
-        await chrome.sidePanel.open({ tabId: tab.id });
-      } catch (error) {
-        console.error(DEBUG_PREFIX, 'failed to open side panel before capture_image', {
-          error,
-          tabId: tab.id,
-          url: tab.url,
-        });
-        throw error;
+      if (lastFocusedWindowId !== undefined) {
+        await chrome.sidePanel.open({ windowId: lastFocusedWindowId });
       }
+
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return;
 
       let dataUrl: string;
       try {
