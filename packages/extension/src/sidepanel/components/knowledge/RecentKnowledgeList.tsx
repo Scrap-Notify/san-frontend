@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import type { KnowledgeCardResponse } from '@san/shared';
+import type { KnowledgeCardDetailResponse, KnowledgeCardResponse } from '@san/shared';
 import type { SavedInsight } from '@extension/types';
 import { Check, ChevronsDownUp, Copy, FileText, Image, Link, Loader2, PackageOpen } from 'lucide-react';
 
@@ -26,6 +26,9 @@ interface RecentKnowledgeListProps {
   emptyTitle?: string;
   emptyDescription?: string;
   sourceByCardId?: Record<string, SavedInsight | undefined>;
+  serverSourceByCardId?: Record<string, KnowledgeCardDetailResponse | undefined>;
+  useServerSources?: boolean;
+  onOpenCard?: (cardId: string) => void;
 }
 
 function formatDate(value?: string) {
@@ -58,6 +61,25 @@ function getSourceImageUrl(source: SavedInsight) {
   return source.image_preview_url ?? source.image_url ?? null;
 }
 
+function getServerSourceContent(source: KnowledgeCardDetailResponse) {
+  return source.sourceContent;
+}
+
+function getServerSourceMeta(source: KnowledgeCardDetailResponse) {
+  return source.sourceType === 'LINK' ? source.sourceContent : null;
+}
+
+function getServerSourceIcon(source: KnowledgeCardDetailResponse) {
+  if (source.sourceType === 'IMAGE') return Image;
+  if (source.sourceType === 'LINK') return Link;
+  return FileText;
+}
+
+function getServerSourceImageUrl(source: KnowledgeCardDetailResponse) {
+  if (source.sourceType !== 'IMAGE') return null;
+  return source.sourceContent;
+}
+
 async function copyCard(card: KnowledgeCardResponse) {
   const tags = card.tags.map((tag) => `#${tag.tagName}`).join(' ');
   const lines = [
@@ -75,24 +97,49 @@ function KnowledgeCardArticle({
   source,
   isCopied,
   onCopy,
+  serverSource,
+  useServerSources,
+  onOpenCard,
 }: {
   card: KnowledgeCardResponse;
   source?: SavedInsight;
   isCopied: boolean;
   onCopy: (card: KnowledgeCardResponse) => void;
+  serverSource?: KnowledgeCardDetailResponse;
+  useServerSources?: boolean;
+  onOpenCard?: (cardId: string) => void;
 }) {
   const [isSourceOpen, setIsSourceOpen] = useState(false);
-  const sourceContent = source ? getSourceContent(source) : null;
-  const sourceMeta = source ? getSourceMeta(source) : null;
-  const sourceImageUrl = source ? getSourceImageUrl(source) : null;
-  const hasSource = Boolean(source && (sourceImageUrl || sourceContent || sourceMeta));
-  const SourceIcon = source ? getSourceIcon(source) : FileText;
+  const sourceContent = useServerSources
+    ? (serverSource ? getServerSourceContent(serverSource) : null)
+    : (source ? getSourceContent(source) : null);
+  const sourceMeta = useServerSources
+    ? (serverSource ? getServerSourceMeta(serverSource) : null)
+    : (source ? getSourceMeta(source) : null);
+  const sourceImageUrl = useServerSources
+    ? (serverSource ? getServerSourceImageUrl(serverSource) : null)
+    : (source ? getSourceImageUrl(source) : null);
+  const hasSource = useServerSources
+    ? Boolean(serverSource && (sourceImageUrl || sourceContent || sourceMeta))
+    : Boolean(source && (sourceImageUrl || sourceContent || sourceMeta));
+  const SourceIcon = useServerSources
+    ? (serverSource ? getServerSourceIcon(serverSource) : FileText)
+    : (source ? getSourceIcon(source) : FileText);
 
   return (
-    <article className="rounded-leaf border border-text-secondary/12 bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
+    <article
+      className={[
+        'rounded-leaf border border-text-secondary/12 bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container',
+        onOpenCard ? 'cursor-pointer' : '',
+      ].join(' ')}
+      onClick={onOpenCard ? () => onOpenCard(card.cardId) : undefined}
+    >
       <div className="flex items-start justify-between gap-3">
         <h3
-          className="line-clamp-1 cursor-text select-text text-body-main-bold text-text-primary"
+          className={[
+            'line-clamp-1 select-text text-body-main-bold text-text-primary',
+            onOpenCard ? 'cursor-pointer hover:text-primary-signal' : 'cursor-text',
+          ].join(' ')}
         >
           {card.title}
         </h3>
@@ -100,7 +147,10 @@ function KnowledgeCardArticle({
           {hasSource ? (
             <button
               type="button"
-              onClick={() => setIsSourceOpen((current) => !current)}
+              onClick={(event) => {
+                event.stopPropagation();
+                setIsSourceOpen((current) => !current);
+              }}
               className="rounded-full p-1 text-text-secondary/75 transition hover:bg-white/5 hover:text-primary-signal active:translate-y-px"
               aria-label={isSourceOpen ? '원본 데이터 닫기' : '원본 데이터 열기'}
               aria-expanded={isSourceOpen}
@@ -115,7 +165,10 @@ function KnowledgeCardArticle({
           ) : null}
           <button
             type="button"
-            onClick={() => onCopy(card)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onCopy(card);
+            }}
             className={[
               'rounded-full p-1 transition hover:bg-white/5 active:translate-y-px',
               isCopied ? 'text-primary-signal' : 'text-text-secondary/75 hover:text-primary-signal',
@@ -129,7 +182,10 @@ function KnowledgeCardArticle({
       </div>
 
       {hasSource && isSourceOpen ? (
-        <div className="mt-3 rounded-md border-l-2 border-primary-signal bg-background/35 p-4">
+        <div
+          className="mt-3 rounded-md border-l-2 border-primary-signal bg-background/35 p-4"
+          onClick={(event) => event.stopPropagation()}
+        >
           <div className="mb-2 flex items-center gap-2 text-primary-signal">
             <SourceIcon size={13} strokeWidth={1.8} aria-hidden="true" />
             <span className="text-caption-bold">원본 데이터</span>
@@ -204,6 +260,9 @@ export function RecentKnowledgeList({
   emptyTitle = EMPTY_TITLE,
   emptyDescription = EMPTY_DESCRIPTION,
   sourceByCardId,
+  serverSourceByCardId,
+  useServerSources = false,
+  onOpenCard,
 }: RecentKnowledgeListProps) {
   const [copiedCardId, setCopiedCardId] = useState<string | null>(null);
 
@@ -294,6 +353,9 @@ export function RecentKnowledgeList({
                 source={sourceByCardId?.[card.cardId]}
                 isCopied={copiedCardId === card.cardId}
                 onCopy={handleCopy}
+                serverSource={serverSourceByCardId?.[card.cardId]}
+                useServerSources={useServerSources}
+                onOpenCard={onOpenCard}
               />
             ))}
           </div>
