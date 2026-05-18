@@ -1,5 +1,5 @@
 // packages/extension/src/background/index.ts
-import type { ExtensionMessage, PendingScrap } from '@extension/types/index';
+import type { ExtensionMessage, PendingScrap, TilRecallSettings } from '@extension/types/index';
 import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
 
 const DEBUG_PREFIX = '[SAN:background]';
@@ -27,6 +27,8 @@ const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
+const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
+const SET_TIL_RECALL_SETTINGS_MESSAGE = 'SET_TIL_RECALL_SETTINGS';
 const isDebug = import.meta.env.DEV;
 let lastFocusedWindowId: number | undefined;
 
@@ -90,11 +92,6 @@ interface TilResponse {
   updatedAt: string;
 }
 
-interface TilRecallSettings {
-  enabled: boolean;
-  time: string;
-}
-
 function isAuthSyncMessage(message: unknown): message is AuthSyncMessage {
   if (!message || typeof message !== 'object') return false;
   const maybe = message as Partial<AuthSyncMessage>;
@@ -111,6 +108,20 @@ function isLoginBridgeTicketMessage(message: unknown): message is LoginBridgeTic
   if (!message || typeof message !== 'object') return false;
   const maybe = message as Partial<LoginBridgeTicketMessage>;
   return maybe.type === LOGIN_BRIDGE_TICKET_MESSAGE;
+}
+
+function isGetTilRecallSettingsMessage(message: unknown): message is { type: typeof GET_TIL_RECALL_SETTINGS_MESSAGE } {
+  if (!message || typeof message !== 'object') return false;
+  const maybe = message as { type?: unknown };
+  return maybe.type === GET_TIL_RECALL_SETTINGS_MESSAGE;
+}
+
+function isSetTilRecallSettingsMessage(
+  message: unknown,
+): message is { type: typeof SET_TIL_RECALL_SETTINGS_MESSAGE; payload: TilRecallSettings } {
+  if (!message || typeof message !== 'object') return false;
+  const maybe = message as { type?: unknown; payload?: unknown };
+  return maybe.type === SET_TIL_RECALL_SETTINGS_MESSAGE && isTilRecallSettings(maybe.payload);
 }
 
 function isTilRecallSettings(value: unknown): value is TilRecallSettings {
@@ -281,8 +292,33 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendResponse) => {
   debugLog('runtime message received', { message, tabId: sender.tab?.id, url: sender.tab?.url });
   if (message.type === 'SCRAP_SELECTION' && sender.tab?.id && message.payload) {
-    pushToSidePanel(message.payload);
+    pushToSidePanel(message.payload as PendingScrap);
     return;
+  }
+
+  if (isGetTilRecallSettingsMessage(message)) {
+    getTilRecallSettings()
+      .then((settings) => {
+        sendResponse({ ok: true, settings });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to read TIL recall settings', error);
+        sendResponse({ ok: false });
+      });
+    return true;
+  }
+
+  if (isSetTilRecallSettingsMessage(message)) {
+    chrome.storage.local
+      .set({ [TIL_RECALL_SETTINGS_KEY]: message.payload })
+      .then(() => {
+        sendResponse({ ok: true, settings: message.payload });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to save TIL recall settings', error);
+        sendResponse({ ok: false });
+      });
+    return true;
   }
 
   if (isAuthClearMessage(message)) {
@@ -327,6 +363,31 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
   debugLog('external message received', { message, origin: sender.origin, url: sender.url });
+
+  if (isGetTilRecallSettingsMessage(message)) {
+    getTilRecallSettings()
+      .then((settings) => {
+        sendResponse({ ok: true, settings });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to read TIL recall settings from dashboard', error);
+        sendResponse({ ok: false });
+      });
+    return true;
+  }
+
+  if (isSetTilRecallSettingsMessage(message)) {
+    chrome.storage.local
+      .set({ [TIL_RECALL_SETTINGS_KEY]: message.payload })
+      .then(() => {
+        sendResponse({ ok: true, settings: message.payload });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to save TIL recall settings from dashboard', error);
+        sendResponse({ ok: false });
+      });
+    return true;
+  }
 
   if (!isAuthSyncMessage(message)) {
     if (isLoginBridgeTicketMessage(message)) {
