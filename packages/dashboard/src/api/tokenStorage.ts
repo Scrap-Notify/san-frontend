@@ -26,6 +26,8 @@ export const authTokenStorage = {
     const expiresAt = getAccessTokenExpiresAt(expiresIn);
     if (expiresAt) {
       localStorage.setItem(ACCESS_TOKEN_EXPIRES_AT_KEY, expiresAt);
+    } else {
+      localStorage.removeItem(ACCESS_TOKEN_EXPIRES_AT_KEY);
     }
     if (sessionId) {
       localStorage.setItem(SESSION_ID_KEY, sessionId);

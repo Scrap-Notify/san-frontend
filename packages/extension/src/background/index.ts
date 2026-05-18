@@ -640,9 +640,9 @@ async function reissueStoredTokens() {
     [ACCESS_TOKEN_KEY]: payload.data.accessToken,
     [REFRESH_TOKEN_KEY]: payload.data.refreshToken,
     [CLIENT_TYPE_KEY]: 'EXTENSION',
-    ...(payload.data.expiresIn ? { [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + payload.data.expiresIn * 1000) } : {}),
     ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
   });
+  await updateAccessTokenExpiresAt(payload.data.expiresIn);
 
   return payload.data.accessToken;
 }
@@ -686,14 +686,25 @@ async function syncAuthTokens(message: AuthSyncMessage) {
     [ACCESS_TOKEN_KEY]: message.accessToken,
     [REFRESH_TOKEN_KEY]: message.refreshToken,
     [CLIENT_TYPE_KEY]: message.clientType ?? 'EXTENSION',
-    ...(message.expiresIn ? { [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + message.expiresIn * 1000) } : {}),
     ...(message.sessionId ? { [SESSION_ID_KEY]: message.sessionId } : {}),
   });
+  await updateAccessTokenExpiresAt(message.expiresIn);
   notifyAuthStateChanged(true);
   void ensureTilRecallSettings();
   void scheduleNextTilRecallAlarm();
 
   return readStoredAuthState();
+}
+
+async function updateAccessTokenExpiresAt(expiresIn?: number) {
+  if (expiresIn) {
+    await chrome.storage.local.set({
+      [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + expiresIn * 1000),
+    });
+    return;
+  }
+
+  await chrome.storage.local.remove(ACCESS_TOKEN_EXPIRES_AT_KEY);
 }
 
 async function clearAuthTokens() {

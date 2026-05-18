@@ -44,9 +44,16 @@ const tokenProvider: TokenProvider = {
       [ACCESS_TOKEN_KEY]: accessToken,
       [REFRESH_TOKEN_KEY]: refreshToken,
       [CLIENT_TYPE_KEY]: clientType ?? 'EXTENSION',
-      ...(expiresIn ? { [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + expiresIn * 1000) } : {}),
       ...(sessionId ? { [SESSION_ID_KEY]: sessionId } : {}),
     });
+
+    if (expiresIn) {
+      await chrome.storage.local.set({
+        [ACCESS_TOKEN_EXPIRES_AT_KEY]: String(Date.now() + expiresIn * 1000),
+      });
+    } else {
+      await chrome.storage.local.remove(ACCESS_TOKEN_EXPIRES_AT_KEY);
+    }
   },
   clearToken: async () => {
     await chrome.storage.local.remove([
