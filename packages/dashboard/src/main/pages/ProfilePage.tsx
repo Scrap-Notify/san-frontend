@@ -1,7 +1,7 @@
-import { type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useState } from 'react';
+import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Bell, Check, ChevronDown, ExternalLink, Keyboard, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Bell, ChevronDown, ExternalLink, Keyboard, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../../api/client';
 import {
@@ -38,13 +38,23 @@ const DEFAULT_TIL_RECALL_SETTINGS: TilRecallSettings = {
   time: '07:00',
 };
 
-const RECALL_TIME_OPTIONS = Array.from({ length: 24 }, (_, hour) => {
-  const value = `${String(hour).padStart(2, '0')}:00`;
-  return {
-    value,
-    label: formatRecallTimeLabel(value),
-  };
-});
+const RECALL_PERIOD_OPTIONS = [
+  { value: 'AM', label: '오전' },
+  { value: 'PM', label: '오후' },
+] as const;
+
+const RECALL_MINUTE_STEP = 5;
+const RECALL_HOUR_OPTIONS = Array.from({ length: 12 }, (_, index) => index + 1);
+const RECALL_MINUTE_OPTIONS = Array.from({ length: 12 }, (_, index) => index * RECALL_MINUTE_STEP);
+
+type RecallPeriod = (typeof RECALL_PERIOD_OPTIONS)[number]['value'];
+type RecallTimeField = 'period' | 'hour' | 'minute';
+
+interface RecallTimeParts {
+  period: RecallPeriod;
+  hour: number;
+  minute: number;
+}
 
 function formatRecallTimeLabel(time: string) {
   const [hourText, minuteText] = time.split(':');
@@ -52,6 +62,26 @@ function formatRecallTimeLabel(time: string) {
   const period = hour >= 12 ? '오후' : '오전';
   const displayHour = hour % 12 || 12;
   return `${period} ${displayHour}:${minuteText}`;
+}
+
+function parseRecallTimeParts(time: string): RecallTimeParts {
+  const [hourText, minuteText] = time.split(':');
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+
+  return {
+    period: hour >= 12 ? 'PM' : 'AM',
+    hour: hour % 12 || 12,
+    minute: Number.isFinite(minute) ? minute : 0,
+  };
+}
+
+function createRecallTimeValue(parts: RecallTimeParts) {
+  const hour24 = parts.period === 'PM'
+    ? (parts.hour % 12) + 12
+    : parts.hour % 12;
+
+  return `${String(hour24).padStart(2, '0')}:${String(parts.minute).padStart(2, '0')}`;
 }
 
 export function ProfilePage() {
@@ -69,7 +99,6 @@ export function ProfilePage() {
   const [isRecallSettingsLoading, setIsRecallSettingsLoading] = useState(true);
   const [isRecallSettingsSaving, setIsRecallSettingsSaving] = useState(false);
   const [recallSettingsError, setRecallSettingsError] = useState<string | null>(null);
-  const [isRecallTimeMenuOpen, setIsRecallTimeMenuOpen] = useState(false);
   const [shortcutSettingsMessage, setShortcutSettingsMessage] = useState<string | null>(null);
 
   const sessionsQuery = useQuery({
@@ -174,7 +203,7 @@ export function ProfilePage() {
       setRecallSettings(savedSettings);
       showToast({
         type: 'success',
-        title: '저장됐어요',
+        title: '변경됐습니다',
         description: formatRecallTimeLabel(savedSettings.time),
         duration: 2200,
       });
@@ -207,9 +236,6 @@ export function ProfilePage() {
   }, []);
 
   const recallTimeDisabled = !recallSettings.enabled || isRecallSettingsLoading || isRecallSettingsSaving;
-  const selectedRecallTimeLabel = RECALL_TIME_OPTIONS.find((option) => option.value === recallSettings.time)?.label
-    ?? formatRecallTimeLabel(recallSettings.time);
-
   const handleLogout = async () => {
     setIsLoggingOut(true);
 
@@ -317,12 +343,9 @@ export function ProfilePage() {
         <ProfileSettingsCards
           recallSettings={recallSettings}
           recallTimeDisabled={recallTimeDisabled}
-          selectedRecallTimeLabel={selectedRecallTimeLabel}
           isRecallSettingsLoading={isRecallSettingsLoading}
           isRecallSettingsSaving={isRecallSettingsSaving}
           recallSettingsError={recallSettingsError}
-          isRecallTimeMenuOpen={isRecallTimeMenuOpen}
-          setIsRecallTimeMenuOpen={setIsRecallTimeMenuOpen}
           saveRecallSettings={saveRecallSettings}
           openShortcutSettings={openShortcutSettings}
           shortcutSettingsMessage={shortcutSettingsMessage}
@@ -486,29 +509,35 @@ export function ProfilePage() {
 function ProfileSettingsCards({
   recallSettings,
   recallTimeDisabled,
-  selectedRecallTimeLabel,
   isRecallSettingsLoading,
   isRecallSettingsSaving,
   recallSettingsError,
-  isRecallTimeMenuOpen,
-  setIsRecallTimeMenuOpen,
   saveRecallSettings,
   openShortcutSettings,
   shortcutSettingsMessage,
 }: {
   recallSettings: TilRecallSettings;
   recallTimeDisabled: boolean;
-  selectedRecallTimeLabel: string;
   isRecallSettingsLoading: boolean;
   isRecallSettingsSaving: boolean;
   recallSettingsError: string | null;
-  isRecallTimeMenuOpen: boolean;
-  setIsRecallTimeMenuOpen: Dispatch<SetStateAction<boolean>>;
   saveRecallSettings: (settings: TilRecallSettings) => Promise<void>;
   openShortcutSettings: () => Promise<void>;
   shortcutSettingsMessage: string | null;
 }) {
-  const recallTimeMenuVisible = isRecallTimeMenuOpen && !recallTimeDisabled;
+  const recallTimeParts = parseRecallTimeParts(recallSettings.time);
+  const updateRecallTimePart = (nextParts: Partial<RecallTimeParts>) => {
+    void saveRecallSettings({
+      ...recallSettings,
+      time: createRecallTimeValue({ ...recallTimeParts, ...nextParts }),
+    });
+  };
+  const [openRecallTimeField, setOpenRecallTimeField] = useState<RecallTimeField | null>(null);
+  const selectedPeriodLabel = RECALL_PERIOD_OPTIONS.find((option) => option.value === recallTimeParts.period)?.label ?? '오전';
+  const selectRecallTimePart = (nextParts: Partial<RecallTimeParts>) => {
+    updateRecallTimePart(nextParts);
+    setOpenRecallTimeField(null);
+  };
 
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)]">
@@ -523,7 +552,7 @@ function ProfileSettingsCards({
           <ShortcutRow label="화면 캡처" shortcut="Ctrl + Shift + Y" />
         </div>
 
-        <div className="mt-5 border-t border-white/[0.06] pt-4">
+        <div className="mt-7 border-t border-white/[0.06] pt-6">
           <button
             type="button"
             onClick={() => void openShortcutSettings()}
@@ -565,7 +594,7 @@ function ProfileSettingsCards({
         </div>
 
         <div className="mt-6 space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3">
             <div>
               <p className="text-sm font-bold text-white">Recall 리마인더</p>
               <p className="mt-1 text-xs text-white/42">저장한 노트 복습 알림을 받습니다.</p>
@@ -576,60 +605,78 @@ function ProfileSettingsCards({
             />
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3">
             <div>
               <p className="text-sm font-bold text-white">리마인더 발송 시간</p>
               <p className="mt-1 text-xs text-white/42">리콜이 오면 리포트 수신 시각</p>
             </div>
             <div
-              className="relative"
+              className="flex flex-nowrap items-center gap-2"
               onBlur={(event) => {
                 if (!event.currentTarget.contains(event.relatedTarget)) {
-                  setIsRecallTimeMenuOpen(false);
+                  setOpenRecallTimeField(null);
                 }
               }}
             >
-              <button
-                type="button"
+              <RecallTimeSelect
+                label="오전/오후"
+                value={selectedPeriodLabel}
                 disabled={recallTimeDisabled}
-                onClick={() => setIsRecallTimeMenuOpen((current) => !current)}
-                className="flex h-9 w-[118px] items-center justify-between gap-1.5 rounded-full border border-primary-signal/45 bg-black/35 px-3 text-xs font-black text-primary-signal shadow-[0_0_0_1px_rgba(111,255,190,0.04)] outline-none transition hover:border-primary-signal/70 hover:bg-primary-signal/8 focus:border-primary-signal disabled:cursor-not-allowed disabled:border-white/[0.06] disabled:text-white/35 disabled:opacity-60"
+                isOpen={openRecallTimeField === 'period'}
+                onToggle={() => setOpenRecallTimeField((current) => (current === 'period' ? null : 'period'))}
+                className="w-[88px]"
+                menuClassName="w-full"
               >
-                <span>{selectedRecallTimeLabel}</span>
-                <ChevronDown
-                  size={14}
-                  className={`shrink-0 transition ${recallTimeMenuVisible ? 'rotate-180' : ''}`}
-                />
-              </button>
+                {RECALL_PERIOD_OPTIONS.map((option) => (
+                  <RecallTimeOption
+                    key={option.value}
+                    selected={option.value === recallTimeParts.period}
+                    onClick={() => selectRecallTimePart({ period: option.value })}
+                  >
+                    {option.label}
+                  </RecallTimeOption>
+                ))}
+              </RecallTimeSelect>
 
-              {recallTimeMenuVisible && (
-                <div className="absolute right-0 top-11 z-20 w-[142px] overflow-hidden rounded-lg border border-primary-signal/20 bg-[#101615] shadow-[0_18px_40px_rgba(0,0,0,0.42)]">
-                  <div className="max-h-[216px] overflow-y-auto p-1.5">
-                    {RECALL_TIME_OPTIONS.map((option) => {
-                      const selected = option.value === recallSettings.time;
+              <RecallTimeSelect
+                label="시"
+                value={`${recallTimeParts.hour}시`}
+                disabled={recallTimeDisabled}
+                isOpen={openRecallTimeField === 'hour'}
+                onToggle={() => setOpenRecallTimeField((current) => (current === 'hour' ? null : 'hour'))}
+                className="w-[76px]"
+                menuClassName="w-full"
+              >
+                {RECALL_HOUR_OPTIONS.map((hour) => (
+                  <RecallTimeOption
+                    key={hour}
+                    selected={hour === recallTimeParts.hour}
+                    onClick={() => selectRecallTimePart({ hour })}
+                  >
+                    {hour}
+                  </RecallTimeOption>
+                ))}
+              </RecallTimeSelect>
 
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => {
-                            setIsRecallTimeMenuOpen(false);
-                            void saveRecallSettings({ ...recallSettings, time: option.value });
-                          }}
-                          className={`flex h-9 w-full items-center justify-between rounded-md px-3 text-left text-xs font-bold transition ${
-                            selected
-                              ? 'bg-primary-signal/14 text-primary-signal'
-                              : 'text-white/72 hover:bg-white/[0.06] hover:text-white'
-                          }`}
-                        >
-                          <span>{option.label}</span>
-                          {selected && <Check size={13} />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              <RecallTimeSelect
+                label="분"
+                value={`${String(recallTimeParts.minute).padStart(2, '0')}분`}
+                disabled={recallTimeDisabled}
+                isOpen={openRecallTimeField === 'minute'}
+                onToggle={() => setOpenRecallTimeField((current) => (current === 'minute' ? null : 'minute'))}
+                className="w-[82px]"
+                menuClassName="w-full"
+              >
+                {RECALL_MINUTE_OPTIONS.map((minute) => (
+                  <RecallTimeOption
+                    key={minute}
+                    selected={minute === recallTimeParts.minute}
+                    onClick={() => selectRecallTimePart({ minute })}
+                  >
+                    {String(minute).padStart(2, '0')}
+                  </RecallTimeOption>
+                ))}
+              </RecallTimeSelect>
             </div>
           </div>
         </div>
@@ -660,6 +707,74 @@ function RecallSaveStatus({
   }
 
   return null;
+}
+
+function RecallTimeSelect({
+  label,
+  value,
+  disabled,
+  isOpen,
+  onToggle,
+  children,
+  className,
+  menuClassName,
+}: {
+  label: string;
+  value: string;
+  disabled: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+  className: string;
+  menuClassName: string;
+}) {
+  return (
+    <div className={`relative ${className}`}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onToggle}
+        className="flex h-9 w-full items-center justify-between gap-1 rounded-full border border-primary-signal/32 bg-black/30 px-3 text-xs font-black text-primary-signal shadow-[0_0_0_1px_rgba(111,255,190,0.03)] outline-none transition hover:border-primary-signal/55 hover:bg-primary-signal/8 focus:border-primary-signal disabled:cursor-not-allowed disabled:border-white/[0.06] disabled:text-white/35 disabled:opacity-60"
+        aria-label={`${label} 선택`}
+        aria-expanded={isOpen}
+      >
+        <span>{value}</span>
+        <ChevronDown size={13} className={`shrink-0 transition ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+
+      {isOpen && (
+        <div className={`absolute left-0 top-10 z-20 overflow-hidden rounded-md border border-primary-signal/18 bg-[#0d1211] py-1 shadow-[0_14px_28px_rgba(0,0,0,0.38)] ${menuClassName}`}>
+          <div className="max-h-[188px] overflow-y-auto">
+            {children}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RecallTimeOption({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex h-8 w-full items-center px-3 text-left text-xs font-bold transition ${
+        selected
+          ? 'bg-primary-signal/10 text-primary-signal'
+          : 'text-white/58 hover:bg-white/[0.05] hover:text-white'
+      }`}
+    >
+      {children}
+    </button>
+  );
 }
 
 function ShortcutRow({ label, shortcut }: { label: string; shortcut: string }) {
