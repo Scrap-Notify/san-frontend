@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite",
     "dev:prod-api": "vite --mode prod-api",
-    "build": "tsc && vite build",
-    "build:local": "tsc && vite build --mode development",
-    "build:prod": "tsc && vite build --mode production",
+    "build": "tsc && vite build --configLoader runner",
+    "build:local": "tsc && vite build --mode development --configLoader runner",
+    "build:prod": "tsc && vite build --mode production --configLoader runner",
     "test:og": "node scripts/og-metadata-smoke.mjs",
     "preview": "vite preview"
   },

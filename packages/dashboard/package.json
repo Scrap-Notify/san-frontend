@@ -7,9 +7,9 @@
     "dev": "vite",
     "dev:local": "vite",
     "dev:prod-api": "vite --mode prod-api",
-    "build": "tsc -b && vite build",
-    "build:local": "tsc -b && vite build",
-    "build:prod": "tsc -b && vite build --mode production",
+    "build": "tsc -b && vite build --configLoader runner",
+    "build:local": "tsc -b && vite build --configLoader runner",
+    "build:prod": "tsc -b && vite build --mode production --configLoader runner",
     "lint": "eslint .",
     "preview": "vite preview"
   },
