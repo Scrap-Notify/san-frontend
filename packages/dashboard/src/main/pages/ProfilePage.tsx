@@ -6,6 +6,7 @@ import { getApiErrorMessage, type AuthSession } from '@san/shared';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../../api/client';
 import {
   getExtensionTilRecallSettings,
+  openExtensionShortcutSettings as requestOpenExtensionShortcutSettings,
   setExtensionTilRecallSettings,
   type TilRecallSettings,
 } from '../../api/extensionAuth';
@@ -67,6 +68,7 @@ export function ProfilePage() {
   const [isRecallSettingsSaving, setIsRecallSettingsSaving] = useState(false);
   const [recallSettingsError, setRecallSettingsError] = useState<string | null>(null);
   const [isRecallTimeMenuOpen, setIsRecallTimeMenuOpen] = useState(false);
+  const [shortcutSettingsMessage, setShortcutSettingsMessage] = useState<string | null>(null);
 
   const sessionsQuery = useQuery({
     queryKey: ['auth', 'sessions'],
@@ -177,8 +179,16 @@ export function ProfilePage() {
     }
   }, [recallSettings]);
 
-  const openShortcutSettings = useCallback(() => {
-    window.open('chrome://extensions/shortcuts', '_blank', 'noopener,noreferrer');
+  const openShortcutSettings = useCallback(async () => {
+    setShortcutSettingsMessage(null);
+
+    try {
+      await requestOpenExtensionShortcutSettings();
+    } catch (error) {
+      console.warn('[SAN:shortcut-settings] failed to open shortcut settings', error);
+      await navigator.clipboard?.writeText('chrome://extensions/shortcuts').catch(() => undefined);
+      setShortcutSettingsMessage('익스텐션 연결이 안 되어 단축키 설정 주소를 복사했어요.');
+    }
   }, []);
 
   const recallTimeDisabled = !recallSettings.enabled || isRecallSettingsLoading || isRecallSettingsSaving;
@@ -306,6 +316,7 @@ export function ProfilePage() {
           setIsRecallTimeMenuOpen={setIsRecallTimeMenuOpen}
           saveRecallSettings={saveRecallSettings}
           openShortcutSettings={openShortcutSettings}
+          shortcutSettingsMessage={shortcutSettingsMessage}
         />
 
         <section className="border-t border-white/[0.06] pt-6">
@@ -474,6 +485,7 @@ function ProfileSettingsCards({
   setIsRecallTimeMenuOpen,
   saveRecallSettings,
   openShortcutSettings,
+  shortcutSettingsMessage,
 }: {
   recallSettings: TilRecallSettings;
   recallTimeDisabled: boolean;
@@ -484,7 +496,8 @@ function ProfileSettingsCards({
   isRecallTimeMenuOpen: boolean;
   setIsRecallTimeMenuOpen: Dispatch<SetStateAction<boolean>>;
   saveRecallSettings: (settings: TilRecallSettings) => Promise<void>;
-  openShortcutSettings: () => void;
+  openShortcutSettings: () => Promise<void>;
+  shortcutSettingsMessage: string | null;
 }) {
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)]">
@@ -502,12 +515,17 @@ function ProfileSettingsCards({
         <div className="mt-5 border-t border-white/[0.06] pt-4">
           <button
             type="button"
-            onClick={openShortcutSettings}
+            onClick={() => void openShortcutSettings()}
             className="flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-white/45 transition hover:text-primary-signal"
           >
             Chrome에서 단축키 변경하기
             <ExternalLink size={12} />
           </button>
+          {shortcutSettingsMessage && (
+            <p className="mt-3 rounded-md border border-primary-signal/15 bg-primary-signal/8 px-3 py-2 text-xs text-primary-signal/80">
+              {shortcutSettingsMessage}
+            </p>
+          )}
         </div>
       </section>
 

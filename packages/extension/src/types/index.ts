@@ -34,7 +34,8 @@ export type MessageType =
   | 'SAN_AUTH_STATE_CHANGED'
   | 'LOGIN_BRIDGE_TICKET'
   | 'GET_TIL_RECALL_SETTINGS'
-  | 'SET_TIL_RECALL_SETTINGS';
+  | 'SET_TIL_RECALL_SETTINGS'
+  | 'OPEN_EXTENSION_SHORTCUT_SETTINGS';
 
 export interface ExtensionMessage {
   type: MessageType;

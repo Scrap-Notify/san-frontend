@@ -10,6 +10,7 @@ const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
 const SET_TIL_RECALL_SETTINGS_MESSAGE = 'SET_TIL_RECALL_SETTINGS';
+const OPEN_EXTENSION_SHORTCUT_SETTINGS_MESSAGE = 'OPEN_EXTENSION_SHORTCUT_SETTINGS';
 const isDebug = import.meta.env.DEV;
 
 const allowedDashboardOrigins = new Set([
@@ -47,6 +48,7 @@ function isDashboardBridgeMessage(value: unknown): value is { source: string; re
     || bridgeMessage.type === LOGIN_BRIDGE_TICKET_MESSAGE
     || bridgeMessage.type === GET_TIL_RECALL_SETTINGS_MESSAGE
     || bridgeMessage.type === SET_TIL_RECALL_SETTINGS_MESSAGE
+    || bridgeMessage.type === OPEN_EXTENSION_SHORTCUT_SETTINGS_MESSAGE
   );
 }
 
