@@ -64,6 +64,9 @@
   --color-text-primary: #fbfffa;
   --color-text-secondary: #b9cbc1;
   --color-text-ghost: #83958c;
+  --color-text-on-accent: #101417;
+  --color-helper-glow: rgba(74, 222, 128, 0.22);
+  --shadow-helper-aura: 0 18px 24px rgba(0, 0, 0, 0.18), 0 0 20px rgba(74, 222, 128, 0.18);
 
   --shadow-glass-card: 0 16px 40px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --shadow-glass-panel: 0 18px 44px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -108,6 +111,9 @@
   --color-text-primary: #10201a;
   --color-text-secondary: #4e6159;
   --color-text-ghost: #71827b;
+  --color-text-on-accent: #f4f8f5;
+  --color-helper-glow: rgba(15, 143, 127, 0.16);
+  --shadow-helper-aura: 0 14px 22px rgba(15, 23, 42, 0.10), 0 0 18px rgba(15, 143, 127, 0.14);
 
   --color-primary-signal: #0f8f7f;
   --color-primary-signal-hover: #0d7f71;
@@ -150,6 +156,26 @@
   color-scheme: dark;
 }
 
+:root[data-theme='light'] [class*='backdrop-blur-2xl'] {
+  backdrop-filter: blur(6px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-xl'] {
+  backdrop-filter: blur(5px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-lg'] {
+  backdrop-filter: blur(4px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-md'] {
+  backdrop-filter: blur(3px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-sm'] {
+  backdrop-filter: blur(2px) !important;
+}
+
 /* 3. base styles */
 @layer base {
   html {
@@ -189,36 +215,40 @@
   }
 
   .glass-card {
-    background-color: var(--glass-card-bg);
-    border-color: var(--glass-card-border);
-    box-shadow: var(--shadow-glass-card);
-    backdrop-filter: blur(var(--blur-glass-card));
+    background-color: var(--glass-card-bg) !important;
+    border-color: var(--glass-card-border) !important;
+    box-shadow: var(--shadow-glass-card) !important;
+    backdrop-filter: blur(var(--blur-glass-card)) !important;
   }
 
   .glass-panel {
-    background-color: var(--glass-panel-bg);
-    border-color: var(--glass-panel-border);
-    box-shadow: var(--shadow-glass-panel);
-    backdrop-filter: blur(var(--blur-glass-panel));
+    background-color: var(--glass-panel-bg) !important;
+    border-color: var(--glass-panel-border) !important;
+    box-shadow: var(--shadow-glass-panel) !important;
+    backdrop-filter: blur(var(--blur-glass-panel)) !important;
   }
 
   .glass-popover {
-    background-color: var(--glass-popover-bg);
-    border-color: var(--glass-popover-border);
-    box-shadow: var(--shadow-glass-popover);
-    backdrop-filter: blur(var(--blur-glass-popover));
+    background-color: var(--glass-popover-bg) !important;
+    border-color: var(--glass-popover-border) !important;
+    box-shadow: var(--shadow-glass-popover) !important;
+    backdrop-filter: blur(var(--blur-glass-popover)) !important;
   }
 
   .glass-modal {
-    background-color: var(--glass-modal-bg);
-    border-color: var(--glass-modal-border);
-    box-shadow: var(--shadow-glass-modal);
-    backdrop-filter: blur(var(--blur-glass-modal));
+    background-color: var(--glass-modal-bg) !important;
+    border-color: var(--glass-modal-border) !important;
+    box-shadow: var(--shadow-glass-modal) !important;
+    backdrop-filter: blur(var(--blur-glass-modal)) !important;
   }
 
   .glass-input {
-    background-color: var(--glass-input-bg);
-    border-color: var(--glass-input-border);
+    background-color: var(--glass-input-bg) !important;
+    border-color: var(--glass-input-border) !important;
+  }
+
+  .helper-aura {
+    box-shadow: var(--shadow-helper-aura);
   }
 
   .rounded-leaf {

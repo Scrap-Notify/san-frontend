@@ -81,7 +81,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => vo
       className={[
         'pointer-events-auto flex w-full items-center justify-between gap-4',
         'rounded-tl-[48px] rounded-br-[48px] rounded-tr-lg rounded-bl-lg',
-        'border bg-background/80 p-5 text-left backdrop-blur-2xl',
+        'glass-popover border bg-surface-lowest/90 p-5 text-left backdrop-blur-2xl',
         'shadow-[0_0_20px_0_rgba(0,255,194,0.12)]',
         tone.border,
       ].join(' ')}
@@ -119,7 +119,7 @@ function ErrorToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: () 
       className={[
         'pointer-events-auto flex h-14 w-full max-w-[320px] self-end items-center gap-5 px-4 text-left',
         'rounded-tl-[48px] rounded-br-lg rounded-tr-lg rounded-bl-[48px]',
-        'border border-text-secondary/5 glass-card bg-surface-container/60 backdrop-blur-xl',
+        'border border-text-secondary/5 glass-panel bg-surface-container/90 backdrop-blur-xl',
         'transition hover:border-primary-signal/10 hover:bg-surface-container/75',
       ].join(' ')}
     >

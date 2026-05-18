@@ -33,7 +33,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       title={isDark ? 'Light mode' : 'Dark mode'}
       className={[
         'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-text-secondary/10 bg-surface-low text-text-secondary transition',
-        'hover:border-action-accent/40 hover:text-white',
+        'hover:border-action-accent/40 hover:text-text-primary',
         className ?? '',
       ].join(' ')}
     >

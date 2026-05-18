@@ -6,7 +6,7 @@ interface LoadingDotProps {
 
 export function KnowledgeLoadingCard() {
   return (
-    <section className="relative flex h-[190px] w-full items-center justify-center overflow-hidden rounded-leaf border border-primary-signal/20 bg-surface-container px-6 py-4 backdrop-blur-xl">
+    <section className="glass-card relative flex h-[190px] w-full items-center justify-center overflow-hidden rounded-leaf border border-primary-signal/20 bg-surface-container/90 px-6 py-4 backdrop-blur-xl">
       <div className="absolute inset-0 bg-primary-signal/5" aria-hidden="true" />
       <div className="absolute inset-x-10 top-4 h-24 rounded-full bg-primary-signal/10 blur-3xl" aria-hidden="true" />
 

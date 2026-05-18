@@ -312,7 +312,7 @@ export function SettingsIntegrationsPage() {
                 type="button"
                 onClick={handleLinkGithub}
                 disabled={isLinking}
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-action-accent px-6 text-sm font-bold text-black transition-all hover:bg-action-accent/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-action-accent px-6 text-sm font-bold text-text-on-accent transition-all hover:bg-action-accent/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <img
                   src={githubSvg}
@@ -468,7 +468,7 @@ export function SettingsIntegrationsPage() {
                 <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-xl border border-text-secondary/10 bg-text-primary/5 text-text-primary/30">
                   <TerminalSquare size={28} />
                   <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-surface-lowest">
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-action-accent text-black">
+                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-action-accent text-text-on-accent">
                       <span className="text-[10px] font-bold leading-none">+</span>
                     </div>
                   </div>

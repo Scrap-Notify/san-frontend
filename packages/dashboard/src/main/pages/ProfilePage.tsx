@@ -352,7 +352,7 @@ export function ProfilePage() {
             <button
               type="submit"
               disabled={isWithdrawing}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-400 text-sm font-black text-black transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-400 text-sm font-black text-text-on-accent transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isWithdrawing && <Loader2 size={16} className="animate-spin" />}
               {isWithdrawing ? '탈퇴 처리 중' : '탈퇴하기'}

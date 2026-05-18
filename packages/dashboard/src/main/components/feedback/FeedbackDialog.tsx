@@ -146,7 +146,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
             <button
               type="button"
               onClick={onClose}
-              className="mx-auto h-10 rounded-md bg-action-accent px-5 text-sm font-bold text-black transition hover:bg-action-accent/90"
+              className="mx-auto h-10 rounded-md bg-action-accent px-5 text-sm font-bold text-text-on-accent transition hover:bg-action-accent/90"
             >
               확인
             </button>
@@ -235,7 +235,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex h-10 items-center gap-2 rounded-md bg-action-accent px-4 text-sm font-bold text-black transition hover:bg-action-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-10 items-center gap-2 rounded-md bg-action-accent px-4 text-sm font-bold text-text-on-accent transition hover:bg-action-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting && <Loader2 size={16} className="animate-spin" />}
                 보내기

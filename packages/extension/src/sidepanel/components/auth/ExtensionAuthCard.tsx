@@ -121,12 +121,12 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
   return (
     <section className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-3 py-4 sm:px-8">
       <div
-        className="relative flex h-[clamp(520px,calc(100vh-112px),600px)] w-full max-w-[400px] flex-col justify-center overflow-hidden rounded-[28px] border border-text-secondary/20 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl sm:rounded-3xl sm:p-8"
+        className="glass-card relative flex h-[clamp(520px,calc(100vh-112px),600px)] w-full max-w-[400px] flex-col justify-center overflow-hidden rounded-[28px] border border-text-secondary/20 bg-surface-container/90 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl sm:rounded-3xl sm:p-8"
         style={{
           background: 'linear-gradient(135deg, color-mix(in oklab, var(--color-surface-container) 72%, white 28%) 0%, color-mix(in oklab, var(--color-surface-low) 86%, white 14%) 100%)',
         }}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-text-secondary/35 to-transparent" />
 
         <div className="relative mb-5">
           <h1 className="text-2xl font-bold text-text-primary sm:text-[32px]">

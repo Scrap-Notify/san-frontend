@@ -133,10 +133,10 @@ export function TilPage() {
                 <header className="mb-4 flex flex-col gap-2">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
                         <span className="text-primary-signal">T</span>
-                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">oday</span>
+                        <span className="text-text-primary">oday</span>
                         <span className="ml-2 text-primary-signal">I</span>
                         <span className="ml-2 text-primary-signal">L</span>
-                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">earned</span>
+                        <span className="text-text-primary">earned</span>
                     </h1>
 
                     <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
@@ -250,7 +250,7 @@ export function TilPage() {
                                 type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
-                                className="flex h-9 w-[132px] shrink-0 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-action-accent px-4 text-sm font-medium text-black transition-colors hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex h-9 w-[132px] shrink-0 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-action-accent px-4 text-sm font-medium text-text-on-accent transition-colors hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <GitCommitHorizontal size={15} />
                                 {isCommitting ? 'Committing...' : 'Commit'}

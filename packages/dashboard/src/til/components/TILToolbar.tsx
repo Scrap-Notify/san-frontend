@@ -26,7 +26,7 @@ export function TILToolbar({
   isCommitting?: boolean;
 }) {
   return (
-    <div className="flex h-12 items-center justify-between bg-surface-low/50 px-lg backdrop-blur-md">
+    <div className="glass-panel flex h-12 items-center justify-between bg-surface-container/90 px-lg backdrop-blur-md">
       <div className="flex items-center gap-xs border-r border-text-secondary/20 pr-md">
         <ToolbarButton label="Bold" onClick={() => onFormat?.('bold')}>
           <Bold size={20} />

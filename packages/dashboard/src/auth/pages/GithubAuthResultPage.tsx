@@ -80,7 +80,7 @@ export function GithubAuthResultPage() {
 
   return (
     <main className="auth-shell grid min-h-screen w-full place-items-center overflow-x-hidden bg-background px-lg text-text-primary">
-      <section className="grid w-full max-w-md gap-sm rounded-leaf border border-text-secondary/20 bg-surface-low/50 p-xl text-center shadow-neon-sm backdrop-blur-xl">
+      <section className="grid w-full max-w-md gap-sm rounded-leaf border border-text-secondary/20 glass-card bg-surface-container/90 p-xl text-center shadow-neon-sm backdrop-blur-xl">
         <p className="text-caption-bold uppercase tracking-wide text-primary-signal">
           GitHub Auth
         </p>

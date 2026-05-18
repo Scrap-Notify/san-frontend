@@ -119,7 +119,7 @@ export function ArchiveSection() {
                     className={`h-2.5 rounded-full transition-all duration-300 ${
                       index === activeIndex
                         ? 'w-5 bg-action-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]'
-                        : 'w-2.5 bg-white/20 hover:bg-white/40'
+                        : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
                     }`}
                     aria-label={`${index + 1}번째 페이지로 이동`}
                   />

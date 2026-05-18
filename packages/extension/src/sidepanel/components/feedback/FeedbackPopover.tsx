@@ -143,7 +143,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 h-8 rounded-md bg-action-accent px-3 text-xs font-bold text-black transition hover:bg-action-accent/90"
+              className="mt-3 h-8 rounded-md bg-action-accent px-3 text-xs font-bold text-text-on-accent transition hover:bg-action-accent/90"
             >
               {text.close}
             </button>
@@ -218,7 +218,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
               <button
                 type="submit"
                 disabled={!content.trim() || isSubmitting}
-                className="flex h-8 min-w-16 items-center justify-center rounded-md bg-action-accent px-3 text-[11px] font-bold text-black transition hover:bg-action-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-8 min-w-16 items-center justify-center rounded-md bg-action-accent px-3 text-[11px] font-bold text-text-on-accent transition hover:bg-action-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 size={13} className="animate-spin" /> : text.send}
               </button>

@@ -85,7 +85,7 @@ function CustomDatePicker({
         <button
           key={d}
           onClick={() => handleDateClick(d)}
-          className={`h-8 w-8 rounded-lg text-xs font-bold transition-all hover:bg-action-accent/20 hover:text-action-accent ${isSelected ? 'bg-action-accent text-black shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'text-text-primary/60'}`}
+          className={`h-8 w-8 rounded-lg text-xs font-bold transition-all hover:bg-action-accent/20 hover:text-action-accent ${isSelected ? 'bg-action-accent text-text-on-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'text-text-primary/60'}`}
         >
           {d}
         </button>
@@ -211,7 +211,7 @@ function SearchPage({
     <section className="flex w-full min-w-0 flex-col gap-12 py-12 text-text-primary">
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">Archive</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight text-text-primary">Archive</h1>
           {hasKeyword ? (
             <div className="rounded-full bg-action-accent/10 px-4 py-1 text-xs font-bold text-action-accent border border-action-accent/20">
               {totalCount} CARDS
@@ -344,7 +344,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
         <p className="text-sm leading-relaxed text-text-primary/40 line-clamp-4 mb-auto group-hover:text-text-primary/60 transition-colors">{card.summary || '상세 정보가 아직 없습니다.'}</p>
         <div className="flex items-center justify-between pt-8 border-t border-text-secondary/5">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-text-secondary/5 shadow-inner">
+                <div className="h-9 w-9 rounded-xl bg-surface-lowest/80 flex items-center justify-center border border-text-secondary/5 shadow-inner">
                <Globe size={16} className="text-text-primary/40" />
             </div>
             <div className="flex flex-col">
@@ -352,7 +352,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
               <span className="text-[10px] text-text-primary/20">{card.createdAt ? new Date(card.createdAt).toLocaleDateString() : 'No date'}</span>
             </div>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-text-primary/5 text-action-accent group-hover:bg-action-accent group-hover:text-black transition-all">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-text-primary/5 text-action-accent group-hover:bg-action-accent group-hover:text-text-on-accent transition-all">
             <ArrowRight size={18} />
           </div>
         </div>
@@ -398,7 +398,7 @@ function KnowledgeCard({ card, index }: { card: ExtendedSearchCardResult; index:
         <h3 className="text-2xl font-bold italic leading-relaxed text-text-primary/90 mb-10 line-clamp-4">"{card.summary || card.title}"</h3>
         <div className="flex flex-col items-center gap-3">
           <div className="h-12 w-12 rounded-full border-2 border-action-accent/20 p-0.5 shadow-lg group-hover:border-action-accent/50 transition-colors">
-            <div className="h-full w-full rounded-full bg-gradient-to-tr from-action-accent to-emerald-600 flex items-center justify-center text-black font-black text-sm uppercase">SJ</div>
+            <div className="h-full w-full rounded-full bg-gradient-to-tr from-action-accent to-emerald-600 flex items-center justify-center text-text-on-accent font-black text-sm uppercase">SJ</div>
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-black tracking-wide text-text-primary">Insight Curator</span>

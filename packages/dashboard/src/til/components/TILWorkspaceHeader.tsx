@@ -42,7 +42,7 @@ export function TILWorkspaceHeader({
   };
 
   return (
-    <header className="grid min-h-16 w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-dashboard-gap bg-background/50 backdrop-blur-xl">
+    <header className="glass-panel grid min-h-16 w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-dashboard-gap bg-surface-lowest/90 backdrop-blur-xl">
       <div className="flex min-w-0 items-center gap-dashboard-gap">
         <h1 className="shrink-0 text-h2-bold leading-none text-text-primary">
           TIL Workspace
@@ -51,7 +51,7 @@ export function TILWorkspaceHeader({
         <TILModeTabs activeTab={activeTab} onChange={onTabChange} />
       </div>
 
-      <div className="flex min-w-fit items-center justify-center overflow-hidden rounded-[8px] border border-text-primary/5 bg-background/80 text-body-sm-bold text-text-primary backdrop-blur-xl focus-within:ring-1 focus-within:ring-primary-signal/40">
+      <div className="glass-panel flex min-w-fit items-center justify-center overflow-hidden rounded-[8px] border border-text-primary/5 bg-surface-lowest/92 text-body-sm-bold text-text-primary backdrop-blur-xl focus-within:ring-1 focus-within:ring-primary-signal/40">
         <button
           type="button"
           aria-label="Previous date"
@@ -88,7 +88,7 @@ export function TILWorkspaceHeader({
         </button>
       </div>
 
-      <label className="ml-auto flex h-11 w-full max-w-80 min-w-0 items-center gap-md rounded-[8px] bg-background/80 px-md focus-within:ring-1 focus-within:ring-primary-signal/40">
+      <label className="glass-panel ml-auto flex h-11 w-full max-w-80 min-w-0 items-center gap-md bg-surface-lowest/92 px-md focus-within:ring-1 focus-within:ring-primary-signal/40">
         <Search
           size={20}
           className="shrink-0 text-text-secondary"
