@@ -845,12 +845,12 @@ export default function SidePanel() {
           onLogoutClick={handleLogoutClick}
         />
         {isLogoutConfirmOpen && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-scrim px-4 backdrop-blur-sm">
             <div
               role="dialog"
               aria-modal="true"
               aria-labelledby="logout-confirm-title"
-              className="w-full max-w-[280px] rounded-lg border border-white/10 bg-surface-container p-4 text-text-primary shadow-2xl"
+              className="w-full max-w-[280px] rounded-lg border border-text-secondary/10 bg-surface-container p-4 text-text-primary shadow-2xl"
             >
               <h2 id="logout-confirm-title" className="text-sm font-semibold">
                 로그아웃 하시겠습니까?
@@ -860,7 +860,7 @@ export default function SidePanel() {
                   type="button"
                   onClick={handleCancelLogout}
                   disabled={isLoggingOut}
-                  className="h-9 rounded-md border border-white/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-9 rounded-md border border-text-secondary/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   취소
                 </button>

@@ -83,23 +83,23 @@ export function ArchiveSection() {
           </div>
 
           {isAuthenticated ? (
-          <div className="flex shrink-0 items-center gap-3 rounded-full border border-white/5 bg-[#121212] px-3 py-1.5 shadow-sm">
+          <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 bg-surface-container/80 px-3 py-1.5 shadow-sm">
             <button
               type="button"
-              className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
               onClick={() => setIsPlaying((current) => !current)}
               disabled={!hasCards}
               aria-label={isPlaying ? '일시정지' : '재생'}
             >
               {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
             </button>
-            <div className="h-3 w-[1px] bg-white/10" />
+            <div className="h-3 w-[1px] bg-surface-container/80" />
 
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => scrollCarousel('previous')}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
                 disabled={!hasCards || activeIndex === 0}
                 aria-label="이전 페이지"
               >
@@ -129,7 +129,7 @@ export function ArchiveSection() {
               <button
                 type="button"
                 onClick={() => scrollCarousel('next')}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
                 disabled={!hasCards || activeIndex === totalPages - 1}
                 aria-label="다음 페이지"
               >
@@ -189,7 +189,7 @@ export function ArchiveSection() {
                 <article
                   key={card.card_id}
                   onClick={() => navigate(`/cards/${card.card_id}`)}
-                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-[#131718] p-6 shadow-md transition-all hover:bg-[#161a1b] md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
+                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-surface-container/80 p-6 shadow-md transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
                     <div className="mb-6 flex items-center justify-between">
@@ -197,22 +197,22 @@ export function ArchiveSection() {
                         {categoryName}
                       </span>
 
-                      <time className="text-[11px] font-medium text-white/40">
+                      <time className="text-[11px] font-medium text-text-secondary/70">
                         {date}
                       </time>
                     </div>
 
-                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-white">
+                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-text-primary">
                       {card.title}
                     </h3>
 
-                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/50">
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-text-secondary">
                       {card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}
                     </p>
                   </div>
 
                   <div className="flex justify-end">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-white/5 text-white/60 transition-colors group-hover:bg-action-accent/10 group-hover:text-action-accent">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-surface-lowest/70 text-text-secondary transition-colors group-hover:bg-action-accent/10 group-hover:text-action-accent">
                       <ArrowRight size={18} />
                     </div>
                   </div>
@@ -257,8 +257,8 @@ function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'de
   return (
     <div
       className={[
-        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-[#131718] p-xl text-center text-body-sm md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
-        tone === 'error' ? 'text-red-400' : 'text-white/40',
+        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-surface-container/80 p-xl text-center text-body-sm md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
+        tone === 'error' ? 'text-red-400' : 'text-text-secondary',
       ].join(' ')}
     >
       {message}

@@ -46,6 +46,8 @@ module.exports = {
           'surface-low': '#181c1f',     // surface/low
           'surface-container': '#1c2023', // surface/container
           'surface-highest': '#313539', // surface/highest
+          'surface-lowest': 'var(--color-surface-lowest)',
+          'scrim': 'var(--color-scrim)',
           
           // 가이드에 정의된 브랜드 컬러 추가 (san_styleguide.md 반영)
           'brand-mint': '#A7F3D0',

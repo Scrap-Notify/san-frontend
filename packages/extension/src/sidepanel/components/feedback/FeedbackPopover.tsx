@@ -109,14 +109,14 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-40 bg-black/20 backdrop-blur-md"
+      className="fixed inset-0 z-40 bg-scrim/20 backdrop-blur-md"
       role="presentation"
       onMouseDown={() => {
         if (!isSubmitting) onClose();
       }}
     >
       <div
-        className="absolute left-3 right-3 top-[72px] max-h-[calc(100vh-88px)] overflow-y-auto rounded-xl border border-white/[0.16] bg-[#111614]/62 p-3 shadow-[0_22px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl"
+        className="absolute left-3 right-3 top-[72px] max-h-[calc(100vh-88px)] overflow-y-auto rounded-xl border border-text-secondary/[0.16] bg-surface-lowest/62 p-3 shadow-[0_22px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl"
         role="dialog"
         aria-modal="true"
         onMouseDown={(event) => event.stopPropagation()}
@@ -129,7 +129,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
           <button
             type="button"
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary transition hover:bg-white/10 hover:text-text-primary"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary transition hover:bg-text-primary/10 hover:text-text-primary"
             aria-label="Close feedback"
           >
             <X size={15} />
@@ -165,10 +165,10 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
                         'flex h-12 flex-col items-center justify-center gap-1 rounded-lg border text-[10px] font-bold backdrop-blur-xl transition',
                         isSelected
                           ? item.activeClassName
-                          : 'border-white/10 bg-white/[0.045] text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/20 hover:bg-white/[0.07] hover:text-text-primary',
+                          : 'border-text-secondary/10 bg-surface-lowest/75 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-text-secondary/20 hover:bg-surface-container/80 hover:text-text-primary',
                       ].join(' ')}
                     >
-                      <span className={['flex h-5 w-5 items-center justify-center rounded-md', isSelected ? item.iconClassName : 'bg-white/5 text-text-secondary'].join(' ')}>
+                      <span className={['flex h-5 w-5 items-center justify-center rounded-md', isSelected ? item.iconClassName : 'bg-surface-container/80 text-text-secondary'].join(' ')}>
                         <Icon size={13} strokeWidth={1.8} />
                       </span>
                       {item.label}
@@ -186,7 +186,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
                 maxLength={5000}
                 rows={4}
                 placeholder={text.placeholder}
-                className="min-h-[104px] resize-none rounded-lg border border-white/10 bg-white/[0.045] p-3 text-xs leading-relaxed text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/55 focus:border-primary-signal/45 focus:bg-black/20"
+                className="min-h-[104px] resize-none rounded-lg border border-text-secondary/10 bg-surface-container/60 p-3 text-xs leading-relaxed text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/55 focus:border-primary-signal/45 focus:bg-surface-container/70"
               />
             </label>
 
@@ -197,7 +197,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
                 onChange={(event) => setContact(event.target.value)}
                 maxLength={255}
                 placeholder={text.contactPlaceholder}
-                className="h-9 rounded-lg border border-white/10 bg-white/[0.045] px-3 text-xs text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/45 focus:bg-black/20"
+                className="h-9 rounded-lg border border-text-secondary/10 bg-surface-container/60 px-3 text-xs text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/45 focus:bg-surface-container/70"
               />
             </label>
 
@@ -207,11 +207,11 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
               </p>
             )}
 
-            <div className="flex items-center justify-end gap-1.5 border-t border-white/5 pt-2">
+            <div className="flex items-center justify-end gap-1.5 border-t border-text-secondary/5 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="h-8 rounded-md border border-white/10 px-3 text-[11px] font-bold text-text-secondary transition hover:bg-white/5 hover:text-text-primary"
+                className="h-8 rounded-md border border-text-secondary/10 px-3 text-[11px] font-bold text-text-secondary transition hover:bg-surface-container/80 hover:text-text-primary"
               >
                 {text.cancel}
               </button>

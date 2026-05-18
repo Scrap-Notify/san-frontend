@@ -126,7 +126,7 @@ export const DropZone = ({
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="rounded-full px-3 py-1.5 text-body-sm-bold text-text-secondary transition hover:bg-white/5 hover:text-text-primary"
+                className="rounded-full px-3 py-1.5 text-body-sm-bold text-text-secondary transition hover:bg-surface-lowest/70 hover:text-text-primary"
               >
                 취소
               </button>

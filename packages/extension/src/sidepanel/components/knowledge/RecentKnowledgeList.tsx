@@ -145,7 +145,7 @@ function KnowledgeCardArticle({
                 event.stopPropagation();
                 onOpenCard(card.cardId);
               }}
-              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption-bold text-text-secondary/75 transition hover:bg-white/5 hover:text-action-accent active:translate-y-px"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption-bold text-text-secondary/75 transition hover:bg-text-primary/5 hover:text-action-accent active:translate-y-px"
               aria-label="Open card detail"
               title="Open card detail"
             >
@@ -159,7 +159,7 @@ function KnowledgeCardArticle({
                 event.stopPropagation();
                 setIsSourceOpen((current) => !current);
               }}
-              className="rounded-full p-1 text-text-secondary/75 transition hover:bg-white/5 hover:text-action-accent active:translate-y-px"
+              className="rounded-full p-1 text-text-secondary/75 transition hover:bg-text-primary/5 hover:text-action-accent active:translate-y-px"
               aria-label={isSourceOpen ? '원본 데이터 닫기' : '원본 데이터 열기'}
               aria-expanded={isSourceOpen}
               title="원본 데이터"
@@ -178,7 +178,7 @@ function KnowledgeCardArticle({
               onCopy(card);
             }}
             className={[
-              'rounded-full p-1 transition hover:bg-white/5 active:translate-y-px',
+              'rounded-full p-1 transition hover:bg-text-primary/5 active:translate-y-px',
               isCopied ? 'text-action-accent' : 'text-text-secondary/75 hover:text-action-accent',
             ].join(' ')}
             aria-label={isCopied ? 'Copied' : 'Copy card'}

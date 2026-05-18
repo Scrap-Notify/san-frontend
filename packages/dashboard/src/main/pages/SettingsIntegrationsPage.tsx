@@ -29,12 +29,12 @@ function RepositorySkeleton() {
   return (
     <ul className="flex flex-col gap-3">
       {[1, 2, 3, 4].map((key) => (
-        <li key={key} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#1c1c1c] p-4">
+        <li key={key} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 bg-surface-container/80 p-4">
           <div className="min-w-0 flex-1 animate-pulse">
-            <div className="h-4 w-2/3 rounded bg-white/10"></div>
-            <div className="mt-2 h-3 w-1/3 rounded bg-white/5"></div>
+            <div className="h-4 w-2/3 rounded bg-text-primary/10"></div>
+            <div className="mt-2 h-3 w-1/3 rounded bg-text-primary/5"></div>
           </div>
-          <div className="h-8 w-16 shrink-0 rounded-md bg-white/5 animate-pulse"></div>
+          <div className="h-8 w-16 shrink-0 rounded-md bg-text-primary/5 animate-pulse"></div>
         </li>
       ))}
     </ul>
@@ -266,29 +266,29 @@ export function SettingsIntegrationsPage() {
     <section className="w-full min-w-0 space-y-lg py-dashboard-gap text-text-primary max-w-[1200px] mx-auto">
 
       {/* ── 상단: GitHub 연동 상태 카드 ── */}
-      <div className="rounded-xl border border-white/5 bg-[#121212] p-8 shadow-sm">
+      <div className="rounded-xl border border-text-secondary/5 bg-surface-lowest p-8 shadow-sm">
         <div className="flex flex-col items-start justify-between gap-lg sm:flex-row sm:items-center">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-widest text-action-accent">
-              통합 연동 <span className="mx-2 text-white/20">•</span> <span className="text-white/40">외부 동기화</span>
+              통합 연동 <span className="mx-2 text-text-primary/20">•</span> <span className="text-text-primary/40">외부 동기화</span>
             </p>
             <div className="mt-3 flex items-center gap-3">
-              <h1 className="text-4xl font-bold text-white tracking-tight">GitHub</h1>
+              <h1 className="text-4xl font-bold text-text-primary tracking-tight">GitHub</h1>
               <span
                 className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${
                   isGithubLinked
                     ? 'text-action-accent'
-                    : 'text-white/40'
+                    : 'text-text-primary/40'
                 }`}
               >
                 <span className="relative flex h-2 w-2" aria-hidden="true">
                   {isGithubLinked && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-action-accent opacity-60" />}
-                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isGithubLinked ? 'bg-action-accent' : 'bg-white/25'}`} />
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isGithubLinked ? 'bg-action-accent' : 'bg-text-primary/25'}`} />
                 </span>
                 {isGithubLinked ? '연동됨' : '미연동'}
               </span>
             </div>
-            <p className="mt-4 max-w-lg text-sm text-white/50 leading-relaxed">
+            <p className="mt-4 max-w-lg text-sm text-text-primary/50 leading-relaxed">
               GitHub 계정을 연동하여 Repository를 동기화하세요.
               <br />
               SAN에서 쌓은 TIL 기록을 꾸준한 커밋으로 남기고, GitHub 잔디를 심어보세요.
@@ -301,7 +301,7 @@ export function SettingsIntegrationsPage() {
                 type="button"
                 onClick={handleUnlinkGithub}
                 disabled={isUnlinking}
-                className="rounded-md border border-white/10 px-3 py-2 text-sm font-medium text-white/45 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md border border-text-secondary/10 px-3 py-2 text-sm font-medium text-text-primary/45 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isUnlinking ? '해제 중...' : '연동 해제'}
               </button>
@@ -351,28 +351,28 @@ export function SettingsIntegrationsPage() {
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-white">연결 가능한 Repository</h2>
+              <h2 className="text-lg font-bold text-text-primary">연결 가능한 Repository</h2>
               {isGithubLinked && hasConnectedRepository && (
-                <p className="mt-1 text-xs text-white/40">하나의 Repository만 선택 가능합니다.</p>
+                <p className="mt-1 text-xs text-text-primary/40">하나의 Repository만 선택 가능합니다.</p>
               )}
             </div>
-            <span className="text-xs text-white/40">
+            <span className="text-xs text-text-primary/40">
               {!isGithubLinked ? 'GitHub 연동 필요' : hasConnectedRepository ? '선택 완료' : 'Repository 선택 가능'}
             </span>
           </div>
 
-          <div className="flex h-[460px] flex-col overflow-hidden rounded-xl border border-white/5 bg-[#121212]/80">
+          <div className="flex h-[460px] flex-col overflow-hidden rounded-xl border border-text-secondary/5 bg-surface-lowest/80">
             {/* 검색바 */}
-            <div className="border-b border-white/5 p-4">
+            <div className="border-b border-text-secondary/5 p-4">
               <div className="relative">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-primary/30" />
                 <input
                   type="text"
                   placeholder="Repository 검색..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={!isGithubLinked || isLoadingAvailable}
-                  className="w-full rounded-lg border border-white/10 bg-[#1c1c1c] py-2.5 pl-10 pr-4 text-sm text-white placeholder-white/30 outline-none transition focus:border-white/20 disabled:opacity-50"
+                  className="w-full rounded-lg border border-text-secondary/10 bg-surface-container/80 py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-secondary/30 outline-none transition focus:border-text-secondary/20 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -381,16 +381,16 @@ export function SettingsIntegrationsPage() {
             <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {!isGithubLinked ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 border-dashed bg-white/5 text-white/30">
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-text-secondary/10 border-dashed bg-text-primary/5 text-text-primary/30">
                     <Link2 size={24} />
                   </div>
-                  <h3 className="text-base font-bold text-white">계정이 연동되지 않았습니다</h3>
-                  <p className="mt-2 max-w-[260px] text-xs text-white/40 leading-relaxed">
+                  <h3 className="text-base font-bold text-text-primary">계정이 연동되지 않았습니다</h3>
+                  <p className="mt-2 max-w-[260px] text-xs text-text-primary/40 leading-relaxed">
                     GitHub 계정을 연동하면 SAN과 동기화할 Repository를 조회하고 선택할 수 있습니다.
                   </p>
                   <button
                     onClick={handleLinkGithub}
-                    className="mt-6 rounded-lg bg-white/5 px-4 py-2 text-xs font-medium text-white hover:bg-white/10 transition"
+                    className="mt-6 rounded-lg bg-text-primary/5 px-4 py-2 text-xs font-medium text-text-primary hover:bg-text-primary/10 transition"
                   >
                     GitHub 계정 연동
                   </button>
@@ -400,25 +400,25 @@ export function SettingsIntegrationsPage() {
               ) : filteredAvailableRepos.length > 0 ? (
                 <ul className="flex flex-col gap-3">
                   {filteredAvailableRepos.map((repo) => (
-                    <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-[#1c1c1c] p-4 transition hover:bg-white/[0.04]">
+                    <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 bg-surface-container/80 p-4 transition hover:bg-text-primary/[0.04]">
                       <div className="flex min-w-0 items-center gap-4">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 text-white/40">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-text-primary/5 text-text-primary/40">
                           <FolderGit2 size={20} />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-bold text-white">{repo.fullName}</p>
-                          <p className="text-xs text-white/40 mt-1">{repo.privateRepository ? '비공개(Private)' : '공개(Public)'} / {repo.defaultBranch}</p>
+                          <p className="truncate text-sm font-bold text-text-primary">{repo.fullName}</p>
+                          <p className="text-xs text-text-primary/40 mt-1">{repo.privateRepository ? '비공개(Private)' : '공개(Public)'} / {repo.defaultBranch}</p>
                         </div>
                       </div>
                       {hasConnectedRepository ? (
-                        <span className="shrink-0 rounded-md border border-white/10 px-3 py-1.5 text-xs font-medium text-white/35">
+                        <span className="shrink-0 rounded-md border border-text-secondary/10 px-3 py-1.5 text-xs font-medium text-text-primary/35">
                           1개만 가능
                         </span>
                       ) : (
                         <button
                           onClick={() => handleConnectRepository(repo)}
                           disabled={connectingRepoId === repo.githubRepositoryId}
-                          className="flex h-8 shrink-0 items-center justify-center rounded-md bg-[#254230] px-4 text-xs font-bold text-action-accent transition hover:bg-[#2d523b] disabled:opacity-50"
+                          className="flex h-8 shrink-0 items-center justify-center rounded-md bg-action-accent/20 px-4 text-xs font-bold text-action-accent transition hover:bg-action-accent/30 disabled:opacity-50"
                         >
                           {connectingRepoId === repo.githubRepositoryId ? <Loader2 size={14} className="animate-spin" /> : '연결하기'}
                         </button>
@@ -427,7 +427,7 @@ export function SettingsIntegrationsPage() {
                   ))}
                 </ul>
               ) : (
-                <div className="flex h-full flex-col items-center justify-center text-center text-white/40">
+                <div className="flex h-full flex-col items-center justify-center text-center text-text-primary/40">
                   <p className="text-sm">검색 결과가 없습니다.</p>
                 </div>
               )}
@@ -441,18 +441,18 @@ export function SettingsIntegrationsPage() {
             <div className="flex items-center gap-2">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-bold text-white">연결된 Repository</h2>
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-[10px] font-bold text-white/60">
+                  <h2 className="text-lg font-bold text-text-primary">연결된 Repository</h2>
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-text-primary/10 text-[10px] font-bold text-text-primary/60">
                     {connectedRepositories.length}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-white/40">현재 SAN과 동기화 중인 Repository입니다.</p>
+                <p className="mt-1 text-xs text-text-primary/40">현재 SAN과 동기화 중인 Repository입니다.</p>
               </div>
             </div>
             <button
               onClick={loadConnectedRepositories}
               disabled={isLoadingConnected || !isGithubLinked}
-              className="text-white/40 hover:text-white transition disabled:opacity-50"
+              className="text-text-primary/40 hover:text-text-primary transition disabled:opacity-50"
             >
               <RefreshCw size={16} className={isLoadingConnected ? 'animate-spin' : ''} />
             </button>
@@ -461,22 +461,22 @@ export function SettingsIntegrationsPage() {
           <div className={`flex flex-col overflow-hidden rounded-xl bg-transparent p-4 ${
             isGithubLinked && connectedRepositories.length > 0
               ? 'border border-transparent'
-              : 'min-h-[220px] border border-white/10 bg-[#151718]/45'
+              : 'min-h-[220px] border border-text-secondary/10 bg-surface-container/45'
           }`}>
             {!isGithubLinked || (!isLoadingConnected && connectedRepositories.length === 0) ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
-                <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/30">
+                <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-xl border border-text-secondary/10 bg-text-primary/5 text-text-primary/30">
                   <TerminalSquare size={28} />
-                  <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#121212]">
+                  <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-surface-lowest">
                     <div className="flex h-4 w-4 items-center justify-center rounded-full bg-action-accent text-black">
                       <span className="text-[10px] font-bold leading-none">+</span>
                     </div>
                   </div>
                 </div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-bold text-text-primary">
                   {isGithubLinked ? '연결된 Repository가 없습니다' : 'GitHub 연동이 필요합니다'}
                 </h3>
-                <p className="mt-2 max-w-[280px] text-xs text-white/40 leading-relaxed">
+                <p className="mt-2 max-w-[280px] text-xs text-text-primary/40 leading-relaxed">
                   {isGithubLinked 
                     ? '좌측 목록에서 SAN과 동기화할 Repository를 선택해주세요.'
                     : '계정 연동 후, SAN 워크스페이스에서 관리할 Repository를 선택할 수 있습니다.'}
@@ -488,19 +488,19 @@ export function SettingsIntegrationsPage() {
               <div className="flex min-h-0 flex-1 flex-col">
                 <ul className="flex min-h-0 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   {connectedRepositories.map((repo) => (
-                    <li key={repo.githubRepositoryId} className="rounded-lg border border-white/10 bg-[#1c1c1c] p-4 ring-1 ring-action-accent/15">
+                    <li key={repo.githubRepositoryId} className="rounded-lg border border-text-secondary/10 bg-surface-container/80 p-4 ring-1 ring-action-accent/15">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-4">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-text-primary/5">
                             <img src={githubSvg} alt="" aria-hidden="true" className="h-5 w-5 brightness-0 invert opacity-80" />
                           </div>
                           <div className="min-w-0">
-                            <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white transition hover:text-action-accent">
+                            <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-text-primary transition hover:text-action-accent">
                               {repo.fullName}
                             </a>
-                            <div className="mt-1 flex items-center gap-2 text-xs text-white/40">
+                            <div className="mt-1 flex items-center gap-2 text-xs text-text-primary/40">
                               <span>{repo.privateRepository ? '비공개(Private)' : '공개(Public)'}</span>
-                              <span className="h-1 w-1 rounded-full bg-white/20" aria-hidden="true" />
+                              <span className="h-1 w-1 rounded-full bg-text-primary/20" aria-hidden="true" />
                               <span className="inline-flex items-center gap-1 text-action-accent">
                                 <span className="h-1.5 w-1.5 rounded-full bg-action-accent" aria-hidden="true" />
                                 Active
@@ -510,15 +510,15 @@ export function SettingsIntegrationsPage() {
                         </div>
                         <button
                           onClick={() => handleDisconnectRepository(repo.githubRepositoryId)}
-                          className="inline-flex shrink-0 items-center rounded-md border border-white/10 px-2.5 py-1.5 text-xs font-bold text-white/35 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300"
+                          className="inline-flex shrink-0 items-center rounded-md border border-text-secondary/10 px-2.5 py-1.5 text-xs font-bold text-text-primary/35 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300"
                           title="레포 끊기"
                         >
                           레포 끊기
                         </button>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/5 pt-3">
-                        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-white/10 bg-black/20 px-2.5 py-1 text-xs font-medium text-white/55">
+                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-text-secondary/5 pt-3">
+                        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-text-secondary/10 bg-surface-container/45 px-2.5 py-1 text-xs font-medium text-text-primary/55">
                           <GitBranch size={13} />
                           <span className="truncate">{repo.defaultBranch}</span>
                         </span>
@@ -526,7 +526,7 @@ export function SettingsIntegrationsPage() {
                           href={repo.htmlUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1 text-xs font-bold text-action-accent transition hover:bg-white/10"
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-text-primary/5 px-2.5 py-1 text-xs font-bold text-action-accent transition hover:bg-text-primary/10"
                         >
                           GitHub에서 보기
                           <ExternalLink size={13} />

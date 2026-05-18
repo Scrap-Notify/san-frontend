@@ -67,7 +67,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                 {!isPanel ? <RecallHeader count={0} /> : null}
                 <div className={`${isPanel ? 'mt-1' : 'mt-7'} space-y-4`}>
                     {[0, 1].map((item) => (
-                        <div key={item} className="ml-8 h-20 animate-pulse rounded-lg bg-white/[0.035]" />
+                        <div key={item} className="ml-8 h-20 animate-pulse rounded-lg bg-text-primary/[0.035]" />
                     ))}
                 </div>
             </section>
@@ -120,8 +120,8 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                                     <span
                                         className={`relative z-10 mt-1.5 block h-2.5 w-2.5 rounded-full border transition-all duration-300 ${
                                             isActive
-                                                ? 'border-[#8affc1]/80 bg-[#8affc1] shadow-[0_0_18px_6px_rgba(138,255,193,0.42)]'
-                                                : 'border-[#8affc1]/12 bg-[#5d6f6a] shadow-[0_0_14px_4px_rgba(138,255,193,0.14)]'
+                                                ? 'border-primary-signal/80 bg-primary-signal shadow-[0_0_18px_6px_rgba(0,255,194,0.42)]'
+                                                : 'border-primary-signal/12 bg-surface-highest shadow-[0_0_14px_4px_rgba(0,255,194,0.14)]'
                                         }`}
                                     />
                                 </div>
@@ -132,11 +132,11 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                                     className="relative min-w-0 text-left transition-opacity hover:opacity-90"
                                 >
                                     <div>
-                                        <p className={`text-sm font-extrabold ${isActive ? 'text-[#8affc1]' : 'text-text-secondary/55'}`}>
+                                        <p className={`text-sm font-extrabold ${isActive ? 'text-primary-signal' : 'text-text-secondary/55'}`}>
                                             {isFirst ? '\u0031\uC77C \uC804' : formatTimeLabel(card.createdAt)}
                                         </p>
 
-                                        <h3 className={`${isPanel ? 'text-sm' : 'text-base'} mt-2 line-clamp-2 font-extrabold leading-snug text-white`}>
+                                        <h3 className={`${isPanel ? 'text-sm' : 'text-base'} mt-2 line-clamp-2 font-extrabold leading-snug text-text-primary`}>
                                             {"AI\uAC00 \uC78A\uC744 \uB54C\uCBE4 \uAC00\uC838\uB2E4\uC900 \uC9C0\uC2DD: "}
                                             {card.title}
                                         </h3>
@@ -157,7 +157,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                                             </span>
                                         ) : null}
                                         {card.tags.slice(0, 3).map((tag) => (
-                                            <span key={tag.tagId} className="rounded-full bg-white/5 px-2 py-1 text-[10px] font-semibold text-text-secondary/60">
+                                            <span key={tag.tagId} className="rounded-full bg-text-primary/5 px-2 py-1 text-[10px] font-semibold text-text-secondary/60">
                                                 #{tag.tagName}
                                             </span>
                                         ))}
@@ -179,7 +179,7 @@ function RecallHeader({ count }: { count: number }) {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-signal/10 text-primary-signal">
                     <BrainCircuit size={16} />
                 </span>
-                <h2 className="text-xl font-extrabold tracking-tight text-white">Recall History</h2>
+                <h2 className="text-xl font-extrabold tracking-tight text-text-primary">Recall History</h2>
             </div>
             {count > 0 ? (
                 <span className="text-xs font-bold text-text-secondary/45">

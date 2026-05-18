@@ -106,7 +106,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/55 px-4 py-6 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       onMouseDown={() => {
@@ -114,20 +114,20 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
       }}
     >
       <div
-        className="max-h-[calc(100vh-48px)] w-full max-w-[460px] overflow-y-auto rounded-xl border border-white/15 bg-[#121212]/72 shadow-[0_24px_80px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="max-h-[calc(100vh-48px)] w-full max-w-[460px] overflow-y-auto rounded-xl border border-text-secondary/15 bg-surface-lowest/72 shadow-[0_24px_80px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-white/5 px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-text-secondary/5 px-5 py-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-widest text-action-accent">Feedback</p>
-            <h2 className="mt-1.5 text-lg font-bold text-white">의견 보내기</h2>
-            <p className="mt-1 text-sm text-white/45">현재 페이지 정보가 함께 전송됩니다.</p>
+            <h2 className="mt-1.5 text-lg font-bold text-text-primary">의견 보내기</h2>
+            <p className="mt-1 text-sm text-text-primary/45">현재 페이지 정보가 함께 전송됩니다.</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="rounded-md p-2 text-white/35 transition hover:bg-white/5 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md p-2 text-text-primary/35 transition hover:bg-surface-container/80 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="피드백 닫기"
           >
             <X size={18} />
@@ -140,8 +140,8 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
               <CheckCircle2 size={24} />
             </span>
             <div>
-              <h3 className="text-lg font-bold text-white">피드백이 전송되었습니다</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/45">남겨주신 의견은 서비스 개선에 반영하겠습니다.</p>
+              <h3 className="text-lg font-bold text-text-primary">피드백이 전송되었습니다</h3>
+              <p className="mt-2 text-sm leading-relaxed text-text-primary/45">남겨주신 의견은 서비스 개선에 반영하겠습니다.</p>
             </div>
             <button
               type="button"
@@ -154,7 +154,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
         ) : (
           <form className="grid gap-4 px-5 py-4" onSubmit={handleSubmit}>
             <div className="grid gap-2">
-              <span className="text-xs font-bold text-white/50">유형</span>
+              <span className="text-xs font-bold text-text-primary/50">유형</span>
               <div className="grid grid-cols-2 gap-2">
                 {FEEDBACK_TYPES.map((item) => {
                   const Icon = item.icon;
@@ -168,15 +168,15 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                       className={`flex min-h-[48px] items-center gap-2 rounded-md border px-2.5 text-left backdrop-blur-xl transition ${
                         selected
                           ? item.activeClassName
-                          : 'border-white/10 bg-white/[0.045] text-white/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-white/20 hover:bg-white/[0.07] hover:text-white hover:shadow-[0_0_18px_rgba(255,255,255,0.05)]'
+                          : 'border-text-secondary/10 bg-surface-lowest/75 text-text-primary/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-text-secondary/20 hover:bg-surface-container/80 hover:text-text-primary hover:shadow-[0_0_18px_rgba(255,255,255,0.05)]'
                       }`}
                     >
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${selected ? item.iconClassName : 'bg-white/5 text-white/35'}`}>
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${selected ? item.iconClassName : 'bg-surface-container/80 text-text-primary/35'}`}>
                         <Icon size={15} strokeWidth={1.8} />
                       </span>
                       <span className="min-w-0">
                         <span className="block text-xs font-bold">{item.label}</span>
-                        <span className={`mt-0.5 block truncate text-[10px] ${selected ? 'text-current opacity-70' : 'text-white/32'}`}>
+                        <span className={`mt-0.5 block truncate text-[10px] ${selected ? 'text-current opacity-70' : 'text-text-primary/32'}`}>
                           {item.description}
                         </span>
                       </span>
@@ -187,7 +187,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
             </div>
 
             <label className="grid gap-2">
-              <span className="text-xs font-bold text-white/50">내용</span>
+              <span className="text-xs font-bold text-text-primary/50">내용</span>
               <textarea
                 value={content}
                 onChange={(event) => {
@@ -196,24 +196,24 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                 }}
                 maxLength={5000}
                 placeholder="편하게 의견을 남겨주세요. 사소한 불편이나 떠오른 아이디어도 좋아요."
-                className="min-h-28 resize-none rounded-lg border border-white/10 bg-[#1c1c1c] px-4 py-3 text-sm leading-relaxed text-white outline-none transition placeholder:text-white/25 focus:border-primary-signal/45"
+                className="min-h-28 resize-none rounded-lg border border-text-secondary/10 bg-surface-container/80 px-4 py-3 text-sm leading-relaxed text-text-primary outline-none transition placeholder:text-text-primary/25 focus:border-primary-signal/45"
               />
             </label>
 
             <label className="grid gap-2">
-              <span className="text-xs font-bold text-white/50">연락처 또는 이메일 (선택)</span>
+              <span className="text-xs font-bold text-text-primary/50">연락처 또는 이메일 (선택)</span>
               <input
                 value={contact}
                 onChange={(event) => setContact(event.target.value)}
                 maxLength={255}
                 placeholder="보내주신 의견에 감사의 마음을 담아 작은 선물을 전할 수 있어요."
-                className="h-11 rounded-lg border border-white/10 bg-[#1c1c1c] px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-primary-signal/45"
+                className="h-11 rounded-lg border border-text-secondary/10 bg-surface-container/80 px-4 text-sm text-text-primary outline-none transition placeholder:text-text-primary/25 focus:border-primary-signal/45"
               />
             </label>
 
             <div className="grid gap-1">
-              <p className="text-[11px] font-bold text-white/35">불편을 느낀 URL</p>
-              <p className="truncate text-xs text-white/35">{pageUrl}</p>
+              <p className="text-[11px] font-bold text-text-primary/35">불편을 느낀 URL</p>
+              <p className="truncate text-xs text-text-primary/35">{pageUrl}</p>
             </div>
 
             {errorMessage && (
@@ -223,12 +223,12 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
               </p>
             )}
 
-            <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
+            <div className="flex justify-end gap-2 border-t border-text-secondary/5 pt-3">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="h-10 rounded-md border border-white/10 px-4 text-sm font-bold text-white/45 transition hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-10 rounded-md border border-text-secondary/10 px-4 text-sm font-bold text-text-primary/45 transition hover:border-text-secondary/20 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 취소
               </button>

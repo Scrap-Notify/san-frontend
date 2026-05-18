@@ -45,6 +45,8 @@
   --color-surface-low: #181c1f;       /* Surface Low */
   --color-surface-container: #1c2023; /* Surface Container */
   --color-surface-highest: #313539;   /* Surface Highest */
+  --color-surface-lowest: #0b0d0f;    /* Surface Lowest */
+  --color-scrim: rgba(0, 0, 0, 0.6);   /* Modal Overlay */
 
   --color-primary-signal: #00ffc2;    /* Primary Signal / Normal */
   --color-primary-signal-hover: #00e6af;
@@ -75,6 +77,39 @@
   --radius-leaf-reverse: 8px 48px 8px 48px;
   --radius-leaf-full: 48px 8px 48px 8px;
   --radius-leaf-soft: 48px 48px 8px 8px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --color-background: #f4f8f5;
+  --color-surface-low: #ffffff;
+  --color-surface-container: #eef4ef;
+  --color-surface-highest: #d8e2db;
+  --color-surface-lowest: #ffffff;
+  --color-scrim: rgba(15, 23, 42, 0.14);
+
+  --color-text-primary: #10201a;
+  --color-text-secondary: #4e6159;
+  --color-text-ghost: #71827b;
+
+  --color-primary-signal: #0f8f7f;
+  --color-primary-signal-hover: #0d7f71;
+  --color-primary-signal-active: #0b6f63;
+  --color-primary-signal-dark: #0d7f71;
+  --color-primary-signal-dark-hover: #0b6f63;
+  --color-primary-signal-dark-active: #09564c;
+  --color-primary-signal-darker: #084a42;
+
+  --color-neon: #0f8f7f;
+  --color-neon-dim: rgba(15, 143, 127, 0.18);
+  --color-neon-subtle: rgba(15, 143, 127, 0.1);
+
+  --color-teal: #d9f2ec;
+  --color-teal-dim: rgba(15, 143, 127, 0.08);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 /* 3. 베이스 스타일 (전역 설정) */
@@ -119,7 +154,7 @@
 
   /* ── 글래스모피즘 (Misty Layer) ── */
   .glass-card {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    @apply bg-surface-container/80 backdrop-blur-md border border-text-secondary/15;
   }
 
   /* ── 나뭇잎 곡선 변형 ── */

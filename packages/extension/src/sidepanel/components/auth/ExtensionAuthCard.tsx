@@ -13,7 +13,7 @@ interface ExtensionAuthCardProps {
 }
 
 const inputClass =
-  'block h-12 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+  'block h-12 w-full rounded-xl border border-text-secondary/10 bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
 
 export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionAuthCardProps) {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -121,9 +121,9 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
   return (
     <section className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-3 py-4 sm:px-8">
       <div
-        className="relative flex h-[clamp(520px,calc(100vh-112px),600px)] w-full max-w-[400px] flex-col justify-center overflow-hidden rounded-[28px] border border-white/20 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl sm:rounded-3xl sm:p-8"
+        className="relative flex h-[clamp(520px,calc(100vh-112px),600px)] w-full max-w-[400px] flex-col justify-center overflow-hidden rounded-[28px] border border-text-secondary/20 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl sm:rounded-3xl sm:p-8"
         style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%)',
+          background: 'linear-gradient(135deg, color-mix(in oklab, var(--color-surface-container) 72%, white 28%) 0%, color-mix(in oklab, var(--color-surface-low) 86%, white 14%) 100%)',
         }}
       >
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" />
@@ -143,7 +143,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
               <button
                 type="button"
                 onClick={onGithubLogin}
-                className="relative flex h-14 w-full shrink-0 items-center rounded-xl border border-white/10 bg-black text-sm font-bold text-white outline-none transition hover:opacity-85 focus-visible:ring-1 focus-visible:ring-action-accent/35 active:scale-[0.98]"
+                className="relative flex h-14 w-full shrink-0 items-center rounded-xl border border-text-secondary/10 bg-surface-low text-sm font-bold text-text-primary outline-none transition hover:opacity-85 focus-visible:ring-1 focus-visible:ring-action-accent/35 active:scale-[0.98]"
               >
                 <span className="absolute left-4 flex h-8 w-8 items-center justify-center">
                   <img src={githubSvg} alt="" aria-hidden="true" className="h-6 w-6 brightness-0 invert" />
@@ -155,9 +155,9 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
               </button>
 
               <div className="my-5 flex shrink-0 items-center gap-4">
-                <div className="h-px flex-1 bg-white/10" />
+                <div className="h-px flex-1 bg-text-primary/10" />
                 <span className="text-[11px] text-text-secondary/50">Or</span>
-                <div className="h-px flex-1 bg-white/10" />
+                <div className="h-px flex-1 bg-text-primary/10" />
               </div>
             </>
           )}

@@ -49,7 +49,7 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
 
     return (
         <aside className="flex h-full w-full flex-col overflow-hidden bg-transparent">
-            <header className="flex shrink-0 items-center gap-2 border-b border-white/5 p-3">
+            <header className="flex shrink-0 items-center gap-2 border-b border-text-secondary/5 p-3">
                 <PanelTabButton
                     active={activeTab === 'recall'}
                     badge={recallCount}
@@ -65,7 +65,7 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
 
             {activeTab === 'sources' ? (
                 <>
-                    <div className="border-b border-white/5 p-4">
+                    <div className="border-b border-text-secondary/5 p-4">
                         <label className="flex items-center gap-2 rounded-full bg-surface-highest px-4 py-2 transition focus-within:ring-1 focus-within:ring-primary-signal/30">
                             <Search size={16} className="text-text-secondary" />
                             <input
@@ -73,7 +73,7 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
                                 placeholder="키워드로 검색..."
                                 value={searchQuery}
                                 onChange={(event) => setSearchQuery(event.target.value)}
-                                className="w-full bg-transparent text-sm text-white outline-none placeholder:text-text-secondary/60"
+                                className="w-full bg-transparent text-sm text-text-primary outline-none placeholder:text-text-secondary/60"
                             />
                         </label>
                     </div>
@@ -125,7 +125,7 @@ function PanelTabButton({
             className={`relative flex h-9 flex-1 items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-8 after:-translate-x-1/2 after:transition-all ${
                 active
                     ? 'text-action-accent after:bg-action-accent after:shadow-[0_0_10px_rgba(74,222,128,0.45)]'
-                    : 'text-text-secondary/65 after:bg-transparent hover:text-white/90 hover:after:bg-white/20'
+                    : 'text-text-secondary/65 after:bg-transparent hover:text-text-primary/90 hover:after:bg-text-primary/20'
             }`}
         >
             {label}

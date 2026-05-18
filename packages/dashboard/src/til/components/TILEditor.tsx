@@ -180,46 +180,46 @@ export function TILEditor({
     return (
         <div className="flex h-full min-h-0 w-full flex-col">
             <main className="relative flex min-h-0 w-full flex-1 flex-col bg-transparent">
-                <div className="flex shrink-0 items-center justify-between border-b border-white/5 px-4 py-2.5">
+                <div className="flex shrink-0 items-center justify-between border-b border-text-secondary/5 px-4 py-2.5">
                     <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden text-text-secondary">
                         {/* 그룹 1: 텍스트 서식 */}
                         <div className={`${isEditing ? 'flex' : 'hidden'} items-center gap-2`}>
-                            <button type="button" onClick={() => handleFormat('heading')} title="Heading" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('heading')} title="Heading" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <Heading size={13} strokeWidth={2} />
                             </button>
-                            <button type="button" onClick={() => handleFormat('bold')} title="Bold" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('bold')} title="Bold" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <Bold size={13} strokeWidth={2.5} />
                             </button>
-                            <button type="button" onClick={() => handleFormat('italic')} title="Italic" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('italic')} title="Italic" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <Italic size={13} strokeWidth={2.5} />
                             </button>
-                            <button type="button" onClick={() => handleFormat('quote')} title="Quote" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('quote')} title="Quote" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <Quote size={13} strokeWidth={2} />
                             </button>
-                            <button type="button" onClick={() => handleFormat('code')} title="Code" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('code')} title="Code" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <Code size={13} strokeWidth={2} />
                             </button>
-                            <button type="button" onClick={() => handleFormat('link')} title="Link" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('link')} title="Link" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <LinkIcon size={13} strokeWidth={2} />
                             </button>
                         </div>
 
-                        <div className={`${isEditing ? 'block' : 'hidden'} h-3 w-px bg-white/10`} />
+                        <div className={`${isEditing ? 'block' : 'hidden'} h-3 w-px bg-text-primary/10`} />
 
                         {/* 그룹 2: 리스트 */}
                         <div className={`${isEditing ? 'flex' : 'hidden'} items-center gap-2`}>
-                            <button type="button" onClick={() => handleFormat('ordered-list')} title="Ordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('ordered-list')} title="Ordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <ListOrdered size={13} strokeWidth={2} />
                             </button>
-                            <button type="button" onClick={() => handleFormat('list')} title="Unordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('list')} title="Unordered List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <List size={13} strokeWidth={2} />
                             </button>
-                            <button type="button" onClick={() => handleFormat('task')} title="Task List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white">
+                            <button type="button" onClick={() => handleFormat('task')} title="Task List" className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary">
                                 <ListChecks size={13} strokeWidth={2} />
                             </button>
                         </div>
 
-                        <div className={`${isEditing ? 'block' : 'hidden'} h-4 w-px bg-white/10`} />
+                        <div className={`${isEditing ? 'block' : 'hidden'} h-4 w-px bg-text-primary/10`} />
 
                         {visibleStatusMessage ? (
                             <div
@@ -230,7 +230,7 @@ export function TILEditor({
                                             ? 'border-error/30 bg-error/10 text-error'
                                             : statusTone === 'pending'
                                                 ? 'border-yellow-500/30 bg-yellow-500/10 text-yellow-500'
-                                                : 'border-white/10 bg-white/5 text-text-secondary'
+                                                : 'border-text-secondary/10 bg-text-primary/5 text-text-secondary'
                                 }`}
                             >
                                 <span className="block min-w-0 truncate whitespace-nowrap text-xs font-bold">{visibleStatusMessage}</span>
@@ -241,7 +241,7 @@ export function TILEditor({
                     <div className="flex shrink-0 items-center gap-4 text-xs font-medium text-text-secondary">
                         <span>UTF-8</span>
 
-                        {showModeAction ? <div className="h-4 w-px bg-white/10" /> : null}
+                        {showModeAction ? <div className="h-4 w-px bg-text-primary/10" /> : null}
 
                         {isEditing ? (
                             <>
@@ -255,7 +255,7 @@ export function TILEditor({
                                     {updateMutation.isPending ? 'SAVING...' : 'SAVE'}
                                 </button>
 
-                                <div className="h-4 w-px bg-white/10" />
+                                <div className="h-4 w-px bg-text-primary/10" />
                             </>
                         ) : null}
 
@@ -276,7 +276,7 @@ export function TILEditor({
                                 type="button"
                                 onClick={handleReset}
                                 disabled={!hasUnsavedChanges || updateMutation.isPending}
-                                className="flex items-center gap-1.5 font-bold text-text-secondary transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                className="flex items-center gap-1.5 font-bold text-text-secondary transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 <RotateCcw size={14} />
                                 초기화
@@ -288,13 +288,13 @@ export function TILEditor({
                 <div className="relative min-h-0 w-full flex-1 overflow-hidden pt-2">
                     {isTilLoading ? (
                         <div className="flex h-full min-h-[500px] w-full flex-col gap-4 overflow-hidden p-6 animate-pulse">
-                            <div className="h-6 w-3/4 rounded bg-white/5" />
-                            <div className="h-4 w-full rounded bg-white/5" />
-                            <div className="h-4 w-full rounded bg-white/5" />
-                            <div className="h-4 w-2/3 rounded bg-white/5" />
-                            <div className="mt-4 h-6 w-1/2 rounded bg-white/5" />
-                            <div className="h-4 w-full rounded bg-white/5" />
-                            <div className="h-4 w-5/6 rounded bg-white/5" />
+                            <div className="h-6 w-3/4 rounded bg-text-primary/5" />
+                            <div className="h-4 w-full rounded bg-text-primary/5" />
+                            <div className="h-4 w-full rounded bg-text-primary/5" />
+                            <div className="h-4 w-2/3 rounded bg-text-primary/5" />
+                            <div className="mt-4 h-6 w-1/2 rounded bg-text-primary/5" />
+                            <div className="h-4 w-full rounded bg-text-primary/5" />
+                            <div className="h-4 w-5/6 rounded bg-text-primary/5" />
                         </div>
                     ) : isEmptyTil ? (
                         <ContentEmptyState
@@ -303,7 +303,7 @@ export function TILEditor({
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
                         />
                     ) : isEditing ? (
-                        <div className="til-editor-scrollbar til-editor-surface relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-white/5 bg-[#1e1e1e]/30">
+                        <div className="til-editor-scrollbar til-editor-surface relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-text-secondary/5 bg-surface-lowest/30">
                             <Editor
                                 theme="vs-dark"
                                 defaultLanguage="markdown"
@@ -312,13 +312,13 @@ export function TILEditor({
                                 onMount={handleEditorMount}
                                 loading={
                                     <div className="flex h-full w-full flex-col gap-4 p-6 animate-pulse">
-                                        <div className="h-6 w-3/4 rounded bg-white/5" />
-                                        <div className="h-4 w-full rounded bg-white/5" />
-                                        <div className="h-4 w-full rounded bg-white/5" />
-                                        <div className="h-4 w-2/3 rounded bg-white/5" />
-                                        <div className="mt-4 h-6 w-1/2 rounded bg-white/5" />
-                                        <div className="h-4 w-full rounded bg-white/5" />
-                                        <div className="h-4 w-5/6 rounded bg-white/5" />
+                                        <div className="h-6 w-3/4 rounded bg-text-primary/5" />
+                                        <div className="h-4 w-full rounded bg-text-primary/5" />
+                                        <div className="h-4 w-full rounded bg-text-primary/5" />
+                                        <div className="h-4 w-2/3 rounded bg-text-primary/5" />
+                                        <div className="mt-4 h-6 w-1/2 rounded bg-text-primary/5" />
+                                        <div className="h-4 w-full rounded bg-text-primary/5" />
+                                        <div className="h-4 w-5/6 rounded bg-text-primary/5" />
                                     </div>
                                 }
                                 options={{
@@ -356,22 +356,22 @@ export function TILEditor({
                                     remarkPlugins={[remarkGfm]}
                                     components={{
                                         h1: ({ children }) => (
-                                            <h1 className="mb-6 border-b border-white/10 pb-4 text-3xl font-bold leading-tight text-white">
+                                            <h1 className="mb-6 border-b border-surface-highest/30 pb-4 text-3xl font-bold leading-tight text-text-primary">
                                                 {children}
                                             </h1>
                                         ),
                                         h2: ({ children }) => (
-                                            <h2 className="mb-4 mt-8 text-2xl font-bold leading-tight text-white">
+                                            <h2 className="mb-4 mt-8 text-2xl font-bold leading-tight text-text-primary">
                                                 {children}
                                             </h2>
                                         ),
                                         h3: ({ children }) => (
-                                            <h3 className="mb-3 mt-6 text-xl font-semibold leading-snug text-white">
+                                            <h3 className="mb-3 mt-6 text-xl font-semibold leading-snug text-text-primary">
                                                 {children}
                                             </h3>
                                         ),
                                         h4: ({ children }) => (
-                                            <h4 className="mb-2 mt-5 text-lg font-semibold leading-snug text-white">
+                                            <h4 className="mb-2 mt-5 text-lg font-semibold leading-snug text-text-primary">
                                                 {children}
                                             </h4>
                                         ),
@@ -392,7 +392,7 @@ export function TILEditor({
                                             <li className="pl-1 leading-7 marker:text-primary-signal">{children}</li>
                                         ),
                                         strong: ({ children }) => (
-                                            <strong className="font-bold text-white">{children}</strong>
+                                            <strong className="font-bold text-text-primary">{children}</strong>
                                         ),
                                         em: ({ children }) => (
                                             <em className="text-text-secondary">{children}</em>
