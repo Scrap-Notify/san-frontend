@@ -88,7 +88,7 @@ export function GithubAuthResultPage() {
         <p className="text-body-sm text-text-secondary">{message}</p>
         <Link
           to={withAuthClientType('/login', clientType)}
-          className="mt-lg inline-flex min-h-11 items-center justify-center rounded-leaf bg-primary-signal px-lg text-body-sm-bold text-background transition hover:glow-neon"
+          className="mt-lg inline-flex min-h-11 items-center justify-center rounded-leaf bg-action-accent px-lg text-body-sm-bold text-background transition hover:bg-action-accent-hover"
         >
           Back to login
         </Link>

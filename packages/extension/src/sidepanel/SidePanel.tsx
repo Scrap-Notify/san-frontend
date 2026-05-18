@@ -191,7 +191,7 @@ function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: Knowledge
             className={[
               'whitespace-nowrap text-xs font-semibold transition',
               isActive
-                ? 'text-primary-signal'
+                ? 'text-action-accent'
                 : 'text-text-secondary/45 hover:text-text-primary',
               tab.disabled ? 'cursor-not-allowed opacity-30 hover:text-text-secondary/55' : '',
             ].join(' ')}
@@ -868,7 +868,7 @@ export default function SidePanel() {
                   type="button"
                   onClick={handleConfirmLogout}
                   disabled={isLoggingOut}
-                  className="h-9 rounded-md border border-primary-signal/35 bg-primary-signal/15 text-sm font-semibold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-9 rounded-md border border-action-accent/35 bg-action-accent/15 text-sm font-semibold text-action-accent transition hover:bg-action-accent/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isLoggingOut ? '처리 중' : '확인'}
                 </button>

@@ -104,7 +104,7 @@ export function ArchiveCategoryPage() {
               <button
                 type="button"
                 onClick={() => void searchQuery.fetchNextPage()}
-                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-bold text-white/75 transition hover:border-[#4ade80]/40 hover:text-white"
+                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-bold text-white/75 transition hover:border-action-accent/40 hover:text-white"
               >
                 더 보기
               </button>
@@ -147,7 +147,7 @@ function FilterPanel({
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           placeholder="이 폴더 안에서 검색"
-          className="w-full rounded-2xl border border-white/5 bg-white/[0.03] py-4 pl-11 pr-4 text-sm outline-none transition focus:border-[#4ade80]/30"
+          className="w-full rounded-2xl border border-white/5 bg-white/[0.03] py-4 pl-11 pr-4 text-sm outline-none transition focus:border-primary-signal/30"
         />
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -179,7 +179,7 @@ function ArchiveCard({ title, subtitle, onClick }: { title: string; subtitle: st
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-48 flex-col justify-between rounded-[28px] border border-white/5 bg-[#131718] p-6 text-left transition hover:-translate-y-1 hover:border-[#4ade80]/30 hover:bg-[#161a1b]"
+      className="flex min-h-48 flex-col justify-between rounded-[28px] border border-white/5 bg-[#131718] p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-[#161a1b]"
     >
       <h2 className="text-xl font-bold leading-snug text-white">{title}</h2>
       <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-white/45">{subtitle}</p>

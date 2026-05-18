@@ -33,8 +33,8 @@ const feedbackTypes: Array<{
     type: 'FEATURE_REQUEST',
     label: '\uC81C\uC548',
     icon: Lightbulb,
-    activeClassName: 'border-primary-signal/45 bg-primary-signal/10 text-primary-signal shadow-[0_0_18px_rgba(117,255,205,0.12)]',
-    iconClassName: 'bg-primary-signal/10 text-primary-signal',
+    activeClassName: 'border-action-accent/45 bg-action-accent/10 text-action-accent shadow-[0_0_18px_rgba(117,255,205,0.12)]',
+    iconClassName: 'bg-action-accent/10 text-action-accent',
   },
   {
     type: 'ETC',
@@ -123,7 +123,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
       >
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-primary-signal">Feedback</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-action-accent">Feedback</p>
             <h2 className="mt-0.5 text-sm font-bold text-text-primary">{text.title}</h2>
           </div>
           <button
@@ -137,13 +137,13 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
         </div>
 
         {isSuccess ? (
-          <div className="mt-3 rounded-lg border border-primary-signal/20 bg-primary-signal/10 p-3 text-center">
-            <CheckCircle2 className="mx-auto text-primary-signal" size={22} />
+          <div className="mt-3 rounded-lg border border-action-accent/20 bg-action-accent/10 p-3 text-center">
+            <CheckCircle2 className="mx-auto text-action-accent" size={22} />
             <p className="mt-2 text-xs font-semibold text-text-primary">{text.success}</p>
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 h-8 rounded-md bg-primary-signal px-3 text-xs font-bold text-black transition hover:bg-primary-signal/90"
+              className="mt-3 h-8 rounded-md bg-action-accent px-3 text-xs font-bold text-black transition hover:bg-action-accent/90"
             >
               {text.close}
             </button>
@@ -218,7 +218,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
               <button
                 type="submit"
                 disabled={!content.trim() || isSubmitting}
-                className="flex h-8 min-w-16 items-center justify-center rounded-md bg-primary-signal px-3 text-[11px] font-bold text-black transition hover:bg-primary-signal/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-8 min-w-16 items-center justify-center rounded-md bg-action-accent px-3 text-[11px] font-bold text-black transition hover:bg-action-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 size={13} className="animate-spin" /> : text.send}
               </button>

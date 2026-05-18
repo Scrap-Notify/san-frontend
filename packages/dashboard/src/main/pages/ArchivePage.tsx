@@ -17,7 +17,7 @@ export function ArchivePage() {
           <p className="text-white/50">??? ???? ??? ? ??????. ?? ??? ?????.</p>
         </header>
         <div className="rounded-[32px] border border-white/5 bg-[#131718] p-8">
-          <div className="mb-3 flex items-center gap-3 text-[#4ade80]">
+          <div className="mb-3 flex items-center gap-3 text-action-accent">
             <Search size={18} />
             <span className="text-sm font-bold">?{keyword}? ?? ???</span>
           </div>
@@ -84,10 +84,10 @@ function CategoryGrid({
           key={category.categoryId}
           type="button"
           onClick={() => onSelect(category.categoryId)}
-          className="group flex min-h-40 flex-col justify-between rounded-[28px] border border-white/5 bg-[#131718] p-6 text-left transition hover:-translate-y-1 hover:border-[#4ade80]/30 hover:bg-[#161a1b]"
+          className="group flex min-h-40 flex-col justify-between rounded-[28px] border border-white/5 bg-[#131718] p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-[#161a1b]"
         >
           <div className="flex items-center justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#4ade80]/10 text-[#4ade80]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-action-accent/10 text-action-accent">
               <FolderOpen size={22} />
             </div>
             <span className="rounded-full border border-white/5 bg-white/[0.03] px-3 py-1 text-xs font-bold text-white/45">
@@ -95,7 +95,7 @@ function CategoryGrid({
             </span>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white transition group-hover:text-[#4ade80]">{category.categoryName}</h2>
+            <h2 className="text-xl font-bold text-white transition group-hover:text-action-accent">{category.categoryName}</h2>
             <p className="mt-2 text-sm text-white/40">?? ??</p>
           </div>
         </button>

@@ -143,7 +143,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
               <button
                 type="button"
                 onClick={onGithubLogin}
-                className="relative flex h-14 w-full shrink-0 items-center rounded-xl border border-white/10 bg-black text-sm font-bold text-white outline-none transition hover:opacity-85 focus-visible:ring-1 focus-visible:ring-primary-signal/35 active:scale-[0.98]"
+                className="relative flex h-14 w-full shrink-0 items-center rounded-xl border border-white/10 bg-black text-sm font-bold text-white outline-none transition hover:opacity-85 focus-visible:ring-1 focus-visible:ring-action-accent/35 active:scale-[0.98]"
               >
                 <span className="absolute left-4 flex h-8 w-8 items-center justify-center">
                   <img src={githubSvg} alt="" aria-hidden="true" className="h-6 w-6 brightness-0 invert" />
@@ -179,7 +179,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
                     type="button"
                     onClick={handleCheckUsername}
                     disabled={usernameCheckStatus === 'checking'}
-                    className="h-12 shrink-0 rounded-xl border border-primary-signal/40 px-4 text-[11px] font-bold text-primary-signal outline-none transition hover:bg-primary-signal/10 focus-visible:ring-1 focus-visible:ring-primary-signal/35 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-12 shrink-0 rounded-xl border border-action-accent/40 px-4 text-[11px] font-bold text-action-accent outline-none transition hover:bg-action-accent/10 focus-visible:ring-1 focus-visible:ring-action-accent/35 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                   </button>
@@ -248,7 +248,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
           <button
             type="submit"
             disabled={isSubmitting}
-            className="h-12 min-h-12 w-full shrink-0 rounded-xl bg-primary-signal text-sm font-bold text-background outline-none transition hover:brightness-110 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-12 min-h-12 w-full shrink-0 rounded-xl bg-action-accent text-sm font-bold text-background outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.25)' }}
           >
             {isSubmitting ? '처리 중...' : isSignup ? '회원가입' : '로그인'}
@@ -259,7 +259,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
             <button
               type="button"
               onClick={() => handleModeChange(isSignup ? 'login' : 'signup')}
-              className="font-bold text-primary-signal outline-none transition hover:text-primary-signal/80 focus-visible:rounded focus-visible:ring-1 focus-visible:ring-primary-signal/35"
+              className="font-bold text-action-accent outline-none transition hover:text-action-accent/80 focus-visible:rounded focus-visible:ring-1 focus-visible:ring-action-accent/35"
             >
               {isSignup ? '로그인' : '회원가입'}
             </button>

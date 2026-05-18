@@ -124,13 +124,13 @@ function PanelTabButton({
             onClick={onClick}
             className={`relative flex h-9 flex-1 items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-8 after:-translate-x-1/2 after:transition-all ${
                 active
-                    ? 'text-primary-signal after:bg-primary-signal after:shadow-[0_0_10px_rgba(115,255,207,0.45)]'
+                    ? 'text-action-accent after:bg-action-accent after:shadow-[0_0_10px_rgba(74,222,128,0.45)]'
                     : 'text-text-secondary/65 after:bg-transparent hover:text-white/90 hover:after:bg-white/20'
             }`}
         >
             {label}
             {badge ? (
-                <span className="rounded-full bg-primary-signal/15 px-1.5 py-0.5 text-[10px] text-primary-signal">
+                <span className="rounded-full bg-action-accent/15 px-1.5 py-0.5 text-[10px] text-action-accent">
                     {badge}
                 </span>
             ) : null}

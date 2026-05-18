@@ -249,7 +249,7 @@ export function TILEditor({
                                     type="button"
                                     onClick={handleSave}
                                     disabled={!canSave}
-                                    className="flex h-8 items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-primary-signal px-3 text-xs font-bold text-background transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:bg-primary-signal/60"
+                                className="flex h-8 items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-action-accent px-3 text-xs font-bold text-background transition-colors hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:bg-action-accent/60"
                                 >
                                     <Save size={13} strokeWidth={2.2} />
                                     {updateMutation.isPending ? 'SAVING...' : 'SAVE'}
@@ -264,7 +264,7 @@ export function TILEditor({
                                 type="button"
                                 onClick={handleGenerate}
                                 disabled={isGenerating}
-                                className="flex items-center gap-1.5 font-bold text-primary-signal transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex items-center gap-1.5 font-bold text-action-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
                                 {isGenerating ? '생성하는 중...' : '다시 생성하기'}

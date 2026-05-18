@@ -67,7 +67,7 @@ const REFINE_POLL_TIMEOUT_MS = 30000;
 
 const mdComponents = {
   h1: ({ children }: { children?: React.ReactNode }) => (
-    <h1 className="mb-5 border-b border-[#4ade80]/20 pb-3 text-2xl font-bold text-white">{children}</h1>
+    <h1 className="mb-5 border-b border-primary-signal/20 pb-3 text-2xl font-bold text-white">{children}</h1>
   ),
   h2: ({ children }: { children?: React.ReactNode }) => (
     <h2 className="mb-3 mt-7 text-xl font-bold text-white">{children}</h2>
@@ -88,7 +88,7 @@ const mdComponents = {
     <ol className="mb-4 list-decimal space-y-1.5 pl-6 text-white/70">{children}</ol>
   ),
   li: ({ children }: { children?: React.ReactNode }) => (
-    <li className="pl-1 leading-7 marker:text-[#4ade80]">{children}</li>
+    <li className="pl-1 leading-7 marker:text-primary-signal">{children}</li>
   ),
   strong: ({ children }: { children?: React.ReactNode }) => (
     <strong className="font-bold text-white/90">{children}</strong>
@@ -97,16 +97,16 @@ const mdComponents = {
     <em className="text-white/50">{children}</em>
   ),
   blockquote: ({ children }: { children?: React.ReactNode }) => (
-    <blockquote className="mb-4 border-l-2 border-[#4ade80]/40 bg-[#4ade80]/5 py-2 pl-4 text-white/60">{children}</blockquote>
+    <blockquote className="mb-4 border-l-2 border-primary-signal/40 bg-primary-signal/5 py-2 pl-4 text-white/60">{children}</blockquote>
   ),
   code: ({ children }: { children?: React.ReactNode }) => (
-    <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-sm text-[#4ade80]">{children}</code>
+    <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-sm text-primary-signal">{children}</code>
   ),
   pre: ({ children }: { children?: React.ReactNode }) => (
     <pre className="mb-4 overflow-x-auto rounded-xl border border-white/5 bg-[#0B0D0F] p-4 text-sm leading-6">{children}</pre>
   ),
   a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
-    <a href={href} target="_blank" rel="noreferrer" className="text-[#4ade80] underline decoration-[#4ade80]/40 underline-offset-4">{children}</a>
+    <a href={href} target="_blank" rel="noreferrer" className="text-primary-signal underline decoration-primary-signal/40 underline-offset-4">{children}</a>
   ),
   hr: () => <hr className="my-6 border-white/10" />,
 };
@@ -183,12 +183,12 @@ export function KnowledgeCardDetailPage() {
             <ArrowLeft size={16} aria-hidden="true" />
             돌아가기
           </button>
-          <p className="text-md font-bold uppercase tracking-wide text-[#4ade80]">지식카드 상세보기</p>
+          <p className="text-md font-bold uppercase tracking-wide text-primary-signal">지식카드 상세보기</p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <h1 className="max-w-4xl text-h1-bold leading-[1.25] text-white md:text-[40px]">
               {data.finalCard.title}
             </h1>
-            <span className="shrink-0 rounded-full border border-[#4ade80]/20 bg-[#4ade80]/10 px-3 py-1 text-sm font-semibold text-[#4ade80]">
+            <span className="shrink-0 rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-sm font-semibold text-primary-signal">
               {data.finalCard.categoryName}
             </span>
           </div>
@@ -367,7 +367,7 @@ function ProcessedTextSection({
                 <button
                   type="button"
                   disabled
-                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-[#4ade80]/60 px-3 py-1.5 text-xs font-bold text-[#0B0D0F] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-action-accent/60 px-3 py-1.5 text-xs font-bold text-[#0B0D0F] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Save size={12} />
                   저장
@@ -385,7 +385,7 @@ function ProcessedTextSection({
       ) : isCheckingRefinedContent ? (
         <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
-            <Loader2 size={24} className="animate-spin text-[#4ade80]" aria-hidden="true" />
+            <Loader2 size={24} className="animate-spin text-primary-signal" aria-hidden="true" />
             <p className="text-base font-semibold text-white/70">1차 정제 데이터를 확인하는 중입니다.</p>
             <p className="text-sm leading-6 text-white/40">
               원본 저장 직후라면 정제 작업이 아직 끝나지 않았을 수 있어요.
@@ -425,7 +425,7 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
           <ul className="mt-4 space-y-3">
             {finalCard.keyPoints.map((point) => (
               <li key={point} className="flex gap-3 text-sm leading-7 text-white/70">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4ade80]" />
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-signal" />
                 <span>{point}</span>
               </li>
             ))}
@@ -442,10 +442,10 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
   return (
     <aside className="flex min-w-0 flex-col gap-5 lg:sticky lg:top-28 lg:self-start">
       <div className={panelCardClass}>
-        <p className="text-xs font-bold uppercase tracking-wide text-[#4ade80]">원본 데이터</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-primary-signal">원본 데이터</p>
         <div className="mt-4 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4ade80]/20 bg-[#4ade80]/5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[#4ade80]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-signal/20 bg-primary-signal/5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-primary-signal">
               <SourceIcon size={12} aria-hidden="true" />
               {data.source.type}
             </span>
@@ -460,7 +460,7 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
               rel="noreferrer"
               className="flex min-w-0 items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5 text-sm text-white/60 transition hover:border-white/10 hover:text-white"
             >
-              <LinkIcon size={14} className="shrink-0 text-[#4ade80]" aria-hidden="true" />
+              <LinkIcon size={14} className="shrink-0 text-primary-signal" aria-hidden="true" />
               <span className="truncate">{data.source.url}</span>
             </a>
           ) : null}
@@ -491,9 +491,9 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
               <Link
                 key={card.cardId}
                 to={`/cards/${card.cardId}`}
-                className="block rounded-xl border border-white/5 bg-white/[0.03] p-4 transition hover:border-[#4ade80]/30 hover:bg-[#4ade80]/5"
+                className="block rounded-xl border border-white/5 bg-white/[0.03] p-4 transition hover:border-primary-signal/30 hover:bg-primary-signal/5"
               >
-                <p className="text-xs font-bold text-[#4ade80]">{card.categoryName}</p>
+                <p className="text-xs font-bold text-primary-signal">{card.categoryName}</p>
                 <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/70">{card.title}</p>
               </Link>
             ))}
@@ -512,7 +512,7 @@ function DetailStatus({ title, description, tone = 'default' }: { title: string;
   return (
     <section className="grid min-h-[calc(100vh-14rem)] w-full place-items-center text-white">
       <div className="flex max-w-xl flex-col items-center gap-4 rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-white/5 bg-[#131718] p-8 text-center">
-        <Icon className={tone === 'error' ? 'text-red-400' : 'animate-spin text-[#4ade80]'} size={28} aria-hidden="true" />
+        <Icon className={tone === 'error' ? 'text-red-400' : 'animate-spin text-primary-signal'} size={28} aria-hidden="true" />
         <h1 className="text-xl font-bold">{title}</h1>
         <p className="text-sm leading-6 text-white/45">{description}</p>
       </div>
@@ -524,7 +524,7 @@ function SectionHeader({ icon, title, description }: { icon: ReactNode; title: s
   return (
     <div className="flex flex-col gap-3">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[18px] rounded-br-[18px] rounded-tr-md rounded-bl-md bg-[#4ade80]/10 text-[#4ade80]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[18px] rounded-br-[18px] rounded-tr-md rounded-bl-md bg-primary-signal/10 text-primary-signal">
           {icon}
         </span>
         <h2 className="text-xl font-bold text-white">{title}</h2>
@@ -563,7 +563,7 @@ function ExpandableSourceText({ text }: { text: string }) {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="mt-2 text-xs font-medium text-[#4ade80] transition-colors hover:text-[#4ade80]/80"
+          className="mt-2 text-xs font-medium text-action-accent transition-colors hover:text-action-accent/80"
         >
           {expanded ? '접기' : '전체 보기'}
         </button>
@@ -638,7 +638,7 @@ function TagList({ values, subtle = false }: { values: string[]; subtle?: boolea
             'rounded-md border px-3 py-1.5 text-sm font-medium',
             subtle
               ? 'border-white/5 bg-white/[0.03] text-white/50'
-              : 'border-[#4ade80]/15 bg-[#4ade80]/5 text-[#b9cbc1]',
+              : 'border-primary-signal/15 bg-primary-signal/5 text-[#b9cbc1]',
           ].join(' ')}
         >
           {value.startsWith('#') ? value : `#${value}`}

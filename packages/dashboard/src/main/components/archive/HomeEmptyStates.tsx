@@ -47,7 +47,7 @@ export function HomeGraphEmptyState({ primaryAction, secondaryAction }: GraphEmp
               <button
                 type="button"
                 onClick={primaryAction.onClick}
-                className="inline-flex min-h-11 items-center justify-center rounded-leaf bg-primary-signal px-6 text-body-sm-bold font-bold text-background transition hover:bg-primary-signal-hover"
+                className="inline-flex min-h-11 items-center justify-center rounded-leaf bg-action-accent px-6 text-body-sm-bold font-bold text-background transition hover:bg-action-accent-hover"
               >
                 {primaryAction.label}
               </button>
@@ -74,7 +74,7 @@ export function HomeKnowledgeCardsEmptyState({ primaryAction }: KnowledgeCardsEm
     <article className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-[#131718] p-6 shadow-md md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]">
       <div>
         <div className="mb-6 flex items-center justify-between">
-          <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-[#4ade80]/20 bg-[#4ade80]/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#4ade80]">
+          <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-action-accent">
             Archive
           </span>
         </div>
@@ -99,7 +99,7 @@ export function HomeKnowledgeCardsEmptyState({ primaryAction }: KnowledgeCardsEm
           <button
             type="button"
             onClick={primaryAction.onClick}
-            className="flex h-11 items-center justify-center gap-2 rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-white/5 px-4 text-sm font-bold text-white/60 transition-colors hover:bg-[#4ade80]/10 hover:text-[#4ade80]"
+            className="flex h-11 items-center justify-center gap-2 rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-white/5 px-4 text-sm font-bold text-white/60 transition-colors hover:bg-action-accent/10 hover:text-action-accent"
           >
             {primaryAction.label}
             <ArrowRight size={14} aria-hidden="true" />

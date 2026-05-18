@@ -56,7 +56,7 @@ export function TILWorkspaceHeader({
           type="button"
           aria-label="Previous date"
           onClick={() => shiftDate(-1)}
-          className="flex h-11 w-10 items-center justify-center text-text-secondary transition hover:bg-surface-container hover:text-primary-signal"
+          className="flex h-11 w-10 items-center justify-center text-text-secondary transition hover:bg-surface-container hover:text-action-accent"
         >
           <ChevronLeft size={18} />
         </button>
@@ -66,7 +66,7 @@ export function TILWorkspaceHeader({
           onClick={openDatePicker}
           className="relative flex h-11 min-w-44 items-center justify-center gap-sm px-md text-text-primary transition hover:bg-surface-container"
         >
-          <Calendar size={20} className="text-primary-signal" />
+          <Calendar size={20} className="text-action-accent" />
           <span>{dateLabel}</span>
           <input
             ref={dateInputRef}
@@ -82,7 +82,7 @@ export function TILWorkspaceHeader({
           type="button"
           aria-label="Next date"
           onClick={() => shiftDate(1)}
-          className="flex h-11 w-10 items-center justify-center text-text-secondary transition hover:bg-surface-container hover:text-primary-signal"
+          className="flex h-11 w-10 items-center justify-center text-text-secondary transition hover:bg-surface-container hover:text-action-accent"
         >
           <ChevronRight size={18} />
         </button>

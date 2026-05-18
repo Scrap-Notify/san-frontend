@@ -10,8 +10,7 @@ export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
       <div className="mb-2 flex h-11 items-center text-body-sm font-bold text-text-secondary/85">
         지식카드 생성
       </div>
-
-      <article className="relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*2/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-4 backdrop-blur-xl shadow-neon-sm">
+      <article className="relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*1/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-teal-dim p-4 backdrop-blur-xl shadow-neon-sm">
         <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-primary-signal/5 blur-2xl" aria-hidden="true" />
 
         <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-leaf border border-primary-signal/20 bg-surface-low shadow-neon-sm">
@@ -28,9 +27,7 @@ export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
               fill="currentColor"
             />
           </svg>
-          <div className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full bg-primary-signal px-1.5 py-0.5 shadow-neon-sm">
-            <span className="text-[7px] font-bold uppercase leading-none text-forest-bg">SPROUT</span>
-          </div>
+
         </div>
 
         <div className="flex flex-1 flex-col justify-start overflow-hidden">

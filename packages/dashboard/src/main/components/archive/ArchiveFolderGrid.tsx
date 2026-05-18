@@ -26,10 +26,10 @@ export function ArchiveFolderGrid() {
               key={category.categoryId}
               type="button"
               onClick={() => navigate(`/archive/${category.categoryId}`)}
-              className="group flex min-h-[180px] flex-col justify-between rounded-[32px] border border-white/5 bg-[#131718] p-8 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#4ade80]/30 hover:bg-[#161a1b]"
+              className="group flex min-h-[180px] flex-col justify-between rounded-[32px] border border-white/5 bg-[#131718] p-8 text-left transition-all duration-300 hover:-translate-y-1 hover:border-action-accent/30 hover:bg-[#161a1b]"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#4ade80]/10 text-[#4ade80]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-action-accent/10 text-action-accent">
                   <FolderOpen size={22} />
                 </div>
                 <span className="rounded-full border border-white/5 bg-white/[0.03] px-3 py-1 text-xs font-bold text-white/45">
@@ -37,7 +37,7 @@ export function ArchiveFolderGrid() {
                 </span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white transition-colors group-hover:text-[#4ade80]">
+                <h3 className="text-xl font-bold text-white transition-colors group-hover:text-action-accent">
                   {category.categoryName}
                 </h3>
                 <p className="mt-2 text-sm text-white/35">폴더 열기</p>

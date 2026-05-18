@@ -28,6 +28,9 @@ module.exports = {
         // 2. '지식의 숲' 컬러 시스템 (colors.tokens.json 반영)
         colors: {
           'forest-bg': '#101417',       // background
+          'action-accent': '#4ade80',   // action / CTA
+          'action-accent-hover': '#3fce75',
+          'action-accent-active': '#33b968',
           'primary-signal': '#00ffc2',  // primary_signal / normal
           'primary-signal-hover': '#00e6af',
           'primary-signal-active': '#00cc9b',

@@ -142,7 +142,7 @@ export function Signup() {
                   type="button"
                   onClick={handleCheckUsername}
                   disabled={usernameCheckStatus === 'checking'}
-                  className="h-12 shrink-0 rounded-xl border border-primary-signal/40 px-4 text-[11px] font-bold text-primary-signal transition hover:bg-primary-signal/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-12 shrink-0 rounded-xl border border-action-accent/40 px-4 text-[11px] font-bold text-action-accent transition hover:bg-action-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                 </button>
@@ -216,7 +216,7 @@ export function Signup() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-12 w-full rounded-xl bg-primary-signal text-sm font-bold text-background outline-none transition hover:brightness-110 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-12 w-full rounded-xl bg-action-accent text-sm font-bold text-background outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.28)' }}
               >
                 {isSubmitting ? '가입 중...' : '회원가입'}

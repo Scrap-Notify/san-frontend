@@ -269,7 +269,7 @@ export function SettingsIntegrationsPage() {
       <div className="rounded-xl border border-white/5 bg-[#121212] p-8 shadow-sm">
         <div className="flex flex-col items-start justify-between gap-lg sm:flex-row sm:items-center">
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#4ade80]">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-action-accent">
               통합 연동 <span className="mx-2 text-white/20">•</span> <span className="text-white/40">외부 동기화</span>
             </p>
             <div className="mt-3 flex items-center gap-3">
@@ -277,13 +277,13 @@ export function SettingsIntegrationsPage() {
               <span
                 className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider ${
                   isGithubLinked
-                    ? 'text-[#4ade80]'
+                    ? 'text-action-accent'
                     : 'text-white/40'
                 }`}
               >
                 <span className="relative flex h-2 w-2" aria-hidden="true">
-                  {isGithubLinked && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#4ade80] opacity-60" />}
-                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isGithubLinked ? 'bg-[#4ade80]' : 'bg-white/25'}`} />
+                  {isGithubLinked && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-action-accent opacity-60" />}
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${isGithubLinked ? 'bg-action-accent' : 'bg-white/25'}`} />
                 </span>
                 {isGithubLinked ? '연동됨' : '미연동'}
               </span>
@@ -312,7 +312,7 @@ export function SettingsIntegrationsPage() {
                 type="button"
                 onClick={handleLinkGithub}
                 disabled={isLinking}
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-[#4ade80] px-6 text-sm font-bold text-black transition-all hover:bg-[#4ade80]/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-action-accent px-6 text-sm font-bold text-black transition-all hover:bg-action-accent/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <img
                   src={githubSvg}
@@ -418,7 +418,7 @@ export function SettingsIntegrationsPage() {
                         <button
                           onClick={() => handleConnectRepository(repo)}
                           disabled={connectingRepoId === repo.githubRepositoryId}
-                          className="flex h-8 shrink-0 items-center justify-center rounded-md bg-[#254230] px-4 text-xs font-bold text-[#4ade80] transition hover:bg-[#2d523b] disabled:opacity-50"
+                          className="flex h-8 shrink-0 items-center justify-center rounded-md bg-[#254230] px-4 text-xs font-bold text-action-accent transition hover:bg-[#2d523b] disabled:opacity-50"
                         >
                           {connectingRepoId === repo.githubRepositoryId ? <Loader2 size={14} className="animate-spin" /> : '연결하기'}
                         </button>
@@ -468,7 +468,7 @@ export function SettingsIntegrationsPage() {
                 <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/30">
                   <TerminalSquare size={28} />
                   <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#121212]">
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-[#4ade80] text-black">
+                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-action-accent text-black">
                       <span className="text-[10px] font-bold leading-none">+</span>
                     </div>
                   </div>
@@ -488,21 +488,21 @@ export function SettingsIntegrationsPage() {
               <div className="flex min-h-0 flex-1 flex-col">
                 <ul className="flex min-h-0 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                   {connectedRepositories.map((repo) => (
-                    <li key={repo.githubRepositoryId} className="rounded-lg border border-white/10 bg-[#1c1c1c] p-4 ring-1 ring-[#4ade80]/15">
+                    <li key={repo.githubRepositoryId} className="rounded-lg border border-white/10 bg-[#1c1c1c] p-4 ring-1 ring-action-accent/15">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-4">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5">
                             <img src={githubSvg} alt="" aria-hidden="true" className="h-5 w-5 brightness-0 invert opacity-80" />
                           </div>
                           <div className="min-w-0">
-                            <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white transition hover:text-[#4ade80]">
+                            <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-white transition hover:text-action-accent">
                               {repo.fullName}
                             </a>
                             <div className="mt-1 flex items-center gap-2 text-xs text-white/40">
                               <span>{repo.privateRepository ? '비공개(Private)' : '공개(Public)'}</span>
                               <span className="h-1 w-1 rounded-full bg-white/20" aria-hidden="true" />
-                              <span className="inline-flex items-center gap-1 text-[#4ade80]">
-                                <span className="h-1.5 w-1.5 rounded-full bg-[#4ade80]" aria-hidden="true" />
+                              <span className="inline-flex items-center gap-1 text-action-accent">
+                                <span className="h-1.5 w-1.5 rounded-full bg-action-accent" aria-hidden="true" />
                                 Active
                               </span>
                             </div>
@@ -526,7 +526,7 @@ export function SettingsIntegrationsPage() {
                           href={repo.htmlUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1 text-xs font-bold text-[#4ade80] transition hover:bg-white/10"
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1 text-xs font-bold text-action-accent transition hover:bg-white/10"
                         >
                           GitHub에서 보기
                           <ExternalLink size={13} />

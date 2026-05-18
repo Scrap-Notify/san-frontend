@@ -39,6 +39,9 @@
 @theme {
   /* ── 브랜딩 및 시스템 컬러 (colors.tokens.json 기반) ── */
   --color-background: #101417;        /* Deep navy */
+  --color-action-accent: #4ade80;      /* Action / CTA */
+  --color-action-accent-hover: #3fce75;
+  --color-action-accent-active: #33b968;
   --color-surface-low: #181c1f;       /* Surface Low */
   --color-surface-container: #1c2023; /* Surface Container */
   --color-surface-highest: #313539;   /* Surface Highest */

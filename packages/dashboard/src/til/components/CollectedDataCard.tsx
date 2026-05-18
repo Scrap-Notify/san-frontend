@@ -129,10 +129,10 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         )}
 
                         {item.href ? (
-                            <div className="rounded-lg bg-white/5 p-1.5 transition group-hover:bg-primary-signal/10">
+                            <div className="rounded-lg bg-white/5 p-1.5 transition group-hover:bg-action-accent/10">
                                 <ExternalLink
                                     size={15}
-                                    className="text-text-secondary/80 group-hover:text-primary-signal"
+                                    className="text-text-secondary/80 group-hover:text-action-accent"
                                 />
                             </div>
                         ) : null}
@@ -155,7 +155,7 @@ function SourceIcon({ type }: { type: 'link' | 'text' }) {
     const Icon = type === 'link' ? Link2 : ScanText;
 
     return (
-        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-primary-signal">
+        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-action-accent">
             <Icon size={18} strokeWidth={1.9} />
         </span>
     );

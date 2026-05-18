@@ -118,7 +118,7 @@ export function ArchiveSection() {
                     }}
                     className={`h-2.5 rounded-full transition-all duration-300 ${
                       index === activeIndex
-                        ? 'w-5 bg-[#4ade80] shadow-[0_0_10px_rgba(74,222,128,0.5)]'
+                        ? 'w-5 bg-action-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]'
                         : 'w-2.5 bg-white/20 hover:bg-white/40'
                     }`}
                     aria-label={`${index + 1}번째 페이지로 이동`}
@@ -193,7 +193,7 @@ export function ArchiveSection() {
                 >
                   <div>
                     <div className="mb-6 flex items-center justify-between">
-                      <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-[#4ade80]/20 bg-[#4ade80]/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#4ade80]">
+                      <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-action-accent">
                         {categoryName}
                       </span>
 
@@ -212,7 +212,7 @@ export function ArchiveSection() {
                   </div>
 
                   <div className="flex justify-end">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-white/5 text-white/60 transition-colors group-hover:bg-[#4ade80]/10 group-hover:text-[#4ade80]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-white/5 text-white/60 transition-colors group-hover:bg-action-accent/10 group-hover:text-action-accent">
                       <ArrowRight size={18} />
                     </div>
                   </div>

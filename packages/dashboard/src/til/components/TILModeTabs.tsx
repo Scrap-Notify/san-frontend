@@ -25,7 +25,7 @@ export function TILModeTabs({ activeTab, onChange }: TILModeTabsProps) {
             className={[
               'flex h-8 min-w-[78px] items-center justify-center rounded px-3 text-sm font-semibold transition-colors',
               active
-                ? 'bg-white/[0.12] text-white'
+                ? 'bg-action-accent text-black'
                 : 'text-text-secondary hover:bg-white/[0.06] hover:text-white',
             ].join(' ')}
           >

@@ -30,8 +30,8 @@ const FEEDBACK_TYPES = [
     label: '기능 제안',
     description: '있으면 더 좋아질 아이디어',
     icon: Lightbulb,
-    activeClassName: 'border-[#4ade80]/45 bg-[#4ade80]/10 text-[#4ade80] shadow-[0_0_22px_rgba(74,222,128,0.12)]',
-    iconClassName: 'bg-[#4ade80]/10 text-[#4ade80] shadow-[0_0_14px_rgba(74,222,128,0.12)]',
+    activeClassName: 'border-action-accent/45 bg-action-accent/10 text-action-accent shadow-[0_0_22px_rgba(74,222,128,0.12)]',
+    iconClassName: 'bg-action-accent/10 text-action-accent shadow-[0_0_14px_rgba(74,222,128,0.12)]',
   },
   {
     value: 'ETC',
@@ -119,7 +119,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
       >
         <div className="flex items-start justify-between gap-4 border-b border-white/5 px-5 py-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-[#4ade80]">Feedback</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-action-accent">Feedback</p>
             <h2 className="mt-1.5 text-lg font-bold text-white">의견 보내기</h2>
             <p className="mt-1 text-sm text-white/45">현재 페이지 정보가 함께 전송됩니다.</p>
           </div>
@@ -136,7 +136,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
 
         {isSubmitted ? (
           <div className="grid gap-5 px-6 py-8 text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#4ade80]/10 text-[#4ade80]">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-action-accent/10 text-action-accent">
               <CheckCircle2 size={24} />
             </span>
             <div>
@@ -146,7 +146,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
             <button
               type="button"
               onClick={onClose}
-              className="mx-auto h-10 rounded-md bg-[#4ade80] px-5 text-sm font-bold text-black transition hover:bg-[#4ade80]/90"
+              className="mx-auto h-10 rounded-md bg-action-accent px-5 text-sm font-bold text-black transition hover:bg-action-accent/90"
             >
               확인
             </button>
@@ -196,7 +196,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                 }}
                 maxLength={5000}
                 placeholder="편하게 의견을 남겨주세요. 사소한 불편이나 떠오른 아이디어도 좋아요."
-                className="min-h-28 resize-none rounded-lg border border-white/10 bg-[#1c1c1c] px-4 py-3 text-sm leading-relaxed text-white outline-none transition placeholder:text-white/25 focus:border-[#4ade80]/45"
+                className="min-h-28 resize-none rounded-lg border border-white/10 bg-[#1c1c1c] px-4 py-3 text-sm leading-relaxed text-white outline-none transition placeholder:text-white/25 focus:border-primary-signal/45"
               />
             </label>
 
@@ -207,7 +207,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                 onChange={(event) => setContact(event.target.value)}
                 maxLength={255}
                 placeholder="보내주신 의견에 감사의 마음을 담아 작은 선물을 전할 수 있어요."
-                className="h-11 rounded-lg border border-white/10 bg-[#1c1c1c] px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#4ade80]/45"
+                className="h-11 rounded-lg border border-white/10 bg-[#1c1c1c] px-4 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-primary-signal/45"
               />
             </label>
 
@@ -235,7 +235,7 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex h-10 items-center gap-2 rounded-md bg-[#4ade80] px-4 text-sm font-bold text-black transition hover:bg-[#4ade80]/90 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-10 items-center gap-2 rounded-md bg-action-accent px-4 text-sm font-bold text-black transition hover:bg-action-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting && <Loader2 size={16} className="animate-spin" />}
                 보내기

@@ -104,10 +104,10 @@ export const DropZone = ({
         className={[
           'relative flex h-[190px] w-full flex-col overflow-hidden rounded-leaf border-2 transition-all duration-300',
           isOver
-            ? 'border-dashed border-primary-signal bg-primary-signal/10 shadow-neon glow-neon'
+            ? 'border-dashed border-action-accent bg-action-accent/10 shadow-neon glow-neon'
             : pendingScrap
-              ? 'border-solid border-primary-signal/40 bg-surface-container/90 shadow-neon'
-              : 'border-dashed border-primary-signal/30 hover:border-primary-signal/50 hover:bg-surface-container/80',
+              ? 'border-solid border-action-accent/40 bg-surface-container/90 shadow-neon'
+              : 'border-dashed border-action-accent/30 hover:border-action-accent/50 hover:bg-surface-container/80',
           !pendingScrap && !isEditing ? 'cursor-text items-center justify-center' : 'cursor-default',
         ].join(' ')}
         onClick={() => !pendingScrap && setIsEditing(true)}
@@ -133,7 +133,7 @@ export const DropZone = ({
               <button
                 type="button"
                 onClick={handleManualSubmit}
-                className="rounded-full border border-primary-signal/35 bg-primary-signal/10 px-4 py-1.5 text-body-sm-bold text-primary-signal transition hover:border-primary-signal/70 hover:bg-primary-signal/15 active:translate-y-px"
+                className="rounded-full border border-action-accent/35 bg-action-accent/10 px-4 py-1.5 text-body-sm-bold text-action-accent transition hover:border-action-accent/70 hover:bg-action-accent/15 active:translate-y-px"
               >
                 완료
               </button>
@@ -143,7 +143,7 @@ export const DropZone = ({
           <div className="flex h-full flex-col p-5">
             <div className="mb-3 flex items-center justify-between gap-3 shrink-0">
               <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-primary-signal" aria-hidden="true" />
+                <Sparkles size={18} className="text-action-accent" aria-hidden="true" />
                 <span className="text-caption-bold uppercase tracking-wider text-text-secondary">
                   Captured
                 </span>
@@ -152,7 +152,7 @@ export const DropZone = ({
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onClear(); }}
-                className="inline-flex items-center gap-1.5 text-caption-bold uppercase tracking-wider text-primary-signal transition hover:text-text-primary active:translate-y-px"
+                className="inline-flex items-center gap-1.5 text-caption-bold uppercase tracking-wider text-action-accent transition hover:text-text-primary active:translate-y-px"
               >
                 <RotateCcw size={12} aria-hidden="true" />
                 Clear
@@ -199,7 +199,7 @@ export const DropZone = ({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-3 p-5 text-center">
-            <CloudUpload size={34} className="text-primary-signal" aria-hidden="true" />
+            <CloudUpload size={34} className="text-action-accent" aria-hidden="true" />
             <p className="text-body-main font-medium text-text-primary">
               {isOver ? '여기에 놓아 지식 심기' : '여기로 드래그하여 지식 심기'}
             </p>
