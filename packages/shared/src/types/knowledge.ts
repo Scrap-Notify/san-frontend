@@ -84,6 +84,7 @@ export interface KnowledgeCardView {
 export interface SearchParams {
   keyword: string;
   tag?: string;
+  category?: string;
   fromDate?: string;
   toDate?: string;
   page?: number;

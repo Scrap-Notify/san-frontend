@@ -22,7 +22,7 @@ export function MainLayout() {
 
 function getActiveMenu(pathname: string) {
   if (pathname.startsWith('/til')) return 'TIL';
-  if (pathname.startsWith('/result')) return 'Search';
+  if (pathname.startsWith('/archive') || pathname.startsWith('/result')) return 'Search';
   if (pathname.startsWith('/settings')) return 'GitHub';
   if (pathname.startsWith('/profile')) return 'Profile';
   return 'Dashboard';

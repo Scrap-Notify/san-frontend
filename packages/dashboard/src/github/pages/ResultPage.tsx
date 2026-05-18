@@ -5,6 +5,7 @@ import { ChevronDown, Filter, Search, ExternalLink, Quote as QuoteIcon, MessageS
 import type { SearchCardResult, SearchParams } from '@san/shared';
 import { searchApi } from '../../api/client';
 import { ContentEmptyState } from '../../components/shared/empty/ContentEmptyState';
+import { ArchiveFolderGrid } from '../../main/components/archive/ArchiveFolderGrid';
 
 interface SearchFilters {
   tag: string;
@@ -210,12 +211,18 @@ function SearchPage({
     <section className="flex w-full min-w-0 flex-col gap-12 py-12 text-white">
       <header className="flex flex-col gap-3">
         <div className="flex items-center gap-4">
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">검색 결과</h1>
-          <div className="rounded-full bg-[#4ade80]/10 px-4 py-1 text-xs font-bold text-[#4ade80] border border-[#4ade80]/20">
-            {totalCount} CARDS
-          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">Archive</h1>
+          {hasKeyword ? (
+            <div className="rounded-full bg-[#4ade80]/10 px-4 py-1 text-xs font-bold text-[#4ade80] border border-[#4ade80]/20">
+              {totalCount} CARDS
+            </div>
+          ) : null}
         </div>
-        <p className="text-lg text-white/50">저장된 지식 카드에서 검색된 내용입니다.</p>
+        <p className="text-lg text-white/50">
+          {hasKeyword
+            ? '조건에 맞는 지식카드를 검색합니다.'
+            : '카테고리별 폴더에서 지식카드를 찾아보세요.'}
+        </p>
       </header>
 
       <div className="group flex flex-col gap-8 rounded-[32px] md:rounded-[40px] bg-[#131718] p-6 md:p-10 shadow-3xl border border-white/5 transition-all hover:border-white/10">
@@ -271,12 +278,7 @@ function SearchPage({
       </div>
 
       {!hasKeyword ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-20">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-[#4ade80]">
-            <Search size={24} />
-          </div>
-          <p className="text-sm font-medium text-white/40">검색어를 입력하면 아카이브에서 관련 지식 카드를 찾아드릴게요.</p>
-        </div>
+        <ArchiveFolderGrid />
       ) : isPending ? (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="h-10 w-10 border-2 border-[#4ade80]/20 border-t-[#4ade80] rounded-full animate-spin" />

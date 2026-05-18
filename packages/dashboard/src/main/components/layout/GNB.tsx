@@ -52,7 +52,7 @@ export function TopNavBar({
     if (keyword) {
       params.set('query', keyword);
     }
-    navigate(params.toString() ? `/result?${params.toString()}` : '/result');
+    navigate(params.toString() ? `/archive?${params.toString()}` : '/archive');
     setIsMenuOpen(false);
   };
 
@@ -121,7 +121,7 @@ export function TopNavBar({
             TIL
           </button>
           <button
-            onClick={() => navigate('/result')}
+            onClick={() => navigate('/archive')}
             className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}
           >
             Archive
@@ -150,7 +150,7 @@ export function TopNavBar({
         <div className="absolute left-0 top-full flex w-full flex-col gap-4 border-b border-primary-signal/10 bg-[#0B0D0F]/90 p-4 shadow-[0_18px_42px_rgba(0,0,0,0.34)] backdrop-blur-2xl lg:hidden">
           <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-primary-signal' : 'text-text-secondary'}`}>Home</button>
           <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'TIL' ? 'text-primary-signal' : 'text-text-secondary'}`}>TIL</button>
-          <button onClick={() => { navigate('/result'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}>Archive</button>
+          <button onClick={() => { navigate('/archive'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}>Archive</button>
           <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-4">
             {navActions}
           </div>

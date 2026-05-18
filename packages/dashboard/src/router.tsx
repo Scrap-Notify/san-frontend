@@ -1,8 +1,9 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { LoginPage } from './auth/pages/LoginPage';
 import { HomePage } from './main/pages/HomePage';
 import { Signup } from './auth/pages/SignUpPage';
+import { ArchiveCategoryPage } from './main/pages/ArchiveCategoryPage';
 import { ResultPage } from './github/pages/ResultPage';
 import { GithubAuthResultPage } from './auth/pages/GithubAuthResultPage';
 import { SettingsIntegrationsPage } from './main/pages/SettingsIntegrationsPage';
@@ -41,12 +42,24 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: '/result',
+        path: '/archive',
         element: (
           <AuthGate>
             <ResultPage />
           </AuthGate>
         ),
+      },
+      {
+        path: '/archive/:categoryId',
+        element: (
+          <AuthGate>
+            <ArchiveCategoryPage />
+          </AuthGate>
+        ),
+      },
+      {
+        path: '/result',
+        element: <LegacyResultRedirect />,
       },
       {
         path: '/til',
@@ -99,3 +112,8 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
+
+function LegacyResultRedirect() {
+  const location = useLocation();
+  return <Navigate to={`/archive${location.search}`} replace />;
+}
