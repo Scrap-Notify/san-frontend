@@ -173,10 +173,15 @@ async function sendExtensionMessage(message: unknown, expectStoredTokens: boolea
   }
 
   await new Promise<void>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error('Timed out waiting for extension runtime bridge'));
+    }, BRIDGE_TIMEOUT_MS);
+
     window.chrome?.runtime?.sendMessage?.(
       extensionId,
       message,
       (response?: unknown) => {
+        window.clearTimeout(timeoutId);
         const lastError = window.chrome?.runtime?.lastError;
 
         if (lastError?.message) {
