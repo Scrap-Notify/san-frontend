@@ -1,9 +1,14 @@
-import { type FormEvent, useCallback, useState } from 'react';
+import { type Dispatch, type FormEvent, type SetStateAction, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Bell, Check, ChevronDown, ExternalLink, Keyboard, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../../api/client';
+import {
+  getExtensionTilRecallSettings,
+  setExtensionTilRecallSettings,
+  type TilRecallSettings,
+} from '../../api/extensionAuth';
 
 const sessionLabel: Record<AuthSession['clientType'], string> = {
   DASHBOARD: '대시보드',
@@ -26,6 +31,27 @@ function maskSessionId(sessionId: string) {
   return `${sessionId.slice(0, 8)}...${sessionId.slice(-5)}`;
 }
 
+const DEFAULT_TIL_RECALL_SETTINGS: TilRecallSettings = {
+  enabled: true,
+  time: '07:00',
+};
+
+const RECALL_TIME_OPTIONS = Array.from({ length: 24 }, (_, hour) => {
+  const value = `${String(hour).padStart(2, '0')}:00`;
+  return {
+    value,
+    label: formatRecallTimeLabel(value),
+  };
+});
+
+function formatRecallTimeLabel(time: string) {
+  const [hourText, minuteText] = time.split(':');
+  const hour = Number(hourText);
+  const period = hour >= 12 ? '오후' : '오전';
+  const displayHour = hour % 12 || 12;
+  return `${period} ${displayHour}:${minuteText}`;
+}
+
 export function ProfilePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -36,6 +62,11 @@ export function ProfilePage() {
   const [withdrawPassword, setWithdrawPassword] = useState('');
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [recallSettings, setRecallSettings] = useState<TilRecallSettings>(DEFAULT_TIL_RECALL_SETTINGS);
+  const [isRecallSettingsLoading, setIsRecallSettingsLoading] = useState(true);
+  const [isRecallSettingsSaving, setIsRecallSettingsSaving] = useState(false);
+  const [recallSettingsError, setRecallSettingsError] = useState<string | null>(null);
+  const [isRecallTimeMenuOpen, setIsRecallTimeMenuOpen] = useState(false);
 
   const sessionsQuery = useQuery({
     queryKey: ['auth', 'sessions'],
@@ -104,6 +135,61 @@ export function ProfilePage() {
     queryClient.clear();
     navigate('/login', { replace: true });
   }, [navigate, queryClient]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    getExtensionTilRecallSettings()
+      .then((settings) => {
+        if (ignore) return;
+        setRecallSettings(settings);
+        setRecallSettingsError(null);
+      })
+      .catch(() => {
+        if (ignore) return;
+        setRecallSettingsError('익스텐션을 연결하면 알림 설정을 불러올 수 있어요.');
+      })
+      .finally(() => {
+        if (ignore) return;
+        setIsRecallSettingsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const saveRecallSettings = useCallback(async (nextSettings: TilRecallSettings) => {
+    const previousSettings = recallSettings;
+    setRecallSettings(nextSettings);
+    setRecallSettingsError(null);
+    setIsRecallSettingsSaving(true);
+
+    try {
+      const savedSettings = await setExtensionTilRecallSettings(nextSettings);
+      setRecallSettings(savedSettings);
+    } catch (error) {
+      console.warn('[SAN:recall-settings] failed to save recall settings', error);
+      setRecallSettings(previousSettings);
+      setRecallSettingsError('알림 설정을 저장하지 못했어요. 익스텐션 연결을 확인해 주세요.');
+    } finally {
+      setIsRecallSettingsSaving(false);
+    }
+  }, [recallSettings]);
+
+  const openShortcutSettings = useCallback(() => {
+    window.open('chrome://extensions/shortcuts', '_blank', 'noopener,noreferrer');
+  }, []);
+
+  const recallTimeDisabled = !recallSettings.enabled || isRecallSettingsLoading || isRecallSettingsSaving;
+  const selectedRecallTimeLabel = RECALL_TIME_OPTIONS.find((option) => option.value === recallSettings.time)?.label
+    ?? formatRecallTimeLabel(recallSettings.time);
+
+  useEffect(() => {
+    if (recallTimeDisabled) {
+      setIsRecallTimeMenuOpen(false);
+    }
+  }, [recallTimeDisabled]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -208,6 +294,19 @@ export function ProfilePage() {
             </p>
           )}
         </section>
+
+        <ProfileSettingsCards
+          recallSettings={recallSettings}
+          recallTimeDisabled={recallTimeDisabled}
+          selectedRecallTimeLabel={selectedRecallTimeLabel}
+          isRecallSettingsLoading={isRecallSettingsLoading}
+          isRecallSettingsSaving={isRecallSettingsSaving}
+          recallSettingsError={recallSettingsError}
+          isRecallTimeMenuOpen={isRecallTimeMenuOpen}
+          setIsRecallTimeMenuOpen={setIsRecallTimeMenuOpen}
+          saveRecallSettings={saveRecallSettings}
+          openShortcutSettings={openShortcutSettings}
+        />
 
         <section className="border-t border-white/[0.06] pt-6">
           <div className="mb-4 flex items-center justify-between gap-4">
@@ -361,5 +460,170 @@ export function ProfilePage() {
         </div>
       )}
     </section>
+  );
+}
+
+function ProfileSettingsCards({
+  recallSettings,
+  recallTimeDisabled,
+  selectedRecallTimeLabel,
+  isRecallSettingsLoading,
+  isRecallSettingsSaving,
+  recallSettingsError,
+  isRecallTimeMenuOpen,
+  setIsRecallTimeMenuOpen,
+  saveRecallSettings,
+  openShortcutSettings,
+}: {
+  recallSettings: TilRecallSettings;
+  recallTimeDisabled: boolean;
+  selectedRecallTimeLabel: string;
+  isRecallSettingsLoading: boolean;
+  isRecallSettingsSaving: boolean;
+  recallSettingsError: string | null;
+  isRecallTimeMenuOpen: boolean;
+  setIsRecallTimeMenuOpen: Dispatch<SetStateAction<boolean>>;
+  saveRecallSettings: (settings: TilRecallSettings) => Promise<void>;
+  openShortcutSettings: () => void;
+}) {
+  return (
+    <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)]">
+      <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+          <Keyboard size={16} className="text-primary-signal" />
+          단축키 설정
+        </h3>
+
+        <div className="mt-6 space-y-4">
+          <ShortcutRow label="사이드패널 열기" shortcut="Alt + S" />
+          <ShortcutRow label="화면 캡처" shortcut="Ctrl + Shift + Y" />
+        </div>
+
+        <div className="mt-5 border-t border-white/[0.06] pt-4">
+          <button
+            type="button"
+            onClick={openShortcutSettings}
+            className="flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-white/45 transition hover:text-primary-signal"
+          >
+            Chrome에서 단축키 변경하기
+            <ExternalLink size={12} />
+          </button>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+            <Bell size={16} className="text-primary-signal" />
+            알림 설정
+          </h3>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={recallSettings.enabled}
+            disabled={isRecallSettingsLoading || isRecallSettingsSaving}
+            onClick={() => void saveRecallSettings({ ...recallSettings, enabled: !recallSettings.enabled })}
+            className={`relative h-6 w-11 rounded-full transition ${
+              recallSettings.enabled ? 'bg-primary-signal' : 'bg-white/15'
+            } disabled:cursor-not-allowed disabled:opacity-60`}
+          >
+            <span
+              className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${
+                recallSettings.enabled ? 'left-6' : 'left-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="mt-6 space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold text-white">Recall 리마인더</p>
+              <p className="mt-1 text-xs text-white/42">저장한 노트 복습 알림을 받습니다.</p>
+            </div>
+            {isRecallSettingsSaving && (
+              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-primary-signal">
+                <Loader2 size={12} className="animate-spin" />
+                저장 중
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold text-white">리마인더 발송 시간</p>
+              <p className="mt-1 text-xs text-white/42">리콜이 오면 리포트 수신 시각</p>
+            </div>
+            <div
+              className="relative"
+              onBlur={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) {
+                  setIsRecallTimeMenuOpen(false);
+                }
+              }}
+            >
+              <button
+                type="button"
+                disabled={recallTimeDisabled}
+                onClick={() => setIsRecallTimeMenuOpen((current) => !current)}
+                className="flex h-9 w-[118px] items-center justify-between gap-1.5 rounded-full border border-primary-signal/45 bg-black/35 px-3 text-xs font-black text-primary-signal shadow-[0_0_0_1px_rgba(111,255,190,0.04)] outline-none transition hover:border-primary-signal/70 hover:bg-primary-signal/8 focus:border-primary-signal disabled:cursor-not-allowed disabled:border-white/[0.06] disabled:text-white/35 disabled:opacity-60"
+              >
+                <span>{selectedRecallTimeLabel}</span>
+                <ChevronDown
+                  size={14}
+                  className={`shrink-0 transition ${isRecallTimeMenuOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {isRecallTimeMenuOpen && (
+                <div className="absolute right-0 top-11 z-20 w-[142px] overflow-hidden rounded-lg border border-primary-signal/20 bg-[#101615] shadow-[0_18px_40px_rgba(0,0,0,0.42)]">
+                  <div className="max-h-[216px] overflow-y-auto p-1.5">
+                    {RECALL_TIME_OPTIONS.map((option) => {
+                      const selected = option.value === recallSettings.time;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setIsRecallTimeMenuOpen(false);
+                            void saveRecallSettings({ ...recallSettings, time: option.value });
+                          }}
+                          className={`flex h-9 w-full items-center justify-between rounded-md px-3 text-left text-xs font-bold transition ${
+                            selected
+                              ? 'bg-primary-signal/14 text-primary-signal'
+                              : 'text-white/72 hover:bg-white/[0.06] hover:text-white'
+                          }`}
+                        >
+                          <span>{option.label}</span>
+                          {selected && <Check size={13} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {recallSettingsError && (
+          <p className="mt-5 rounded-md border border-primary-signal/15 bg-primary-signal/8 px-3 py-2 text-xs text-primary-signal/80">
+            {recallSettingsError}
+          </p>
+        )}
+      </section>
+    </section>
+  );
+}
+
+function ShortcutRow({ label, shortcut }: { label: string; shortcut: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="min-w-0 text-xs font-semibold text-white/62">{label}</span>
+      <kbd className="shrink-0 rounded-full border border-white/[0.06] bg-white/[0.06] px-2.5 py-1 text-[11px] font-black text-primary-signal">
+        {shortcut}
+      </kbd>
+    </div>
   );
 }
