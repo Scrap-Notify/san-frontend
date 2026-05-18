@@ -16,14 +16,14 @@ export function DashboardBridgeLoginPage() {
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const exchangeStartedRef = useRef(false);
+  const ticket = searchParams.get('ticket');
+  const redirectTo = getSafeRedirect(searchParams.get('redirect'));
+  const displayErrorMessage = errorMessage ?? (ticket ? null : 'Missing dashboard login ticket.');
 
   useEffect(() => {
     let ignore = false;
-    const ticket = searchParams.get('ticket');
-    const redirectTo = getSafeRedirect(searchParams.get('redirect'));
 
     if (!ticket) {
-      setErrorMessage('Missing dashboard login ticket.');
       return;
     }
 
@@ -47,16 +47,16 @@ export function DashboardBridgeLoginPage() {
     return () => {
       ignore = true;
     };
-  }, [navigate, searchParams]);
+  }, [navigate, redirectTo, ticket]);
 
-  if (errorMessage) {
+  if (displayErrorMessage) {
     return (
       <div className="grid min-h-screen place-items-center bg-background px-6 py-10">
         <ErrorFallback
           type="auth"
           variant="full"
           message="Dashboard login failed"
-          description={errorMessage}
+          description={displayErrorMessage}
           actionLabel="Go to login"
           onRetry={() => navigate('/login', { replace: true })}
         />

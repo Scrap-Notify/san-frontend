@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { LoginPage } from './auth/pages/LoginPage';
 import { HomePage } from './main/pages/HomePage';
@@ -13,6 +13,7 @@ import { ProfilePage } from './main/pages/ProfilePage';
 import { NotFoundPage } from './main/pages/NotFoundPage';
 import { AuthGate } from './auth/components/AuthGate';
 import { KnowledgeCardDetailPage } from './cards/pages/KnowledgeCardDetailPage';
+import { LegacyResultRedirect } from './LegacyResultRedirect';
 
 export const router = createBrowserRouter([
   {
@@ -117,8 +118,3 @@ export const router = createBrowserRouter([
     ],
   },
 ]);
-
-function LegacyResultRedirect() {
-  const location = useLocation();
-  return <Navigate to={`/archive${location.search}`} replace />;
-}
