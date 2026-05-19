@@ -22,6 +22,7 @@ const TIL_RECALL_LAST_NOTIFIED_KEY = 'san:til-recall-last-notified-date';
 const TIL_RECALL_NOTIFICATION_TARGETS_KEY = 'san:til-recall-notification-targets';
 const TIL_RECALL_ALARM_NAME = 'san:til-recall';
 const DEFAULT_TIL_RECALL_TIME = '07:00';
+const NOTIFICATION_ICON_URL = chrome.runtime.getURL('SAN_LOGO.png');
 const TIL_RECALL_OFFSETS = [7, 3, 1] as const;
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
@@ -615,7 +616,7 @@ async function createTilRecallNotification(targetDate: string, til: TilResponse)
     notificationId,
     {
       type: 'basic',
-      iconUrl: 'san-alert.png',
+      iconUrl: NOTIFICATION_ICON_URL,
       title: '복습할 내용을 알려드려요',
       message: til.title
         ? `${targetDate} TIL: ${til.title}`
