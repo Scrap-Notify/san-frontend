@@ -30,9 +30,15 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.09);
 }
 
+.extension-navbar-theme-toggle {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+}
+
 .extension-navbar-theme-toggle svg {
-  width: 16px;
-  height: 16px;
+  width: 18px !important;
+  height: 18px !important;
 }
 
 .extension-primary-drop-glow {

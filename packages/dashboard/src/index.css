@@ -206,6 +206,14 @@ body {
   filter: none;
 }
 
+.dashboard-login-github-icon {
+  filter: brightness(0) invert(1);
+}
+
+:root[data-theme='light'] .dashboard-login-github-icon {
+  filter: brightness(0);
+}
+
 .auth-shell {
   width: 100%;
   padding-inline: clamp(24px, 5vw, 96px);

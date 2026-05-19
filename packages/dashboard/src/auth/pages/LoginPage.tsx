@@ -106,13 +106,13 @@ export function LoginPage() {
           <button
             type="button"
             onClick={handleGithubLogin}
-            className="relative flex h-14 w-full shrink-0 items-center rounded-xl text-sm font-bold text-text-primary transition hover:opacity-85 active:scale-[0.98]"
+            className="flex h-14 w-full shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-bold text-text-primary transition hover:opacity-85 active:scale-[0.98]"
             style={{ background: 'var(--color-surface-lowest)', border: '1px solid color-mix(in oklab, var(--color-text-secondary) 16%, transparent)' }}
           >
-            <span className="absolute left-4 flex h-8 w-8 items-center justify-center">
-              <img src={githubSvg} alt="GitHub" className="h-6 w-6 brightness-0 invert" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+              <img src={githubSvg} alt="GitHub" className="dashboard-login-github-icon h-6 w-6" />
             </span>
-            <span className="flex-1 text-center">GitHub 계정으로 로그인</span>
+            <span className="text-center">GitHub 계정으로 로그인</span>
           </button>
 
           <div className="my-5 flex shrink-0 items-center gap-4">
