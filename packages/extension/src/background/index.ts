@@ -22,8 +22,6 @@ const TIL_RECALL_LAST_NOTIFIED_KEY = 'san:til-recall-last-notified-date';
 const TIL_RECALL_NOTIFICATION_TARGETS_KEY = 'san:til-recall-notification-targets';
 const TIL_RECALL_ALARM_NAME = 'san:til-recall';
 const DEFAULT_TIL_RECALL_TIME = '07:00';
-const TIL_RECALL_TEST_INTERVAL_MINUTES = 1;
-const IS_TIL_RECALL_TEST_MODE = true;
 const NOTIFICATION_ICON_URL = chrome.runtime.getURL('SAN_LOGO.png');
 const TIL_RECALL_OFFSETS = [7, 3, 1] as const;
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
@@ -515,15 +513,6 @@ async function scheduleNextTilRecallAlarm() {
     return;
   }
 
-  if (IS_TIL_RECALL_TEST_MODE) {
-    chrome.alarms.create(TIL_RECALL_ALARM_NAME, {
-      delayInMinutes: TIL_RECALL_TEST_INTERVAL_MINUTES,
-      periodInMinutes: TIL_RECALL_TEST_INTERVAL_MINUTES,
-    });
-    debugLog('TIL recall test alarm scheduled', { intervalMinutes: TIL_RECALL_TEST_INTERVAL_MINUTES });
-    return;
-  }
-
   const nextAlarmAt = getNextAlarmTime(settings.time);
   chrome.alarms.create(TIL_RECALL_ALARM_NAME, {
     when: nextAlarmAt.getTime(),
@@ -537,7 +526,7 @@ async function runTilRecallCheck() {
 
   const today = formatLocalDate(new Date());
   const stored = await chrome.storage.local.get(TIL_RECALL_LAST_NOTIFIED_KEY);
-  if (!IS_TIL_RECALL_TEST_MODE && stored[TIL_RECALL_LAST_NOTIFIED_KEY] === today) {
+  if (stored[TIL_RECALL_LAST_NOTIFIED_KEY] === today) {
     debugLog('TIL recall already notified today', today);
     return;
   }
@@ -621,9 +610,7 @@ async function createTilRecallNotification(targetDate: string, til: TilResponse,
     return;
   }
 
-  const notificationId = IS_TIL_RECALL_TEST_MODE
-    ? `san-til-recall-${targetDate}-${Date.now()}`
-    : `san-til-recall-${targetDate}`;
+  const notificationId = `san-til-recall-${targetDate}`;
   await saveNotificationTarget(notificationId, targetDate);
 
   notifications.create(
