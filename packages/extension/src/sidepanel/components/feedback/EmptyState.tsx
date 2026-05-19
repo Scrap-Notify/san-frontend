@@ -14,7 +14,7 @@ export function EmptyState({ onLogin }: EmptyStateProps) {
           onClick={onLogin}
           className="text-body-main-bold text-text-primary transition active:translate-y-px"
         >
-          <span className="text-primary-signal [text-shadow:0_0_8px_rgba(0,255,194,0.55),0_0_18px_rgba(0,255,194,0.28)]">
+          <span className="extension-primary-text-glow text-primary-signal">
             로그인
           </span>
           하여 저장하기

@@ -28,6 +28,9 @@ module.exports = {
         // 2. '지식의 숲' 컬러 시스템 (colors.tokens.json 반영)
         colors: {
           'forest-bg': '#101417',       // background
+          'action-accent': '#4ade80',   // action / CTA
+          'action-accent-hover': '#3fce75',
+          'action-accent-active': '#33b968',
           'primary-signal': '#00ffc2',  // primary_signal / normal
           'primary-signal-hover': '#00e6af',
           'primary-signal-active': '#00cc9b',
@@ -43,6 +46,8 @@ module.exports = {
           'surface-low': '#181c1f',     // surface/low
           'surface-container': '#1c2023', // surface/container
           'surface-highest': '#313539', // surface/highest
+          'surface-lowest': 'var(--color-surface-lowest)',
+          'scrim': 'var(--color-scrim)',
           
           // 가이드에 정의된 브랜드 컬러 추가 (san_styleguide.md 반영)
           'brand-mint': '#A7F3D0',
@@ -68,8 +73,8 @@ module.exports = {
   
         // 4. 발광 효과 (Glowing Roots 컨셉)
         boxShadow: {
-          'neon': '0 0 12px 0 #00ffc2',
-          'neon-sm': '0 0 6px 0 rgba(0, 255, 194, 0.6)',
+          'neon': 'var(--shadow-neon)',
+          'neon-sm': 'var(--shadow-neon-sm)',
         },
   
         // 5. 기본 폰트 설정

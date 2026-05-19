@@ -191,7 +191,7 @@ function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: Knowledge
             className={[
               'whitespace-nowrap text-xs font-semibold transition',
               isActive
-                ? 'text-primary-signal'
+                ? 'text-action-accent'
                 : 'text-text-secondary/45 hover:text-text-primary',
               tab.disabled ? 'cursor-not-allowed opacity-30 hover:text-text-secondary/55' : '',
             ].join(' ')}
@@ -834,7 +834,7 @@ export default function SidePanel() {
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background px-4 pb-4 text-text-primary">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background text-text-primary">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <SidePanelNavbar
           isAuthenticated={isAuthenticated}
@@ -845,12 +845,12 @@ export default function SidePanel() {
           onLogoutClick={handleLogoutClick}
         />
         {isLogoutConfirmOpen && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+          <div className="fixed inset-0 z-40 flex items-center justify-center bg-scrim px-4 backdrop-blur-sm">
             <div
               role="dialog"
               aria-modal="true"
               aria-labelledby="logout-confirm-title"
-              className="w-full max-w-[280px] rounded-lg border border-white/10 bg-surface-container p-4 text-text-primary shadow-2xl"
+              className="w-full max-w-[280px] rounded-lg border border-text-secondary/10 bg-surface-container p-4 text-text-primary shadow-2xl"
             >
               <h2 id="logout-confirm-title" className="text-sm font-semibold">
                 로그아웃 하시겠습니까?
@@ -860,7 +860,7 @@ export default function SidePanel() {
                   type="button"
                   onClick={handleCancelLogout}
                   disabled={isLoggingOut}
-                  className="h-9 rounded-md border border-white/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-9 rounded-md border border-text-secondary/10 bg-surface-highest text-sm font-medium text-text-secondary transition hover:bg-surface-container/90 bg-surface-container/70 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   취소
                 </button>
@@ -868,7 +868,7 @@ export default function SidePanel() {
                   type="button"
                   onClick={handleConfirmLogout}
                   disabled={isLoggingOut}
-                  className="h-9 rounded-md border border-primary-signal/35 bg-primary-signal/15 text-sm font-semibold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-9 rounded-md border border-action-accent/35 bg-action-accent/15 text-sm font-semibold text-action-accent transition hover:bg-action-accent/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isLoggingOut ? '처리 중' : '확인'}
                 </button>
@@ -877,7 +877,7 @@ export default function SidePanel() {
           </div>
         )}
         <GlowBackground />
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-2 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {/* 1. Top Workspace Area (Fixed 190px): Switch between DropZone and Loading */}
           {isAuthCardOpen && !isAuthenticated ? (
             <ExtensionAuthCard

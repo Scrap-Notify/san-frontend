@@ -93,7 +93,7 @@ export function Signup() {
   };
 
   const inputClass =
-    'block h-12 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+    'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background">
@@ -112,8 +112,8 @@ export function Signup() {
       {/* 오른쪽 카드 */}
       <div className="relative z-10 flex w-full items-center justify-center px-4 py-10 sm:px-8 lg:w-1/2 lg:px-16">
         <div
-          className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
-          style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%)', padding: '32px', height: '600px' }}
+          className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-text-secondary/15 glass-card bg-surface-container/80 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
+          style={{ padding: '32px', height: '600px' }}
         >
           {/* 헤더 */}
           <h2 className="text-2xl font-bold text-text-primary sm:text-[32px]">회원가입</h2>
@@ -142,7 +142,7 @@ export function Signup() {
                   type="button"
                   onClick={handleCheckUsername}
                   disabled={usernameCheckStatus === 'checking'}
-                  className="h-12 shrink-0 rounded-xl border border-primary-signal/40 px-4 text-[11px] font-bold text-primary-signal transition hover:bg-primary-signal/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-12 shrink-0 rounded-xl border border-action-accent/40 px-4 text-[11px] font-bold text-action-accent transition hover:bg-action-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                 </button>
@@ -216,7 +216,7 @@ export function Signup() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-12 w-full rounded-xl bg-primary-signal text-sm font-bold text-background outline-none transition hover:brightness-110 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-12 w-full rounded-xl bg-action-accent text-sm font-bold text-background outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.28)' }}
               >
                 {isSubmitting ? '가입 중...' : '회원가입'}

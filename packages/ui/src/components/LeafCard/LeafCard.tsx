@@ -9,7 +9,7 @@ import { IconBox } from '../IconBox/IconBox.tsx';
 import { TagBadge } from '../TagBadge/TagBadge.tsx';
 import { MetaLabel } from '../MetaLabel/MetaLabel.tsx';
 import { NeonDot } from '../NeonDot/NeonDot.tsx';
-import { formatRelativeTime } from '@san/shared/utils';
+import { formatRelativeTime } from '@san/shared/utils/format';
 
 // source_type별 아이콘 SVG (인라인 — 외부 의존 없이 독립 동작)
 function SourceIcon({ type }: { type: KnowledgeCardView['source_type'] }) {

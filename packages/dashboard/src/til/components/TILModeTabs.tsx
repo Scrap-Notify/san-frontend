@@ -13,7 +13,7 @@ const tabs: Array<{ key: TILMode; label: string }> = [
 
 export function TILModeTabs({ activeTab, onChange }: TILModeTabsProps) {
   return (
-    <nav className="flex h-9 items-center gap-0.5 rounded-md border border-white/10 bg-white/[0.035] p-0.5">
+    <nav className="grid h-10 min-w-0 flex-1 grid-cols-3 items-center gap-1 rounded-md border border-text-secondary/10 bg-text-primary/[0.035] p-1 md:min-w-[252px] md:flex-none">
       {tabs.map((tab) => {
         const active = tab.key === activeTab;
 
@@ -23,10 +23,10 @@ export function TILModeTabs({ activeTab, onChange }: TILModeTabsProps) {
             type="button"
             onClick={() => onChange?.(tab.key)}
             className={[
-              'flex h-8 min-w-[78px] items-center justify-center rounded px-3 text-sm font-semibold transition-colors',
+              'flex h-[30px] w-full min-w-0 items-center justify-center rounded px-3 text-sm font-semibold transition-colors sm:min-w-[78px]',
               active
-                ? 'bg-white/[0.12] text-white'
-                : 'text-text-secondary hover:bg-white/[0.06] hover:text-white',
+                ? 'bg-action-accent text-text-on-accent'
+                : 'text-text-secondary hover:bg-text-primary/[0.06] hover:text-text-primary',
             ].join(' ')}
           >
             {tab.label}

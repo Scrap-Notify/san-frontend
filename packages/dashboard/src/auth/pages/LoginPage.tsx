@@ -76,7 +76,7 @@ export function LoginPage() {
   };
 
   const inputClass =
-    'block h-12 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+    'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background">
@@ -92,9 +92,8 @@ export function LoginPage() {
 
       <div className="relative z-10 flex w-full items-center justify-center px-4 py-10 sm:px-8 lg:w-1/2 lg:px-16">
         <div
-          className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
+          className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-text-secondary/15 glass-card bg-surface-container/80 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
           style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%)',
             padding: '32px',
             height: '600px',
           }}
@@ -107,19 +106,19 @@ export function LoginPage() {
           <button
             type="button"
             onClick={handleGithubLogin}
-            className="relative flex h-14 w-full shrink-0 items-center rounded-xl text-sm font-bold text-white transition hover:opacity-85 active:scale-[0.98]"
-            style={{ background: '#000000', border: '1px solid rgba(255,255,255,0.12)' }}
+            className="flex h-14 w-full shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-bold text-text-primary transition hover:opacity-85 active:scale-[0.98]"
+            style={{ background: 'var(--color-surface-lowest)', border: '1px solid color-mix(in oklab, var(--color-text-secondary) 16%, transparent)' }}
           >
-            <span className="absolute left-4 flex h-8 w-8 items-center justify-center">
-              <img src={githubSvg} alt="GitHub" className="h-6 w-6 brightness-0 invert" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+              <img src={githubSvg} alt="GitHub" className="dashboard-login-github-icon h-6 w-6" />
             </span>
-            <span className="flex-1 text-center">GitHub 계정으로 로그인</span>
+            <span className="text-center">GitHub 계정으로 로그인</span>
           </button>
 
           <div className="my-5 flex shrink-0 items-center gap-4">
-            <div className="h-px flex-1 bg-white/10" />
+            <div className="h-px flex-1 bg-text-secondary/10" />
             <span className="text-[11px] text-text-secondary/50">Or</span>
-            <div className="h-px flex-1 bg-white/10" />
+            <div className="h-px flex-1 bg-text-secondary/10" />
           </div>
 
           <form className="space-y-3" onSubmit={handleSubmit}>
@@ -185,7 +184,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="h-12 w-full rounded-xl bg-primary-signal text-sm font-bold text-background outline-none transition hover:brightness-110 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-12 w-full rounded-xl bg-action-accent text-sm font-bold text-background outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.25)' }}
               >
                 {isSubmitting ? '접속 중...' : '로그인'}

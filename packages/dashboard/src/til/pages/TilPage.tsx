@@ -129,14 +129,14 @@ export function TilPage() {
     return (
         <section className="flex h-auto w-full flex-col overflow-hidden bg-background text-text-primary lg:h-[calc(100vh-104px)]">
             <div className="flex h-full w-full flex-col lg:min-h-0 lg:flex-row">
-            <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-2 pb-5 pt-1 md:px-3 lg:order-1">
+            <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-0 pb-5 pt-12 md:px-1 lg:order-1 lg:pr-8">
                 <header className="mb-4 flex flex-col gap-2">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
                         <span className="text-primary-signal">T</span>
-                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">oday</span>
+                        <span className="text-text-primary">oday</span>
                         <span className="ml-2 text-primary-signal">I</span>
                         <span className="ml-2 text-primary-signal">L</span>
-                        <span className="bg-gradient-to-r from-white via-white/90 to-white/40 bg-clip-text text-transparent">earned</span>
+                        <span className="text-text-primary">earned</span>
                     </h1>
 
                     <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
@@ -148,7 +148,7 @@ export function TilPage() {
                                 <button
                                     type="button"
                                     onClick={goToPrevDate}
-                                    className="rounded p-0.5 text-text-secondary transition-colors hover:text-white"
+                                    className="rounded p-0.5 text-text-secondary transition-colors hover:text-text-primary"
                                     aria-label="이전 날짜"
                                 >
                                     <ChevronLeft size={14} />
@@ -161,7 +161,7 @@ export function TilPage() {
                                         setOpenTilMenuId(null);
                                         setIsTitleMenuOpen(false);
                                     }}
-                                    className="flex min-w-[118px] items-center justify-center px-1.5 py-0.5 text-center text-sm font-semibold tracking-wide text-white"
+                                    className="flex min-w-[118px] items-center justify-center px-1.5 py-0.5 text-center text-sm font-semibold tracking-wide text-text-primary"
                                     aria-expanded={isCalendarOpen}
                                 >
                                     {dateLabel}
@@ -170,31 +170,31 @@ export function TilPage() {
                                     type="button"
                                     onClick={goToNextDate}
                                     disabled={isLatestGeneratedTilDate}
-                                    className="rounded p-0.5 text-text-secondary transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-25"
+                                    className="rounded p-0.5 text-text-secondary transition-colors hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-25"
                                     aria-label="다음 날짜"
                                 >
                                     <ChevronRight size={14} />
                                 </button>
 
                                 {isCalendarOpen ? (
-                                    <div className="absolute left-0 top-11 z-40 w-[260px] rounded-[24px] border border-white/12 bg-surface-lowest/82 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
+                                    <div className="absolute left-0 top-11 z-40 w-[260px] rounded-[24px] border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-3 backdrop-blur-2xl">
                                         <div className="mb-3 flex items-center justify-between">
                                             <button
                                                 type="button"
                                                 onClick={() => setCalendarMonth((current) => shiftMonth(current, -1))}
-                                                className="flex h-7 w-7 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-white/8 hover:text-white"
+                                                className="flex h-7 w-7 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-text-primary/8 hover:text-text-primary"
                                                 aria-label="이전 달"
                                             >
                                                 <ChevronLeft size={15} />
                                             </button>
-                                            <span className="text-sm font-bold text-white">
+                                            <span className="text-sm font-bold text-text-primary">
                                                 {formatCalendarMonth(calendarMonth)}
                                             </span>
                                             <button
                                                 type="button"
                                                 onClick={() => setCalendarMonth((current) => shiftMonth(current, 1))}
                                                 disabled={calendarMonth >= latestGeneratedMonth}
-                                                className="flex h-7 w-7 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                                                className="flex h-7 w-7 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-text-primary/8 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
                                                 aria-label="다음 달"
                                             >
                                                 <ChevronRight size={15} />
@@ -227,8 +227,8 @@ export function TilPage() {
                                                             isSelected
                                                                 ? 'bg-primary-signal text-background'
                                                                 : isCurrentMonth
-                                                                    ? 'text-white hover:bg-white/10'
-                                                                    : 'text-text-secondary/35 hover:bg-white/5'
+                                                                    ? 'text-text-primary hover:bg-text-primary/10'
+                                                                    : 'text-text-secondary/35 hover:bg-text-primary/5'
                                                         } disabled:cursor-not-allowed disabled:text-text-secondary/20 disabled:hover:bg-transparent`}
                                                     >
                                                         {day.getDate()}
@@ -240,20 +240,21 @@ export function TilPage() {
                                 ) : null}
                             </div>
 
-                            <div className="hidden h-4 w-px bg-white/10 md:block" />
+                            <div className="hidden h-4 w-px bg-text-primary/10 md:block" />
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-end md:w-auto">
                             <TILModeTabs activeTab={activeTab} onChange={setActiveTab} />
 
                             <button
                                 type="button"
                                 onClick={() => selectedTil && commitMutation.mutate(selectedTil.summaryId)}
                                 disabled={isCommitting || !selectedTil}
-                                className="flex h-9 w-[132px] shrink-0 items-center justify-center gap-2 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-[#238636] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2ea043] disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex h-10 w-10 min-w-10 shrink-0 items-center justify-center gap-1.5 rounded-bl-md rounded-br-[14px] rounded-tl-[14px] rounded-tr-md bg-action-accent px-0 text-sm font-medium text-text-on-accent transition-colors hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:opacity-50 sm:w-[104px] sm:min-w-[104px] sm:px-3 md:w-[132px] md:min-w-[132px] md:gap-2 md:px-4"
+                                title={isCommitting ? 'Committing...' : 'Commit'}
                             >
                                 <GitCommitHorizontal size={15} />
-                                {isCommitting ? 'Committing...' : 'Commit'}
+                                <span className="hidden sm:inline">{isCommitting ? 'Committing...' : 'Commit'}</span>
                             </button>
                         </div>
                     </div>
@@ -269,7 +270,7 @@ export function TilPage() {
                             }}
                             className={`flex h-8 w-8 shrink-0 items-center justify-center text-text-secondary transition ${
                                 isTilListOpen
-                                    ? 'text-white'
+                                    ? 'text-text-primary'
                                     : 'hover:text-primary-signal'
                             }`}
                             aria-label="Toggle TIL list"
@@ -281,7 +282,7 @@ export function TilPage() {
                         <aside
                             className={`min-h-[500px] overflow-hidden transition-[width,border-color] duration-300 ease-out ${
                                 isTilListOpen
-                                    ? 'w-[260px] border-r border-white/10'
+                                    ? 'w-[260px] border-r border-text-secondary/10'
                                     : 'w-0 border-r-0 border-transparent'
                             }`}
                             aria-hidden={!isTilListOpen}
@@ -308,8 +309,8 @@ export function TilPage() {
                                                         }}
                                                         className={`flex w-full items-start gap-3 rounded-xl px-3 py-3 pr-9 text-left transition ${
                                                             isSelected
-                                                                ? 'bg-white/[0.075] text-white'
-                                                                : 'text-text-secondary hover:bg-white/5 hover:text-white'
+                                                                ? 'bg-text-primary/[0.075] text-text-primary'
+                                                                : 'text-text-secondary hover:bg-text-primary/5 hover:text-text-primary'
                                                         }`}
                                                     >
                                                         <span className="min-w-0">
@@ -333,7 +334,7 @@ export function TilPage() {
                                                         className={`absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-text-secondary transition ${
                                                             openTilMenuId === til.summaryId
                                                                 ? 'text-text-secondary'
-                                                                : 'opacity-0 hover:text-white group-hover:opacity-100'
+                                                                : 'opacity-0 hover:text-text-primary group-hover:opacity-100'
                                                         }`}
                                                     >
                                                         <MoreVertical size={15} strokeWidth={2.4} />
@@ -341,7 +342,7 @@ export function TilPage() {
 
                                                     {openTilMenuId === til.summaryId ? (
                                                         <div
-                                                            className="absolute right-2 top-10 z-30 w-32 overflow-hidden rounded-xl border border-white/12 bg-surface-lowest/78 p-1 shadow-[0_18px_48px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl"
+                                                            className="absolute right-2 top-10 z-30 w-32 overflow-hidden rounded-xl border border-text-secondary/12 glass-popover bg-surface-lowest/78 p-1 backdrop-blur-xl"
                                                             onPointerDown={(event) => event.stopPropagation()}
                                                         >
                                                             <button
@@ -383,7 +384,7 @@ export function TilPage() {
                                     placeholder="제목을 입력하세요"
                                     readOnly={activeTab !== 'edit'}
                                     rows={1}
-                                    className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-xl font-extrabold leading-7 text-white outline-none transition-all placeholder:text-text-secondary/20 focus:placeholder:text-text-secondary/10"
+                                    className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-xl font-extrabold leading-7 text-text-primary outline-none transition-all placeholder:text-text-secondary/20 focus:placeholder:text-text-secondary/10"
                                 />
 
                                 <div className="relative shrink-0">
@@ -401,7 +402,7 @@ export function TilPage() {
                                         className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
                                             isTitleMenuOpen
                                                 ? 'text-text-secondary'
-                                                : 'text-text-secondary hover:text-white'
+                                                : 'text-text-secondary hover:text-text-primary'
                                         }`}
                                     >
                                         <MoreHorizontal size={18} strokeWidth={2.4} />
@@ -409,7 +410,7 @@ export function TilPage() {
 
                                     {isTitleMenuOpen ? (
                                         <div
-                                            className="absolute right-0 top-10 z-30 w-40 overflow-hidden rounded-xl border border-white/12 bg-surface-lowest/82 p-1.5 shadow-[0_16px_42px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl"
+                                            className="absolute right-0 top-10 z-30 w-40 overflow-hidden rounded-xl border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-1.5 backdrop-blur-xl"
                                             onPointerDown={(event) => event.stopPropagation()}
                                         >
                                         <button
@@ -430,7 +431,7 @@ export function TilPage() {
                             </div>
                         </div>
 
-                        <div className={`flex flex-col overflow-hidden rounded-2xl border border-white/5 bg-surface-lowest shadow-2xl ${
+                        <div className={`flex flex-col overflow-hidden rounded-2xl border border-text-secondary/5 bg-surface-lowest ${
                             activeTab === 'edit'
                                 ? 'min-h-[760px] lg:min-h-[820px]'
                                 : 'min-h-[500px]'
@@ -458,7 +459,7 @@ export function TilPage() {
                 </div>
             </div>
 
-            <aside className="order-2 flex min-h-0 w-full shrink-0 border-t border-white/10 bg-transparent lg:order-2 lg:w-[360px] lg:border-l lg:border-t-0">
+            <aside className="order-2 flex min-h-0 w-full shrink-0 border-t border-text-secondary/10 bg-transparent lg:order-2 lg:w-[392px] lg:border-l lg:border-t-0 lg:pl-8 lg:pt-12">
                 <CollectedDataPanel
                     sourcesQuery={sourcesQuery}
                     recallCardsQuery={recallCardsQuery}
@@ -469,13 +470,13 @@ export function TilPage() {
 
             {pendingDeleteTilId ? (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-scrim px-4 backdrop-blur-sm"
                     onPointerDown={() => {
                         if (!deleteMutation.isPending) setPendingDeleteTilId(null);
                     }}
                 >
                     <div
-                        className="w-full max-w-[360px] rounded-2xl border border-white/12 bg-surface-lowest/82 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
+                        className="w-full max-w-[360px] rounded-2xl border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-5 backdrop-blur-2xl"
                         onPointerDown={(event) => event.stopPropagation()}
                     >
                         <div className="flex items-start justify-between gap-4">
@@ -484,7 +485,7 @@ export function TilPage() {
                                     <AlertTriangle size={18} strokeWidth={2.2} />
                                 </span>
                                 <div>
-                                    <h2 className="text-base font-bold text-white">TIL을 삭제할까요?</h2>
+                                    <h2 className="text-base font-bold text-text-primary">TIL을 삭제할까요?</h2>
                                     <p className="mt-2 text-sm leading-relaxed text-text-secondary">
                                         삭제한 TIL은 되돌릴 수 없습니다.
                                     </p>
@@ -494,7 +495,7 @@ export function TilPage() {
                                 type="button"
                                 onClick={() => setPendingDeleteTilId(null)}
                                 disabled={deleteMutation.isPending}
-                                className="rounded-full p-1 text-text-secondary transition-colors hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                className="rounded-full p-1 text-text-secondary transition-colors hover:bg-text-primary/8 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                 aria-label="닫기"
                             >
                                 <X size={17} />
@@ -506,7 +507,7 @@ export function TilPage() {
                                 type="button"
                                 onClick={() => setPendingDeleteTilId(null)}
                                 disabled={deleteMutation.isPending}
-                                className="h-9 rounded-lg px-4 text-sm font-semibold text-text-secondary transition-colors hover:bg-white/8 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                                className="h-9 rounded-lg px-4 text-sm font-semibold text-text-secondary transition-colors hover:bg-text-primary/8 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 취소
                             </button>
@@ -514,7 +515,7 @@ export function TilPage() {
                                 type="button"
                                 onClick={confirmDeleteTil}
                                 disabled={deleteMutation.isPending}
-                                className="flex h-9 items-center gap-2 rounded-lg bg-error px-4 text-sm font-bold text-white transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="flex h-9 items-center gap-2 rounded-lg bg-error px-4 text-sm font-bold text-text-primary transition-colors hover:bg-error/90 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 <Trash2 size={14} strokeWidth={2.2} />
                                 {deleteMutation.isPending ? '삭제 중...' : '삭제'}

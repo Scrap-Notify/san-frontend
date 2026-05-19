@@ -4,8 +4,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite'; 
 import { crx } from '@crxjs/vite-plugin';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import manifest from './src/manifest.json';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   server: {

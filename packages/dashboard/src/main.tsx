@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiProvider } from '@san/shared';
+import { initTheme } from '@san/ui';
 import { scrapsApi, cardsApi, archiveApi } from './api/client';
 import { router } from './router';
 import { ToastProvider } from './components/shared/toast/ToastProvider';
@@ -17,6 +18,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+initTheme();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

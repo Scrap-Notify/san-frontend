@@ -127,11 +127,11 @@ function KnowledgeCardArticle({
     : (source ? getSourceIcon(source) : FileText);
 
   return (
-    <article className="rounded-leaf border border-text-secondary/12 bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
-      <div className="flex items-start justify-between gap-3">
-        <h3
-          className={[
-            'line-clamp-1 select-text text-body-main-bold text-text-primary',
+    <article className="rounded-leaf border border-text-secondary/12 glass-card bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
+        <div className="flex items-start justify-between gap-3">
+          <h3
+            className={[
+            'line-clamp-1 select-text text-body-main-bold font-bold text-text-primary',
             'cursor-text',
           ].join(' ')}
         >
@@ -145,7 +145,7 @@ function KnowledgeCardArticle({
                 event.stopPropagation();
                 onOpenCard(card.cardId);
               }}
-              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption-bold text-text-secondary/75 transition hover:bg-white/5 hover:text-primary-signal active:translate-y-px"
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-caption-bold text-text-secondary/75 transition hover:bg-text-primary/5 hover:text-action-accent active:translate-y-px"
               aria-label="Open card detail"
               title="Open card detail"
             >
@@ -159,7 +159,7 @@ function KnowledgeCardArticle({
                 event.stopPropagation();
                 setIsSourceOpen((current) => !current);
               }}
-              className="rounded-full p-1 text-text-secondary/75 transition hover:bg-white/5 hover:text-primary-signal active:translate-y-px"
+              className="rounded-full p-1 text-text-secondary/75 transition hover:bg-text-primary/5 hover:text-action-accent active:translate-y-px"
               aria-label={isSourceOpen ? '원본 데이터 닫기' : '원본 데이터 열기'}
               aria-expanded={isSourceOpen}
               title="원본 데이터"
@@ -178,8 +178,8 @@ function KnowledgeCardArticle({
               onCopy(card);
             }}
             className={[
-              'rounded-full p-1 transition hover:bg-white/5 active:translate-y-px',
-              isCopied ? 'text-primary-signal' : 'text-text-secondary/75 hover:text-primary-signal',
+              'rounded-full p-1 transition hover:bg-text-primary/5 active:translate-y-px',
+              isCopied ? 'text-action-accent' : 'text-text-secondary/75 hover:text-action-accent',
             ].join(' ')}
             aria-label={isCopied ? 'Copied' : 'Copy card'}
             title={isCopied ? 'Copied' : 'Copy card'}
@@ -306,7 +306,7 @@ export function RecentKnowledgeList({
       ].join(' ')}>
         {isLoading ? (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-            <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+            <div className="extension-primary-drop-glow text-primary-signal/80">
               <Loader2 size={44} strokeWidth={1.6} className="animate-spin" aria-hidden="true" />
             </div>
             <div className="space-y-1">
@@ -322,7 +322,7 @@ export function RecentKnowledgeList({
 
         {error ? (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-            <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+            <div className="extension-primary-drop-glow text-primary-signal/80">
               <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
             </div>
             <div className="space-y-1">
@@ -338,7 +338,7 @@ export function RecentKnowledgeList({
 
         {!isLoading && !error && cards.length === 0 ? (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-            <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+            <div className="extension-primary-drop-glow text-primary-signal/80">
               <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
             </div>
             <div className="space-y-1">

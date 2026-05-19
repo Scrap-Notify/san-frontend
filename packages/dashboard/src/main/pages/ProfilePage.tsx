@@ -284,23 +284,23 @@ export function ProfilePage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-[720px] py-6 text-white">
-      <header className="mb-7 border-b border-white/8 pb-6">
-        <h1 className="bg-gradient-to-r from-white to-white/40 bg-clip-text text-h1-bold text-transparent">
+    <section className="mx-auto w-full max-w-[720px] py-12 text-text-primary">
+      <header className="mb-7 border-b border-text-secondary/8 pb-6">
+        <h1 className="bg-gradient-to-r from-text-primary to-text-secondary bg-clip-text text-h1-bold text-transparent">
           마이 프로필
         </h1>
-        <p className="mt-2 text-sm text-white/45">계정 통계와 로그인 세션을 관리하세요.</p>
+        <p className="mt-2 text-sm text-text-primary/45">계정 통계와 로그인 세션을 관리하세요.</p>
       </header>
 
       <div className="space-y-6">
-        <section className="rounded-lg border border-white/[0.07] bg-white/[0.04] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.2)]">
+        <section className="rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.2)]">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/10 text-lg font-black text-primary-signal">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-text-primary/10 text-lg font-black text-primary-signal">
                 {profileLabel.name.slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h2 className="truncate text-lg font-bold tracking-tight text-white">{profileLabel.name}</h2>
+                <h2 className="truncate text-lg font-bold tracking-tight text-text-primary">{profileLabel.name}</h2>
                 <p className="mt-1 truncate text-sm text-text-secondary">{profileLabel.caption}</p>
               </div>
             </div>
@@ -309,21 +309,21 @@ export function ProfilePage() {
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-md bg-black/30 px-4 text-xs font-bold text-white/80 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-9 shrink-0 items-center justify-center gap-2 rounded-md glass-card bg-surface-container/60 px-4 text-xs font-bold text-text-primary/80 transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isLoggingOut ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />}
               {isLoggingOut ? '로그아웃 중' : '로그아웃'}
             </button>
           </div>
 
-          <div className="mt-6 border-t border-white/[0.06] pt-5">
+          <div className="mt-6 border-t border-text-secondary/[0.06] pt-5">
             <div className="grid grid-cols-3 gap-4">
               {statisticsItems.map((item) => (
                 <div key={item.label} className="min-w-0">
                   <p className="truncate text-[11px] font-bold uppercase tracking-wide text-text-secondary/75">
                     {item.label}
                   </p>
-                  <p className={`mt-2 text-xl font-black tabular-nums ${item.accent ? 'text-primary-signal' : 'text-white'}`}>
+                  <p className={`mt-2 text-xl font-black tabular-nums ${item.accent ? 'text-primary-signal' : 'text-text-primary'}`}>
                     {statisticsQuery.isLoading || statisticsQuery.isError || item.value == null
                       ? '-'
                       : item.value.toLocaleString()}
@@ -351,20 +351,20 @@ export function ProfilePage() {
           shortcutSettingsMessage={shortcutSettingsMessage}
         />
 
-        <section className="border-t border-white/[0.06] pt-6">
+        <section className="border-t border-text-secondary/[0.06] pt-6">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
-              <h3 className="flex items-center gap-2 text-base font-bold text-white">
+              <h3 className="flex items-center gap-2 text-base font-bold text-text-primary">
                 <Shield size={17} className="text-primary-signal" />
                 로그인 세션
               </h3>
-              <p className="mt-1 text-xs text-white/40">대시보드와 확장 프로그램 세션을 관리합니다.</p>
+              <p className="mt-1 text-xs text-text-primary/40">대시보드와 확장 프로그램 세션을 관리합니다.</p>
             </div>
             <button
               type="button"
               onClick={() => void sessionsQuery.refetch()}
               disabled={sessionsQuery.isFetching}
-              className="flex h-8 w-8 shrink-0 items-center justify-center text-white/45 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-8 w-8 shrink-0 items-center justify-center text-text-primary/45 transition hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
               aria-label="세션 새로고침"
               title="세션 새로고침"
             >
@@ -380,23 +380,23 @@ export function ProfilePage() {
 
           <div className="no-scrollbar max-h-[360px] space-y-3 overflow-y-auto pr-1">
             {sessionsQuery.isLoading ? (
-              <div className="flex h-24 items-center justify-center text-sm text-white/35">
+              <div className="flex h-24 items-center justify-center text-sm text-text-primary/35">
                 <Loader2 size={18} className="mr-2 animate-spin" />
                 세션을 불러오는 중
               </div>
             ) : sessions.length === 0 ? (
-              <div className="rounded-lg border border-white/5 bg-white/[0.03] p-5 text-sm text-white/40">
+              <div className="rounded-lg border border-text-secondary/5 bg-text-primary/[0.03] p-5 text-sm text-text-primary/40">
                 활성 세션이 없습니다.
               </div>
             ) : (
               sessions.map((session) => (
                 <div
                   key={`${session.clientType}-${session.sessionId}`}
-                  className="flex flex-col gap-4 rounded-lg border border-white/[0.07] bg-white/[0.04] px-5 py-4 transition-colors hover:border-white/[0.12] sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 px-5 py-4 !shadow-none transition-colors hover:border-text-secondary/[0.12] sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-white">{sessionLabel[session.clientType]}</span>
+                      <span className="text-sm font-bold text-text-primary">{sessionLabel[session.clientType]}</span>
                       {session.current && (
                         <span className="rounded-md bg-primary-signal/12 px-2 py-0.5 text-[10px] font-black text-primary-signal">
                           현재
@@ -404,7 +404,7 @@ export function ProfilePage() {
                       )}
                     </div>
                     <p className="mt-1 font-mono text-xs text-text-secondary">{maskSessionId(session.sessionId)}</p>
-                    <p className="mt-2 text-xs font-medium text-white/38">만료까지 {formatExpiresIn(session.expiresInSeconds)}</p>
+                    <p className="mt-2 text-xs font-medium text-text-primary/38">만료까지 {formatExpiresIn(session.expiresInSeconds)}</p>
                   </div>
 
                   {session.current ? (
@@ -421,7 +421,7 @@ export function ProfilePage() {
                       type="button"
                       onClick={() => void handleRevokeSession(session)}
                       disabled={revokeSessionId === session.sessionId}
-                      className="h-8 shrink-0 rounded-md bg-black/30 px-3 text-xs font-bold text-white/70 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="h-8 shrink-0 rounded-md glass-card bg-surface-container/60 px-3 text-xs font-bold text-text-primary/70 !shadow-none transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {revokeSessionId === session.sessionId ? '폐기 중' : '폐기'}
                     </button>
@@ -432,14 +432,14 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-white/[0.06] bg-transparent px-3 py-2">
+        <section className="rounded-lg border border-text-secondary/[0.06] bg-transparent px-3 py-2">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="flex items-center gap-1.5 text-xs font-bold text-red-200/80">
                 <AlertTriangle size={13} />
                 회원탈퇴
               </h3>
-              <p className="mt-0.5 text-[11px] leading-4 text-white/32">
+              <p className="mt-0.5 text-[11px] leading-4 text-text-primary/32">
                 탈퇴하면 모든 로그인 세션이 만료되고 계정이 비활성화됩니다.
               </p>
             </div>
@@ -456,15 +456,15 @@ export function ProfilePage() {
       </div>
 
       {isWithdrawOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/70 px-4 backdrop-blur-sm">
           <form
             onSubmit={handleWithdraw}
-            className="w-full max-w-[360px] rounded-3xl border border-white/10 bg-[#131718] p-6 shadow-2xl"
+            className="w-full max-w-[360px] rounded-3xl border border-text-secondary/10 glass-card bg-surface-container/80 p-6 shadow-2xl"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-white">회원탈퇴 확인</h2>
-                <p className="mt-2 text-sm leading-relaxed text-white/45">비밀번호를 입력하면 계정 탈퇴가 진행됩니다.</p>
+                <h2 className="text-lg font-bold text-text-primary">회원탈퇴 확인</h2>
+                <p className="mt-2 text-sm leading-relaxed text-text-primary/45">비밀번호를 입력하면 계정 탈퇴가 진행됩니다.</p>
               </div>
               <button
                 type="button"
@@ -474,7 +474,7 @@ export function ProfilePage() {
                   setWithdrawError(null);
                 }}
                 disabled={isWithdrawing}
-                className="rounded-full p-1 text-white/35 transition hover:bg-white/5 hover:text-white"
+                className="rounded-full p-1 text-text-primary/35 transition hover:bg-text-primary/5 hover:text-text-primary"
                 aria-label="닫기"
               >
                 <X size={18} />
@@ -487,14 +487,14 @@ export function ProfilePage() {
               autoComplete="current-password"
               placeholder="비밀번호 입력"
               onChange={(event) => setWithdrawPassword(event.target.value)}
-              className="mt-6 h-12 w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-white outline-none placeholder:text-white/25 focus:border-red-300/50"
+              className="mt-6 h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/25 focus:border-red-300/50"
             />
             <p className="mt-2 min-h-[18px] text-xs text-red-300">{withdrawError || ''}</p>
 
             <button
               type="submit"
               disabled={isWithdrawing}
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-400 text-sm font-black text-black transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-400 text-sm font-black text-text-on-accent transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isWithdrawing && <Loader2 size={16} className="animate-spin" />}
               {isWithdrawing ? '탈퇴 처리 중' : '탈퇴하기'}
@@ -541,8 +541,8 @@ function ProfileSettingsCards({
 
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)]">
-      <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+      <section className="rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 p-5">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
           <Keyboard size={16} className="text-primary-signal" />
           단축키 설정
         </h3>
@@ -552,11 +552,11 @@ function ProfileSettingsCards({
           <ShortcutRow label="화면 캡처" shortcut="Ctrl + Shift + Y" />
         </div>
 
-        <div className="mt-7 border-t border-white/[0.06] pt-6">
+        <div className="mt-7 border-t border-text-secondary/[0.06] pt-6">
           <button
             type="button"
             onClick={() => void openShortcutSettings()}
-            className="flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-white/45 transition hover:text-primary-signal"
+            className="flex w-full items-center justify-center gap-1.5 text-[11px] font-semibold text-text-primary/45 transition hover:text-primary-signal"
           >
             Chrome에서 단축키 변경하기
             <ExternalLink size={12} />
@@ -569,9 +569,9 @@ function ProfileSettingsCards({
         </div>
       </section>
 
-      <section className="rounded-lg border border-white/[0.07] bg-white/[0.035] p-5">
+      <section className="rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 p-5">
         <div className="flex items-start justify-between gap-4">
-          <h3 className="flex items-center gap-2 text-sm font-bold text-white">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
             <Bell size={16} className="text-primary-signal" />
             알림 설정
           </h3>
@@ -582,7 +582,7 @@ function ProfileSettingsCards({
             disabled={isRecallSettingsLoading || isRecallSettingsSaving}
             onClick={() => void saveRecallSettings({ ...recallSettings, enabled: !recallSettings.enabled })}
             className={`relative h-6 w-11 rounded-full transition ${
-              recallSettings.enabled ? 'bg-primary-signal' : 'bg-white/15'
+              recallSettings.enabled ? 'bg-primary-signal' : 'bg-text-primary/15'
             } disabled:cursor-not-allowed disabled:opacity-60`}
           >
             <span
@@ -596,8 +596,8 @@ function ProfileSettingsCards({
         <div className="mt-6 space-y-6">
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-sm font-bold text-white">Recall 리마인더</p>
-              <p className="mt-1 text-xs text-white/42">저장한 노트 복습 알림을 받습니다.</p>
+              <p className="text-sm font-bold text-text-primary">Recall 리마인더</p>
+              <p className="mt-1 text-xs text-text-primary/42">저장한 노트 복습 알림을 받습니다.</p>
             </div>
             <RecallSaveStatus
               isSaving={isRecallSettingsSaving}
@@ -607,8 +607,8 @@ function ProfileSettingsCards({
 
           <div className="flex flex-col gap-3">
             <div>
-              <p className="text-sm font-bold text-white">리마인더 발송 시간</p>
-              <p className="mt-1 text-xs text-white/42">리콜이 오면 리포트 수신 시각</p>
+              <p className="text-sm font-bold text-text-primary">리마인더 발송 시간</p>
+              <p className="mt-1 text-xs text-text-primary/42">리콜이 오면 리포트 수신 시각</p>
             </div>
             <div
               className="flex flex-nowrap items-center gap-2"
@@ -680,7 +680,6 @@ function ProfileSettingsCards({
             </div>
           </div>
         </div>
-
       </section>
     </section>
   );
@@ -734,7 +733,7 @@ function RecallTimeSelect({
         type="button"
         disabled={disabled}
         onClick={onToggle}
-        className="flex h-9 w-full items-center justify-between gap-1 rounded-full border border-primary-signal/32 bg-black/30 px-3 text-xs font-black text-primary-signal shadow-[0_0_0_1px_rgba(111,255,190,0.03)] outline-none transition hover:border-primary-signal/55 hover:bg-primary-signal/8 focus:border-primary-signal disabled:cursor-not-allowed disabled:border-white/[0.06] disabled:text-white/35 disabled:opacity-60"
+        className="flex h-9 w-full items-center justify-between gap-1 rounded-full border border-primary-signal/32 glass-card bg-surface-container/60 px-3 text-xs font-black text-primary-signal shadow-[0_0_0_1px_rgba(111,255,190,0.03)] outline-none transition hover:border-primary-signal/55 hover:bg-primary-signal/8 focus:border-primary-signal disabled:cursor-not-allowed disabled:border-text-secondary/[0.06] disabled:text-text-primary/35 disabled:opacity-60"
         aria-label={`${label} 선택`}
         aria-expanded={isOpen}
       >
@@ -743,7 +742,7 @@ function RecallTimeSelect({
       </button>
 
       {isOpen && (
-        <div className={`absolute left-0 top-10 z-20 overflow-hidden rounded-md border border-primary-signal/18 bg-[#0d1211] py-1 shadow-[0_14px_28px_rgba(0,0,0,0.38)] ${menuClassName}`}>
+        <div className={`absolute left-0 top-10 z-20 overflow-hidden rounded-md border border-primary-signal/18 glass-card bg-surface-container py-1 shadow-[0_14px_28px_rgba(0,0,0,0.38)] ${menuClassName}`}>
           <div className="max-h-[188px] overflow-y-auto">
             {children}
           </div>
@@ -769,7 +768,7 @@ function RecallTimeOption({
       className={`flex h-8 w-full items-center px-3 text-left text-xs font-bold transition ${
         selected
           ? 'bg-primary-signal/10 text-primary-signal'
-          : 'text-white/58 hover:bg-white/[0.05] hover:text-white'
+          : 'text-text-primary/58 hover:bg-text-primary/[0.05] hover:text-text-primary'
       }`}
     >
       {children}
@@ -780,8 +779,8 @@ function RecallTimeOption({
 function ShortcutRow({ label, shortcut }: { label: string; shortcut: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="min-w-0 text-xs font-semibold text-white/62">{label}</span>
-      <kbd className="shrink-0 rounded-full border border-white/[0.06] bg-white/[0.06] px-2.5 py-1 text-[11px] font-black text-primary-signal">
+      <span className="min-w-0 text-xs font-semibold text-text-primary/62">{label}</span>
+      <kbd className="shrink-0 rounded-full border border-text-secondary/[0.06] bg-text-primary/[0.06] px-2.5 py-1 text-[11px] font-black text-primary-signal">
         {shortcut}
       </kbd>
     </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Menu, User, X } from 'lucide-react';
 import { authTokenStorage } from '@dashboard/api/client';
 import { SearchBar } from '../search/SearchBar';
+import { ThemeToggle } from '@san/ui';
 import githubSvg from '@ui/assets/icons/github.svg';
 import sanLogoSvg from '@ui/assets/brand/SAN_LOGO.svg';
 import sanTypoSvg from '@ui/assets/brand/SAN_TYPO.svg';
@@ -68,28 +69,27 @@ export function TopNavBar({
     setIsMenuOpen(false);
   };
 
-  const searchControl = (
-    <SearchBar
-      placeholder={searchPlaceholder}
-      onSearch={handleSearch}
-      className="w-full min-w-0 lg:w-[min(26vw,18rem)]"
-    />
-  );
-
-  const actionControls = (
+  const actionButtons = (
     <>
+      <ThemeToggle />
+
       <button
         onClick={handleGithubClick}
         aria-label="GitHub settings"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-white/5 hover:text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-text-primary/5 hover:text-text-primary"
       >
-        <img src={githubSvg} alt="" aria-hidden="true" className="h-[22px] w-[22px] opacity-70 transition hover:opacity-100" style={{ filter: 'invert(1)' }} />
+        <img
+          src={githubSvg}
+          alt=""
+          aria-hidden="true"
+          className="gnb-github-icon h-[22px] w-[22px] opacity-70 transition hover:opacity-100"
+        />
       </button>
 
       <button
         onClick={handleUserClick}
         aria-label="User profile"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-white/5 hover:text-white"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-text-primary/5 hover:text-text-primary"
       >
         {userAvatarUrl && isAuthenticated ? (
           <img src={userAvatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
@@ -100,8 +100,15 @@ export function TopNavBar({
     </>
   );
 
+  const navActions = (
+    <>
+      <SearchBar placeholder={searchPlaceholder} onSearch={handleSearch} />
+      {actionButtons}
+    </>
+  );
+
   return (
-    <header className="flex w-full items-center justify-between border-b border-primary-signal/10 bg-[#0B0D0F]/82 px-4 py-4 shadow-[0_14px_42px_rgba(0,0,0,0.34),0_0_32px_rgba(115,255,207,0.06)] backdrop-blur-2xl md:px-8">
+    <header className="flex w-full items-center justify-between border-b border-action-accent/10 glass-popover bg-surface-lowest/82 px-4 py-4 backdrop-blur-2xl md:px-8">
       {/* Left side */}
       <div className="flex items-center gap-10">
         <button
@@ -116,19 +123,19 @@ export function TopNavBar({
         <div className="hidden items-center gap-8 lg:flex">
           <button
             onClick={() => navigate('/')}
-            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'Dashboard' ? 'text-primary-signal' : 'text-text-secondary'}`}
+            className={`text-[17px] font-medium tracking-wide transition hover:text-text-primary ${activeMenu === 'Dashboard' ? 'text-action-accent' : 'text-text-secondary'}`}
           >
             Home
           </button>
           <button
             onClick={() => navigate('/til')}
-            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'TIL' ? 'text-primary-signal' : 'text-text-secondary'}`}
+            className={`text-[17px] font-medium tracking-wide transition hover:text-text-primary ${activeMenu === 'TIL' ? 'text-action-accent' : 'text-text-secondary'}`}
           >
             TIL
           </button>
           <button
             onClick={() => navigate('/archive')}
-            className={`text-[17px] font-medium tracking-wide transition hover:text-white ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}
+            className={`text-[17px] font-medium tracking-wide transition hover:text-text-primary ${activeMenu === 'Search' ? 'text-action-accent' : 'text-text-secondary'}`}
           >
             Archive
           </button>
@@ -136,11 +143,8 @@ export function TopNavBar({
       </div>
 
       {/* Right side Desktop */}
-      <div className="ml-auto hidden min-w-0 items-center justify-end gap-6 lg:flex">
-        {searchControl}
-        <div className="flex shrink-0 items-center gap-4">
-          {actionControls}
-        </div>
+      <div className="hidden items-center gap-5 lg:flex">
+        {navActions}
       </div>
 
       {/* Mobile Menu Toggle */}
@@ -148,7 +152,7 @@ export function TopNavBar({
         <button
           type="button"
           onClick={() => setIsMenuOpen((current) => !current)}
-          className="p-2 text-text-secondary transition hover:text-white"
+          className="p-2 text-text-secondary transition hover:text-text-primary"
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -156,14 +160,18 @@ export function TopNavBar({
 
       {/* Mobile Menu Content */}
       {isMenuOpen && (
-        <div className="absolute left-0 top-full flex w-full flex-col gap-4 border-b border-primary-signal/10 bg-[#0B0D0F]/90 p-4 shadow-[0_18px_42px_rgba(0,0,0,0.34)] backdrop-blur-2xl lg:hidden">
-          <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-primary-signal' : 'text-text-secondary'}`}>Home</button>
-          <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'TIL' ? 'text-primary-signal' : 'text-text-secondary'}`}>TIL</button>
-          <button onClick={() => { navigate('/archive'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Search' ? 'text-primary-signal' : 'text-text-secondary'}`}>Archive</button>
-          <div className="mt-4 flex items-center justify-between gap-4 border-t border-white/5 pt-4">
-            {searchControl}
-            <div className="flex shrink-0 items-center gap-2">
-              {actionControls}
+        <div className="absolute left-0 top-full flex w-full flex-col items-end gap-4 border-b border-action-accent/10 bg-surface-lowest p-4 lg:hidden">
+          <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-right text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-action-accent' : 'text-text-secondary'}`}>Home</button>
+          <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-right text-lg font-medium ${activeMenu === 'TIL' ? 'text-action-accent' : 'text-text-secondary'}`}>TIL</button>
+          <button onClick={() => { navigate('/archive'); setIsMenuOpen(false); }} className={`text-right text-lg font-medium ${activeMenu === 'Search' ? 'text-action-accent' : 'text-text-secondary'}`}>Archive</button>
+          <div className="mt-4 flex w-full min-w-0 flex-col gap-3 border-t border-text-secondary/5 pt-4">
+            <SearchBar
+              placeholder={searchPlaceholder}
+              onSearch={handleSearch}
+              className="w-full min-w-0"
+            />
+            <div className="flex items-center justify-end gap-2">
+              {actionButtons}
             </div>
           </div>
         </div>

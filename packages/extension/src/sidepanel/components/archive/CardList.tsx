@@ -21,7 +21,7 @@ export const CardList = ({ cards }: CardListProps) => {
   if (cards.length === 0) {
     return (
       <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-        <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+        <div className="extension-primary-drop-glow text-primary-signal/80">
           <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
         </div>
         <div className="space-y-1">

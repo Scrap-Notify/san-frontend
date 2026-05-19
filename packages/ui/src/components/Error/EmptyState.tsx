@@ -92,7 +92,7 @@ export function EmptyState({
       className={[
         'flex flex-col items-center justify-center text-center',
         'rounded-tl-[32px] rounded-br-[32px] rounded-tr-lg rounded-bl-lg',
-        'border border-white/5 bg-surface-low',
+        'border border-text-secondary/10 bg-surface-low',
         isFull ? 'min-h-[400px] w-full gap-5 px-8 py-16' : 'min-h-[280px] w-full gap-4 px-6 py-10',
       ].join(' ')}
     >
@@ -143,7 +143,7 @@ export function EmptyState({
               onClick={secondaryAction.onClick}
               className={[
                 'inline-flex items-center justify-center rounded-full',
-                'border border-white/10 bg-white/5 font-semibold text-text-secondary transition hover:bg-white/10 hover:text-text-primary',
+                'border border-text-secondary/10 glass-panel bg-surface-lowest/70 font-semibold text-text-secondary transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary',
                 isFull ? 'min-h-11 px-6 text-body-sm-bold' : 'min-h-9 px-4 text-caption-bold',
               ].join(' ')}
             >

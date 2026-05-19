@@ -214,14 +214,14 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
   };
 
   return (
-    <section className="relative min-h-[min(72vh,42rem)] overflow-hidden rounded-[32px] bg-[#101417] font-sans text-white">
+    <section className="relative min-h-[min(72vh,42rem)] overflow-hidden rounded-[32px] bg-background font-sans text-text-primary">
       <SceneBackdrop />
 
       {view === 'tree' ? (
         <button
           type="button"
           onClick={handleBack}
-          className="absolute left-5 top-5 z-30 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 transition hover:border-[#00ffc2]/40 hover:text-[#00ffc2]"
+          className="absolute left-5 top-5 z-30 inline-flex items-center gap-2 rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-4 py-2 text-sm text-text-primary/80 transition hover:border-primary-signal/40 hover:text-primary-signal"
         >
           <ArrowLeft size={16} />
           뒤로가기
@@ -306,14 +306,14 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
                   }}
                 />
                 <span
-                  className="relative block rounded-full bg-[#d8fff8]/95 shadow-[0_0_7px_rgba(216,255,248,0.34)] transition duration-300 group-hover/marker:scale-110 group-hover/marker:bg-[#ebfffb] group-hover/marker:brightness-110 group-hover/marker:shadow-[0_0_10px_rgba(216,255,248,0.5)]"
+                  className="relative block rounded-full bg-primary-signal/95 shadow-[0_0_7px_rgba(0,255,194,0.34)] transition duration-300 group-hover/marker:scale-110 group-hover/marker:bg-primary-signal group-hover/marker:brightness-110 group-hover/marker:shadow-[0_0_10px_rgba(0,255,194,0.5)]"
                   style={{
                     width: `${projection.coreSize}px`,
                     height: `${projection.coreSize}px`,
                     opacity: 1,
                   }}
                 />
-                <span className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs text-white/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-300 group-hover/marker:translate-y-0 group-hover/marker:opacity-100">
+                <span className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-3 py-1 text-xs text-text-primary/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-300 group-hover/marker:translate-y-0 group-hover/marker:opacity-100">
                   {category.name}
                 </span>
               </button>
@@ -321,7 +321,7 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
           })}
 
           {showMarkers && !categoriesQuery.isPending && categories.length === 0 ? (
-            <div className="absolute inset-x-0 bottom-8 text-center text-sm text-white/45">
+            <div className="absolute inset-x-0 bottom-8 text-center text-sm text-text-primary/45">
               표시할 아카이브 카테고리가 없습니다.
             </div>
           ) : null}

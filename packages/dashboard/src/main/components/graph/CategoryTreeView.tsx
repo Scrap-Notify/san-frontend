@@ -313,7 +313,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                           left: '15%',
                           width: '25%',
                           height: '35%',
-                          background: 'rgba(255,255,255,0.25)',
+                          background: 'color-mix(in oklab, var(--color-text-primary) 25%, transparent)',
                           borderRadius: '50%',
                           filter: 'blur(1.5px)',
                           transform: 'rotate(-15deg)',
@@ -323,7 +323,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                       />
                     </span>
                     <span
-                      className="pointer-events-none absolute left-1/2 top-[28px] -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 text-xs text-white/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-[opacity,transform] duration-180 ease-out"
+                      className="pointer-events-none absolute left-1/2 top-[28px] -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-3 py-1 text-xs text-text-primary/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-[opacity,transform] duration-180 ease-out"
                       style={{
                         opacity: isActive ? 1 : 0,
                         transform: isActive ? 'translate(-50%, 0)' : 'translate(-50%, 4px)',
@@ -339,7 +339,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                 <button
                   type="button"
                   onClick={() => navigate('/result')}
-                  className="absolute left-[74%] top-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/12 bg-white/[0.07] px-3 py-1 text-xs text-white/78 backdrop-blur-sm transition hover:bg-white/[0.1]"
+                  className="absolute left-[74%] top-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-text-secondary/12 glass-popover bg-surface-lowest/75 px-3 py-1 text-xs text-text-primary/78 backdrop-blur-sm transition hover:bg-surface-container/90 bg-surface-container/80"
                   style={{
                     opacity: activeLeafId ? 0.78 : 0.9,
                     transform: 'translate(-50%, -50%)',
@@ -354,8 +354,8 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
 
         {!isPending && leaves.length === 0 ? (
           <div className="absolute inset-x-0 bottom-8 text-center">
-            <p className="text-sm text-white/58">이 카테고리에는 아직 지식 카드가 없습니다.</p>
-            <p className="mt-2 text-xs text-white/38">새 지식을 저장하면 가지 끝에 잎이 자라납니다.</p>
+            <p className="text-sm text-text-primary/58">이 카테고리에는 아직 지식 카드가 없습니다.</p>
+            <p className="mt-2 text-xs text-text-primary/38">새 지식을 저장하면 가지 끝에 잎이 자라납니다.</p>
           </div>
         ) : null}
       </div>

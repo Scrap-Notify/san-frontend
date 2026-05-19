@@ -13,16 +13,17 @@ export function ArchiveSection() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { cards, isPending, isError } = useArchiveCards({ limit: 12 }, { enabled: isAuthenticated });
+  const visibleCards = cards.slice(0, 12);
   const [isHovered, setIsHovered] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleScroll = useCallback(() => {
     const carousel = carouselRef.current;
-    if (!carousel || cards.length === 0) return;
+    if (!carousel || visibleCards.length === 0) return;
     const pageIndex = Math.round(carousel.scrollLeft / carousel.clientWidth);
     setActiveIndex(pageIndex);
-  }, [cards.length]);
+  }, [visibleCards.length]);
 
   const scrollCarousel = useCallback((direction: 'previous' | 'next') => {
     const carousel = carouselRef.current;
@@ -44,12 +45,12 @@ export function ArchiveSection() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated || isPending || isError || cards.length === 0 || isHovered || !isPlaying) return;
+    if (!isAuthenticated || isPending || isError || visibleCards.length === 0 || isHovered || !isPlaying) return;
     const interval = setInterval(() => {
       scrollCarousel('next');
     }, 4000);
     return () => clearInterval(interval);
-  }, [cards.length, isAuthenticated, isError, isHovered, isPending, isPlaying, scrollCarousel]);
+  }, [isAuthenticated, isError, isHovered, isPending, isPlaying, scrollCarousel, visibleCards.length]);
 
   useEffect(() => {
     let ignore = false;
@@ -69,8 +70,8 @@ export function ArchiveSection() {
     };
   }, []);
 
-  const totalPages = Math.max(1, Math.ceil(cards.length / 3));
-  const hasCards = isAuthenticated && !isPending && !isError && cards.length > 0;
+  const totalPages = Math.max(1, Math.ceil(visibleCards.length / 3));
+  const hasCards = isAuthenticated && !isPending && !isError && visibleCards.length > 0;
 
   return (
     <section className="w-full min-w-0 overflow-hidden pb-xl">
@@ -83,23 +84,23 @@ export function ArchiveSection() {
           </div>
 
           {isAuthenticated ? (
-          <div className="flex shrink-0 items-center gap-3 rounded-full border border-white/5 bg-[#121212] px-3 py-1.5 shadow-sm">
+          <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 !shadow-none">
             <button
               type="button"
-              className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
               onClick={() => setIsPlaying((current) => !current)}
               disabled={!hasCards}
               aria-label={isPlaying ? '일시정지' : '재생'}
             >
               {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
             </button>
-            <div className="h-3 w-[1px] bg-white/10" />
+            <div className="h-3 w-[1px] glass-card bg-surface-container/80" />
 
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => scrollCarousel('previous')}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
                 disabled={!hasCards || activeIndex === 0}
                 aria-label="이전 페이지"
               >
@@ -116,10 +117,10 @@ export function ArchiveSection() {
                       if (!carousel) return;
                       carousel.scrollTo({ left: carousel.clientWidth * index, behavior: 'smooth' });
                     }}
-                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
                       index === activeIndex
-                        ? 'w-5 bg-[#4ade80] shadow-[0_0_10px_rgba(74,222,128,0.5)]'
-                        : 'w-2.5 bg-white/20 hover:bg-white/40'
+                        ? 'w-5 bg-action-accent'
+                        : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
                     }`}
                     aria-label={`${index + 1}번째 페이지로 이동`}
                   />
@@ -129,7 +130,7 @@ export function ArchiveSection() {
               <button
                 type="button"
                 onClick={() => scrollCarousel('next')}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-white/40 transition hover:bg-white/10 hover:text-white disabled:opacity-20"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
                 disabled={!hasCards || activeIndex === totalPages - 1}
                 aria-label="다음 페이지"
               >
@@ -172,7 +173,7 @@ export function ArchiveSection() {
               <StatusCard message="아카이브 카드를 불러올 수 없습니다." tone="error" />
             ) : null}
 
-            {isAuthenticated && !isPending && !isError && cards.length === 0 ? (
+            {isAuthenticated && !isPending && !isError && visibleCards.length === 0 ? (
               <HomeKnowledgeCardsEmptyState
                 primaryAction={{
                   label: '분석 시작',
@@ -181,7 +182,7 @@ export function ArchiveSection() {
               />
             ) : null}
 
-            {hasCards ? cards.map((card) => {
+            {hasCards ? visibleCards.map((card) => {
               const date = formatRelativeDate(card.created_at);
               const categoryName = card.category_name ?? card.tags[0]?.name ?? 'Uncategorized';
 
@@ -189,30 +190,30 @@ export function ArchiveSection() {
                 <article
                   key={card.card_id}
                   onClick={() => navigate(`/cards/${card.card_id}`)}
-                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-[#131718] p-6 shadow-md transition-all hover:bg-[#161a1b] md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
+                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 !shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
                     <div className="mb-6 flex items-center justify-between">
-                      <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-[#4ade80]/20 bg-[#4ade80]/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-[#4ade80]">
+                      <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-action-accent">
                         {categoryName}
                       </span>
 
-                      <time className="text-[11px] font-medium text-white/40">
+                      <time className="text-[11px] font-medium text-text-secondary/70">
                         {date}
                       </time>
                     </div>
 
-                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-white">
+                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-text-primary">
                       {card.title}
                     </h3>
 
-                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/50">
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-text-secondary">
                       {card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}
                     </p>
                   </div>
 
                   <div className="flex justify-end">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md bg-white/5 text-white/60 transition-colors group-hover:bg-[#4ade80]/10 group-hover:text-[#4ade80]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary shadow-none transition-colors group-hover:bg-action-accent/10 group-hover:text-action-accent">
                       <ArrowRight size={18} />
                     </div>
                   </div>
@@ -257,8 +258,8 @@ function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'de
   return (
     <div
       className={[
-        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl bg-[#131718] p-xl text-center text-body-sm md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
-        tone === 'error' ? 'text-red-400' : 'text-white/40',
+        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-xl text-center text-body-sm !shadow-none md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
+        tone === 'error' ? 'text-red-400' : 'text-text-secondary',
       ].join(' ')}
     >
       {message}

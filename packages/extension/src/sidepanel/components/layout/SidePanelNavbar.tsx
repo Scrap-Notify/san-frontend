@@ -1,5 +1,6 @@
 import { LayoutDashboard, LogOut, MessageCircleHeart, User } from 'lucide-react';
 import { useState } from 'react';
+import { ThemeToggle } from '@san/ui';
 import sanLogo from '@san/ui/assets/brand/SAN_LOGO.svg';
 import sanTypo from '@san/ui/assets/brand/SAN_TYPO.svg';
 import { FeedbackPopover } from '../feedback/FeedbackPopover';
@@ -24,7 +25,7 @@ export default function SidePanelNavbar({
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   return (
-    <div className="sticky top-0 z-20 -mx-4 flex h-16 items-center justify-between border-b border-primary-signal/15 bg-background/95 px-4 backdrop-blur-md">
+    <div className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-action-accent/15 glass-panel bg-background/95 px-4 backdrop-blur-md">
       <div className="flex min-w-0 flex-1 items-center">
         <button
           type="button"
@@ -48,13 +49,13 @@ export default function SidePanelNavbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <div className="relative">
-          {isAuthenticated && (
-            <>
+        <ThemeToggle className="extension-navbar-theme-toggle h-8 w-8 border-text-secondary/10 bg-surface-container" />
+        {isAuthenticated && (
+          <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsFeedbackOpen((current) => !current)}
-                className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary-signal/25 bg-primary-signal/10 text-primary-signal transition hover:border-primary-signal/60 hover:bg-primary-signal/15 active:scale-95"
+                className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
                 aria-label="Feedback"
                 aria-expanded={isFeedbackOpen}
                 title="Feedback"
@@ -62,13 +63,12 @@ export default function SidePanelNavbar({
                 <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
               </button>
               {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
-            </>
-          )}
-        </div>
+          </div>
+        )}
         <button
           type="button"
           onClick={onOpenDashboard}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary-signal/25 bg-primary-signal/10 text-primary-signal transition hover:border-primary-signal/60 hover:bg-primary-signal/15 active:scale-95"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
           aria-label="Open dashboard"
           title="Open dashboard"
         >
@@ -81,8 +81,8 @@ export default function SidePanelNavbar({
             className={[
               'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition active:scale-95',
               isAuthenticated
-                ? 'border-primary-signal/35 bg-primary-signal/10 text-primary-signal'
-                : 'border-white/10 bg-surface-highest text-text-secondary hover:bg-surface-container/40',
+                ? 'border-action-accent/35 bg-action-accent/10 text-action-accent'
+                : 'border-text-secondary/10 bg-surface-highest text-text-secondary hover:bg-surface-container/40',
             ].join(' ')}
             aria-label={isAuthenticated ? 'User profile' : 'Login'}
             aria-expanded={isAuthenticated ? isProfileMenuOpen : undefined}
@@ -92,7 +92,7 @@ export default function SidePanelNavbar({
           </button>
 
           {isAuthenticated && isProfileMenuOpen && (
-            <div className="absolute right-0 top-10 w-32 overflow-hidden rounded-lg border border-white/[0.16] bg-white/[0.08] p-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl">
+            <div className="absolute right-0 top-10 w-32 overflow-hidden rounded-lg border border-text-secondary/[0.16] glass-popover bg-surface-lowest/80 p-1.5 shadow-[0_16px_36px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-2xl">
               <button
                 type="button"
                 onClick={onLogoutClick}

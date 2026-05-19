@@ -26,14 +26,14 @@ const feedbackTypes: Array<{
     type: 'INCONVENIENCE',
     label: '\uBD88\uD3B8\uD568',
     icon: SmilePlus,
-    activeClassName: 'border-amber-300/35 bg-amber-300/10 text-amber-100 shadow-[0_0_18px_rgba(252,211,77,0.12)]',
-    iconClassName: 'bg-amber-300/10 text-amber-100',
+    activeClassName: 'border-red-300/35 bg-red-400/10 text-red-200 shadow-[0_0_18px_rgba(252,165,165,0.12)]',
+    iconClassName: 'bg-red-400/10 text-red-200',
   },
   {
     type: 'FEATURE_REQUEST',
     label: '\uC81C\uC548',
     icon: Lightbulb,
-    activeClassName: 'border-primary-signal/45 bg-primary-signal/10 text-primary-signal shadow-[0_0_18px_rgba(117,255,205,0.12)]',
+    activeClassName: 'extension-primary-box-glow border-primary-signal/45 bg-primary-signal/10 text-primary-signal',
     iconClassName: 'bg-primary-signal/10 text-primary-signal',
   },
   {
@@ -109,27 +109,27 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-40 bg-black/20 backdrop-blur-md"
+      className="fixed inset-0 z-40 bg-scrim/20 backdrop-blur-md"
       role="presentation"
       onMouseDown={() => {
         if (!isSubmitting) onClose();
       }}
     >
       <div
-        className="absolute left-3 right-3 top-[72px] max-h-[calc(100vh-88px)] overflow-y-auto rounded-xl border border-white/[0.16] bg-[#111614]/62 p-3 shadow-[0_22px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl"
+        className="absolute left-3 right-3 top-[72px] max-h-[calc(100vh-88px)] overflow-y-auto rounded-xl border border-text-secondary/[0.16] glass-popover bg-surface-lowest/62 p-3 shadow-[0_22px_60px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-3xl"
         role="dialog"
         aria-modal="true"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-primary-signal">Feedback</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-action-accent">Feedback</p>
             <h2 className="mt-0.5 text-sm font-bold text-text-primary">{text.title}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary transition hover:bg-white/10 hover:text-text-primary"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-text-secondary transition hover:bg-text-primary/10 hover:text-text-primary"
             aria-label="Close feedback"
           >
             <X size={15} />
@@ -137,13 +137,13 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
         </div>
 
         {isSuccess ? (
-          <div className="mt-3 rounded-lg border border-primary-signal/20 bg-primary-signal/10 p-3 text-center">
-            <CheckCircle2 className="mx-auto text-primary-signal" size={22} />
+          <div className="mt-3 rounded-lg border border-action-accent/20 bg-action-accent/10 p-3 text-center">
+            <CheckCircle2 className="mx-auto text-action-accent" size={22} />
             <p className="mt-2 text-xs font-semibold text-text-primary">{text.success}</p>
             <button
               type="button"
               onClick={onClose}
-              className="mt-3 h-8 rounded-md bg-primary-signal px-3 text-xs font-bold text-black transition hover:bg-primary-signal/90"
+              className="mt-3 h-8 rounded-md bg-action-accent px-3 text-xs font-bold text-text-on-accent transition hover:bg-action-accent/90"
             >
               {text.close}
             </button>
@@ -165,10 +165,10 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
                         'flex h-12 flex-col items-center justify-center gap-1 rounded-lg border text-[10px] font-bold backdrop-blur-xl transition',
                         isSelected
                           ? item.activeClassName
-                          : 'border-white/10 bg-white/[0.045] text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-white/20 hover:bg-white/[0.07] hover:text-text-primary',
+                          : 'border-text-secondary/10 glass-popover bg-surface-lowest/75 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] hover:border-text-secondary/20 hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary',
                       ].join(' ')}
                     >
-                      <span className={['flex h-5 w-5 items-center justify-center rounded-md', isSelected ? item.iconClassName : 'bg-white/5 text-text-secondary'].join(' ')}>
+                      <span className={['flex h-5 w-5 items-center justify-center rounded-md', isSelected ? item.iconClassName : 'glass-card bg-surface-container/80 text-text-secondary'].join(' ')}>
                         <Icon size={13} strokeWidth={1.8} />
                       </span>
                       {item.label}
@@ -186,7 +186,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
                 maxLength={5000}
                 rows={4}
                 placeholder={text.placeholder}
-                className="min-h-[104px] resize-none rounded-lg border border-white/10 bg-white/[0.045] p-3 text-xs leading-relaxed text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/55 focus:border-primary-signal/45 focus:bg-black/20"
+                className="min-h-[104px] resize-none rounded-lg border border-text-secondary/10 glass-card bg-surface-container/60 p-3 text-xs leading-relaxed text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/55 focus:border-primary-signal/45 focus:bg-surface-container/90 bg-surface-container/70"
               />
             </label>
 
@@ -197,7 +197,7 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
                 onChange={(event) => setContact(event.target.value)}
                 maxLength={255}
                 placeholder={text.contactPlaceholder}
-                className="h-9 rounded-lg border border-white/10 bg-white/[0.045] px-3 text-xs text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/45 focus:bg-black/20"
+                className="h-9 rounded-lg border border-text-secondary/10 glass-card bg-surface-container/60 px-3 text-xs text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/45 focus:bg-surface-container/90 bg-surface-container/70"
               />
             </label>
 
@@ -207,18 +207,18 @@ export function FeedbackPopover({ onClose }: FeedbackPopoverProps) {
               </p>
             )}
 
-            <div className="flex items-center justify-end gap-1.5 border-t border-white/5 pt-2">
+            <div className="flex items-center justify-end gap-1.5 border-t border-text-secondary/5 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="h-8 rounded-md border border-white/10 px-3 text-[11px] font-bold text-text-secondary transition hover:bg-white/5 hover:text-text-primary"
+                className="h-8 rounded-md border border-text-secondary/10 px-3 text-[11px] font-bold text-text-secondary transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary"
               >
                 {text.cancel}
               </button>
               <button
                 type="submit"
                 disabled={!content.trim() || isSubmitting}
-                className="flex h-8 min-w-16 items-center justify-center rounded-md bg-primary-signal px-3 text-[11px] font-bold text-black transition hover:bg-primary-signal/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-8 min-w-16 items-center justify-center rounded-md bg-action-accent px-3 text-[11px] font-bold text-text-on-accent transition hover:bg-action-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 size={13} className="animate-spin" /> : text.send}
               </button>

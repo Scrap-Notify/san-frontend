@@ -12,3 +12,6 @@ export { ErrorFallback } from './components/Error/ErrorFallback.tsx';
 export type { ErrorFallbackProps, ErrorFallbackType } from './components/Error/ErrorFallback.tsx';
 export { EmptyState } from './components/Error/EmptyState.tsx';
 export type { EmptyStateProps, EmptyStateType } from './components/Error/EmptyState.tsx';
+export { ThemeToggle } from './components/ThemeToggle/ThemeToggle.tsx';
+export { initTheme, applyTheme, getResolvedTheme, setTheme, toggleTheme } from './theme/theme';
+export type { ThemeMode } from './theme/theme';

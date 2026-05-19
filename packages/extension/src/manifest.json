@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "SAN - 지식 창고",
+  "name": "SAN: Scrap and Notify",
   "description": "웹에서 수집한 링크, 텍스트, 이미지를 SAN 지식 관리 서비스에 저장하고 관리합니다.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "permissions": [
     "sidePanel",
     "storage",
@@ -25,12 +25,12 @@
     ]
   },
   "icons": {
-    "16": "SAN_LOGO_EXTENSION.png",
-    "48": "SAN_LOGO_EXTENSION.png",
-    "128": "SAN_LOGO_EXTENSION.png"
+    "16": "SAN_LOGO.png",
+    "48": "SAN_LOGO.png",
+    "128": "SAN_LOGO.png"
   },
   "action": {
-    "default_icon": "SAN_LOGO_EXTENSION.png"
+    "default_icon": "SAN_LOGO.png"
   },
   "commands": {
     "_execute_action": {

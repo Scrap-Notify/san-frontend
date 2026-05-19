@@ -28,7 +28,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
     };
 
     const cardBaseClass =
-        'group relative w-full flex-shrink-0 overflow-hidden rounded-tl-[30px] rounded-br-[30px] rounded-tr-[10px] rounded-bl-[10px] border border-white/[0.08] bg-white/[0.045] shadow-[0_14px_30px_rgba(0,0,0,0.20),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-md transition-colors hover:border-white/[0.13] hover:bg-white/[0.058]';
+        'group relative w-full flex-shrink-0 overflow-hidden rounded-tl-[30px] rounded-br-[30px] rounded-tr-[10px] rounded-bl-[10px] border border-text-secondary/[0.08] glass-popover bg-surface-lowest/75 backdrop-blur-md transition-colors hover:border-text-secondary/[0.13] hover:bg-surface-container/90 bg-surface-container/80';
 
     const cardContent = (
         <>
@@ -39,14 +39,14 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                             <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
                         ) : (
                             <div className="flex h-full w-full items-center justify-center bg-surface-lowest">
-                                <div className="h-full w-full bg-gradient-to-br from-primary-signal/20 to-black/40" />
+                                <div className="h-full w-full bg-gradient-to-br from-primary-signal/20 to-scrim/40" />
                             </div>
                         )}
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-scrim/80 via-scrim/20 to-transparent" />
 
                         <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <h3 className="text-sm font-bold leading-tight text-white">{item.title}</h3>
+                            <h3 className="text-sm font-bold leading-tight text-text-primary">{item.title}</h3>
                             <p className="mt-1 text-xs font-medium text-text-secondary/80">
                                 {item.subtitle || 'Captured from Source'}
                             </p>
@@ -55,7 +55,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="absolute right-3 top-3 rounded-lg p-1.5 text-white/60 transition hover:bg-white/8 hover:text-primary-signal"
+                            className="absolute right-3 top-3 rounded-lg p-1.5 text-text-primary/60 transition hover:bg-text-primary/8 hover:text-primary-signal"
                         >
                             {copied ? <Check size={16} /> : <Copy size={16} />}
                         </button>
@@ -67,7 +67,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <div className="flex min-w-0 items-start gap-3">
                             <SourceIcon type="link" />
                             <div className="min-w-0">
-                                <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white">{item.title}</h3>
+                                <h3 className="line-clamp-2 text-sm font-bold leading-snug text-text-primary">{item.title}</h3>
                                 {item.timeLabel ? (
                                     <p className="mt-0.5 text-[11px] font-medium text-text-secondary/40">
                                         {item.timeLabel}
@@ -79,7 +79,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-white/8 hover:text-primary-signal"
+                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-text-primary/8 hover:text-primary-signal"
                         >
                             {copied ? <Check size={15} /> : <Copy size={15} />}
                         </button>
@@ -97,7 +97,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <div className="flex min-w-0 flex-1 items-start gap-3">
                             <SourceIcon type="text" />
                             <div className="min-w-0 flex-1">
-                                <h3 className="line-clamp-2 text-sm font-bold leading-snug text-white">{item.title}</h3>
+                                <h3 className="line-clamp-2 text-sm font-bold leading-snug text-text-primary">{item.title}</h3>
                                 <p className="mt-0.5 text-xs font-medium text-text-secondary/40">
                                     {item.timeLabel}
                                 </p>
@@ -107,7 +107,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-white/8 hover:text-primary-signal"
+                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-text-primary/8 hover:text-primary-signal"
                         >
                             {copied ? <Check size={15} /> : <Copy size={15} />}
                         </button>
@@ -119,9 +119,9 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         </p>
                     ) : null}
 
-                    <footer className="mt-1 flex items-center justify-between border-t border-white/[0.06] pt-3">
+                    <footer className="mt-1 flex items-center justify-between border-t border-text-secondary/[0.06] pt-3">
                         {item.tag ? (
-                            <span className="max-w-[180px] truncate rounded-full border border-white/8 bg-white/[0.03] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-secondary/55">
+                            <span className="max-w-[180px] truncate rounded-full border border-text-secondary/8 bg-text-primary/[0.03] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-secondary/55">
                                 {item.tag}
                             </span>
                         ) : (
@@ -129,10 +129,10 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         )}
 
                         {item.href ? (
-                            <div className="rounded-lg bg-white/5 p-1.5 transition group-hover:bg-primary-signal/10">
+                            <div className="rounded-lg bg-text-primary/5 p-1.5 transition group-hover:bg-action-accent/10">
                                 <ExternalLink
                                     size={15}
-                                    className="text-text-secondary/80 group-hover:text-primary-signal"
+                                    className="text-text-secondary/80 group-hover:text-action-accent"
                                 />
                             </div>
                         ) : null}
@@ -155,7 +155,7 @@ function SourceIcon({ type }: { type: 'link' | 'text' }) {
     const Icon = type === 'link' ? Link2 : ScanText;
 
     return (
-        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-primary-signal">
+        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-action-accent">
             <Icon size={18} strokeWidth={1.9} />
         </span>
     );

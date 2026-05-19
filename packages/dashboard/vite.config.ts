@@ -2,7 +2,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
@@ -11,7 +14,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
-      { find: '@san/shared/utils', replacement: resolve(__dirname, '../shared/src/utils/format.ts') },
+      { find: '@san/shared/utils', replacement: resolve(__dirname, '../shared/src/utils') },
       { find: '@san/shared', replacement: resolve(__dirname, '../shared/src/index.ts') },
       { find: '@san/ui', replacement: resolve(__dirname, '../ui/src/index.ts') },
       { find: '@ui', replacement: resolve(__dirname, '../ui/src') },

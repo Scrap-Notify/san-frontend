@@ -39,19 +39,19 @@ export function ArchiveCategoryPage() {
   const isSearching = Boolean(keyword);
 
   return (
-    <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-white">
+    <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
       <header className="flex flex-col gap-4">
         <button
           type="button"
           onClick={() => navigate('/archive')}
-          className="flex w-fit items-center gap-2 text-sm font-bold text-white/45 transition hover:text-white"
+          className="flex w-fit items-center gap-2 text-sm font-bold text-text-primary/45 transition hover:text-text-primary"
         >
           <ArrowLeft size={16} />
           전체 archive
         </button>
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight">{categoryName || 'Archive'}</h1>
-          <p className="mt-3 text-white/50">이 폴더 안의 지식카드를 찾고, 좁히고, 다시 꺼내볼 수 있습니다.</p>
+          <p className="mt-3 text-text-primary/50">이 폴더 안의 지식카드를 찾고, 좁히고, 다시 꺼내볼 수 있습니다.</p>
         </div>
       </header>
 
@@ -64,7 +64,7 @@ export function ArchiveCategoryPage() {
 
       {!isSearching ? (
         archiveQuery.isPending ? (
-          <p className="py-16 text-center text-sm text-white/40">지식카드를 불러오는 중입니다...</p>
+          <p className="py-16 text-center text-sm text-text-primary/40">지식카드를 불러오는 중입니다...</p>
         ) : archiveQuery.isError ? (
           <p className="py-16 text-center text-sm text-red-400">지식카드를 불러오지 못했습니다.</p>
         ) : archiveCards.length === 0 ? (
@@ -82,7 +82,7 @@ export function ArchiveCategoryPage() {
           </div>
         )
       ) : searchQuery.isPending && searchResults.length === 0 ? (
-        <p className="py-16 text-center text-sm text-white/40">검색 중입니다...</p>
+        <p className="py-16 text-center text-sm text-text-primary/40">검색 중입니다...</p>
       ) : searchQuery.isError ? (
         <p className="py-16 text-center text-sm text-red-400">검색 결과를 불러오지 못했습니다.</p>
       ) : searchResults.length === 0 ? (
@@ -104,7 +104,7 @@ export function ArchiveCategoryPage() {
               <button
                 type="button"
                 onClick={() => void searchQuery.fetchNextPage()}
-                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-bold text-white/75 transition hover:border-[#4ade80]/40 hover:text-white"
+                className="rounded-2xl border border-text-secondary/10 bg-text-primary/5 px-6 py-3 text-sm font-bold text-text-primary/75 transition hover:border-action-accent/40 hover:text-text-primary"
               >
                 더 보기
               </button>
@@ -140,14 +140,14 @@ function FilterPanel({
   }, [inputValue, keyword, onKeywordChange]);
 
   return (
-    <div className="flex flex-col gap-5 rounded-[32px] border border-white/5 bg-[#131718] p-6">
+    <div className="flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-primary/25" />
         <input
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           placeholder="이 폴더 안에서 검색"
-          className="w-full rounded-2xl border border-white/5 bg-white/[0.03] py-4 pl-11 pr-4 text-sm outline-none transition focus:border-[#4ade80]/30"
+          className="w-full rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] py-4 pl-11 pr-4 text-sm outline-none transition focus:border-primary-signal/30"
         />
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -155,19 +155,19 @@ function FilterPanel({
           value={filters.tag}
           onChange={(event) => onFilterChange({ ...filters, tag: event.target.value })}
           placeholder="#태그"
-          className="rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3 text-sm outline-none"
+          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
         />
         <input
           type="date"
           value={filters.fromDate}
           onChange={(event) => onFilterChange({ ...filters, fromDate: event.target.value })}
-          className="rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3 text-sm outline-none"
+          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
         />
         <input
           type="date"
           value={filters.toDate}
           onChange={(event) => onFilterChange({ ...filters, toDate: event.target.value })}
-          className="rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3 text-sm outline-none"
+          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
         />
       </div>
     </div>
@@ -179,10 +179,10 @@ function ArchiveCard({ title, subtitle, onClick }: { title: string; subtitle: st
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-48 flex-col justify-between rounded-[28px] border border-white/5 bg-[#131718] p-6 text-left transition hover:-translate-y-1 hover:border-[#4ade80]/30 hover:bg-[#161a1b]"
+      className="flex min-h-48 flex-col justify-between rounded-[28px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
     >
-      <h2 className="text-xl font-bold leading-snug text-white">{title}</h2>
-      <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-white/45">{subtitle}</p>
+      <h2 className="text-xl font-bold leading-snug text-text-primary">{title}</h2>
+      <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-text-primary/45">{subtitle}</p>
     </button>
   );
 }

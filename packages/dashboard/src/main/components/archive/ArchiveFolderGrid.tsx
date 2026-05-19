@@ -11,7 +11,7 @@ export function ArchiveFolderGrid() {
   return (
     <section className="flex flex-col gap-6">
       {archiveCategoriesQuery.isPending ? (
-        <p className="py-10 text-sm text-white/40">폴더를 불러오는 중입니다...</p>
+        <p className="py-10 text-sm text-text-secondary">폴더를 불러오는 중입니다...</p>
       ) : archiveCategoriesQuery.isError ? (
         <p className="py-10 text-sm text-red-400">폴더를 불러오지 못했습니다.</p>
       ) : categories.length === 0 ? (
@@ -26,21 +26,21 @@ export function ArchiveFolderGrid() {
               key={category.categoryId}
               type="button"
               onClick={() => navigate(`/archive/${category.categoryId}`)}
-              className="group flex min-h-[180px] flex-col justify-between rounded-[32px] border border-white/5 bg-[#131718] p-8 text-left transition-all duration-300 hover:-translate-y-1 hover:border-[#4ade80]/30 hover:bg-[#161a1b]"
+              className="group flex min-h-[180px] flex-col justify-between rounded-[32px] border border-text-secondary/10 glass-card bg-surface-container/80 p-8 text-left transition-all duration-300 hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#4ade80]/10 text-[#4ade80]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-action-accent/10 text-action-accent">
                   <FolderOpen size={22} />
                 </div>
-                <span className="rounded-full border border-white/5 bg-white/[0.03] px-3 py-1 text-xs font-bold text-white/45">
+                <span className="rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-3 py-1 text-xs font-bold text-text-secondary/70">
                   {category.cardCount} CARDS
                 </span>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white transition-colors group-hover:text-[#4ade80]">
+                <h3 className="text-xl font-bold text-text-primary transition-colors group-hover:text-action-accent">
                   {category.categoryName}
                 </h3>
-                <p className="mt-2 text-sm text-white/35">폴더 열기</p>
+                <p className="mt-2 text-sm text-text-secondary">폴더 열기</p>
               </div>
             </button>
           ))}

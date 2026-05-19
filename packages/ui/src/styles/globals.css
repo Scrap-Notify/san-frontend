@@ -1,6 +1,6 @@
 /* packages/ui/src/styles/globals.css */
 
-/* 1. 웹폰트 및 테일윈드 엔진 로드 */
+/* 1. shared font load */
 @import "tailwindcss";
 
 @font-face {
@@ -35,46 +35,148 @@
   font-display: swap;
 }
 
-/* 2. 테일윈드 v4 테마 정의 (피그마 토큰 반영) */
+/* 2. shared theme tokens */
 @theme {
-  /* ── 브랜딩 및 시스템 컬러 (colors.tokens.json 기반) ── */
-  --color-background: #101417;        /* Deep navy */
-  --color-surface-low: #181c1f;       /* Surface Low */
-  --color-surface-container: #1c2023; /* Surface Container */
-  --color-surface-highest: #313539;   /* Surface Highest */
+  --color-background: #101417;
+  --color-action-accent: #4ade80;
+  --color-action-accent-hover: #3fce75;
+  --color-action-accent-active: #33b968;
+  --color-surface-low: #181c1f;
+  --color-surface-container: #1c2023;
+  --color-surface-highest: #313539;
+  --color-surface-lowest: #0b0d0f;
+  --color-scrim: rgba(0, 0, 0, 0.6);
 
-  --color-primary-signal: #00ffc2;    /* Primary Signal / Normal */
+  --color-primary-signal: #00ffc2;
   --color-primary-signal-hover: #00e6af;
   --color-primary-signal-active: #00cc9b;
   --color-primary-signal-dark: #00bf92;
   --color-primary-signal-dark-hover: #009974;
   --color-primary-signal-dark-active: #007357;
   --color-primary-signal-darker: #005944;
-  --color-neon: #00ffc2;              /* Primary Signal */
+  --color-neon: #00ffc2;
   --color-neon-dim: rgba(0, 255, 194, 0.2);
   --color-neon-subtle: rgba(0, 255, 194, 0.1);
 
-  --color-teal: #1e5056;              /* Misty Teal Base */
-  --color-teal-dim: rgba(30, 80, 86, 0.4); /* Misty Teal 40% */
+  --color-teal: #1e5056;
+  --color-teal-dim: rgba(30, 80, 86, 0.4);
 
-  --color-text-primary: #fbfffa;      /* High-contrast white */
-  --color-text-secondary: #b9cbc1;    /* On-surface variant */
+  --color-text-primary: #fbfffa;
+  --color-text-secondary: #b9cbc1;
   --color-text-ghost: #83958c;
+  --color-text-on-accent: #101417;
+  --color-helper-glow: rgba(74, 222, 128, 0.22);
+  --shadow-helper-aura: 0 18px 24px rgba(0, 0, 0, 0.18), 0 0 20px rgba(74, 222, 128, 0.18);
 
-  /* ── 타이포그래피 (typography.json 기반) ── */
-  --font-sans: 'Pretendard'; /* */
+  --shadow-glass-card: 0 16px 40px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-glass-panel: 0 18px 44px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --shadow-glass-popover: 0 20px 54px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --shadow-glass-modal: 0 28px 84px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-neon: 0 0 12px rgba(0, 255, 194, 0.32);
+  --shadow-neon-sm: 0 0 6px rgba(0, 255, 194, 0.6);
+  --blur-glass-card: 16px;
+  --blur-glass-panel: 18px;
+  --blur-glass-popover: 20px;
+  --blur-glass-modal: 10px;
+  --glass-card-bg: rgba(28, 32, 35, 0.82);
+  --glass-card-border: rgba(185, 203, 193, 0.14);
+  --glass-panel-bg: rgba(24, 28, 31, 0.78);
+  --glass-panel-border: rgba(185, 203, 193, 0.13);
+  --glass-popover-bg: rgba(16, 20, 23, 0.74);
+  --glass-popover-border: rgba(185, 203, 193, 0.12);
+  --glass-modal-bg: rgba(11, 13, 15, 0.78);
+  --glass-modal-border: rgba(185, 203, 193, 0.12);
+  --glass-input-bg: rgba(24, 28, 31, 0.72);
+  --glass-input-border: rgba(185, 203, 193, 0.14);
 
-  /* ── 유기적 간격 및 형태 (san_styleguide.md 기반) ── */
-  --spacing-dashboard: 24px;          /* */
-  --spacing-dashboard-gap: 24px;      /* Dashboard layout gap */
+  --font-sans: 'Pretendard';
+  --spacing-dashboard: 24px;
+  --spacing-dashboard-gap: 24px;
 
-  --radius-leaf: 48px 8px 48px 8px;   /* leaf: top-left/bottom-right large */
+  --radius-leaf: 48px 8px 48px 8px;
   --radius-leaf-reverse: 8px 48px 8px 48px;
   --radius-leaf-full: 48px 8px 48px 8px;
   --radius-leaf-soft: 48px 48px 8px 8px;
 }
 
-/* 3. 베이스 스타일 (전역 설정) */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --color-background: #f4f8f5;
+  --color-surface-low: #ffffff;
+  --color-surface-container: #e5ede7;
+  --color-surface-highest: #cfdbd4;
+  --color-surface-lowest: #ffffff;
+  --color-scrim: rgba(15, 23, 42, 0.14);
+
+  --color-text-primary: #10201a;
+  --color-text-secondary: #4e6159;
+  --color-text-ghost: #71827b;
+  --color-text-on-accent: #f4f8f5;
+  --color-helper-glow: rgba(15, 143, 127, 0.16);
+  --shadow-helper-aura: 0 14px 22px rgba(15, 23, 42, 0.10), 0 0 18px rgba(15, 143, 127, 0.14);
+
+  --color-primary-signal: #0f8f7f;
+  --color-primary-signal-hover: #0d7f71;
+  --color-primary-signal-active: #0b6f63;
+  --color-primary-signal-dark: #0d7f71;
+  --color-primary-signal-dark-hover: #0b6f63;
+  --color-primary-signal-dark-active: #09564c;
+  --color-primary-signal-darker: #084a42;
+
+  --color-neon: #0f8f7f;
+  --color-neon-dim: rgba(15, 143, 127, 0.18);
+  --color-neon-subtle: rgba(15, 143, 127, 0.1);
+
+  --color-teal: #d9f2ec;
+  --color-teal-dim: rgba(15, 143, 127, 0.08);
+
+  --shadow-glass-card: 0 10px 24px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-glass-panel: 0 14px 28px rgba(15, 23, 42, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-glass-popover: 0 18px 36px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  --shadow-glass-modal: 0 24px 56px rgba(15, 23, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  --shadow-neon: 0 0 8px rgba(15, 143, 127, 0.16);
+  --shadow-neon-sm: 0 0 4px rgba(15, 143, 127, 0.14);
+  --blur-glass-card: 8px;
+  --blur-glass-panel: 10px;
+  --blur-glass-popover: 12px;
+  --blur-glass-modal: 6px;
+  --glass-card-bg: rgba(255, 255, 255, 0.95);
+  --glass-card-border: rgba(79, 102, 93, 0.16);
+  --glass-panel-bg: rgba(250, 252, 250, 0.98);
+  --glass-panel-border: rgba(79, 102, 93, 0.14);
+  --glass-popover-bg: rgba(255, 255, 255, 0.98);
+  --glass-popover-border: rgba(79, 102, 93, 0.12);
+  --glass-modal-bg: rgba(248, 250, 248, 0.98);
+  --glass-modal-border: rgba(79, 102, 93, 0.12);
+  --glass-input-bg: rgba(255, 255, 255, 0.94);
+  --glass-input-border: rgba(79, 102, 93, 0.18);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-2xl'] {
+  backdrop-filter: blur(6px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-xl'] {
+  backdrop-filter: blur(5px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-lg'] {
+  backdrop-filter: blur(4px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-md'] {
+  backdrop-filter: blur(3px) !important;
+}
+
+:root[data-theme='light'] [class*='backdrop-blur-sm'] {
+  backdrop-filter: blur(2px) !important;
+}
+
+/* 3. base styles */
 @layer base {
   html {
     font-family: var(--font-sans);
@@ -95,7 +197,6 @@
     font: inherit;
   }
 
-  /* 스크롤바 디자인 - '지식의 숲' 컨셉에 맞게 최소화 */
   ::-webkit-scrollbar {
     width: 6px;
   }
@@ -104,22 +205,52 @@
   }
 }
 
-/* 4. 유틸리티 클래스 (특수 효과 구현) */
+/* 4. utilities */
 @layer utilities {
-  /* ── 바이오루미네선스 (발광 효과) ── */
   .glow-neon {
-    box-shadow: 0 0 15px 0 var(--color-neon-dim);
+    box-shadow: var(--shadow-neon);
   }
   .glow-neon-strong {
-    box-shadow: 0 0 20px 2px var(--color-neon);
+    box-shadow: var(--shadow-neon-sm);
   }
 
-  /* ── 글래스모피즘 (Misty Layer) ── */
   .glass-card {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+    background-color: var(--glass-card-bg);
+    border-color: var(--glass-card-border);
+    box-shadow: var(--shadow-glass-card);
+    backdrop-filter: blur(var(--blur-glass-card));
   }
 
-  /* ── 나뭇잎 곡선 변형 ── */
+  .glass-panel {
+    background-color: var(--glass-panel-bg);
+    border-color: var(--glass-panel-border);
+    box-shadow: var(--shadow-glass-panel);
+    backdrop-filter: blur(var(--blur-glass-panel));
+  }
+
+  .glass-popover {
+    background-color: var(--glass-popover-bg);
+    border-color: var(--glass-popover-border);
+    box-shadow: var(--shadow-glass-popover);
+    backdrop-filter: blur(var(--blur-glass-popover));
+  }
+
+  .glass-modal {
+    background-color: var(--glass-modal-bg);
+    border-color: var(--glass-modal-border);
+    box-shadow: var(--shadow-glass-modal);
+    backdrop-filter: blur(var(--blur-glass-modal));
+  }
+
+  .glass-input {
+    background-color: var(--glass-input-bg);
+    border-color: var(--glass-input-border);
+  }
+
+  .helper-aura {
+    box-shadow: var(--shadow-helper-aura);
+  }
+
   .rounded-leaf {
     border-radius: var(--radius-leaf);
   }
@@ -133,7 +264,6 @@
     border-radius: var(--radius-leaf-soft);
   }
 
-  /* ── 타이포그래피 커스텀 (추출값 매칭) ── */
   .text-h1-bold {
     @apply text-[31px] font-bold leading-[1.2];
   }

@@ -60,55 +60,56 @@ export interface KnowledgeCardDetailData {
   }>;
 }
 
-const sectionCardClass = 'rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-white/5 bg-[#131718] p-6 shadow-md';
-const panelCardClass = 'rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-white/5 bg-[#181c1f] p-5';
+const textWrapClass = 'min-w-0 break-words [overflow-wrap:anywhere]';
+const sectionCardClass = 'min-w-0 rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 glass-card bg-surface-container/80 p-6 shadow-md';
+const panelCardClass = 'min-w-0 rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-text-secondary/5 bg-surface-low p-5';
 const REFINE_POLL_INTERVAL_MS = 2000;
 const REFINE_POLL_TIMEOUT_MS = 30000;
 
 const mdComponents = {
   h1: ({ children }: { children?: React.ReactNode }) => (
-    <h1 className="mb-5 border-b border-[#4ade80]/20 pb-3 text-2xl font-bold text-white">{children}</h1>
+    <h1 className={`mb-5 border-b border-primary-signal/20 pb-3 text-2xl font-bold text-text-primary ${textWrapClass}`}>{children}</h1>
   ),
   h2: ({ children }: { children?: React.ReactNode }) => (
-    <h2 className="mb-3 mt-7 text-xl font-bold text-white">{children}</h2>
+    <h2 className={`mb-3 mt-7 text-xl font-bold text-text-primary ${textWrapClass}`}>{children}</h2>
   ),
   h3: ({ children }: { children?: React.ReactNode }) => (
-    <h3 className="mb-2 mt-5 text-lg font-semibold text-white/90">{children}</h3>
+    <h3 className={`mb-2 mt-5 text-lg font-semibold text-text-primary/90 ${textWrapClass}`}>{children}</h3>
   ),
   h4: ({ children }: { children?: React.ReactNode }) => (
-    <h4 className="mb-2 mt-4 text-base font-semibold text-white/90">{children}</h4>
+    <h4 className={`mb-2 mt-4 text-base font-semibold text-text-primary/90 ${textWrapClass}`}>{children}</h4>
   ),
   p: ({ children }: { children?: React.ReactNode }) => (
-    <p className="mb-4 leading-7 text-white/70">{children}</p>
+    <p className={`mb-4 leading-7 text-text-primary/70 ${textWrapClass}`}>{children}</p>
   ),
   ul: ({ children }: { children?: React.ReactNode }) => (
-    <ul className="mb-4 list-disc space-y-1.5 pl-6 text-white/70">{children}</ul>
+    <ul className="mb-4 list-disc space-y-1.5 pl-6 text-text-primary/70">{children}</ul>
   ),
   ol: ({ children }: { children?: React.ReactNode }) => (
-    <ol className="mb-4 list-decimal space-y-1.5 pl-6 text-white/70">{children}</ol>
+    <ol className="mb-4 list-decimal space-y-1.5 pl-6 text-text-primary/70">{children}</ol>
   ),
   li: ({ children }: { children?: React.ReactNode }) => (
-    <li className="pl-1 leading-7 marker:text-[#4ade80]">{children}</li>
+    <li className={`pl-1 leading-7 marker:text-primary-signal ${textWrapClass}`}>{children}</li>
   ),
   strong: ({ children }: { children?: React.ReactNode }) => (
-    <strong className="font-bold text-white/90">{children}</strong>
+    <strong className="font-bold text-text-primary/90">{children}</strong>
   ),
   em: ({ children }: { children?: React.ReactNode }) => (
-    <em className="text-white/50">{children}</em>
+    <em className="text-text-primary/50">{children}</em>
   ),
   blockquote: ({ children }: { children?: React.ReactNode }) => (
-    <blockquote className="mb-4 border-l-2 border-[#4ade80]/40 bg-[#4ade80]/5 py-2 pl-4 text-white/60">{children}</blockquote>
+    <blockquote className="mb-4 border-l-2 border-primary-signal/40 bg-primary-signal/5 py-2 pl-4 text-text-primary/60">{children}</blockquote>
   ),
   code: ({ children }: { children?: React.ReactNode }) => (
-    <code className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-sm text-[#4ade80]">{children}</code>
+    <code className={`rounded bg-text-primary/10 px-1.5 py-0.5 font-mono text-sm text-primary-signal ${textWrapClass}`}>{children}</code>
   ),
   pre: ({ children }: { children?: React.ReactNode }) => (
-    <pre className="mb-4 overflow-x-auto rounded-xl border border-white/5 bg-[#0B0D0F] p-4 text-sm leading-6">{children}</pre>
+    <pre className="mb-4 max-w-full overflow-x-auto rounded-xl border border-text-secondary/5 bg-surface-lowest p-4 text-sm leading-6">{children}</pre>
   ),
   a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
-    <a href={href} target="_blank" rel="noreferrer" className="text-[#4ade80] underline decoration-[#4ade80]/40 underline-offset-4">{children}</a>
+    <a href={href} target="_blank" rel="noreferrer" className={`text-primary-signal underline decoration-primary-signal/40 underline-offset-4 ${textWrapClass}`}>{children}</a>
   ),
-  hr: () => <hr className="my-6 border-white/10" />,
+  hr: () => <hr className="my-6 border-text-secondary/10" />,
 };
 
 export function KnowledgeCardDetailPage() {
@@ -172,27 +173,27 @@ export function KnowledgeCardDetailPage() {
   }
 
   return (
-    <section className="flex w-full min-w-0 flex-col gap-8 text-white">
+    <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-white/40 transition-colors hover:text-white"
+            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-text-primary/40 transition-colors hover:text-text-primary"
           >
             <ArrowLeft size={16} aria-hidden="true" />
             돌아가기
           </button>
-          <p className="text-md font-bold uppercase tracking-wide text-[#4ade80]">지식카드 상세보기</p>
+          <p className="text-md font-bold uppercase tracking-wide text-primary-signal">지식카드 상세보기</p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="max-w-4xl text-h1-bold leading-[1.25] text-white md:text-[40px]">
+            <h1 className="max-w-4xl text-h1-bold leading-[1.25] text-text-primary md:text-[40px]">
               {data.finalCard.title}
             </h1>
-            <span className="shrink-0 rounded-full border border-[#4ade80]/20 bg-[#4ade80]/10 px-3 py-1 text-sm font-semibold text-[#4ade80]">
+            <span className="shrink-0 rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-sm font-semibold text-primary-signal">
               {data.finalCard.categoryName}
             </span>
           </div>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-white/50">
+          <p className="mt-4 max-w-3xl text-base leading-7 text-text-primary/50">
             원본 데이터에서 AI 1차 정제 텍스트를 거쳐 최종 지식카드가 만들어진 흐름을 확인합니다.
           </p>
         </div>
@@ -278,7 +279,7 @@ function ProcessedTextSection({
           <button
             type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-xs font-medium text-white/50 transition-colors hover:border-white/20 hover:text-white"
+            className="mt-1 flex shrink-0 items-center gap-1.5 rounded-lg border border-text-secondary/10 px-3 py-1.5 text-xs font-medium text-text-primary/50 transition-colors hover:border-text-secondary/20 hover:text-text-primary"
           >
             {isEditing ? <Eye size={13} /> : <PenLine size={13} />}
             {isEditing ? '미리보기' : '편집'}
@@ -289,21 +290,21 @@ function ProcessedTextSection({
       {hasRefinedContent ? (
         <>
           {isEditing && (
-            <div className="mt-4 flex items-center gap-1 overflow-x-auto rounded-xl border border-white/5 bg-[#0B0D0F]/60 px-2.5 py-2 text-white/40">
+            <div className="mt-4 flex items-center gap-1 overflow-x-auto rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 px-2.5 py-2 text-text-primary/40">
               <ToolbarButton icon={<Heading size={13} />} title="Heading" onClick={() => handleFormat('heading')} />
               <ToolbarButton icon={<Bold size={13} strokeWidth={2.5} />} title="Bold" onClick={() => handleFormat('bold')} />
               <ToolbarButton icon={<Italic size={13} strokeWidth={2.5} />} title="Italic" onClick={() => handleFormat('italic')} />
               <ToolbarButton icon={<Quote size={13} />} title="Quote" onClick={() => handleFormat('quote')} />
               <ToolbarButton icon={<Code size={13} />} title="Code" onClick={() => handleFormat('code')} />
               <ToolbarButton icon={<LinkIcon size={13} />} title="Link" onClick={() => handleFormat('link')} />
-              <div className="mx-1 h-4 w-px shrink-0 bg-white/10" />
+              <div className="mx-1 h-4 w-px shrink-0 bg-text-primary/10" />
               <ToolbarButton icon={<ListOrdered size={13} />} title="Ordered List" onClick={() => handleFormat('ordered-list')} />
               <ToolbarButton icon={<List size={13} />} title="List" onClick={() => handleFormat('list')} />
             </div>
           )}
 
           {isEditing ? (
-            <div className="mt-3 overflow-hidden rounded-2xl border border-white/5 bg-[#1e1e1e]/30">
+            <div className="mt-3 overflow-hidden rounded-2xl border border-text-secondary/5 bg-surface-lowest/30">
               <Editor
                 height="24rem"
                 theme="vs-dark"
@@ -313,9 +314,9 @@ function ProcessedTextSection({
                 onMount={handleEditorMount}
                 loading={
                   <div className="flex h-96 w-full flex-col gap-4 p-6 animate-pulse">
-                    <div className="h-6 w-3/4 rounded bg-white/5" />
-                    <div className="h-4 w-full rounded bg-white/5" />
-                    <div className="h-4 w-2/3 rounded bg-white/5" />
+                    <div className="h-6 w-3/4 rounded bg-text-primary/5" />
+                    <div className="h-4 w-full rounded bg-text-primary/5" />
+                    <div className="h-4 w-2/3 rounded bg-text-primary/5" />
                   </div>
                 }
                 options={{
@@ -342,8 +343,8 @@ function ProcessedTextSection({
               />
             </div>
           ) : (
-            <div className="mt-6 rounded-2xl border border-white/5 bg-[#0B0D0F]/60 px-4 py-5 sm:px-6">
-              <article className="max-w-none">
+            <div className="mt-6 rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 px-4 py-5 sm:px-6">
+              <article className={`max-w-none ${textWrapClass}`}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                   {editValue}
                 </ReactMarkdown>
@@ -353,13 +354,13 @@ function ProcessedTextSection({
 
           {isEditing && (
             <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="hidden text-xs text-white/25 sm:block">수정 API 연동 준비 중</span>
+              <span className="hidden text-xs text-text-primary/25 sm:block">수정 API 연동 준비 중</span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleReset}
                   disabled={!hasUnsavedChanges}
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-white/40 transition-colors hover:text-white disabled:opacity-30"
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-primary/40 transition-colors hover:text-text-primary disabled:opacity-30"
                 >
                   <RotateCcw size={12} />
                   초기화
@@ -367,7 +368,7 @@ function ProcessedTextSection({
                 <button
                   type="button"
                   disabled
-                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-[#4ade80]/60 px-3 py-1.5 text-xs font-bold text-[#0B0D0F] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-action-accent/60 px-3 py-1.5 text-xs font-bold text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Save size={12} />
                   저장
@@ -377,17 +378,17 @@ function ProcessedTextSection({
           )}
 
           {!isEditing && processedText.updatedAt && (
-            <div className="mt-3 text-right text-xs text-white/35">
+            <div className="mt-3 text-right text-xs text-text-primary/35">
               정제 일시 {formatDateTime(processedText.updatedAt)}
             </div>
           )}
         </>
       ) : isCheckingRefinedContent ? (
-        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
+        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
-            <Loader2 size={24} className="animate-spin text-[#4ade80]" aria-hidden="true" />
-            <p className="text-base font-semibold text-white/70">1차 정제 데이터를 확인하는 중입니다.</p>
-            <p className="text-sm leading-6 text-white/40">
+            <Loader2 size={24} className="animate-spin text-primary-signal" aria-hidden="true" />
+            <p className="text-base font-semibold text-text-primary/70">1차 정제 데이터를 확인하는 중입니다.</p>
+            <p className="text-sm leading-6 text-text-primary/40">
               원본 저장 직후라면 정제 작업이 아직 끝나지 않았을 수 있어요.
               <br />
               잠시 동안 자동으로 다시 확인합니다.
@@ -395,11 +396,11 @@ function ProcessedTextSection({
           </div>
         </div>
       ) : (
-        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-white/5 bg-[#0B0D0F]/60 p-6 text-center">
+        <div className="mt-6 flex min-h-48 items-center justify-center rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-6 text-center">
           <div className="flex max-w-md flex-col items-center gap-3">
-            <BookOpen size={24} className="text-white/25" aria-hidden="true" />
-            <p className="text-base font-semibold text-white/70">1차 정제 데이터가 없습니다.</p>
-            <p className="text-sm leading-6 text-white/40">
+            <BookOpen size={24} className="text-text-primary/25" aria-hidden="true" />
+            <p className="text-base font-semibold text-text-primary/70">1차 정제 데이터가 없습니다.</p>
+            <p className="text-sm leading-6 text-text-primary/40">
               현재 상세 API에서 정제된 텍스트가 제공되지 않아
               <br />원본 데이터와 최종 지식카드만 확인할 수 있습니다.
             </p>
@@ -420,13 +421,13 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
       />
 
       <div className="mt-6">
-        <div className="rounded-2xl border border-white/5 bg-[#181c1f] p-5">
-          <p className="text-sm font-bold tracking-wide text-white/35">핵심 요약</p>
+        <div className="rounded-2xl border border-text-secondary/5 bg-surface-low p-5">
+          <p className="text-sm font-bold tracking-wide text-text-primary/35">핵심 요약</p>
           <ul className="mt-4 space-y-3">
             {finalCard.keyPoints.map((point) => (
-              <li key={point} className="flex gap-3 text-sm leading-7 text-white/70">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4ade80]" />
-                <span>{point}</span>
+              <li key={point} className="flex min-w-0 gap-3 text-sm leading-7 text-text-primary/70">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-signal" />
+                <span className={textWrapClass}>{point}</span>
               </li>
             ))}
           </ul>
@@ -442,10 +443,10 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
   return (
     <aside className="flex min-w-0 flex-col gap-5 lg:sticky lg:top-28 lg:self-start">
       <div className={panelCardClass}>
-        <p className="text-xs font-bold uppercase tracking-wide text-[#4ade80]">원본 데이터</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-primary-signal">원본 데이터</p>
         <div className="mt-4 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#4ade80]/20 bg-[#4ade80]/5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[#4ade80]">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-signal/20 bg-primary-signal/5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-primary-signal">
               <SourceIcon size={12} aria-hidden="true" />
               {data.source.type}
             </span>
@@ -458,9 +459,9 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
               href={data.source.url}
               target="_blank"
               rel="noreferrer"
-              className="flex min-w-0 items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5 text-sm text-white/60 transition hover:border-white/10 hover:text-white"
+              className="flex min-w-0 items-center gap-2 rounded-xl border border-text-secondary/5 bg-text-primary/[0.03] px-3 py-2.5 text-sm text-text-primary/60 transition hover:border-text-secondary/10 hover:text-text-primary"
             >
-              <LinkIcon size={14} className="shrink-0 text-[#4ade80]" aria-hidden="true" />
+              <LinkIcon size={14} className="shrink-0 text-primary-signal" aria-hidden="true" />
               <span className="truncate">{data.source.url}</span>
             </a>
           ) : null}
@@ -474,7 +475,7 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
       </div>
 
       <div className={panelCardClass}>
-        <p className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-white/35">
+        <p className="mb-4 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-text-primary/35">
           <Tags size={14} aria-hidden="true" />
           Tags
         </p>
@@ -482,24 +483,24 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
       </div>
 
       <div className={panelCardClass}>
-        <p className="mb-4 text-sm font-bold tracking-wide text-white/35">관련 카드</p>
+        <p className="mb-4 text-sm font-bold tracking-wide text-text-primary/35">관련 카드</p>
         {isLoadingRelated ? (
-          <p className="text-sm text-white/40">관련 카드를 불러오는 중입니다.</p>
+          <p className="text-sm text-text-primary/40">관련 카드를 불러오는 중입니다.</p>
         ) : data.relatedCards.length > 0 ? (
           <div className="space-y-3">
             {data.relatedCards.map((card) => (
               <Link
                 key={card.cardId}
                 to={`/cards/${card.cardId}`}
-                className="block rounded-xl border border-white/5 bg-white/[0.03] p-4 transition hover:border-[#4ade80]/30 hover:bg-[#4ade80]/5"
+                className="block rounded-xl border border-text-secondary/5 bg-text-primary/[0.03] p-4 transition hover:border-primary-signal/30 hover:bg-primary-signal/5"
               >
-                <p className="text-xs font-bold text-[#4ade80]">{card.categoryName}</p>
-                <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/70">{card.title}</p>
+                <p className="text-xs font-bold text-primary-signal">{card.categoryName}</p>
+                <p className={`mt-2 line-clamp-2 text-sm font-semibold leading-6 text-text-primary/70 ${textWrapClass}`}>{card.title}</p>
               </Link>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-white/40">표시할 관련 카드가 없습니다.</p>
+          <p className="text-sm text-text-primary/40">표시할 관련 카드가 없습니다.</p>
         )}
       </div>
     </aside>
@@ -510,11 +511,11 @@ function DetailStatus({ title, description, tone = 'default' }: { title: string;
   const Icon = tone === 'error' ? AlertCircle : Loader2;
 
   return (
-    <section className="grid min-h-[calc(100vh-14rem)] w-full place-items-center text-white">
-      <div className="flex max-w-xl flex-col items-center gap-4 rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-white/5 bg-[#131718] p-8 text-center">
-        <Icon className={tone === 'error' ? 'text-red-400' : 'animate-spin text-[#4ade80]'} size={28} aria-hidden="true" />
+    <section className="grid min-h-[calc(100vh-14rem)] w-full place-items-center text-text-primary">
+      <div className="flex max-w-xl flex-col items-center gap-4 rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 glass-card bg-surface-container/80 p-8 text-center">
+        <Icon className={tone === 'error' ? 'text-red-400' : 'animate-spin text-primary-signal'} size={28} aria-hidden="true" />
         <h1 className="text-xl font-bold">{title}</h1>
-        <p className="text-sm leading-6 text-white/45">{description}</p>
+        <p className="text-sm leading-6 text-text-primary/45">{description}</p>
       </div>
     </section>
   );
@@ -524,12 +525,12 @@ function SectionHeader({ icon, title, description }: { icon: ReactNode; title: s
   return (
     <div className="flex flex-col gap-3">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[18px] rounded-br-[18px] rounded-tr-md rounded-bl-md bg-[#4ade80]/10 text-[#4ade80]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[18px] rounded-br-[18px] rounded-tr-md rounded-bl-md bg-primary-signal/10 text-primary-signal">
           {icon}
         </span>
-        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <h2 className="text-xl font-bold text-text-primary">{title}</h2>
       </div>
-      <p className="w-full text-[16px] leading-7 text-white/50">{description}</p>
+      <p className="w-full text-[16px] leading-7 text-text-primary/50">{description}</p>
     </div>
   );
 }
@@ -538,8 +539,8 @@ function SectionHeader({ icon, title, description }: { icon: ReactNode; title: s
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-w-0 items-start justify-between gap-4">
-      <dt className="shrink-0 text-white/35">{label}</dt>
-      <dd className="min-w-0 truncate text-right font-medium text-white/65">{value}</dd>
+      <dt className="shrink-0 text-text-primary/35">{label}</dt>
+      <dd className="min-w-0 truncate text-right font-medium text-text-primary/65">{value}</dd>
     </div>
   );
 }
@@ -550,10 +551,10 @@ function ExpandableSourceText({ text }: { text: string }) {
   const isLong = text.length > 360 || lineCount > 6;
 
   return (
-    <div className="rounded-xl border border-white/5 bg-[#0B0D0F]/60 p-3">
+    <div className="min-w-0 rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-3">
       <p
         className={[
-          'whitespace-pre-wrap text-sm leading-6 text-white/50',
+          `whitespace-pre-wrap text-sm leading-6 text-text-primary/50 ${textWrapClass}`,
           !expanded && isLong ? 'line-clamp-6' : '',
         ].join(' ')}
       >
@@ -563,7 +564,7 @@ function ExpandableSourceText({ text }: { text: string }) {
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="mt-2 text-xs font-medium text-[#4ade80] transition-colors hover:text-[#4ade80]/80"
+          className="mt-2 text-xs font-medium text-action-accent transition-colors hover:text-action-accent/80"
         >
           {expanded ? '접기' : '전체 보기'}
         </button>
@@ -580,21 +581,21 @@ function SourceImagePreview({ src }: { src: string }) {
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        className="group/img w-full rounded-xl border border-white/5 bg-[#0B0D0F]/60 p-1 transition hover:border-white/10"
+        className="group/img w-full rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-1 transition hover:border-text-secondary/10"
       >
         <img
           src={src}
           alt=""
           className="max-h-48 w-full rounded-lg object-contain"
         />
-        <span className="mt-1 block text-center text-[10px] text-white/25 transition-colors group-hover/img:text-white/40">
+        <span className="mt-1 block text-center text-[10px] text-text-primary/25 transition-colors group-hover/img:text-text-primary/40">
           클릭하여 원본 보기
         </span>
       </button>
 
       {expanded && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/80 backdrop-blur-sm"
           onClick={() => setExpanded(false)}
           onKeyDown={(e) => e.key === 'Escape' && setExpanded(false)}
           role="button"
@@ -617,7 +618,7 @@ function ToolbarButton({ icon, title, onClick }: { icon: ReactNode; title: strin
       type="button"
       onClick={onClick}
       title={title}
-      className="flex h-7 w-7 shrink-0 items-center justify-center rounded transition-colors hover:bg-white/10 hover:text-white"
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded transition-colors hover:bg-text-primary/10 hover:text-text-primary"
     >
       {icon}
     </button>
@@ -626,7 +627,7 @@ function ToolbarButton({ icon, title, onClick }: { icon: ReactNode; title: strin
 
 function TagList({ values, subtle = false }: { values: string[]; subtle?: boolean }) {
   if (values.length === 0) {
-    return <p className="text-sm text-white/40">표시할 항목이 없습니다.</p>;
+    return <p className="text-sm text-text-primary/40">표시할 항목이 없습니다.</p>;
   }
 
   return (
@@ -635,10 +636,10 @@ function TagList({ values, subtle = false }: { values: string[]; subtle?: boolea
         <span
           key={value}
           className={[
-            'rounded-md border px-3 py-1.5 text-sm font-medium',
+            `rounded-md border px-3 py-1.5 text-sm font-medium ${textWrapClass}`,
             subtle
-              ? 'border-white/5 bg-white/[0.03] text-white/50'
-              : 'border-[#4ade80]/15 bg-[#4ade80]/5 text-[#b9cbc1]',
+              ? 'border-text-secondary/5 bg-text-primary/[0.03] text-text-primary/50'
+              : 'border-primary-signal/15 bg-primary-signal/5 text-text-secondary',
           ].join(' ')}
         >
           {value.startsWith('#') ? value : `#${value}`}

@@ -31,7 +31,7 @@ export default function KnowledgeProgressCard({
       <div className="mb-3 text-caption font-medium uppercase tracking-[0.14em] text-text-secondary">
         {isLoading ? 'Creating knowledge card' : 'Knowledge result'}
       </div>
-      <div className="space-y-3 rounded-leaf border border-text-secondary/20 bg-misty-teal/50 p-popover-padding backdrop-blur-md">
+      <div className="glass-panel space-y-3 rounded-leaf border border-text-secondary/20 bg-surface-container/90 p-popover-padding backdrop-blur-md">
         {createdCard ? <CreatedKnowledgeCard card={createdCard} /> : null}
         <RelatedCards
           cards={cards}
