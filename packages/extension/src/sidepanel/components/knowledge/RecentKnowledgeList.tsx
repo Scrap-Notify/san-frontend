@@ -306,7 +306,7 @@ export function RecentKnowledgeList({
       ].join(' ')}>
         {isLoading ? (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-            <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+            <div className="extension-primary-drop-glow text-primary-signal/80">
               <Loader2 size={44} strokeWidth={1.6} className="animate-spin" aria-hidden="true" />
             </div>
             <div className="space-y-1">
@@ -322,7 +322,7 @@ export function RecentKnowledgeList({
 
         {error ? (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-            <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+            <div className="extension-primary-drop-glow text-primary-signal/80">
               <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
             </div>
             <div className="space-y-1">
@@ -338,7 +338,7 @@ export function RecentKnowledgeList({
 
         {!isLoading && !error && cards.length === 0 ? (
           <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-            <div className="text-primary-signal/80 drop-shadow-[0_0_14px_rgba(0,255,194,0.45)]">
+            <div className="extension-primary-drop-glow text-primary-signal/80">
               <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
             </div>
             <div className="space-y-1">

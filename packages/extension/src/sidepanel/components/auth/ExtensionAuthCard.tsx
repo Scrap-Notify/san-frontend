@@ -248,8 +248,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
           <button
             type="submit"
             disabled={isSubmitting}
-            className="h-12 min-h-12 w-full shrink-0 rounded-xl bg-action-accent text-sm font-bold text-background outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.25)' }}
+            className="h-12 min-h-12 w-full shrink-0 rounded-xl bg-action-accent text-sm font-bold text-background shadow-neon outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? '처리 중...' : isSignup ? '회원가입' : '로그인'}
           </button>

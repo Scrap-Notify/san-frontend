@@ -33,7 +33,7 @@ const feedbackTypes: Array<{
     type: 'FEATURE_REQUEST',
     label: '\uC81C\uC548',
     icon: Lightbulb,
-    activeClassName: 'border-primary-signal/45 bg-primary-signal/10 text-primary-signal shadow-[0_0_18px_rgba(0,255,194,0.12)]',
+    activeClassName: 'extension-primary-box-glow border-primary-signal/45 bg-primary-signal/10 text-primary-signal',
     iconClassName: 'bg-primary-signal/10 text-primary-signal',
   },
   {

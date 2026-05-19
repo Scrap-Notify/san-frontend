@@ -34,3 +34,17 @@ body {
   width: 16px;
   height: 16px;
 }
+
+.extension-primary-drop-glow {
+  filter: drop-shadow(0 0 14px color-mix(in oklab, var(--color-primary-signal) 45%, transparent));
+}
+
+.extension-primary-text-glow {
+  text-shadow:
+    0 0 8px color-mix(in oklab, var(--color-primary-signal) 55%, transparent),
+    0 0 18px color-mix(in oklab, var(--color-primary-signal) 28%, transparent);
+}
+
+.extension-primary-box-glow {
+  box-shadow: 0 0 18px color-mix(in oklab, var(--color-primary-signal) 12%, transparent);
+}
