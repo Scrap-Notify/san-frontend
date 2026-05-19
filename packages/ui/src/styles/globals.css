@@ -215,36 +215,36 @@
   }
 
   .glass-card {
-    background-color: var(--glass-card-bg) !important;
-    border-color: var(--glass-card-border) !important;
-    box-shadow: var(--shadow-glass-card) !important;
-    backdrop-filter: blur(var(--blur-glass-card)) !important;
+    background-color: var(--glass-card-bg);
+    border-color: var(--glass-card-border);
+    box-shadow: var(--shadow-glass-card);
+    backdrop-filter: blur(var(--blur-glass-card));
   }
 
   .glass-panel {
-    background-color: var(--glass-panel-bg) !important;
-    border-color: var(--glass-panel-border) !important;
-    box-shadow: var(--shadow-glass-panel) !important;
-    backdrop-filter: blur(var(--blur-glass-panel)) !important;
+    background-color: var(--glass-panel-bg);
+    border-color: var(--glass-panel-border);
+    box-shadow: var(--shadow-glass-panel);
+    backdrop-filter: blur(var(--blur-glass-panel));
   }
 
   .glass-popover {
-    background-color: var(--glass-popover-bg) !important;
-    border-color: var(--glass-popover-border) !important;
-    box-shadow: var(--shadow-glass-popover) !important;
-    backdrop-filter: blur(var(--blur-glass-popover)) !important;
+    background-color: var(--glass-popover-bg);
+    border-color: var(--glass-popover-border);
+    box-shadow: var(--shadow-glass-popover);
+    backdrop-filter: blur(var(--blur-glass-popover));
   }
 
   .glass-modal {
-    background-color: var(--glass-modal-bg) !important;
-    border-color: var(--glass-modal-border) !important;
-    box-shadow: var(--shadow-glass-modal) !important;
-    backdrop-filter: blur(var(--blur-glass-modal)) !important;
+    background-color: var(--glass-modal-bg);
+    border-color: var(--glass-modal-border);
+    box-shadow: var(--shadow-glass-modal);
+    backdrop-filter: blur(var(--blur-glass-modal));
   }
 
   .glass-input {
-    background-color: var(--glass-input-bg) !important;
-    border-color: var(--glass-input-border) !important;
+    background-color: var(--glass-input-bg);
+    border-color: var(--glass-input-border);
   }
 
   .helper-aura {

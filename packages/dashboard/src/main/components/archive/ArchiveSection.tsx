@@ -84,7 +84,7 @@ export function ArchiveSection() {
           </div>
 
           {isAuthenticated ? (
-          <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 shadow-none">
+          <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 !shadow-none">
             <button
               type="button"
               className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
@@ -190,7 +190,7 @@ export function ArchiveSection() {
                 <article
                   key={card.card_id}
                   onClick={() => navigate(`/cards/${card.card_id}`)}
-                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
+                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 !shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
                     <div className="mb-6 flex items-center justify-between">
@@ -258,7 +258,7 @@ function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'de
   return (
     <div
       className={[
-        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-xl text-center text-body-sm shadow-none md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
+        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-xl text-center text-body-sm !shadow-none md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
         tone === 'error' ? 'text-red-400' : 'text-text-secondary',
       ].join(' ')}
     >

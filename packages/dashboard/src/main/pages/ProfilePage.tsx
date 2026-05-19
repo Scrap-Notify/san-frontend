@@ -392,7 +392,7 @@ export function ProfilePage() {
               sessions.map((session) => (
                 <div
                   key={`${session.clientType}-${session.sessionId}`}
-                  className="flex flex-col gap-4 rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 px-5 py-4 transition-colors hover:border-text-secondary/[0.12] sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 px-5 py-4 !shadow-none transition-colors hover:border-text-secondary/[0.12] sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -421,7 +421,7 @@ export function ProfilePage() {
                       type="button"
                       onClick={() => void handleRevokeSession(session)}
                       disabled={revokeSessionId === session.sessionId}
-                      className="h-8 shrink-0 rounded-md glass-card bg-surface-container/60 px-3 text-xs font-bold text-text-primary/70 transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="h-8 shrink-0 rounded-md glass-card bg-surface-container/60 px-3 text-xs font-bold text-text-primary/70 !shadow-none transition hover:bg-text-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {revokeSessionId === session.sessionId ? '폐기 중' : '폐기'}
                     </button>

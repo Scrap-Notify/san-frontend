@@ -71,7 +71,7 @@ export function HomeGraphEmptyState({ primaryAction, secondaryAction }: GraphEmp
 
 export function HomeKnowledgeCardsEmptyState({ primaryAction }: KnowledgeCardsEmptyStateProps) {
   return (
-    <article className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 shadow-none md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]">
+    <article className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 !shadow-none md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]">
       <div>
         <div className="mb-6 flex items-center justify-between">
           <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-action-accent">
@@ -80,7 +80,7 @@ export function HomeKnowledgeCardsEmptyState({ primaryAction }: KnowledgeCardsEm
         </div>
 
         <div className="flex items-start gap-3">
-          <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[18px] rounded-br-[18px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary shadow-none">
+          <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[18px] rounded-br-[18px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary !shadow-none">
             <GitBranch size={18} strokeWidth={1.7} aria-hidden="true" />
           </div>
           <div className="min-w-0">
@@ -99,13 +99,13 @@ export function HomeKnowledgeCardsEmptyState({ primaryAction }: KnowledgeCardsEm
           <button
             type="button"
             onClick={primaryAction.onClick}
-            className="flex h-11 items-center justify-center gap-2 rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 px-4 text-sm font-bold text-text-secondary shadow-none transition-colors hover:bg-action-accent/10 hover:text-action-accent"
+            className="flex h-11 items-center justify-center gap-2 rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 px-4 text-sm font-bold text-text-secondary !shadow-none transition-colors hover:bg-action-accent/10 hover:text-action-accent"
           >
             {primaryAction.label}
             <ArrowRight size={14} aria-hidden="true" />
           </button>
         ) : (
-          <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary shadow-none">
+          <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary !shadow-none">
             <ArrowRight size={18} aria-hidden="true" />
           </div>
         )}

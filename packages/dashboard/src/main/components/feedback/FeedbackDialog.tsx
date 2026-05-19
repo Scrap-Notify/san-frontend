@@ -168,10 +168,10 @@ function FeedbackDialogContent({ onClose }: Pick<FeedbackDialogProps, 'onClose'>
                       className={`flex min-h-[48px] items-center gap-2 rounded-md border px-2.5 text-left backdrop-blur-xl transition ${
                         selected
                           ? item.activeClassName
-                          : 'border-text-secondary/10 glass-popover bg-surface-lowest/75 text-text-primary/55 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:border-text-secondary/20 hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary hover:shadow-[0_0_18px_rgba(255,255,255,0.05)]'
+                          : 'border-text-secondary/10 glass-popover bg-surface-lowest/75 text-text-primary/55 !shadow-none hover:border-text-secondary/20 hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary'
                       }`}
                     >
-                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${selected ? item.iconClassName : 'glass-card bg-surface-container/80 text-text-primary/35'}`}>
+                      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${selected ? item.iconClassName : 'glass-card bg-surface-container/80 text-text-primary/35 !shadow-none'}`}>
                         <Icon size={15} strokeWidth={1.8} />
                       </span>
                       <span className="min-w-0">
