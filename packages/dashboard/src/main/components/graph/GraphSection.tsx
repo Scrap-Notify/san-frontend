@@ -23,7 +23,7 @@ export function GraphSection() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative mt-6 min-h-screen">
       <div className="pointer-events-none absolute left-0 top-6 z-20 px-6">
         <HomeSectionTitle>나의 지식 숲</HomeSectionTitle>
       </div>

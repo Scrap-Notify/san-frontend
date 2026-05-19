@@ -18,14 +18,14 @@ export function HomeGraphEmptyState({ primaryAction, secondaryAction }: GraphEmp
   return (
     <section className="relative grid min-h-[min(70vh,34rem)] w-full min-w-0 overflow-hidden rounded-leaf bg-surface-low px-6 py-12 text-center sm:px-8">
       <div className="pointer-events-none absolute inset-0 opacity-80">
-        <div className="absolute left-1/2 top-1/2 h-60 w-60 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-signal/10 blur-2xl" />
+        <div className="absolute left-1/2 top-1/2 h-60 w-60 -translate-x-1/2 -translate-y-1/2 rounded-full bg-home-archive-accent-10 blur-2xl" />
         <div className="absolute right-8 top-8 hidden h-48 w-48 rounded-leaf border border-text-secondary/10 bg-misty-teal/20 opacity-30 sm:block" />
       </div>
 
       <div className="relative z-10 flex min-w-0 flex-col items-center justify-center gap-6">
         <div className="relative flex h-24 w-24 items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-primary-signal/15" />
-          <div className="relative flex h-20 w-20 items-center justify-center rounded-leaf border border-primary-signal/25 bg-surface-highest text-primary-signal">
+          <div className="absolute inset-0 rounded-full bg-home-archive-accent-15" />
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-leaf border border-home-archive-accent-25 bg-surface-highest text-home-archive-accent">
             <Sprout size={36} strokeWidth={1.7} aria-hidden="true" />
           </div>
         </div>

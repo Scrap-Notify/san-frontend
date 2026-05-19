@@ -543,7 +543,7 @@ async function runTilRecallCheck() {
     return;
   }
 
-  await createTilRecallNotification(target.targetDate, target.til);
+  await createTilRecallNotification(target.targetDate, target.til, target.offset);
 }
 
 async function findTilRecallTarget(accessToken: string) {
@@ -553,6 +553,7 @@ async function findTilRecallTarget(accessToken: string) {
 
     if (tils.length > 0) {
       return {
+        offset,
         targetDate,
         til: tils[0],
       };
@@ -596,7 +597,7 @@ async function getTilsByDate(accessToken: string, date: string): Promise<TilResp
   return payload.data;
 }
 
-async function createTilRecallNotification(targetDate: string, til: TilResponse) {
+async function createTilRecallNotification(targetDate: string, til: TilResponse, offset: number) {
   const notifications = (
     chrome as typeof chrome & { notifications?: typeof chrome.notifications }
   ).notifications;
@@ -617,10 +618,10 @@ async function createTilRecallNotification(targetDate: string, til: TilResponse)
     {
       type: 'basic',
       iconUrl: NOTIFICATION_ICON_URL,
-      title: '복습할 내용을 알려드려요',
+      title: '맞다, TIL 보러 가야지!',
       message: til.title
-        ? `${targetDate} TIL: ${til.title}`
-        : `${targetDate} TIL을 다시 확인해보세요.`,
+        ? `${offset}일 전 <${til.title}> 을 다시 살펴볼 시간이에요.`
+        : `${offset}일 전 TIL을 다시 살펴볼 시간이에요.`,
       priority: 2,
     },
     (createdNotificationId?: string) => {

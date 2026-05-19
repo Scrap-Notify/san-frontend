@@ -2,16 +2,41 @@ import type { KnowledgeCardView } from '@san/shared';
 
 interface CreatedKnowledgeCardProps {
   card: KnowledgeCardView;
+  onOpenCard?: (cardId: string) => void;
 }
 
-export function CreatedKnowledgeCard({ card }: CreatedKnowledgeCardProps) {
+export function CreatedKnowledgeCard({ card, onOpenCard }: CreatedKnowledgeCardProps) {
+  const canOpenCard = Boolean(onOpenCard);
+
+  const handleOpenCard = () => {
+    onOpenCard?.(card.card_id);
+  };
+
   return (
     <div className="px-1">
       <div className="mb-2 flex h-11 items-center text-body-sm font-bold text-text-secondary/85">
         지식카드 생성
       </div>
 
-      <article className="glass-card relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*2/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-surface-container/90 p-4 backdrop-blur-xl shadow-neon-sm">
+      <article
+        role={canOpenCard ? 'button' : undefined}
+        tabIndex={canOpenCard ? 0 : undefined}
+        aria-label={canOpenCard ? '지식카드 상세보기' : undefined}
+        title={canOpenCard ? '지식카드 상세보기' : undefined}
+        onClick={canOpenCard ? handleOpenCard : undefined}
+        onKeyDown={canOpenCard ? (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleOpenCard();
+          }
+        } : undefined}
+        className={[
+          'glass-card relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*2/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-surface-container/90 p-4 backdrop-blur-xl shadow-neon-sm transition',
+          canOpenCard
+            ? 'cursor-pointer hover:border-action-accent/35 hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-accent/55 active:translate-y-px'
+            : '',
+        ].join(' ')}
+      >
         <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-action-accent/5 blur-2xl" aria-hidden="true" />
 
         <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-leaf border border-action-accent/20 bg-surface-low shadow-neon-sm">

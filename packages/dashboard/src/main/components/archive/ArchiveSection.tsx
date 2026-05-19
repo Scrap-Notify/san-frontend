@@ -75,7 +75,7 @@ export function ArchiveSection() {
                   {hasCards ? Array.from({ length: totalPages }).map((_, idx) => (
                     <button key={idx} type="button"
                       onClick={() => carouselRef.current?.scrollTo({ left: carouselRef.current.clientWidth * idx, behavior: 'smooth' })}
-                      className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? 'w-5 bg-action-accent' : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'}`}
+                      className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? 'w-5 bg-archive-card-accent' : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'}`}
                       aria-label={`${idx + 1}페이지`} />
                   )) : null}
                 </div>
@@ -115,23 +115,23 @@ export function ArchiveSection() {
                 >
                   <div>
                     <div className="mb-4 flex items-center justify-between">
-                      <span className="rounded-tl-lg rounded-br-lg rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-2.5 py-1 text-[10px] font-bold tracking-wide text-action-accent">
+                      <span className="rounded-tl-lg rounded-br-lg rounded-tr-sm rounded-bl-sm border border-archive-card-accent-20 bg-archive-card-accent-5 px-2.5 py-1 text-[14px] font-bold tracking-wide text-archive-card-accent">
                         {categoryName}
                       </span>
-                      <time className="text-[10px] font-medium text-text-secondary/70">{date}</time>
+                      <time className="text-[14px] font-medium text-text-secondary/70">{date}</time>
                     </div>
-                    <h3 className="line-clamp-2 text-base font-bold leading-snug text-text-primary">{card.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-text-secondary">{card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}</p>
+                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-text-primary">{card.title}</h3>
+                    <p className="mt-2 line-clamp-2 text-base leading-relaxed text-text-secondary">{card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}</p>
                   </div>
                   <div className="flex items-center justify-between">
                     {card.tags.length > 0 ? (
                       <div className="flex min-w-0 gap-1 overflow-hidden">
                         {card.tags.slice(0, 2).map(t => (
-                          <span key={t.name} className="shrink-0 rounded-md border border-action-accent/10 bg-action-accent/5 px-1.5 py-0.5 text-[9px] font-medium text-action-accent/70">#{t.name}</span>
+                          <span key={t.name} className="shrink-0 rounded-md border border-archive-card-accent-10 bg-archive-card-accent-5 px-1.5 py-0.5 text-[13px] font-medium text-archive-card-accent-70">#{t.name}</span>
                         ))}
                       </div>
                     ) : <div />}
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tl-[16px] rounded-br-[16px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary shadow-none transition-colors group-hover:bg-action-accent/10 group-hover:text-action-accent">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tl-[16px] rounded-br-[16px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary shadow-none transition-colors group-hover:bg-archive-card-accent-10 group-hover:text-archive-card-accent">
                       <ArrowRight size={15} />
                     </div>
                   </div>
