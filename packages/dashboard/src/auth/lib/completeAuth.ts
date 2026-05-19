@@ -22,6 +22,10 @@ export async function completeAuth(tokens: AuthTokens, clientType: ClientType, u
     await authTokenStorage.setUsername(username);
   }
 
+  void syncDashboardBridgeAuth();
+}
+
+async function syncDashboardBridgeAuth() {
   try {
     const { ticket } = await authApi.createBridgeTicket();
     await syncExtensionBridgeTicket(ticket);
