@@ -30,6 +30,7 @@ export default function SidePanelNavbar({
         <button
           type="button"
           onClick={onHomeClick}
+          data-tour-id="home-button"
           className="flex h-10 min-w-0 items-center gap-2.5 rounded-md transition hover:opacity-80 active:scale-[0.98]"
           aria-label="Go to extension home"
           title="Home"
@@ -49,7 +50,7 @@ export default function SidePanelNavbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center">
+        <div data-tour-id="theme-toggle" className="flex h-8 w-8 items-center justify-center">
           <ThemeToggle
             iconSize={16}
             strokeWidth={1.8}
@@ -57,26 +58,26 @@ export default function SidePanelNavbar({
           />
         </div>
 
-        {isAuthenticated && (
-          <div className="relative flex h-8 w-8 items-center justify-center">
-            <button
-              type="button"
-              onClick={() => setIsFeedbackOpen((current) => !current)}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
-              aria-label="Feedback"
-              aria-expanded={isFeedbackOpen}
-              title="Feedback"
-            >
-              <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
-            </button>
-            {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
-          </div>
-        )}
+        <div className="relative flex h-8 w-8 items-center justify-center">
+          <button
+            type="button"
+            onClick={() => setIsFeedbackOpen((current) => !current)}
+            data-tour-id="feedback-button"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
+            aria-label="Feedback"
+            aria-expanded={isFeedbackOpen}
+            title="Feedback"
+          >
+            <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+          {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
+        </div>
 
         <div className="flex h-8 w-8 items-center justify-center">
           <button
             type="button"
             onClick={onOpenDashboard}
+            data-tour-id="dashboard-button"
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
             aria-label="Open dashboard"
             title="Open dashboard"
@@ -89,6 +90,7 @@ export default function SidePanelNavbar({
           <button
             type="button"
             onClick={onProfileButtonClick}
+            data-tour-id="profile-button"
             className={[
               'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition active:scale-95',
               isAuthenticated
