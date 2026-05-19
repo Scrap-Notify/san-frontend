@@ -13,6 +13,7 @@ const TEXT_TAB_MIN_HEIGHT = 40;
 interface OnboardingTourProps {
   isAuthenticated: boolean;
   hasPendingScrap: boolean;
+  canOpenSimilarTab: boolean;
 }
 
 interface TourStep {
@@ -57,7 +58,11 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-export function OnboardingTour({ isAuthenticated, hasPendingScrap }: OnboardingTourProps) {
+export function OnboardingTour({
+  isAuthenticated,
+  hasPendingScrap,
+  canOpenSimilarTab,
+}: OnboardingTourProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
@@ -66,29 +71,35 @@ export function OnboardingTour({ isAuthenticated, hasPendingScrap }: OnboardingT
 
   const steps = useMemo<TourStep[]>(() => {
     if (isAuthenticated) {
-      return [
+      const authenticatedSteps: TourStep[] = [
         {
           id: 'recent',
           targetId: 'knowledge-recent-tab',
           title: '최근 지식 모아보기',
           body: '로그인하면 저장한 지식 카드가 최신순으로 이곳에 쌓여요.',
         },
-        {
+      ];
+
+      if (canOpenSimilarTab) {
+        authenticatedSteps.push({
           id: 'similar',
           targetId: 'knowledge-similar-tab',
           title: '유사 지식 확인하기',
           body: '새 지식을 저장한 뒤에는 비슷한 카드들을 여기에서 비교해 볼 수 있어요.',
-        },
-        {
-          id: 'search',
-          targetId: 'knowledge-search',
-          title: '저장한 지식 검색하기',
-          body: '나중에 떠오른 키워드를 입력하면 저장해 둔 카드들을 바로 찾아볼 수 있어요.',
-        },
-      ];
+        });
+      }
+
+      authenticatedSteps.push({
+        id: 'search',
+        targetId: 'knowledge-search',
+        title: '저장한 지식 검색하기',
+        body: '나중에 떠오른 키워드를 입력하면 저장해 둔 카드들을 바로 찾아볼 수 있어요.',
+      });
+
+      return authenticatedSteps;
     }
 
-    const nextSteps: TourStep[] = [
+    const publicSteps: TourStep[] = [
       {
         id: 'capture',
         targetId: 'capture-drop-zone',
@@ -98,51 +109,20 @@ export function OnboardingTour({ isAuthenticated, hasPendingScrap }: OnboardingT
     ];
 
     if (hasPendingScrap) {
-      nextSteps.push({
+      publicSteps.push({
         id: 'save',
         targetId: 'capture-save-button',
         title: 'Save로 지식 카드 만들기',
-        body: isAuthenticated
-          ? '캡처한 내용이 준비되면 이 버튼으로 저장하고, 이어서 연관된 지식도 확인해요.'
-          : '캡처한 내용이 준비되면 이 버튼으로 저장해요. 로그인하면 내 지식과 연관된 정보까지 이어서 볼 수 있어요.',
+        body: '캡처한 내용이 준비되면 이 버튼으로 저장해요. 로그인하면 내 지식과 연관된 정보까지 이어서 볼 수 있어요.',
       });
     }
 
-    if (isAuthenticated) {
-      nextSteps.push(
-        {
-          id: 'recent',
-          targetId: 'knowledge-recent-tab',
-          title: '최근 지식 모아보기',
-          body: '로그인하면 저장한 지식 카드가 최신순으로 이곳에 쌓여요.',
-        },
-        {
-          id: 'similar',
-          targetId: 'knowledge-similar-tab',
-          title: '유사 지식 확인하기',
-          body: '새 지식을 저장한 뒤에는 비슷한 카드들을 여기에서 비교해 볼 수 있어요.',
-        },
-        {
-          id: 'search',
-          targetId: 'knowledge-search',
-          title: '저장한 지식 검색하기',
-          body: '나중에 떠오른 키워드를 입력하면 저장해 둔 카드들을 바로 찾아볼 수 있어요.',
-        },
-      );
-    }
-
-    nextSteps.push(
+    publicSteps.push(
       {
         id: 'dashboard',
         targetId: 'dashboard-button',
         title: '대시보드로 넓게 보기',
         body: '모아 둔 지식과 카드 흐름을 더 큰 화면에서 보고 싶을 때 여기를 눌러요.',
-      },
-      {
-        id: 'feedback',
-        targetId: 'feedback-button',
-        title: '피드백은 여기로 보내기',
-        body: '사용하다 불편한 점이나 떠오른 아이디어가 있으면 바로 남길 수 있어요.',
       },
       {
         id: 'profile',
@@ -158,8 +138,8 @@ export function OnboardingTour({ isAuthenticated, hasPendingScrap }: OnboardingT
       },
     );
 
-    return nextSteps;
-  }, [hasPendingScrap, isAuthenticated]);
+    return publicSteps;
+  }, [canOpenSimilarTab, hasPendingScrap, isAuthenticated]);
 
   const currentStep = steps[currentIndex];
 
@@ -328,7 +308,6 @@ export function OnboardingTour({ isAuthenticated, hasPendingScrap }: OnboardingT
   const isLastStep = currentIndex >= steps.length - 1;
   const tooltipTop = targetRect.top + targetRect.height + TOOLTIP_GAP;
   const shouldPlaceAbove = tooltipTop + TOOLTIP_ESTIMATED_HEIGHT > window.innerHeight;
-  const isTooltipAboveTarget = shouldPlaceAbove;
   const top = shouldPlaceAbove
     ? Math.max(VIEWPORT_MARGIN, targetRect.top - TOOLTIP_ESTIMATED_HEIGHT - TOOLTIP_GAP)
     : tooltipTop;
@@ -369,7 +348,7 @@ export function OnboardingTour({ isAuthenticated, hasPendingScrap }: OnboardingT
         <span
           className={[
             'absolute h-3 w-3 bg-surface-lowest/92',
-            isTooltipAboveTarget
+            shouldPlaceAbove
               ? '-bottom-1.5 border-b border-r border-white/20'
               : '-top-1.5 border-l border-t border-white/20',
           ].join(' ')}

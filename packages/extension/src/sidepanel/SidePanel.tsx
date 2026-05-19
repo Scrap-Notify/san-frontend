@@ -853,6 +853,7 @@ export default function SidePanel() {
         <OnboardingTour
           isAuthenticated={isAuthenticated}
           hasPendingScrap={Boolean(pendingScrap)}
+          canOpenSimilarTab={canOpenSimilarTab}
         />
         {isLogoutConfirmOpen && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-scrim px-4 backdrop-blur-sm">

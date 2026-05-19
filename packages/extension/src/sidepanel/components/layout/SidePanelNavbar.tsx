@@ -58,20 +58,22 @@ export default function SidePanelNavbar({
           />
         </div>
 
-        <div className="relative flex h-8 w-8 items-center justify-center">
-          <button
-            type="button"
-            onClick={() => setIsFeedbackOpen((current) => !current)}
-            data-tour-id="feedback-button"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
-            aria-label="Feedback"
-            aria-expanded={isFeedbackOpen}
-            title="Feedback"
-          >
-            <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
-          </button>
-          {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
-        </div>
+        {isAuthenticated && (
+          <div className="relative flex h-8 w-8 items-center justify-center">
+            <button
+              type="button"
+              onClick={() => setIsFeedbackOpen((current) => !current)}
+              data-tour-id="feedback-button"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
+              aria-label="Feedback"
+              aria-expanded={isFeedbackOpen}
+              title="Feedback"
+            >
+              <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+            {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
+          </div>
+        )}
 
         <div className="flex h-8 w-8 items-center justify-center">
           <button
