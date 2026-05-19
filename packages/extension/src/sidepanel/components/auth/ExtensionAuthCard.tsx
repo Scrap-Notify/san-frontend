@@ -108,7 +108,9 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
         clientType: 'EXTENSION',
       });
       await authTokenStorage.setTokens?.(tokens);
-      await chrome.runtime.sendMessage({ type: 'SAN_AUTH_STATE_CHANGED', isAuthenticated: true });
+      void chrome.runtime
+        .sendMessage({ type: 'SAN_AUTH_STATE_CHANGED', isAuthenticated: true })
+        .catch(() => undefined);
       onAuthenticated();
     } catch (error) {
       const fallback = isSignup ? '회원가입에 실패했습니다.' : '로그인에 실패했습니다.';
