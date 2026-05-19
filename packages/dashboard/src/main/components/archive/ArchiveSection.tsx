@@ -190,7 +190,7 @@ export function ArchiveSection() {
                 <article
                   key={card.card_id}
                   onClick={() => navigate(`/cards/${card.card_id}`)}
-                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 !shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
+                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-leaf glass-card bg-surface-container/80 p-6 !shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
                     <div className="mb-6 flex items-center justify-between">

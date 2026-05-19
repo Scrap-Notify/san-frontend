@@ -179,7 +179,7 @@ function ArchiveCard({ title, subtitle, onClick }: { title: string; subtitle: st
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-48 flex-col justify-between rounded-[28px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
+      className="flex min-h-48 flex-col justify-between rounded-leaf border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
     >
       <h2 className="text-xl font-bold leading-snug text-text-primary">{title}</h2>
       <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-text-primary/45">{subtitle}</p>
