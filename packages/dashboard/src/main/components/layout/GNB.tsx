@@ -69,9 +69,8 @@ export function TopNavBar({
     setIsMenuOpen(false);
   };
 
-  const navActions = (
+  const actionButtons = (
     <>
-      <SearchBar placeholder={searchPlaceholder} onSearch={handleSearch} />
       <ThemeToggle />
 
       <button
@@ -101,8 +100,15 @@ export function TopNavBar({
     </>
   );
 
+  const navActions = (
+    <>
+      <SearchBar placeholder={searchPlaceholder} onSearch={handleSearch} />
+      {actionButtons}
+    </>
+  );
+
   return (
-    <header className="flex w-full items-center justify-between border-b border-action-accent/10 glass-popover bg-surface-lowest/82 px-4 py-4 shadow-[0_14px_42px_rgba(0,0,0,0.34),0_0_32px_rgba(115,255,207,0.06)] backdrop-blur-2xl md:px-8">
+    <header className="flex w-full items-center justify-between border-b border-action-accent/10 glass-popover bg-surface-lowest/82 px-4 py-4 backdrop-blur-2xl md:px-8">
       {/* Left side */}
       <div className="flex items-center gap-10">
         <button
@@ -154,12 +160,19 @@ export function TopNavBar({
 
       {/* Mobile Menu Content */}
       {isMenuOpen && (
-        <div className="absolute left-0 top-full flex w-full flex-col gap-4 border-b border-action-accent/10 bg-surface-lowest/90 p-4 shadow-[0_18px_42px_rgba(0,0,0,0.34)] backdrop-blur-2xl lg:hidden">
-          <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-action-accent' : 'text-text-secondary'}`}>Home</button>
-          <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'TIL' ? 'text-action-accent' : 'text-text-secondary'}`}>TIL</button>
-          <button onClick={() => { navigate('/archive'); setIsMenuOpen(false); }} className={`text-left text-lg font-medium ${activeMenu === 'Search' ? 'text-action-accent' : 'text-text-secondary'}`}>Archive</button>
-          <div className="mt-4 flex items-center justify-between border-t border-text-secondary/5 pt-4">
-            {navActions}
+        <div className="absolute left-0 top-full flex w-full flex-col items-end gap-4 border-b border-action-accent/10 bg-surface-lowest p-4 lg:hidden">
+          <button onClick={() => { navigate('/'); setIsMenuOpen(false); }} className={`text-right text-lg font-medium ${activeMenu === 'Dashboard' ? 'text-action-accent' : 'text-text-secondary'}`}>Home</button>
+          <button onClick={() => { navigate('/til'); setIsMenuOpen(false); }} className={`text-right text-lg font-medium ${activeMenu === 'TIL' ? 'text-action-accent' : 'text-text-secondary'}`}>TIL</button>
+          <button onClick={() => { navigate('/archive'); setIsMenuOpen(false); }} className={`text-right text-lg font-medium ${activeMenu === 'Search' ? 'text-action-accent' : 'text-text-secondary'}`}>Archive</button>
+          <div className="mt-4 flex w-full min-w-0 flex-col gap-3 border-t border-text-secondary/5 pt-4">
+            <SearchBar
+              placeholder={searchPlaceholder}
+              onSearch={handleSearch}
+              className="w-full min-w-0"
+            />
+            <div className="flex items-center justify-end gap-2">
+              {actionButtons}
+            </div>
           </div>
         </div>
       )}

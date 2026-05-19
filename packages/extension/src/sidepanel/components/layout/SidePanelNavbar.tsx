@@ -49,10 +49,9 @@ export default function SidePanelNavbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <ThemeToggle className="h-8 w-8 border-text-secondary/10 bg-surface-container" />
-        <div className="relative">
-          {isAuthenticated && (
-            <>
+        <ThemeToggle className="extension-navbar-theme-toggle h-8 w-8 border-text-secondary/10 bg-surface-container" />
+        {isAuthenticated && (
+          <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsFeedbackOpen((current) => !current)}
@@ -64,9 +63,8 @@ export default function SidePanelNavbar({
                 <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
               </button>
               {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
-            </>
-          )}
-        </div>
+          </div>
+        )}
         <button
           type="button"
           onClick={onOpenDashboard}

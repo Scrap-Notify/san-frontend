@@ -29,3 +29,8 @@ body {
     0 18px 48px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.09);
 }
+
+.extension-navbar-theme-toggle svg {
+  width: 16px;
+  height: 16px;
+}
