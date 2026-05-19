@@ -159,12 +159,12 @@ export const DropZone = ({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto rounded-leaf border border-primary-signal/10 bg-background/40 p-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-primary-signal/10 bg-background/40 p-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {isImageCapture ? (
                 <img
                   src={imagePreviewUrl}
                   alt={pendingScrap.title}
-                  className="max-h-24 w-full rounded-leaf object-cover mb-3"
+                  className="max-h-24 w-full rounded-lg object-cover mb-3"
                 />
               ) : null}
 
@@ -186,10 +186,18 @@ export const DropZone = ({
                   {isSaving ? savingLabel : saveLabel}
                 </CurvedButton>
               ) : authNotice ? (
-                <div className="rounded-leaf border border-primary-signal/20 bg-background/70 p-3 text-center">
+                <div className="rounded-leaf border border-action-accent/20 bg-background/70 p-3 text-center">
                   <p className="text-caption text-text-secondary">{authNotice}</p>
                   {onLogin && (
-                    <CurvedButton onClick={(e) => { e.stopPropagation(); onLogin(); }} fullWidth size="md" className="mt-2">
+                    <CurvedButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLogin();
+                      }}
+                      fullWidth
+                      size="md"
+                      className="mt-2"
+                    >
                       로그인
                     </CurvedButton>
                   )}

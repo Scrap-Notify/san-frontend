@@ -14,10 +14,10 @@ interface CurvedButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const buttonToneStyles: Record<ButtonTone, string> = {
   primary:
-    'bg-gradient-to-r from-primary-signal to-surface-container text-text-primary shadow-neon hover:opacity-95 hover:shadow-neon active:shadow-neon-sm',
+    'bg-gradient-to-r from-action-accent to-surface-container text-text-primary shadow-neon hover:opacity-95 hover:shadow-neon active:shadow-neon-sm',
 
   subtle:
-    'border border-primary-signal/20 bg-primary-signal/10 text-primary-signal shadow-neon-sm hover:bg-primary-signal/15 hover:shadow-neon',
+    'border border-action-accent/20 bg-action-accent/10 text-action-accent shadow-neon-sm hover:bg-action-accent/15 hover:shadow-neon',
 
   ghost:
     'text-text-secondary hover:bg-surface-container/40 hover:shadow-neon',
@@ -47,7 +47,7 @@ export function CurvedButton({
       disabled={disabled}
       className={[
         'inline-flex items-center justify-center gap-2 whitespace-nowrap',
-        '[border-radius:48px_8px_48px_8px]',
+        'rounded-leaf',
         'font-bold leading-none',
         'transition-all duration-150 ease-out',
         'active:translate-y-px active:scale-95',

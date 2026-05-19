@@ -902,7 +902,7 @@ export default function SidePanel() {
                     saveError={saveError}
                     saveNotice={saveNotice}
                     canSave={true}
-                    authNotice={!isAuthenticated && pendingScrap ? '' : null}
+                    authNotice={!isAuthenticated && pendingScrap ? '로그인하여 지식을 보관하고 AI가 생성한 카드를 확인해 보세요.' : null}
                     onLogin={!isAuthenticated ? () => setIsAuthCardOpen(true) : undefined}
                   />
                 )}
