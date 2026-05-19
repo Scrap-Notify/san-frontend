@@ -921,7 +921,7 @@ export default function SidePanel() {
           {/* 2. Creation Result Area (Fixed 120px): Appears only after successful creation */}
               {isAuthenticated && createdCard && !hasKnowledgeSearchResult && (
                 <div className="shrink-0">
-                  <CreatedKnowledgeCard card={createdCard} />
+                  <CreatedKnowledgeCard card={createdCard} onOpenCard={openDashboardCardDetail} />
                 </div>
               )}
 
