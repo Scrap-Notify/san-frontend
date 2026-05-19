@@ -175,13 +175,13 @@ export const DropZone = ({
               ) : null}
             </div>
 
-            <div className="mt-4 shrink-0">
+            <div className="mt-4 flex justify-center shrink-0">
               {canSave ? (
                 <CurvedButton
                   onClick={(e) => { e.stopPropagation(); onSave(); }}
                   disabled={isSaving}
-                  fullWidth
                   size="md"
+                  className="px-8 !rounded-xl !shadow-none"
                 >
                   {isSaving ? savingLabel : saveLabel}
                 </CurvedButton>
