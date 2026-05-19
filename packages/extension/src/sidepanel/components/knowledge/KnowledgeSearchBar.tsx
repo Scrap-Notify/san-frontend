@@ -23,6 +23,7 @@ export function KnowledgeSearchBar({
 
   return (
     <form
+      data-tour-id="knowledge-search"
       className="relative flex h-10 w-[min(100%,220px)] shrink-0 self-stretch"
       onSubmit={handleSubmit}
     >

@@ -95,6 +95,7 @@ export const DropZone = ({
   return (
     <div className="flex flex-col gap-3">
       <section
+        data-tour-id="capture-drop-zone"
         onDragOver={(event) => {
           event.preventDefault();
           setIsOver(true);
@@ -181,6 +182,7 @@ export const DropZone = ({
                   onClick={(e) => { e.stopPropagation(); onSave(); }}
                   disabled={isSaving}
                   size="md"
+                  data-tour-id="capture-save-button"
                   className="px-8 !rounded-xl !shadow-none"
                 >
                   {isSaving ? savingLabel : saveLabel}

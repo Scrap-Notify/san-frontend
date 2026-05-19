@@ -25,6 +25,7 @@ import { CreatedKnowledgeCard } from './components/knowledge/CreatedKnowledgeCar
 import { KnowledgeLoadingCard } from './components/knowledge/KnowledgeLoadingCard';
 import { ExtensionAuthCard } from './components/auth/ExtensionAuthCard';
 import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
+import { OnboardingTour } from './components/onboarding/OnboardingTour';
 
 const DEBUG_PREFIX = '[SAN:sidepanel]';
 const ACCESS_TOKEN_KEY = 'san_access_token';
@@ -188,6 +189,7 @@ function KnowledgeListTabs({ activeTab, canOpenSimilarTab, onChange }: Knowledge
             type="button"
             disabled={tab.disabled}
             onClick={() => onChange(tab.id)}
+            data-tour-id={`knowledge-${tab.id}-tab`}
             className={[
               'whitespace-nowrap text-xs font-semibold transition',
               isActive
@@ -704,15 +706,19 @@ export default function SidePanel() {
     })();
   }, [isAuthenticated]);
 
+  const openExtensionLogin = useCallback(() => {
+    setIsAuthCardOpen(true);
+    setIsProfileMenuOpen(false);
+  }, []);
+
   const handleProfileButtonClick = useCallback(() => {
     if (!isAuthenticated) {
-      setIsAuthCardOpen(true);
-      setIsProfileMenuOpen(false);
+      openExtensionLogin();
       return;
     }
 
     setIsProfileMenuOpen((current) => !current);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, openExtensionLogin]);
 
   const handleHomeClick = useCallback(() => {
     setIsAuthCardOpen(false);
@@ -843,6 +849,10 @@ export default function SidePanel() {
           onOpenDashboard={openDashboard}
           onProfileButtonClick={handleProfileButtonClick}
           onLogoutClick={handleLogoutClick}
+        />
+        <OnboardingTour
+          isAuthenticated={isAuthenticated}
+          hasPendingScrap={Boolean(pendingScrap)}
         />
         {isLogoutConfirmOpen && (
           <div className="fixed inset-0 z-40 flex items-center justify-center bg-scrim px-4 backdrop-blur-sm">
