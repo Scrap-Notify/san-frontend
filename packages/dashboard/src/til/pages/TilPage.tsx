@@ -132,10 +132,10 @@ export function TilPage() {
             <div className="no-scrollbar order-1 flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto px-0 pb-5 pt-12 md:px-1 lg:order-1 lg:pr-8">
                 <header className="mb-4 flex flex-col gap-2">
                     <h1 className="flex items-baseline gap-1 text-2xl font-extrabold tracking-tight">
-                        <span className="text-primary-signal">T</span>
+                        <span className="text-til-title-accent">T</span>
                         <span className="text-text-primary">oday</span>
-                        <span className="ml-2 text-primary-signal">I</span>
-                        <span className="ml-2 text-primary-signal">L</span>
+                        <span className="ml-2 text-til-title-accent">I</span>
+                        <span className="ml-2 text-til-title-accent">L</span>
                         <span className="text-text-primary">earned</span>
                     </h1>
 
@@ -370,10 +370,6 @@ export function TilPage() {
 
                     <div className="flex min-w-0 flex-1 flex-col gap-3">
                         <div className="px-1">
-                            <h2 className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary-signal opacity-80">
-                                # Today's Knowledge Summary
-                            </h2>
-
                             <div className="relative flex items-start gap-3">
                                 <textarea
                                     value={displayedTitle}
