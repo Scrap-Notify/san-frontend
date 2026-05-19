@@ -60,26 +60,27 @@ export interface KnowledgeCardDetailData {
   }>;
 }
 
-const sectionCardClass = 'rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 glass-card bg-surface-container/80 p-6 shadow-md';
-const panelCardClass = 'rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-text-secondary/5 bg-surface-low p-5';
+const textWrapClass = 'min-w-0 break-words [overflow-wrap:anywhere]';
+const sectionCardClass = 'min-w-0 rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl border border-text-secondary/5 glass-card bg-surface-container/80 p-6 shadow-md';
+const panelCardClass = 'min-w-0 rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-text-secondary/5 bg-surface-low p-5';
 const REFINE_POLL_INTERVAL_MS = 2000;
 const REFINE_POLL_TIMEOUT_MS = 30000;
 
 const mdComponents = {
   h1: ({ children }: { children?: React.ReactNode }) => (
-    <h1 className="mb-5 border-b border-primary-signal/20 pb-3 text-2xl font-bold text-text-primary">{children}</h1>
+    <h1 className={`mb-5 border-b border-primary-signal/20 pb-3 text-2xl font-bold text-text-primary ${textWrapClass}`}>{children}</h1>
   ),
   h2: ({ children }: { children?: React.ReactNode }) => (
-    <h2 className="mb-3 mt-7 text-xl font-bold text-text-primary">{children}</h2>
+    <h2 className={`mb-3 mt-7 text-xl font-bold text-text-primary ${textWrapClass}`}>{children}</h2>
   ),
   h3: ({ children }: { children?: React.ReactNode }) => (
-    <h3 className="mb-2 mt-5 text-lg font-semibold text-text-primary/90">{children}</h3>
+    <h3 className={`mb-2 mt-5 text-lg font-semibold text-text-primary/90 ${textWrapClass}`}>{children}</h3>
   ),
   h4: ({ children }: { children?: React.ReactNode }) => (
-    <h4 className="mb-2 mt-4 text-base font-semibold text-text-primary/90">{children}</h4>
+    <h4 className={`mb-2 mt-4 text-base font-semibold text-text-primary/90 ${textWrapClass}`}>{children}</h4>
   ),
   p: ({ children }: { children?: React.ReactNode }) => (
-    <p className="mb-4 leading-7 text-text-primary/70">{children}</p>
+    <p className={`mb-4 leading-7 text-text-primary/70 ${textWrapClass}`}>{children}</p>
   ),
   ul: ({ children }: { children?: React.ReactNode }) => (
     <ul className="mb-4 list-disc space-y-1.5 pl-6 text-text-primary/70">{children}</ul>
@@ -88,7 +89,7 @@ const mdComponents = {
     <ol className="mb-4 list-decimal space-y-1.5 pl-6 text-text-primary/70">{children}</ol>
   ),
   li: ({ children }: { children?: React.ReactNode }) => (
-    <li className="pl-1 leading-7 marker:text-primary-signal">{children}</li>
+    <li className={`pl-1 leading-7 marker:text-primary-signal ${textWrapClass}`}>{children}</li>
   ),
   strong: ({ children }: { children?: React.ReactNode }) => (
     <strong className="font-bold text-text-primary/90">{children}</strong>
@@ -100,13 +101,13 @@ const mdComponents = {
     <blockquote className="mb-4 border-l-2 border-primary-signal/40 bg-primary-signal/5 py-2 pl-4 text-text-primary/60">{children}</blockquote>
   ),
   code: ({ children }: { children?: React.ReactNode }) => (
-    <code className="rounded bg-text-primary/10 px-1.5 py-0.5 font-mono text-sm text-primary-signal">{children}</code>
+    <code className={`rounded bg-text-primary/10 px-1.5 py-0.5 font-mono text-sm text-primary-signal ${textWrapClass}`}>{children}</code>
   ),
   pre: ({ children }: { children?: React.ReactNode }) => (
-    <pre className="mb-4 overflow-x-auto rounded-xl border border-text-secondary/5 bg-surface-lowest p-4 text-sm leading-6">{children}</pre>
+    <pre className="mb-4 max-w-full overflow-x-auto rounded-xl border border-text-secondary/5 bg-surface-lowest p-4 text-sm leading-6">{children}</pre>
   ),
   a: ({ href, children }: { href?: string; children?: React.ReactNode }) => (
-    <a href={href} target="_blank" rel="noreferrer" className="text-primary-signal underline decoration-primary-signal/40 underline-offset-4">{children}</a>
+    <a href={href} target="_blank" rel="noreferrer" className={`text-primary-signal underline decoration-primary-signal/40 underline-offset-4 ${textWrapClass}`}>{children}</a>
   ),
   hr: () => <hr className="my-6 border-text-secondary/10" />,
 };
@@ -343,7 +344,7 @@ function ProcessedTextSection({
             </div>
           ) : (
             <div className="mt-6 rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 px-4 py-5 sm:px-6">
-              <article className="max-w-none">
+              <article className={`max-w-none ${textWrapClass}`}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                   {editValue}
                 </ReactMarkdown>
@@ -424,9 +425,9 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
           <p className="text-sm font-bold tracking-wide text-text-primary/35">핵심 요약</p>
           <ul className="mt-4 space-y-3">
             {finalCard.keyPoints.map((point) => (
-              <li key={point} className="flex gap-3 text-sm leading-7 text-text-primary/70">
+              <li key={point} className="flex min-w-0 gap-3 text-sm leading-7 text-text-primary/70">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-signal" />
-                <span>{point}</span>
+                <span className={textWrapClass}>{point}</span>
               </li>
             ))}
           </ul>
@@ -494,7 +495,7 @@ function DetailMetaPanel({ data, isLoadingRelated }: { data: KnowledgeCardDetail
                 className="block rounded-xl border border-text-secondary/5 bg-text-primary/[0.03] p-4 transition hover:border-primary-signal/30 hover:bg-primary-signal/5"
               >
                 <p className="text-xs font-bold text-primary-signal">{card.categoryName}</p>
-                <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-text-primary/70">{card.title}</p>
+                <p className={`mt-2 line-clamp-2 text-sm font-semibold leading-6 text-text-primary/70 ${textWrapClass}`}>{card.title}</p>
               </Link>
             ))}
           </div>
@@ -550,10 +551,10 @@ function ExpandableSourceText({ text }: { text: string }) {
   const isLong = text.length > 360 || lineCount > 6;
 
   return (
-    <div className="rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-3">
+    <div className="min-w-0 rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-3">
       <p
         className={[
-          'whitespace-pre-wrap text-sm leading-6 text-text-primary/50',
+          `whitespace-pre-wrap text-sm leading-6 text-text-primary/50 ${textWrapClass}`,
           !expanded && isLong ? 'line-clamp-6' : '',
         ].join(' ')}
       >
@@ -635,7 +636,7 @@ function TagList({ values, subtle = false }: { values: string[]; subtle?: boolea
         <span
           key={value}
           className={[
-            'rounded-md border px-3 py-1.5 text-sm font-medium',
+            `rounded-md border px-3 py-1.5 text-sm font-medium ${textWrapClass}`,
             subtle
               ? 'border-text-secondary/5 bg-text-primary/[0.03] text-text-primary/50'
               : 'border-primary-signal/15 bg-primary-signal/5 text-text-secondary',
