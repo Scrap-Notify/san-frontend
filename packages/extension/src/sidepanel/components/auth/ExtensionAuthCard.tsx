@@ -30,6 +30,17 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
 
   const isSignup = mode === 'signup';
 
+  const validateId = (id: string) => {
+    const regex = /^[a-z0-9]{4,20}$/;
+    return regex.test(id);
+  };
+
+  const validatePassword = (pw: string) => {
+    // 영문, 숫자, 특수문자 포함 8~20자
+    const regex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}\[\]:;"'<>,.?\/\\|~`-]).{8,20}$/;
+    return regex.test(pw);
+  };
+
   const handleModeChange = (nextMode: AuthMode) => {
     setMode(nextMode);
     setPassword('');
@@ -66,10 +77,14 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
       setCheckedUsername(trimmed);
       setUsernameCheckStatus('available');
       setUsernameMessage('사용 가능한 아이디입니다.');
-    } catch (error) {
+    } catch (error: any) {
       setCheckedUsername('');
       setUsernameCheckStatus('unavailable');
-      setUsernameMessage(getApiErrorMessage(error, '사용할 수 없는 아이디입니다.'));
+      if (error.response?.status === 409) {
+        setUsernameMessage('이미 사용 중인 아이디입니다.');
+      } else {
+        setUsernameMessage(getApiErrorMessage(error, '사용할 수 없는 아이디입니다.'));
+      }
     }
   };
 
@@ -84,9 +99,19 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
     }
 
     if (isSignup) {
+      if (!validateId(trimmed)) {
+        setErrorMessage('아이디 형식이 올바르지 않습니다.');
+        return;
+      }
+
       if (checkedUsername !== trimmed || usernameCheckStatus !== 'available') {
         setUsernameCheckStatus('unavailable');
         setUsernameMessage('아이디 중복 확인을 완료해 주세요.');
+        return;
+      }
+
+      if (!validatePassword(password)) {
+        setErrorMessage('비밀번호 형식이 올바르지 않습니다.');
         return;
       }
 
@@ -188,14 +213,17 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
                 )}
               </div>
               {isSignup && (
-                <p
-                  className={[
-                    'mt-1.5 min-h-[16px] text-[11px] font-medium',
-                    usernameCheckStatus === 'available' ? 'text-primary-signal' : 'text-red-400',
-                  ].join(' ')}
-                >
-                  {usernameMessage || ''}
-                </p>
+                <>
+                  <p className="mt-2 pl-1 text-[11px] text-text-secondary/50">영문 소문자·숫자 4~20자</p>
+                  <p
+                    className={[
+                      'mt-1 min-h-[16px] text-[11px] font-medium',
+                      usernameCheckStatus === 'available' ? 'text-primary-signal' : 'text-red-400',
+                    ].join(' ')}
+                  >
+                    {usernameMessage || ''}
+                  </p>
+                </>
               )}
             </div>
 
@@ -219,6 +247,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
+              {isSignup && <p className="mt-2 pl-1 text-[11px] text-text-secondary/50">영문·숫자·특수문자 포함 8~20자</p>}
             </div>
 
             {isSignup && (
