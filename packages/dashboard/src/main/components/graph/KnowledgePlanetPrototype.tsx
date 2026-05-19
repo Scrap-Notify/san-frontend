@@ -1,468 +1,610 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { useArchiveCategories, useArchiveCategoryCards } from '@san/shared';
-import planetSource from '../../../assets/ph1_real_sphere.png';
-import type { GraphCategory, GraphLeaf } from '../../types/graph';
-import { CategoryTreeView } from './CategoryTreeView';
-import {
-  createCanopyLeafPositions,
-  createPlanetMarkerPositions,
-  createPlanetMarkerSpherePoints,
-} from './layout';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FolderOpen, Loader2 } from 'lucide-react';
+import { useArchiveCategories, useArchiveCategoryCards, useSimilarCards } from '@san/shared';
 import { graphFixtureCategories, graphFixtureLeavesByCategory } from './fixtures';
 
-type Rotation = {
-  x: number;
-  y: number;
+/* ── types ── */
+
+type Pos = { x: number; y: number };
+type CatNode = { id: string; name: string; count: number; idlePos: Pos; dockPos: Pos };
+type CardNode = { id: string; title: string; tags: string[]; pos: Pos; layer: number };
+type TagLine = { aId: string; bId: string; from: Pos; to: Pos; weight: number };
+type CrossCard = { id: string; title: string; pos: Pos; catId: string };
+
+/* ── layout ── */
+
+const MAX_CARDS = 40;
+
+const CAT_IDLE: Record<number, Pos[]> = {
+  1: [{ x: 50, y: 48 }],
+  2: [{ x: 34, y: 42 }, { x: 66, y: 55 }],
+  3: [{ x: 20, y: 38 }, { x: 55, y: 52 }, { x: 82, y: 36 }],
+  4: [{ x: 16, y: 34 }, { x: 56, y: 26 }, { x: 82, y: 46 }, { x: 36, y: 62 }],
+  5: [{ x: 14, y: 30 }, { x: 46, y: 22 }, { x: 82, y: 32 }, { x: 26, y: 60 }, { x: 68, y: 58 }],
 };
 
-const restingRotationBase: Rotation = { x: -8, y: 18 };
+const CAT_DOCK: Record<number, Pos[]> = {
+  1: [{ x: 50, y: 90 }],
+  2: [{ x: 36, y: 90 }, { x: 64, y: 90 }],
+  3: [{ x: 18, y: 91 }, { x: 50, y: 89 }, { x: 82, y: 91 }],
+  4: [{ x: 12, y: 91 }, { x: 37, y: 90 }, { x: 63, y: 90 }, { x: 88, y: 91 }],
+  5: [{ x: 8, y: 92 }, { x: 28, y: 90 }, { x: 50, y: 89 }, { x: 72, y: 90 }, { x: 92, y: 92 }],
+};
+
+function clamp(v: number, lo: number, hi: number) {
+  return Math.min(hi, Math.max(lo, v));
+}
+
+function layoutCards(origin: Pos, total: number): { pos: Pos; layer: number }[] {
+  if (total === 0) return [];
+
+  if (total === 1) return [{ pos: { x: origin.x, y: origin.y - 14 }, layer: 0 }];
+  if (total === 2) return [
+    { pos: { x: origin.x - 9, y: origin.y - 13 }, layer: 0 },
+    { pos: { x: origin.x + 9, y: origin.y - 13 }, layer: 0 },
+  ];
+  if (total === 3) return [
+    { pos: { x: origin.x - 9, y: origin.y - 12 }, layer: 0 },
+    { pos: { x: origin.x + 9, y: origin.y - 12 }, layer: 0 },
+    { pos: { x: origin.x, y: origin.y - 22 }, layer: 1 },
+  ];
+  if (total <= 5) return [
+    ...Array.from({ length: 2 }, (_, i) => ({
+      pos: { x: origin.x + (i === 0 ? -9 : 9), y: origin.y - 12 }, layer: 0,
+    })),
+    ...Array.from({ length: total - 2 }, (_, i) => {
+      const spread = total === 4 ? 10 : 12;
+      const cnt = total - 2;
+      return {
+        pos: { x: clamp(cnt === 1 ? origin.x : origin.x - spread + (i / (cnt - 1)) * spread * 2, 3, 97), y: origin.y - 23 },
+        layer: 1,
+      };
+    }),
+  ];
+
+  const rows: number[] = [];
+  let remaining = total;
+  let rowIdx = 0;
+  const estimatedLayers = Math.max(1, Math.ceil(total / 2.5));
+
+  while (remaining > 0) {
+    if (remaining <= 2) { rows.push(remaining); break; }
+    const progress = rowIdx / Math.max(estimatedLayers - 1, 1);
+    const width = Math.round(2 + Math.pow(progress, 0.8) * 2);
+    const count = Math.min(remaining, width);
+    if (remaining - count === 1) { rows.push(count + 1); remaining = 0; }
+    else { rows.push(count); remaining -= count; }
+    rowIdx++;
+  }
+
+  const rowHeight = clamp(78 / rows.length, 6, 9);
+  const out: { pos: Pos; layer: number }[] = [];
+
+  for (let layer = 0; layer < rows.length; layer++) {
+    const count = rows[layer];
+    const y = clamp(origin.y - 10 - layer * rowHeight, 3, 88);
+    const spread = 3 + count * 4;
+    const nudge = (layer % 2) * 2.5 - 1.25;
+
+    for (let i = 0; i < count; i++) {
+      const x = count === 1
+        ? origin.x + nudge
+        : origin.x + nudge - spread + (i / (count - 1)) * spread * 2;
+      out.push({ pos: { x: clamp(x, 3, 97), y }, layer });
+    }
+  }
+  return out;
+}
+
+function curvePath(a: Pos, b: Pos, i: number): string {
+  const mx = (a.x + b.x) / 2;
+  const my = (a.y + b.y) / 2;
+  const curve = clamp(Math.hypot(a.x - b.x, a.y - b.y) * 0.14, 2, 8);
+  return `M${a.x} ${a.y} Q${mx + (i % 2 ? curve : -curve)} ${my - curve},${b.x} ${b.y}`;
+}
+
+function buildTagLines(cards: CardNode[]): TagLine[] {
+  const out: TagLine[] = [];
+  for (let i = 0; i < cards.length; i++)
+    for (let j = i + 1; j < cards.length; j++) {
+      const weight = cards[i].tags.filter(t => cards[j].tags.includes(t)).length;
+      if (weight) out.push({ aId: cards[i].id, bId: cards[j].id, from: cards[i].pos, to: cards[j].pos, weight });
+    }
+  return out;
+}
+
+/* ================================================================ */
+/*  Main                                                            */
+/* ================================================================ */
 
 export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?: boolean }) {
-  const [view, setView] = useState<'planet' | 'tree'>('planet');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [treeEnterToken, setTreeEnterToken] = useState(0);
-  const [renderRotation, setRenderRotation] = useState<Rotation>(restingRotationBase);
-  const [zoom, setZoom] = useState(1);
-  const [isDraggingPlanet, setIsDraggingPlanet] = useState(false);
-  const dragState = useRef<{ x: number; y: number; pointerId: number } | null>(null);
-  const rotationRef = useRef<Rotation>(restingRotationBase);
-  const targetRotationRef = useRef<Rotation>(restingRotationBase);
-  const isDraggingRef = useRef(false);
-  const animationFrameRef = useRef<number | null>(null);
-  const inertiaFrameRef = useRef<number | null>(null);
-  const velocityRef = useRef<Rotation>({ x: 0, y: 0 });
-  const restingRotationRef = useRef<Rotation>(restingRotationBase);
+  const navigate = useNavigate();
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [probeCardId, setProbeCardId] = useState<string | null>(null);
 
-  const categoriesQuery = useArchiveCategories({ enabled: showMarkers });
-  const cardsQuery = useArchiveCategoryCards(selectedCategoryId);
-  const useFixtureData = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES !== 'false';
+  const catQuery = useArchiveCategories({ enabled: showMarkers });
+  const cardQuery = useArchiveCategoryCards(selectedCatId);
+  const hoverSimilarQuery = useSimilarCards(hoveredCardId);
+  const rootSimilarQuery = useSimilarCards(probeCardId);
+  const useFixtures = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES !== 'false';
 
-  const categories = useMemo<GraphCategory[]>(() => {
+  /* ── categories ── */
+  const categories = useMemo<CatNode[]>(() => {
     if (!showMarkers) return [];
-    const apiCategories = categoriesQuery.data?.categories;
-    if (!apiCategories?.length && !useFixtureData) return [];
+    const apiCats = catQuery.data?.categories;
+    if (!apiCats?.length && useFixtures) {
+      const n = Math.min(graphFixtureCategories.length, 5);
+      const idle = CAT_IDLE[n] ?? CAT_IDLE[5]!;
+      const dock = CAT_DOCK[n] ?? CAT_DOCK[5]!;
+      return graphFixtureCategories.map((c, i) => ({ id: c.id, name: c.name, count: 0, idlePos: idle[i], dockPos: dock[i] }));
+    }
+    if (!apiCats?.length) return [];
+    const sliced = apiCats.slice(0, 5);
+    const n = Math.min(sliced.length, 5);
+    const idle = CAT_IDLE[n] ?? CAT_IDLE[5]!;
+    const dock = CAT_DOCK[n] ?? CAT_DOCK[5]!;
+    return sliced.map((c, i) => ({ id: c.categoryId, name: c.categoryName, count: c.cardCount, idlePos: idle[i], dockPos: dock[i] }));
+  }, [catQuery.data?.categories, showMarkers, useFixtures]);
 
-    if (!apiCategories?.length && useFixtureData) {
-      const positions = createPlanetMarkerPositions(graphFixtureCategories.length);
-      const spherePoints = createPlanetMarkerSpherePoints(graphFixtureCategories.length);
+  const selectedCat = categories.find(c => c.id === selectedCatId) ?? null;
 
-      return graphFixtureCategories.map((category, index) => ({
-        ...category,
-        position: positions[index],
-        sphere: spherePoints[index],
-      }));
+  /* ── cards (time-sorted, capped at MAX_CARDS) ── */
+  const cards = useMemo<CardNode[]>(() => {
+    if (!selectedCat) return [];
+    const apiCards = cardQuery.data?.cards;
+    let raw: { id: string; title: string; tags: string[]; time: number }[] = [];
+
+    if (!apiCards?.length && useFixtures) {
+      const leaves = graphFixtureLeavesByCategory[selectedCatId ?? 'nature'] ?? graphFixtureLeavesByCategory.nature ?? [];
+      raw = leaves.map(l => ({ id: l.id, title: l.title, tags: l.tags, time: l.collectedAt ? new Date(l.collectedAt).getTime() : 0 }));
+    } else if (apiCards?.length) {
+      raw = apiCards.map(c => ({ id: c.cardId, title: c.title, tags: c.tags.map(t => t.tagName), time: new Date(c.createdAt).getTime() }));
     }
 
-    const resolvedCategories = apiCategories ?? [];
-    const positions = createPlanetMarkerPositions(resolvedCategories.length);
-    const spherePoints = createPlanetMarkerSpherePoints(resolvedCategories.length);
-    return resolvedCategories.map((category, index) => ({
-      id: category.categoryId,
-      name: category.categoryName,
-      position: positions[index],
-      sphere: spherePoints[index],
+    raw.sort((a, b) => a.time - b.time);
+    const capped = raw.slice(0, MAX_CARDS);
+    const slots = layoutCards(selectedCat.dockPos, capped.length);
+
+    return capped.map((c, i) => ({
+      id: c.id, title: c.title, tags: c.tags,
+      pos: slots[i].pos, layer: slots[i].layer,
     }));
-  }, [categoriesQuery.data?.categories, showMarkers, useFixtureData]);
+  }, [selectedCat, cardQuery.data?.cards, selectedCatId, useFixtures]);
+
+  const tagLines = useMemo(() => buildTagLines(cards), [cards]);
+
+  /* ── root-level category links ── */
+  useEffect(() => {
+    if (!cards.length) { setProbeCardId(null); return; }
+    const best = cards.reduce((a, b) => b.tags.length > a.tags.length ? b : a, cards[0]);
+    setProbeCardId(best.id);
+  }, [cards]);
+
+  const rootLinks = useMemo(() => {
+    if (!selectedCat || !rootSimilarQuery.data?.similarCards?.length) return [] as { catId: string; to: Pos }[];
+    const seen = new Set<string>();
+    const out: { catId: string; to: Pos }[] = [];
+    for (const sc of rootSimilarQuery.data.similarCards) {
+      const catId = sc.category?.categoryId;
+      if (!catId || catId === selectedCatId || seen.has(catId)) continue;
+      const cat = categories.find(c => c.id === catId);
+      if (!cat) continue;
+      seen.add(catId);
+      out.push({ catId, to: cat.dockPos });
+    }
+    return out;
+  }, [selectedCat, rootSimilarQuery.data?.similarCards, selectedCatId, categories]);
+
+  const linkedCatIds = useMemo(() => new Set(rootLinks.map(r => r.catId)), [rootLinks]);
+
+  /* ── hover state ── */
+  const hoveredCard = hoveredCardId ? cards.find(c => c.id === hoveredCardId) ?? null : null;
+
+  const hovRelatedIds = useMemo(() => {
+    if (!hoveredCard) return new Set<string>();
+    return new Set(
+      cards
+        .filter(c => c.id !== hoveredCard.id && c.tags.some(t => hoveredCard.tags.includes(t)))
+        .map(c => c.id),
+    );
+  }, [hoveredCard, cards]);
+
+  const crossCards = useMemo<CrossCard[]>(() => {
+    if (!hoveredCard || !hoverSimilarQuery.data?.similarCards?.length) return [];
+    const out: CrossCard[] = [];
+    for (const sc of hoverSimilarQuery.data.similarCards) {
+      const catId = sc.category?.categoryId;
+      if (!catId || catId === selectedCatId) continue;
+      const cat = categories.find(c => c.id === catId);
+      if (!cat) continue;
+      const idx = out.length;
+      out.push({
+        id: sc.cardId, title: sc.title, catId,
+        pos: { x: clamp(cat.dockPos.x + ((idx % 3) - 1) * 9, 4, 96), y: clamp(cat.dockPos.y - 16 - Math.floor(idx / 3) * 10, 4, 74) },
+      });
+      if (out.length >= 5) break;
+    }
+    return out;
+  }, [hoveredCard, hoverSimilarQuery.data?.similarCards, selectedCatId, categories]);
+
+  const crossCatIds = useMemo(
+    () => new Set(crossCards.map(c => c.catId)),
+    [crossCards],
+  );
+
+  const hasSelection = selectedCatId !== null;
+
+  /* ── category spring positions (ALL categories, spring-animated) ── */
+  const catSpringsRef = useRef<SV[]>([]);
+  const catLoopRef = useRef(0);
+  const catLastTRef = useRef(performance.now());
+  const [catPositions, setCatPositions] = useState<Pos[]>(() => categories.map(c => c.idlePos));
 
   useEffect(() => {
-    if (!categoriesQuery.data?.categories.length) return;
-    if (categoriesQuery.data.categories.some((category) => category.categoryId === selectedCategoryId)) return;
-    setSelectedCategoryId(categoriesQuery.data.categories[0].categoryId);
-  }, [categoriesQuery.data?.categories, selectedCategoryId]);
-
-  const leaves = useMemo<GraphLeaf[]>(() => {
-    const apiCards = cardsQuery.data?.cards;
-    if (!apiCards?.length && !useFixtureData) return [];
-
-    if (!apiCards?.length && useFixtureData) {
-      const fixtureLeaves =
-        graphFixtureLeavesByCategory[selectedCategoryId ?? 'nature'] ?? graphFixtureLeavesByCategory.nature ?? [];
-      const positions = createCanopyLeafPositions(fixtureLeaves.length);
-
-      return fixtureLeaves.map((leaf, index) => ({
-        ...leaf,
-        position: positions[index],
-      }));
+    while (catSpringsRef.current.length < categories.length) {
+      const c = categories[catSpringsRef.current.length];
+      catSpringsRef.current.push(sv(c.idlePos.x, c.idlePos.y));
     }
+  }, [categories]);
 
-    const resolvedCards = apiCards ?? [];
-    const positions = createCanopyLeafPositions(resolvedCards.length);
-    return resolvedCards.map((card, index) => ({
-      id: card.cardId,
-      title: card.title,
-      tags: card.tags.map((tag) => tag.tagName),
-      collectedAt: formatArchiveDate(card.createdAt),
-      position: positions[index],
-    }));
-  }, [cardsQuery.data?.cards, selectedCategoryId, useFixtureData]);
+  useEffect(() => {
+    catLastTRef.current = performance.now();
 
-  const handleBack = () => {
-    setView('planet');
-  };
+    const tick = (now: number) => {
+      const dt = Math.min((now - catLastTRef.current) / 1000, 0.033);
+      catLastTRef.current = now;
+      const sub = dt / SUB_STEPS;
+      let moving = false;
 
-  const handlePlanetPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).closest('button')) return;
-    if (inertiaFrameRef.current !== null) {
-      window.cancelAnimationFrame(inertiaFrameRef.current);
-      inertiaFrameRef.current = null;
-    }
-    velocityRef.current = { x: 0, y: 0 };
-    dragState.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
-    isDraggingRef.current = true;
-    setIsDraggingPlanet(true);
-    scheduleRotationRender();
-  };
+      categories.forEach((cat, i) => {
+        const s = catSpringsRef.current[i];
+        if (!s) return;
+        const t = hasSelection ? cat.dockPos : cat.idlePos;
+        for (let step = 0; step < SUB_STEPS; step++) {
+          catSpringsRef.current[i] = svStep(s, t.x, t.y, sub, ORIGIN_K, ORIGIN_C);
+        }
+        if (!svDone(catSpringsRef.current[i], t.x, t.y)) moving = true;
+        else catSpringsRef.current[i] = sv(t.x, t.y);
+      });
 
-  const handlePlanetPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!dragState.current) return;
-    if (dragState.current.pointerId !== event.pointerId) return;
-    const deltaX = event.clientX - dragState.current.x;
-    const deltaY = event.clientY - dragState.current.y;
-    dragState.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
-
-    const inputX = -deltaY * 0.24;
-    const inputY = deltaX * 0.36;
-
-    targetRotationRef.current = {
-      x: clamp(restingRotationRef.current.x + clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + inputX, -14, 14), -22, 12),
-      y: restingRotationRef.current.y + clamp(targetRotationRef.current.y - restingRotationRef.current.y + inputY, -20, 20),
-    };
-    velocityRef.current = {
-      x: lerp(velocityRef.current.x, inputX, 0.22),
-      y: lerp(velocityRef.current.y, inputY, 0.22),
-    };
-    scheduleRotationRender();
-  };
-
-  const handlePlanetPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (dragState.current?.pointerId !== event.pointerId) return;
-    dragState.current = null;
-    isDraggingRef.current = false;
-    setIsDraggingPlanet(false);
-    startInertia();
-  };
-
-  const handlePlanetWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    if (!event.ctrlKey) return;
-    event.preventDefault();
-    setZoom((current) => clamp(current - event.deltaY * 0.0012, 0.84, 1.18));
-  };
-
-  useEffect(() => () => {
-    if (animationFrameRef.current !== null) {
-      window.cancelAnimationFrame(animationFrameRef.current);
-    }
-    if (inertiaFrameRef.current !== null) {
-      window.cancelAnimationFrame(inertiaFrameRef.current);
-    }
-  }, []);
-
-  const scheduleRotationRender = () => {
-    if (animationFrameRef.current !== null) return;
-
-    animationFrameRef.current = window.requestAnimationFrame(() => {
-      animationFrameRef.current = null;
-      rotationRef.current = {
-        x: roundTo(lerpAngle(rotationRef.current.x, targetRotationRef.current.x, isDraggingRef.current ? 0.22 : 0.16), 3),
-        y: roundTo(lerp(rotationRef.current.y, targetRotationRef.current.y, isDraggingRef.current ? 0.22 : 0.16), 3),
-      };
-      setRenderRotation({ ...rotationRef.current });
-
-      const stillSettling =
-        Math.abs(shortestAngleDelta(rotationRef.current.x, targetRotationRef.current.x)) > 0.08 ||
-        Math.abs(rotationRef.current.y - targetRotationRef.current.y) > 0.08;
-
-      if (stillSettling || dragState.current || inertiaFrameRef.current !== null) {
-        scheduleRotationRender();
-      } else {
-        rotationRef.current = { ...targetRotationRef.current };
-      }
-    });
-  };
-
-  const startInertia = () => {
-    const tick = () => {
-      velocityRef.current = {
-        x: roundTo(velocityRef.current.x * 0.72, 4),
-        y: roundTo(velocityRef.current.y * 0.72, 4),
-      };
-
-      const hasMotion = Math.abs(velocityRef.current.x) > 0.04 || Math.abs(velocityRef.current.y) > 0.04;
-      if (!hasMotion) {
-        inertiaFrameRef.current = null;
-        velocityRef.current = { x: 0, y: 0 };
-        return;
-      }
-
-      targetRotationRef.current = {
-        x: clamp(
-          restingRotationRef.current.x +
-            clamp(shortestAngleDelta(restingRotationRef.current.x, targetRotationRef.current.x) + velocityRef.current.x * 0.24, -14, 14),
-          -22,
-          12,
-        ),
-        y:
-          restingRotationRef.current.y +
-          clamp(targetRotationRef.current.y - restingRotationRef.current.y + velocityRef.current.y * 0.24, -20, 20),
-      };
-      scheduleRotationRender();
-      inertiaFrameRef.current = window.requestAnimationFrame(tick);
+      setCatPositions(catSpringsRef.current.map(s => ({ x: s.x, y: s.y })));
+      if (moving) catLoopRef.current = requestAnimationFrame(tick);
     };
 
-    inertiaFrameRef.current = window.requestAnimationFrame(tick);
-  };
+    catLoopRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(catLoopRef.current);
+  }, [hasSelection, selectedCatId, categories]);
+
+  const selIdx = categories.findIndex(c => c.id === selectedCatId);
+  const selCatLivePos = selIdx >= 0 ? catPositions[selIdx] : null;
 
   return (
-    <section className="relative min-h-[min(72vh,42rem)] overflow-hidden rounded-[32px] bg-background font-sans text-text-primary">
-      <SceneBackdrop />
+    <section className="relative font-sans text-text-primary" style={{ minHeight: 'calc(100vh - var(--dashboard-nav-offset, 88px))' }}>
+      <BG />
 
-      {view === 'tree' ? (
-        <button
-          type="button"
-          onClick={handleBack}
-          className="absolute left-5 top-5 z-30 inline-flex items-center gap-2 rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-4 py-2 text-sm text-text-primary/80 transition hover:border-primary-signal/40 hover:text-primary-signal"
-        >
-          <ArrowLeft size={16} />
-          뒤로가기
-        </button>
-      ) : null}
+      {showMarkers && catQuery.isPending ? (
+        <Msg><Loader2 size={24} className="animate-spin text-primary-signal" /><span className="text-sm text-text-secondary">지식 숲을 불러오는 중...</span></Msg>
+      ) : showMarkers && !catQuery.isPending && !categories.length ? (
+        <Msg><FolderOpen size={28} className="text-text-secondary/40" /><p className="text-sm text-text-secondary">표시할 카테고리가 없습니다.</p></Msg>
+      ) : (
+        <div className="relative h-full w-full" style={{ minHeight: 'calc(100vh - var(--dashboard-nav-offset, 88px))' }} onClick={() => hasSelection && setSelectedCatId(null)} role="presentation">
 
-      <div
-        className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${
-          view === 'planet' ? 'scale-100 opacity-100' : 'pointer-events-none scale-150 opacity-0'
-        }`}
-      >
-        <div
-          className="group/planet relative aspect-square w-[min(72vw,32rem)] cursor-grab touch-none active:cursor-grabbing"
-          onPointerDown={handlePlanetPointerDown}
-          onPointerMove={handlePlanetPointerMove}
-          onPointerUp={handlePlanetPointerUp}
-          onPointerCancel={handlePlanetPointerUp}
-          onWheel={handlePlanetWheel}
-        >
-          <div
-            className={`pointer-events-none absolute inset-0 animate-[planet-float_12s_ease-in-out_infinite] ${
-              isDraggingPlanet ? '' : 'transition-transform duration-500 ease-out'
-            }`}
-            style={{ transform: `scale(${zoom})` }}
-          >
-            <div
-              className="absolute inset-0 transition-transform duration-500 ease-out group-hover/planet:scale-[1.02]"
-              style={getPlanetContainerStyle(renderRotation)}
-            >
-              <div className="absolute inset-[-4%] rounded-full bg-[radial-gradient(circle,rgba(120,255,220,0.028)_0%,rgba(120,255,220,0.012)_38%,rgba(120,255,220,0)_72%)] blur-2xl transition-opacity duration-500 group-hover/planet:opacity-90" />
-              <div className="absolute inset-0 overflow-hidden rounded-full shadow-[0_26px_78px_rgba(0,0,0,0.54),0_0_20px_rgba(120,255,220,0.028)] transition duration-500 group-hover/planet:brightness-[1.02]">
-                <img
-                  src={planetSource}
-                  alt=""
-                  aria-hidden="true"
-                  className={`absolute inset-0 h-full w-full object-cover ${
-                    isDraggingPlanet ? '' : 'transition-transform duration-200 ease-out'
-                  }`}
-                  style={getPlanetImageStyle(renderRotation)}
-                />
-                <div className="absolute inset-0 rounded-full" style={{ background: getPlanetImageShading(renderRotation) }} />
-                <div className="absolute inset-0 rounded-full" style={{ background: getPlanetEdgeFalloff(renderRotation) }} />
-                <div className="absolute inset-[1px] rounded-full bg-[radial-gradient(circle_at_18%_18%,rgba(165,232,255,0.045),transparent_16%),radial-gradient(circle_at_82%_82%,transparent_62%,rgba(0,0,0,0.1)_100%)] [mask-image:radial-gradient(circle_at_center,transparent_68%,black_96%)] [-webkit-mask-image:radial-gradient(circle_at_center,transparent_68%,black_96%)]" />
-              </div>
-            </div>
-          </div>
-
-          {categories.map((category) => {
-            const projection = projectSpherePoint(category.sphere.latitude, category.sphere.longitude, renderRotation);
-
+          {/* ── category nodes (spring-positioned) ── */}
+          {categories.map((cat, i) => {
+            const pos = catPositions[i] ?? cat.idlePos;
+            const isSelected = selectedCatId === cat.id;
+            const isLinked = linkedCatIds.has(cat.id) || crossCatIds.has(cat.id);
             return (
-              <button
-                key={category.id}
-                type="button"
-              onClick={() => {
-                setSelectedCategoryId(category.id);
-                setTreeEnterToken((current) => current + 1);
-                setView('tree');
-              }}
-                className="group/marker absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-all duration-300"
+              <button key={cat.id} type="button"
+                onClick={e => { e.stopPropagation(); setHoveredCardId(null); setSelectedCatId(prev => prev === cat.id ? null : cat.id); }}
+                className="absolute transition-[opacity,filter] duration-300"
                 style={{
-                  top: `${projection.y}%`,
-                  left: `${projection.x}%`,
-                  opacity: projection.visible ? 1 : 0,
-                  transform: `translate(-50%, -50%) scale(${projection.scale})`,
-                  pointerEvents: projection.visible ? 'auto' : 'none',
-                } satisfies CSSProperties}
-              >
-                <span
-                  className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(120,255,220,0.18)_0%,rgba(120,255,220,0.08)_38%,transparent_72%)] blur-[0.8px] transition duration-300 group-hover/marker:scale-110 group-hover/marker:opacity-100"
-                  style={{
-                    width: `${projection.glowSize}px`,
-                    height: `${projection.glowSize}px`,
-                    opacity: 1,
-                  }}
-                />
-                <span
-                  className="pointer-events-none absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 rounded-full border border-[rgba(173,255,240,0.16)] opacity-0 transition duration-300 group-hover/marker:animate-[marker-breath_1.8s_ease-out_infinite] group-hover/marker:opacity-100"
-                  style={{
-                    width: `${projection.pulseSize}px`,
-                    height: `${projection.pulseSize}px`,
-                  }}
-                />
-                <span
-                  className="relative block rounded-full bg-primary-signal/95 shadow-[0_0_7px_rgba(0,255,194,0.34)] transition duration-300 group-hover/marker:scale-110 group-hover/marker:bg-primary-signal group-hover/marker:brightness-110 group-hover/marker:shadow-[0_0_10px_rgba(0,255,194,0.5)]"
-                  style={{
-                    width: `${projection.coreSize}px`,
-                    height: `${projection.coreSize}px`,
-                    opacity: 1,
-                  }}
-                />
-                <span className="pointer-events-none absolute left-1/2 top-5 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full border border-text-secondary/10 glass-panel bg-surface-lowest/70 px-3 py-1 text-xs text-text-primary/78 opacity-0 shadow-[0_10px_26px_rgba(0,0,0,0.24)] backdrop-blur-md transition-all duration-300 group-hover/marker:translate-y-0 group-hover/marker:opacity-100">
-                  {category.name}
-                </span>
+                  left: `${pos.x}%`, top: `${pos.y}%`,
+                  zIndex: isSelected ? 30 : hasSelection ? 1 : 5,
+                  opacity: hasSelection && !isSelected ? (isLinked ? 0.7 : 0.2) : 1,
+                  transform: `translate(-50%,-50%) scale(${isSelected ? 1.1 : 1})`,
+                }}>
+                <div className={`flex min-w-[7.5rem] flex-col gap-1.5 rounded-tl-[20px] rounded-br-[20px] rounded-tr-lg rounded-bl-lg border px-4 py-3 glass-card !shadow-none transition-colors duration-300 ${isSelected ? 'border-primary-signal/60 bg-primary-signal/10' : isLinked ? 'border-primary-signal/40 bg-primary-signal/5' : 'border-primary-signal/25 bg-surface-container/80 hover:border-primary-signal/50 hover:bg-surface-container'}`}>
+                  <span className="text-xs font-bold uppercase tracking-wider text-text-primary">{cat.name}</span>
+                  <span className="text-[11px] text-text-secondary">{cat.count} cards</span>
+                </div>
               </button>
             );
           })}
 
-          {showMarkers && !categoriesQuery.isPending && categories.length === 0 ? (
-            <div className="absolute inset-x-0 bottom-8 text-center text-sm text-text-primary/45">
-              표시할 아카이브 카테고리가 없습니다.
-            </div>
-          ) : null}
-        </div>
-      </div>
+          {/* ── root links between categories ── */}
+          {rootLinks.length > 0 && selectedCat && (
+            <RootLines key={`rl-${selectedCatId}`} from={catPositions[selIdx] ?? selectedCat.dockPos} links={rootLinks} />
+          )}
 
-      <div
-        className={`absolute inset-0 transition-all duration-700 ${
-          view === 'tree' ? 'scale-100 opacity-100' : 'pointer-events-none scale-75 opacity-0'
-        }`}
-      >
-        <CategoryTreeView
-          leaves={leaves}
-          isPending={cardsQuery.isPending}
-          selectedCategoryId={selectedCategoryId}
-          enterToken={treeEnterToken}
-        />
-      </div>
+          {/* ── card graph (catPos = live spring position of selected category) ── */}
+          {selectedCatId && cards.length > 0 && selectedCat && selCatLivePos && (
+            <CardGraph key={selectedCatId}
+              catPos={selCatLivePos} dockPos={selectedCat.dockPos}
+              cards={cards} tagLines={tagLines}
+              hoveredCardId={hoveredCardId} hovRelatedIds={hovRelatedIds}
+              onHover={setHoveredCardId} onCardClick={id => navigate(`/cards/${id}`)} />
+          )}
+
+          {/* ── cross-category bridge (on hover) ── */}
+          {hoveredCard && crossCards.length > 0 && (
+            <CrossBridge key={hoveredCardId} from={hoveredCard.pos} cards={crossCards} />
+          )}
+
+          {selectedCatId && cardQuery.isPending && (
+            <div className="absolute inset-0 grid place-items-center" style={{ zIndex: 10 }}>
+              <Loader2 size={20} className="animate-spin text-primary-signal/40" />
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
 
-function SceneBackdrop() {
+/* ================================================================ */
+/*  CardGraph                                                       */
+/* ================================================================ */
+
+function stemPath(from: Pos, to: Pos, i: number): string {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const bend = ((i % 5) - 2) * 1.2;
+  return `M${from.x} ${from.y} C${from.x + bend} ${from.y + dy * 0.35},${from.x + dx * 0.75} ${to.y - dy * 0.06},${to.x} ${to.y}`;
+}
+
+/* ── damped spring: F = -kx - cv, sub-stepped ── */
+
+type SV = { x: number; y: number; vx: number; vy: number };
+
+function sv(x: number, y: number): SV { return { x, y, vx: 0, vy: 0 }; }
+
+function svStep(s: SV, tx: number, ty: number, dt: number, k: number, c: number): SV {
+  const ax = -k * (s.x - tx) - c * s.vx;
+  const ay = -k * (s.y - ty) - c * s.vy;
+  return { x: s.x + s.vx * dt, y: s.y + s.vy * dt, vx: s.vx + ax * dt, vy: s.vy + ay * dt };
+}
+
+function svDone(s: SV, tx: number, ty: number): boolean {
+  return Math.abs(s.x - tx) < 0.04 && Math.abs(s.y - ty) < 0.04 && Math.abs(s.vx) < 0.04 && Math.abs(s.vy) < 0.04;
+}
+
+const STEM_DELAY = 100;
+const STEM_GAP = 38;
+const STEM_MS = 400;
+const SUB_STEPS = 4;
+const ORIGIN_K = 1000;
+const ORIGIN_C = 55;
+
+function CardGraph({ catPos, dockPos, cards, tagLines, hoveredCardId, hovRelatedIds, onHover, onCardClick }: {
+  catPos: Pos; dockPos: Pos; cards: CardNode[]; tagLines: TagLine[];
+  hoveredCardId: string | null; hovRelatedIds: Set<string>;
+  onHover: (id: string | null) => void; onCardClick: (id: string) => void;
+}) {
+  const cardSpringsRef = useRef<SV[]>(cards.map(() => sv(catPos.x, catPos.y)));
+  const stemStartRef = useRef(performance.now());
+  const lastTRef = useRef(performance.now());
+  const frameRef = useRef(0);
+  const catPosRef = useRef(catPos);
+  catPosRef.current = catPos;
+  const [, bump] = useState(0);
+  const [settled, setSettled] = useState(false);
+  const isHovering = hoveredCardId !== null;
+
+  useEffect(() => {
+    cardSpringsRef.current = cards.map(() => sv(catPosRef.current.x, catPosRef.current.y));
+    stemStartRef.current = performance.now();
+    lastTRef.current = performance.now();
+    setSettled(false);
+
+    const totalDur = STEM_DELAY + cards.length * STEM_GAP + STEM_MS + 400;
+
+    const loop = (now: number) => {
+      const dt = Math.min((now - lastTRef.current) / 1000, 0.033);
+      lastTRef.current = now;
+      const sub = dt / SUB_STEPS;
+
+      const cp = catPosRef.current;
+      const catDx = cp.x - dockPos.x;
+      const catDy = cp.y - dockPos.y;
+
+      cardSpringsRef.current.forEach((cs, i) => {
+        const dist = Math.hypot(cards[i].pos.x - dockPos.x, cards[i].pos.y - dockPos.y);
+        const pull = clamp(1 - dist / 60, 0.15, 0.85);
+        const tx = cards[i].pos.x + catDx * pull;
+        const ty = cards[i].pos.y + catDy * pull;
+        const k = clamp(200 - dist * 2.5, 60, 200);
+        const c = clamp(20 - dist * 0.25, 8, 20);
+        for (let s = 0; s < SUB_STEPS; s++) {
+          cardSpringsRef.current[i] = svStep(cardSpringsRef.current[i], tx, ty, sub, k, c);
+        }
+      });
+
+      const stemElapsed = now - stemStartRef.current;
+      const catSettled = Math.abs(catDx) < 0.1 && Math.abs(catDy) < 0.1;
+      const cDone = cardSpringsRef.current.every((cs, i) => svDone(cs, cards[i].pos.x, cards[i].pos.y));
+      const allDone = catSettled && cDone && stemElapsed > totalDur;
+
+      if (allDone) {
+        cardSpringsRef.current = cards.map(cd => sv(cd.pos.x, cd.pos.y));
+        setSettled(true);
+      }
+
+      bump(t => t + 1);
+      if (!allDone) frameRef.current = requestAnimationFrame(loop);
+    };
+
+    frameRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [cards, dockPos.x, dockPos.y]);
+
+  const stemElapsed = performance.now() - stemStartRef.current;
+  const showConn = stemElapsed > STEM_DELAY + cards.length * STEM_GAP + STEM_MS;
+
   return (
-    <div className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_44%,rgba(0,255,194,0.06),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(30,80,86,0.24),transparent_36%)]" />
-      <div className="absolute left-1/2 top-1/2 h-[31rem] w-[31rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(0,255,194,0.18)_0%,rgba(0,255,194,0.08)_34%,rgba(0,255,194,0)_72%)] blur-2xl" />
-      <div className="absolute left-1/2 top-1/2 h-[25rem] w-[25rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(133,255,220,0.1)_0%,rgba(133,255,220,0)_70%)] blur-xl" />
-    </div>
+    <>
+      <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 12 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+        {cards.map((card, i) => {
+          const cs = cardSpringsRef.current[i];
+          const cp = settled ? card.pos : { x: cs?.x ?? card.pos.x, y: cs?.y ?? card.pos.y };
+          const tStart = STEM_DELAY + i * STEM_GAP;
+          const progress = clamp((stemElapsed - tStart) / STEM_MS, 0, 1);
+          const dashOff = 1 - progress * progress * (3 - 2 * progress);
+          const d = stemPath(catPos, cp, i);
+          const active = !isHovering || hoveredCardId === card.id || hovRelatedIds.has(card.id);
+          const baseOp = active ? 0.25 : 0.05;
+          return (
+            <g key={`stem-${card.id}`}>
+              <path d={d} pathLength={1} fill="none"
+                stroke={`rgba(74,222,128,${baseOp * 0.3})`} strokeWidth="1.2"
+                strokeDasharray="1" strokeDashoffset={dashOff}
+                style={{ transition: settled ? 'stroke 200ms ease' : 'none' }} />
+              <path d={d} pathLength={1} fill="none"
+                stroke={`rgba(74,222,128,${baseOp})`} strokeWidth="0.2"
+                strokeDasharray="1" strokeDashoffset={dashOff}
+                style={{ transition: settled ? 'stroke 200ms ease' : 'none' }} />
+            </g>
+          );
+        })}
+
+        {tagLines.map(({ aId, bId, from, to, weight }, idx) => {
+          const isRelevant = isHovering && (aId === hoveredCardId || bId === hoveredCardId || (hovRelatedIds.has(aId) && hovRelatedIds.has(bId)));
+          const op = isHovering
+            ? (isRelevant ? clamp(0.2 + weight * 0.1, 0.2, 0.5) : 0.03)
+            : clamp(0.08 + weight * 0.04, 0.08, 0.22);
+
+          const aS = cardSpringsRef.current[cards.findIndex(c => c.id === aId)];
+          const bS = cardSpringsRef.current[cards.findIndex(c => c.id === bId)];
+          const af = settled ? from : { x: aS?.x ?? from.x, y: aS?.y ?? from.y };
+          const bf = settled ? to : { x: bS?.x ?? to.x, y: bS?.y ?? to.y };
+
+          return (
+            <path key={idx} d={curvePath(af, bf, idx)} fill="none"
+              stroke={`rgba(74,222,128,${op})`}
+              strokeWidth={isRelevant ? '0.28' : '0.18'} strokeDasharray="1 0.6"
+              style={{ opacity: showConn ? 1 : 0, transition: 'opacity 500ms ease, stroke 200ms ease, stroke-width 200ms ease' }} />
+          );
+        })}
+      </svg>
+
+      {cards.map((card, i) => {
+        const cs = cardSpringsRef.current[i];
+        const cp = settled ? card.pos : { x: cs?.x ?? card.pos.x, y: cs?.y ?? card.pos.y };
+        const tStart = STEM_DELAY + i * STEM_GAP;
+        const stemT = clamp((stemElapsed - tStart) / STEM_MS, 0, 1);
+        const bloom = clamp((stemT - 0.7) / 0.3, 0, 1);
+        const isThis = hoveredCardId === card.id;
+        const isRelated = hovRelatedIds.has(card.id);
+        const isDimmed = isHovering && !isThis && !isRelated;
+
+        return (
+          <button key={card.id} type="button"
+            onMouseEnter={() => onHover(card.id)} onMouseLeave={() => onHover(null)}
+            onClick={e => { e.stopPropagation(); onCardClick(card.id); }}
+            className="absolute"
+            style={{
+              left: `${cp.x}%`, top: `${cp.y}%`, zIndex: isThis ? 25 : 20,
+              opacity: settled ? (isDimmed ? 0.18 : 1) : bloom,
+              transform: `translate(-50%,-50%) scale(${settled ? (isThis ? 1.06 : 1) : 0.4 + bloom * 0.6})`,
+              transition: settled ? 'opacity 300ms ease-out, transform 300ms ease-out' : 'none',
+            }}>
+            <div className={`flex w-[8.5rem] flex-col gap-1 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md border px-3 py-2.5 glass-card !shadow-none transition-colors duration-200 ${isThis ? 'border-primary-signal/60 bg-primary-signal/8' : isRelated ? 'border-primary-signal/35 bg-surface-container/90' : 'border-text-secondary/10 bg-surface-container/80 hover:border-primary-signal/30 hover:bg-surface-container'}`}>
+              <span className={`line-clamp-2 text-[11px] font-semibold leading-[1.4] ${isThis ? 'text-text-primary' : 'text-text-secondary'}`}>
+                {card.title}
+              </span>
+              {card.tags.length > 0 && (
+                <span className="truncate text-[10px] text-primary-signal/60">
+                  {card.tags.slice(0, 2).map(t => `#${t}`).join(' ')}
+                </span>
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </>
   );
 }
 
-function formatArchiveDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
+/* ================================================================ */
+/*  RootLines                                                       */
+/* ================================================================ */
 
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
+function RootLines({ from, links }: { from: Pos; links: { catId: string; to: Pos }[] }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => { const t = window.setTimeout(() => setShow(true), 300); return () => window.clearTimeout(t); }, []);
+
+  return (
+    <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 2 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+      {links.map((lk, i) => {
+        const sag = 5 + Math.abs(from.x - lk.to.x) * 0.05;
+        const d = `M${from.x} ${from.y} C${from.x} ${from.y + sag},${lk.to.x} ${lk.to.y + sag},${lk.to.x} ${lk.to.y}`;
+        return (
+          <g key={lk.catId}>
+            <path d={d} pathLength={1} fill="none" stroke="rgba(74,222,128,0.06)" strokeWidth="1.4"
+              strokeDasharray="1" strokeDashoffset={show ? 0 : 1}
+              style={{ transition: `stroke-dashoffset 700ms ease-out ${i * 100}ms` }} />
+            <path d={d} pathLength={1} fill="none" stroke="rgba(74,222,128,0.16)" strokeWidth="0.22" strokeDasharray="1.5 1"
+              strokeDashoffset={show ? 0 : 1}
+              style={{ transition: `stroke-dashoffset 700ms ease-out ${i * 100}ms` }} />
+          </g>
+        );
+      })}
+    </svg>
+  );
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
+/* ================================================================ */
+/*  CrossBridge                                                     */
+/* ================================================================ */
+
+function CrossBridge({ from, cards }: { from: Pos; cards: CrossCard[] }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => { const t = window.setTimeout(() => setShow(true), 50); return () => window.clearTimeout(t); }, []);
+
+  return (
+    <>
+      <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 18 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+        {cards.map((card, i) => {
+          const midY = (from.y + card.pos.y) / 2;
+          const d = `M${from.x} ${from.y} C${from.x} ${midY},${card.pos.x} ${midY},${card.pos.x} ${card.pos.y}`;
+          return (
+            <path key={card.id} d={d} pathLength={1} fill="none"
+              stroke="rgba(74,222,128,0.3)" strokeWidth="0.2" strokeDasharray="1.2 0.6"
+              strokeDashoffset={show ? 0 : 1}
+              style={{ transition: `stroke-dashoffset 450ms ease-out ${i * 60}ms` }} />
+          );
+        })}
+      </svg>
+      {cards.map((card, i) => (
+        <div key={card.id} className="pointer-events-none absolute" style={{
+          left: `${card.pos.x}%`, top: `${card.pos.y}%`, zIndex: 22,
+          opacity: show ? 1 : 0,
+          transform: show ? 'translate(-50%,-50%) scale(1)' : 'translate(-50%,10%) scale(0.85)',
+          transition: `opacity 250ms ease-out ${i * 60 + 200}ms, transform 300ms ease-out ${i * 60 + 200}ms`,
+        }}>
+          <div className="flex w-[7.5rem] flex-col gap-0.5 rounded-tl-[12px] rounded-br-[12px] rounded-tr-md rounded-bl-md border border-primary-signal/30 bg-primary-signal/5 px-2.5 py-2 glass-card !shadow-none">
+            <span className="line-clamp-1 text-[10px] font-semibold text-primary-signal">{card.title}</span>
+          </div>
+        </div>
+      ))}
+    </>
+  );
 }
 
-function lerp(start: number, end: number, amount: number) {
-  return start + (end - start) * amount;
+/* ── utilities ── */
+
+function Msg({ children }: { children: ReactNode }) {
+  return <div className="absolute inset-0 z-10 grid place-items-center"><div className="flex flex-col items-center gap-3 text-center">{children}</div></div>;
 }
 
-function roundTo(value: number, precision: number) {
-  const factor = 10 ** precision;
-  return Math.round(value * factor) / factor;
-}
-
-function shortestAngleDelta(from: number, to: number) {
-  return wrapDegrees(to - from);
-}
-
-function lerpAngle(start: number, end: number, amount: number) {
-  return wrapDegrees(start + shortestAngleDelta(start, end) * amount);
-}
-
-function projectSpherePoint(latitude: number, longitude: number, rotation: Rotation) {
-  const lat = toRadians(latitude);
-  const lon = toRadians(longitude + rotation.y);
-  const pitch = toRadians(rotation.x);
-
-  const x = Math.cos(lat) * Math.sin(lon);
-  const yBase = Math.sin(lat);
-  const zBase = Math.cos(lat) * Math.cos(lon);
-
-  const y = yBase * Math.cos(pitch) - zBase * Math.sin(pitch);
-  const z = yBase * Math.sin(pitch) + zBase * Math.cos(pitch);
-  const visible = z > -0.08;
-  const depth = clamp((z + 1) / 2, 0, 1);
-
-  return {
-    x: 50 + x * 38,
-    y: 50 - y * 38,
-    visible,
-    scale: 0.72 + depth * 0.4,
-    opacity: 1,
-    markerOpacity: 1,
-    coreSize: 7 + depth * 5,
-    glowSize: 28 + depth * 18,
-    pulseSize: 14 + depth * 10,
-  };
-}
-
-function toRadians(value: number) {
-  return (value * Math.PI) / 180;
-}
-
-function wrapDegrees(value: number) {
-  return ((value % 360) + 360) % 360 - 180;
-}
-
-function getPlanetImageShading(rotation: Rotation) {
-  const lightX = clamp(30 + wrapDegrees(rotation.y) * 0.025, 27, 33);
-  const lightY = clamp(24 - wrapDegrees(rotation.x) * 0.025, 21, 27);
-  const shadowX = 100 - lightX;
-  const shadowY = 100 - lightY;
-
-  return [
-    `radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255,255,255,0.045), transparent 18%)`,
-    `radial-gradient(circle at ${shadowX}% ${shadowY}%, rgba(0,0,0,0.24), transparent 48%)`,
-    'radial-gradient(circle at 50% 50%, transparent 60%, rgba(0,0,0,0.06) 78%, rgba(0,0,0,0.24) 100%)',
-    'radial-gradient(ellipse at 68% 100%, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.12) 32%, transparent 60%)',
-  ].join(',');
-}
-
-function getPlanetEdgeFalloff(rotation: Rotation) {
-  const slowShiftX = clamp(50 - wrapDegrees(rotation.y) * 0.006, 48, 52);
-  const slowShiftY = clamp(50 + wrapDegrees(rotation.x) * 0.004, 49, 51);
-
-  return [
-    `radial-gradient(circle at ${slowShiftX}% ${slowShiftY}%, transparent 56%, rgba(0,0,0,0.05) 74%, rgba(0,0,0,0.18) 100%)`,
-  ].join(',');
-}
-
-function getPlanetContainerStyle(rotation: Rotation): CSSProperties {
-  const tiltX = clamp((rotation.x - restingRotationBase.x) * 0.18, -2.8, 2.8);
-  const tiltY = clamp((rotation.y - restingRotationBase.y) * 0.12, -3.2, 3.2);
-
-  return {
-    transform: `perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) rotateZ(-4deg) scaleY(0.975)`,
-  };
-}
-
-function getPlanetImageStyle(rotation: Rotation): CSSProperties {
-  const deltaX = rotation.x - restingRotationBase.x;
-  const deltaY = rotation.y - restingRotationBase.y;
-  const verticalScale = 1 - Math.abs(deltaX) * 0.0008;
-  const verticalOffset = clamp(deltaX * -0.18, -0.8, 0.8);
-  const horizontalOffset = clamp(deltaY * 0.18, -2.4, 2.4);
-
-  return {
-    transform: `scale(1.34) translate(${horizontalOffset}%, ${verticalOffset}%) scaleY(${verticalScale})`,
-    objectPosition: '50% 50%',
-    filter: 'saturate(0.98) contrast(1.02)',
-  };
+function BG() {
+  return (
+    <div className="pointer-events-none absolute -inset-48 overflow-visible">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_62%,var(--color-primary-signal,#4ade80)_0%,transparent_45%)] opacity-[0.05]" />
+      <div className="absolute left-1/2 top-[60%] h-[45rem] w-[45rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-signal/[0.06] blur-[90px]" />
+    </div>
+  );
 }

@@ -21,53 +21,32 @@ export function ArchiveSection() {
   const handleScroll = useCallback(() => {
     const carousel = carouselRef.current;
     if (!carousel || visibleCards.length === 0) return;
-    const pageIndex = Math.round(carousel.scrollLeft / carousel.clientWidth);
-    setActiveIndex(pageIndex);
+    setActiveIndex(Math.round(carousel.scrollLeft / carousel.clientWidth));
   }, [visibleCards.length]);
 
   const scrollCarousel = useCallback((direction: 'previous' | 'next') => {
     const carousel = carouselRef.current;
     if (!carousel) return;
-
     if (direction === 'next' && carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 10) {
       carousel.scrollTo({ left: 0, behavior: 'smooth' });
       return;
     }
-
-    if (direction === 'previous' && carousel.scrollLeft <= 0) {
-      return;
-    }
-
-    carousel.scrollBy({
-      left: carousel.clientWidth * (direction === 'previous' ? -1 : 1),
-      behavior: 'smooth',
-    });
+    if (direction === 'previous' && carousel.scrollLeft <= 0) return;
+    carousel.scrollBy({ left: carousel.clientWidth * (direction === 'previous' ? -1 : 1), behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
     if (!isAuthenticated || isPending || isError || visibleCards.length === 0 || isHovered || !isPlaying) return;
-    const interval = setInterval(() => {
-      scrollCarousel('next');
-    }, 4000);
+    const interval = setInterval(() => scrollCarousel('next'), 4000);
     return () => clearInterval(interval);
   }, [isAuthenticated, isError, isHovered, isPending, isPlaying, scrollCarousel, visibleCards.length]);
 
   useEffect(() => {
     let ignore = false;
-
     authTokenStorage.getToken()
-      .then((token) => {
-        if (ignore) return;
-        setIsAuthenticated(Boolean(token));
-      })
-      .finally(() => {
-        if (ignore) return;
-        setIsCheckingAuth(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
+      .then((token) => { if (!ignore) setIsAuthenticated(Boolean(token)); })
+      .finally(() => { if (!ignore) setIsCheckingAuth(false); });
+    return () => { ignore = true; };
   }, []);
 
   const totalPages = Math.max(1, Math.ceil(visibleCards.length / 3));
@@ -77,115 +56,57 @@ export function ArchiveSection() {
     <section className="w-full min-w-0 overflow-hidden pb-xl">
       <div className="flex flex-col gap-dashboard-gap">
         <div className="flex flex-col gap-dashboard-gap sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <HomeSectionTitle>
-              나의 지식 아카이브
-            </HomeSectionTitle>
-          </div>
+          <HomeSectionTitle>나의 지식 아카이브</HomeSectionTitle>
 
           {isAuthenticated ? (
-          <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 !shadow-none">
-            <button
-              type="button"
-              className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
-              onClick={() => setIsPlaying((current) => !current)}
-              disabled={!hasCards}
-              aria-label={isPlaying ? '일시정지' : '재생'}
-            >
-              {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
-            </button>
-            <div className="h-3 w-[1px] glass-card bg-surface-container/80" />
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => scrollCarousel('previous')}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
-                disabled={!hasCards || activeIndex === 0}
-                aria-label="이전 페이지"
-              >
-                <ChevronLeft size={14} />
+            <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 !shadow-none">
+              <button type="button" onClick={() => setIsPlaying(c => !c)} disabled={!hasCards}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20"
+                aria-label={isPlaying ? '일시정지' : '재생'}>
+                {isPlaying ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
               </button>
-
-              <div className="flex items-center gap-2 px-1">
-                {hasCards ? Array.from({ length: totalPages }).map((_, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => {
-                      const carousel = carouselRef.current;
-                      if (!carousel) return;
-                      carousel.scrollTo({ left: carousel.clientWidth * index, behavior: 'smooth' });
-                    }}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
-                      index === activeIndex
-                        ? 'w-5 bg-action-accent'
-                        : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
-                    }`}
-                    aria-label={`${index + 1}번째 페이지로 이동`}
-                  />
-                )) : null}
+              <div className="h-3 w-px bg-text-secondary/10" />
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => scrollCarousel('previous')} disabled={!hasCards || activeIndex === 0}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20" aria-label="이전">
+                  <ChevronLeft size={14} />
+                </button>
+                <div className="flex items-center gap-2 px-1">
+                  {hasCards ? Array.from({ length: totalPages }).map((_, idx) => (
+                    <button key={idx} type="button"
+                      onClick={() => carouselRef.current?.scrollTo({ left: carouselRef.current.clientWidth * idx, behavior: 'smooth' })}
+                      className={`h-2.5 rounded-full transition-all duration-300 ${idx === activeIndex ? 'w-5 bg-action-accent' : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'}`}
+                      aria-label={`${idx + 1}페이지`} />
+                  )) : null}
+                </div>
+                <button type="button" onClick={() => scrollCarousel('next')} disabled={!hasCards || activeIndex === totalPages - 1}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20" aria-label="다음">
+                  <ChevronRight size={14} />
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => scrollCarousel('next')}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
-                disabled={!hasCards || activeIndex === totalPages - 1}
-                aria-label="다음 페이지"
-              >
-                <ChevronRight size={14} />
-              </button>
             </div>
-          </div>
           ) : null}
         </div>
 
-        <div
-          className="min-w-0"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div
-            ref={carouselRef}
-            onScroll={handleScroll}
-            className="flex w-full min-w-0 snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-          >
-            {isCheckingAuth ? (
-              <StatusCard message="로그인 상태를 확인하는 중..." />
-            ) : null}
+        <div className="min-w-0" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+          <div ref={carouselRef} onScroll={handleScroll}
+            className="flex w-full min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
+            {isCheckingAuth ? <StatusCard message="로그인 상태를 확인하는 중..." /> : null}
             {!isCheckingAuth && !isAuthenticated ? (
-              <div className="flex min-h-[400px] w-full shrink-0 snap-start items-center justify-center">
-                <ErrorFallback
-                  type="auth"
-                  variant="full"
-                  onRetry={() => navigate('/login', { state: { from: '/' } })}
-                />
+              <div className="flex min-h-[240px] w-full shrink-0 snap-start items-center justify-center">
+                <ErrorFallback type="auth" variant="full" onRetry={() => navigate('/login', { state: { from: '/' } })} />
               </div>
             ) : null}
-
-            {isAuthenticated && isPending ? (
-              <StatusCard message="아카이브 카드를 불러오는 중..." />
-            ) : null}
-
-            {isAuthenticated && isError ? (
-              <StatusCard message="아카이브 카드를 불러올 수 없습니다." tone="error" />
-            ) : null}
-
+            {isAuthenticated && isPending ? <StatusCard message="아카이브 카드를 불러오는 중..." /> : null}
+            {isAuthenticated && isError ? <StatusCard message="아카이브 카드를 불러올 수 없습니다." tone="error" /> : null}
             {isAuthenticated && !isPending && !isError && visibleCards.length === 0 ? (
-              <HomeKnowledgeCardsEmptyState
-                primaryAction={{
-                  label: '분석 시작',
-                  onClick: () => navigate('/til'),
-                }}
-              />
+              <HomeKnowledgeCardsEmptyState primaryAction={{ label: '분석 시작', onClick: () => navigate('/til') }} />
             ) : null}
 
             {hasCards ? visibleCards.map((card) => {
               const date = formatRelativeDate(card.created_at);
               const categoryName = card.category_name ?? card.tags[0]?.name ?? 'Uncategorized';
-
               return (
                 <article
                   key={card.card_id}
@@ -193,28 +114,25 @@ export function ArchiveSection() {
                   className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-leaf glass-card bg-surface-container/80 p-6 !shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
-                    <div className="mb-6 flex items-center justify-between">
-                      <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-action-accent">
+                    <div className="mb-4 flex items-center justify-between">
+                      <span className="rounded-tl-lg rounded-br-lg rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-2.5 py-1 text-[10px] font-bold tracking-wide text-action-accent">
                         {categoryName}
                       </span>
-
-                      <time className="text-[11px] font-medium text-text-secondary/70">
-                        {date}
-                      </time>
+                      <time className="text-[10px] font-medium text-text-secondary/70">{date}</time>
                     </div>
-
-                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-text-primary">
-                      {card.title}
-                    </h3>
-
-                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-text-secondary">
-                      {card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}
-                    </p>
+                    <h3 className="line-clamp-2 text-base font-bold leading-snug text-text-primary">{card.title}</h3>
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-text-secondary">{card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}</p>
                   </div>
-
-                  <div className="flex justify-end">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-tl-[20px] rounded-br-[20px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary shadow-none transition-colors group-hover:bg-action-accent/10 group-hover:text-action-accent">
-                      <ArrowRight size={18} />
+                  <div className="flex items-center justify-between">
+                    {card.tags.length > 0 ? (
+                      <div className="flex min-w-0 gap-1 overflow-hidden">
+                        {card.tags.slice(0, 2).map(t => (
+                          <span key={t.name} className="shrink-0 rounded-md border border-action-accent/10 bg-action-accent/5 px-1.5 py-0.5 text-[9px] font-medium text-action-accent/70">#{t.name}</span>
+                        ))}
+                      </div>
+                    ) : <div />}
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-tl-[16px] rounded-br-[16px] rounded-tr-md rounded-bl-md glass-panel bg-surface-lowest/70 text-text-secondary shadow-none transition-colors group-hover:bg-action-accent/10 group-hover:text-action-accent">
+                      <ArrowRight size={15} />
                     </div>
                   </div>
                 </article>
@@ -230,38 +148,19 @@ export function ArchiveSection() {
 function formatRelativeDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-
   const now = new Date();
-  const diffInMs = now.getTime() - date.getTime();
-  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-
-  if (diffInHours < 1) {
-    const diffInMins = Math.floor(diffInMs / (1000 * 60));
-    return diffInMins <= 0 ? '방금 전' : `${diffInMins}분 전`;
-  }
-  if (diffInHours < 24) {
-    return `${diffInHours}시간 전`;
-  }
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) {
-    return `${diffInDays}일 전`;
-  }
-
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+  const diffMs = now.getTime() - date.getTime();
+  const diffH = Math.floor(diffMs / 3_600_000);
+  if (diffH < 1) { const m = Math.floor(diffMs / 60_000); return m <= 0 ? '방금 전' : `${m}분 전`; }
+  if (diffH < 24) return `${diffH}시간 전`;
+  const d = Math.floor(diffH / 24);
+  if (d < 7) return `${d}일 전`;
+  return new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' }).format(date);
 }
 
 function StatusCard({ message, tone = 'default' }: { message: string; tone?: 'default' | 'error' }) {
   return (
-    <div
-      className={[
-        'flex h-[280px] w-[min(88vw,24rem)] shrink-0 snap-start items-center justify-center rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-xl text-center text-body-sm !shadow-none md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]',
-        tone === 'error' ? 'text-red-400' : 'text-text-secondary',
-      ].join(' ')}
-    >
+    <div className={`flex h-[240px] w-[min(84vw,22rem)] shrink-0 snap-start items-center justify-center rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl glass-card bg-surface-container/80 text-sm !shadow-none md:w-[calc((100%-20px)/2)] xl:w-[calc((100%-40px)/3)] ${tone === 'error' ? 'text-red-400' : 'text-text-secondary'}`}>
       {message}
     </div>
   );
