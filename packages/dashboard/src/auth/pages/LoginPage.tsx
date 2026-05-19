@@ -128,7 +128,7 @@ export function LoginPage() {
               </label>
               <input
                 type="text"
-                placeholder="아이디 입력"
+                placeholder="영문 소문자·숫자 4~20자"
                 value={username}
                 autoComplete="username"
                 onChange={(e) => {
@@ -152,7 +152,7 @@ export function LoginPage() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="비밀번호 입력"
+                  placeholder="영문·숫자·특수문자 포함 8~20자"
                   value={password}
                   autoComplete="current-password"
                   onChange={(e) => {

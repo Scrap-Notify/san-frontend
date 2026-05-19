@@ -197,7 +197,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
                   type="text"
                   value={username}
                   autoComplete="username"
-                  placeholder="아이디 입력"
+                  placeholder="영문 소문자·숫자 4~20자"
                   onChange={(event) => handleUsernameChange(event.target.value)}
                   className={`${inputClass} ${isSignup ? 'min-w-0 flex-1' : ''}`}
                 />
@@ -234,7 +234,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   autoComplete={isSignup ? 'new-password' : 'current-password'}
-                  placeholder="비밀번호 입력"
+                  placeholder="영문·숫자·특수문자 포함 8~20자"
                   onChange={(event) => setPassword(event.target.value)}
                   className={`${inputClass} pr-11`}
                 />

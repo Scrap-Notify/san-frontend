@@ -58,14 +58,10 @@ export function Signup() {
       setCheckedUsername(trimmed);
       setUsernameCheckStatus('available');
       setUsernameMessage('사용 가능한 아이디입니다.');
-    } catch (error: any) {
+    } catch (error) {
       setCheckedUsername('');
       setUsernameCheckStatus('unavailable');
-      if (error.response?.status === 409) {
-        setUsernameMessage('이미 사용 중인 아이디입니다.');
-      } else {
-        setUsernameMessage(getApiErrorMessage(error, '사용할 수 없는 아이디입니다.'));
-      }
+      setUsernameMessage(getApiErrorMessage(error, '사용할 수 없는 아이디입니다.'));
     }
   };
 
@@ -169,15 +165,15 @@ export function Signup() {
                   type="button"
                   onClick={handleCheckUsername}
                   disabled={usernameCheckStatus === 'checking'}
-                  className="h-12 shrink-0 rounded-xl border border-action-accent/40 px-4 text-[11px] font-bold text-action-accent transition hover:bg-action-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-12 shrink-0 rounded-xl border border-action-accent/40 px-4 text-[12px] font-bold text-action-accent transition hover:bg-action-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                 </button>
               </div>
-              <p className="mt-2 pl-1 text-[11px] text-text-secondary/50">영문 소문자·숫자 4~20자</p>
+              <p className="mt-2 text-[12px] text-text-secondary/50">영문 소문자·숫자 4~20자</p>
               <p
                 className={[
-                  'mt-1 min-h-[16px] text-[11px] font-medium',
+                  'mt-1 min-h-[16px] text-[12px] font-medium',
                   usernameCheckStatus === 'available' ? 'text-primary-signal' : 'text-red-400',
                 ].join(' ')}
               >
@@ -208,7 +204,7 @@ export function Signup() {
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
-              <p className="mt-2 pl-1 text-[11px] text-text-secondary/50">영문·숫자·특수문자 포함 8~20자</p>
+              <p className="mt-2 text-[12px] text-text-secondary/50">영문·숫자·특수문자 포함 8~20자</p>
             </div>
 
             {/* 비밀번호 확인 */}
@@ -234,7 +230,7 @@ export function Signup() {
                   {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
-              <p className="mt-1.5 min-h-[16px] text-[11px] text-red-400">
+              <p className="mt-1.5 min-h-[16px] text-[12px] text-red-400">
                 {confirmPasswordError || ''}
               </p>
             </div>
