@@ -12,14 +12,20 @@ export function HomePage() {
     : null;
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-8 py-12">
+    <div className="flex w-full min-w-0 flex-col">
       {notice ? (
         <p className="rounded-leaf border border-primary-signal/20 bg-primary-signal/10 px-md py-sm text-body-sm-bold text-primary-signal">
           {notice}
         </p>
       ) : null}
-      <ArchiveSection />
+
       <GraphSection />
+
+      <div className="relative z-10 -mt-6 rounded-t-[40px] bg-background pt-10 shadow-[0_-16px_48px_var(--color-scrim,rgba(0,0,0,0.15))]">
+        <div className="px-6 pb-12">
+          <ArchiveSection />
+        </div>
+      </div>
     </div>
   );
 }
