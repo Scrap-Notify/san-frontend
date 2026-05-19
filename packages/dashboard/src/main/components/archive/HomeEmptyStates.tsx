@@ -25,7 +25,7 @@ export function HomeGraphEmptyState({ primaryAction, secondaryAction }: GraphEmp
       <div className="relative z-10 flex min-w-0 flex-col items-center justify-center gap-6">
         <div className="relative flex h-24 w-24 items-center justify-center">
           <div className="absolute inset-0 rounded-full bg-primary-signal/15" />
-          <div className="relative flex h-20 w-20 items-center justify-center rounded-leaf border border-primary-signal/25 bg-surface-highest text-primary-signal shadow-[0_0_32px_rgba(0,255,194,0.08)]">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-leaf border border-primary-signal/25 bg-surface-highest text-primary-signal">
             <Sprout size={36} strokeWidth={1.7} aria-hidden="true" />
           </div>
         </div>
@@ -71,7 +71,7 @@ export function HomeGraphEmptyState({ primaryAction, secondaryAction }: GraphEmp
 
 export function HomeKnowledgeCardsEmptyState({ primaryAction }: KnowledgeCardsEmptyStateProps) {
   return (
-    <article className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 shadow-md md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]">
+    <article className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]">
       <div>
         <div className="mb-6 flex items-center justify-between">
           <span className="flex items-center justify-center rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm border border-action-accent/20 bg-action-accent/5 px-3 py-1.5 text-[11px] font-bold tracking-wide text-action-accent">

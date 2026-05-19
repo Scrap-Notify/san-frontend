@@ -124,7 +124,7 @@ function PanelTabButton({
             onClick={onClick}
             className={`relative flex h-9 flex-1 items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-8 after:-translate-x-1/2 after:transition-all ${
                 active
-                    ? 'text-action-accent after:bg-action-accent after:shadow-[0_0_10px_rgba(74,222,128,0.45)]'
+                    ? 'text-action-accent after:bg-action-accent'
                     : 'text-text-secondary/65 after:bg-transparent hover:text-text-primary/90 hover:after:bg-text-primary/20'
             }`}
         >

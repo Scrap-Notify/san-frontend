@@ -92,7 +92,7 @@ function ToolbarButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex h-8 w-8 items-center justify-center rounded-leaf text-text-secondary transition hover:bg-surface-container hover:text-action-accent hover:glow-neon"
+      className="flex h-8 w-8 items-center justify-center rounded-leaf text-text-secondary transition hover:bg-surface-container hover:text-action-accent"
     >
       {children}
     </button>

@@ -177,7 +177,7 @@ export function TilPage() {
                                 </button>
 
                                 {isCalendarOpen ? (
-                                    <div className="absolute left-0 top-11 z-40 w-[260px] rounded-[24px] border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
+                                    <div className="absolute left-0 top-11 z-40 w-[260px] rounded-[24px] border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-3 backdrop-blur-2xl">
                                         <div className="mb-3 flex items-center justify-between">
                                             <button
                                                 type="button"
@@ -342,7 +342,7 @@ export function TilPage() {
 
                                                     {openTilMenuId === til.summaryId ? (
                                                         <div
-                                                            className="absolute right-2 top-10 z-30 w-32 overflow-hidden rounded-xl border border-text-secondary/12 glass-popover bg-surface-lowest/78 p-1 shadow-[0_18px_48px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl"
+                                                            className="absolute right-2 top-10 z-30 w-32 overflow-hidden rounded-xl border border-text-secondary/12 glass-popover bg-surface-lowest/78 p-1 backdrop-blur-xl"
                                                             onPointerDown={(event) => event.stopPropagation()}
                                                         >
                                                             <button
@@ -410,7 +410,7 @@ export function TilPage() {
 
                                     {isTitleMenuOpen ? (
                                         <div
-                                            className="absolute right-0 top-10 z-30 w-40 overflow-hidden rounded-xl border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-1.5 shadow-[0_16px_42px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl"
+                                            className="absolute right-0 top-10 z-30 w-40 overflow-hidden rounded-xl border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-1.5 backdrop-blur-xl"
                                             onPointerDown={(event) => event.stopPropagation()}
                                         >
                                         <button
@@ -431,7 +431,7 @@ export function TilPage() {
                             </div>
                         </div>
 
-                        <div className={`flex flex-col overflow-hidden rounded-2xl border border-text-secondary/5 bg-surface-lowest shadow-2xl ${
+                        <div className={`flex flex-col overflow-hidden rounded-2xl border border-text-secondary/5 bg-surface-lowest ${
                             activeTab === 'edit'
                                 ? 'min-h-[760px] lg:min-h-[820px]'
                                 : 'min-h-[500px]'
@@ -476,7 +476,7 @@ export function TilPage() {
                     }}
                 >
                     <div
-                        className="w-full max-w-[360px] rounded-2xl border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-5 shadow-[0_24px_80px_rgba(0,0,0,0.48),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl"
+                        className="w-full max-w-[360px] rounded-2xl border border-text-secondary/12 glass-popover bg-surface-lowest/82 p-5 backdrop-blur-2xl"
                         onPointerDown={(event) => event.stopPropagation()}
                     >
                         <div className="flex items-start justify-between gap-4">

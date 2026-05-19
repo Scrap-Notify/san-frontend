@@ -120,8 +120,8 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                                     <span
                                         className={`relative z-10 mt-1.5 block h-2.5 w-2.5 rounded-full border transition-all duration-300 ${
                                             isActive
-                                                ? 'border-primary-signal/80 bg-primary-signal shadow-[0_0_18px_6px_rgba(0,255,194,0.42)]'
-                                                : 'border-primary-signal/12 bg-surface-highest shadow-[0_0_14px_4px_rgba(0,255,194,0.14)]'
+                                                ? 'border-primary-signal/80 bg-primary-signal'
+                                                : 'border-primary-signal/12 bg-surface-highest'
                                         }`}
                                     />
                                 </div>

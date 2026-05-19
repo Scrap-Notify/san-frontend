@@ -84,7 +84,7 @@ export function ArchiveSection() {
           </div>
 
           {isAuthenticated ? (
-          <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 shadow-sm">
+          <div className="flex shrink-0 items-center gap-3 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5">
             <button
               type="button"
               className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 bg-surface-container/80 hover:text-text-primary disabled:opacity-20"
@@ -119,7 +119,7 @@ export function ArchiveSection() {
                     }}
                     className={`h-2.5 rounded-full transition-all duration-300 ${
                       index === activeIndex
-                        ? 'w-5 bg-action-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]'
+                        ? 'w-5 bg-action-accent'
                         : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
                     }`}
                     aria-label={`${index + 1}번째 페이지로 이동`}
@@ -190,7 +190,7 @@ export function ArchiveSection() {
                 <article
                   key={card.card_id}
                   onClick={() => navigate(`/cards/${card.card_id}`)}
-                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 shadow-md transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
+                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-tl-[32px] rounded-br-[32px] rounded-tr-2xl rounded-bl-2xl glass-card bg-surface-container/80 p-6 transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
                     <div className="mb-6 flex items-center justify-between">
