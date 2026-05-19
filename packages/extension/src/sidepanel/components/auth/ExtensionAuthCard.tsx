@@ -121,7 +121,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
   return (
     <section className="relative z-10 flex min-h-0 flex-1 items-center justify-center px-3 py-4 sm:px-8">
       <div
-        className="glass-card relative flex h-[clamp(520px,calc(100vh-112px),600px)] w-full max-w-[400px] flex-col justify-center overflow-hidden rounded-[28px] border border-text-secondary/20 bg-surface-container/90 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl sm:rounded-3xl sm:p-8"
+        className="extension-auth-card glass-card relative flex h-[clamp(520px,calc(100vh-112px),600px)] w-full max-w-[400px] flex-col justify-center overflow-hidden rounded-[28px] border border-text-secondary/20 bg-surface-container/90 p-5 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl sm:rounded-3xl sm:p-8"
         style={{
           background: 'linear-gradient(135deg, color-mix(in oklab, var(--color-surface-container) 72%, white 28%) 0%, color-mix(in oklab, var(--color-surface-low) 86%, white 14%) 100%)',
         }}
@@ -146,7 +146,7 @@ export function ExtensionAuthCard({ onAuthenticated, onGithubLogin }: ExtensionA
                 className="relative flex h-14 w-full shrink-0 items-center rounded-xl border border-text-secondary/10 bg-surface-low text-sm font-bold text-text-primary outline-none transition hover:opacity-85 focus-visible:ring-1 focus-visible:ring-action-accent/35 active:scale-[0.98]"
               >
                 <span className="absolute left-4 flex h-8 w-8 items-center justify-center">
-                  <img src={githubSvg} alt="" aria-hidden="true" className="h-6 w-6 brightness-0 invert" />
+                  <img src={githubSvg} alt="" aria-hidden="true" className="extension-login-github-icon h-6 w-6" />
                 </span>
                 <span className="pointer-events-none flex w-full justify-center px-14 text-center">
                   <span className="sm:hidden">GitHub 로그인</span>
