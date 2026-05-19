@@ -4,9 +4,11 @@ import { getResolvedTheme, toggleTheme, type ThemeMode } from '../../theme/theme
 
 interface ThemeToggleProps {
   className?: string;
+  iconSize?: number;
+  strokeWidth?: number;
 }
 
-export function ThemeToggle({ className }: ThemeToggleProps) {
+export function ThemeToggle({ className, iconSize = 18, strokeWidth = 1.8 }: ThemeToggleProps) {
   const [theme, setTheme] = useState<ThemeMode>(() => getResolvedTheme());
 
   useEffect(() => {
@@ -32,12 +34,16 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Light mode' : 'Dark mode'}
       className={[
-        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-text-secondary/10 bg-surface-low text-text-secondary transition',
-        'hover:border-action-accent/40 hover:text-text-primary',
+        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition',
+        'hover:bg-text-primary/5 hover:text-text-primary',
         className ?? '',
       ].join(' ')}
     >
-      {isDark ? <SunMedium size={18} strokeWidth={1.8} /> : <MoonStar size={18} strokeWidth={1.8} />}
+      {isDark ? (
+        <SunMedium size={iconSize} strokeWidth={strokeWidth} />
+      ) : (
+        <MoonStar size={iconSize} strokeWidth={strokeWidth} />
+      )}
     </button>
   );
 }

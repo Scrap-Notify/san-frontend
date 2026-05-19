@@ -25,6 +25,17 @@ export function Signup() {
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validateId = (id: string) => {
+    const regex = /^[a-z0-9]{4,20}$/;
+    return regex.test(id);
+  };
+
+  const validatePassword = (pw: string) => {
+    // 영문, 숫자, 특수문자 포함 8~20자
+    const regex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}\[\]:;"'<>,.?\/\\|~`-]).{8,20}$/;
+    return regex.test(pw);
+  };
+
   const handleUsernameChange = (value: string) => {
     setUsername(value);
     setCheckedUsername('');
@@ -61,12 +72,24 @@ export function Signup() {
     let hasError = false;
     const trimmed = username.trim();
 
-    if (checkedUsername !== trimmed || usernameCheckStatus !== 'available') {
+    if (!validateId(trimmed)) {
+      setUsernameCheckStatus('unavailable');
+      setUsernameMessage('아이디 형식이 올바르지 않습니다.');
+      hasError = true;
+    } else if (checkedUsername !== trimmed || usernameCheckStatus !== 'available') {
       setUsernameCheckStatus('unavailable');
       setUsernameMessage('아이디 중복 확인을 해주세요.');
       hasError = true;
     }
-    if (password !== confirmPassword) {
+
+    if (!validatePassword(password)) {
+      showToast({
+        type: 'error',
+        title: '비밀번호 형식이 올바르지 않아요',
+        description: '영문·숫자·특수문자 포함 8~20자로 입력해 주세요.',
+      });
+      hasError = true;
+    } else if (password !== confirmPassword) {
       setConfirmPasswordError('비밀번호가 일치하지 않습니다.');
       hasError = true;
     }
@@ -113,7 +136,7 @@ export function Signup() {
       <div className="relative z-10 flex w-full items-center justify-center px-4 py-10 sm:px-8 lg:w-1/2 lg:px-16">
         <div
           className="flex w-full max-w-[400px] flex-col justify-center rounded-3xl border border-text-secondary/15 glass-card bg-surface-container/80 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-3xl"
-          style={{ padding: '32px', height: '600px' }}
+          style={{ padding: '32px', height: '640px' }}
         >
           {/* 헤더 */}
           <h2 className="text-2xl font-bold text-text-primary sm:text-[32px]">회원가입</h2>
@@ -142,14 +165,15 @@ export function Signup() {
                   type="button"
                   onClick={handleCheckUsername}
                   disabled={usernameCheckStatus === 'checking'}
-                  className="h-12 shrink-0 rounded-xl border border-action-accent/40 px-4 text-[11px] font-bold text-action-accent transition hover:bg-action-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-12 shrink-0 rounded-xl border border-action-accent/40 px-4 text-[12px] font-bold text-action-accent transition hover:bg-action-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {usernameCheckStatus === 'checking' ? '확인 중' : '중복 확인'}
                 </button>
               </div>
+              <p className="mt-2 text-[12px] text-text-secondary/50">영문 소문자·숫자 4~20자</p>
               <p
                 className={[
-                  'mt-1.5 min-h-[16px] text-[11px] font-medium',
+                  'mt-1 min-h-[16px] text-[12px] font-medium',
                   usernameCheckStatus === 'available' ? 'text-primary-signal' : 'text-red-400',
                 ].join(' ')}
               >
@@ -180,6 +204,7 @@ export function Signup() {
                   {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
+              <p className="mt-2 text-[12px] text-text-secondary/50">영문·숫자·특수문자 포함 8~20자</p>
             </div>
 
             {/* 비밀번호 확인 */}
@@ -205,7 +230,7 @@ export function Signup() {
                   {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
-              <p className="mt-1.5 min-h-[16px] text-[11px] text-red-400">
+              <p className="mt-1.5 min-h-[16px] text-[12px] text-red-400">
                 {confirmPasswordError || ''}
               </p>
             </div>

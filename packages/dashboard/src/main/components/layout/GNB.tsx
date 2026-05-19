@@ -71,7 +71,7 @@ export function TopNavBar({
 
   const actionButtons = (
     <>
-      <ThemeToggle />
+      <ThemeToggle iconSize={22} strokeWidth={1.5} />
 
       <button
         onClick={handleGithubClick}

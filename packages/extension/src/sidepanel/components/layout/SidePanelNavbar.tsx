@@ -49,32 +49,43 @@ export default function SidePanelNavbar({
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <ThemeToggle className="extension-navbar-theme-toggle h-8 w-8 border-text-secondary/10 bg-surface-container" />
+        <div className="flex h-8 w-8 items-center justify-center">
+          <ThemeToggle
+            iconSize={16}
+            strokeWidth={1.8}
+            className="extension-navbar-theme-toggle h-8 w-8 border border-action-accent/25 bg-action-accent/10 text-action-accent hover:border-action-accent/60 hover:bg-action-accent/15"
+          />
+        </div>
+
         {isAuthenticated && (
-          <div className="relative">
-              <button
-                type="button"
-                onClick={() => setIsFeedbackOpen((current) => !current)}
-                className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
-                aria-label="Feedback"
-                aria-expanded={isFeedbackOpen}
-                title="Feedback"
-              >
-                <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
-              </button>
-              {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
+          <div className="relative flex h-8 w-8 items-center justify-center">
+            <button
+              type="button"
+              onClick={() => setIsFeedbackOpen((current) => !current)}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
+              aria-label="Feedback"
+              aria-expanded={isFeedbackOpen}
+              title="Feedback"
+            >
+              <MessageCircleHeart size={16} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+            {isFeedbackOpen && <FeedbackPopover onClose={() => setIsFeedbackOpen(false)} />}
           </div>
         )}
-        <button
-          type="button"
-          onClick={onOpenDashboard}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
-          aria-label="Open dashboard"
-          title="Open dashboard"
-        >
-          <LayoutDashboard size={16} aria-hidden="true" />
-        </button>
-        <div className="relative">
+
+        <div className="flex h-8 w-8 items-center justify-center">
+          <button
+            type="button"
+            onClick={onOpenDashboard}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-action-accent/25 bg-action-accent/10 text-action-accent transition hover:border-action-accent/60 hover:bg-action-accent/15 active:scale-95"
+            aria-label="Open dashboard"
+            title="Open dashboard"
+          >
+            <LayoutDashboard size={16} strokeWidth={1.8} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="relative flex h-8 w-8 items-center justify-center">
           <button
             type="button"
             onClick={onProfileButtonClick}
@@ -88,7 +99,7 @@ export default function SidePanelNavbar({
             aria-expanded={isAuthenticated ? isProfileMenuOpen : undefined}
             title={isAuthenticated ? 'User profile' : 'Login'}
           >
-            <User size={16} strokeWidth={1.6} aria-hidden="true" />
+            <User size={16} strokeWidth={1.8} aria-hidden="true" />
           </button>
 
           {isAuthenticated && isProfileMenuOpen && (
