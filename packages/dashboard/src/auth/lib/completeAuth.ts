@@ -13,7 +13,22 @@ export async function completeAuth(tokens: AuthTokens, clientType: ClientType, u
 
   if (clientType === 'EXTENSION') {
     await syncExtensionAuth(scopedTokens);
-    await authTokenStorage.clearToken();
+    await authTokenStorage.setTokens(scopedTokens);
+    if (username) {
+      await authTokenStorage.setUsername(username);
+    }
+
+    try {
+      const { ticket } = await authApi.createDashboardBridgeTicket();
+      const dashboardTokens = await authApi.exchangeDashboardBridgeToken({ ticket });
+      await authTokenStorage.setTokens({ ...dashboardTokens, clientType: 'DASHBOARD' });
+      if (username) {
+        await authTokenStorage.setUsername(username);
+      }
+    } catch (error) {
+      console.warn('[SAN:auth] dashboard bridge login after extension login failed', error);
+      await authTokenStorage.clearToken();
+    }
     return;
   }
 
