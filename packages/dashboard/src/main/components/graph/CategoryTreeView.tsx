@@ -59,7 +59,12 @@ const leafPositions: LeafSlot[] = [
 
 function normalizeTag(tag: string): string {
   if (!tag) return '';
-  return tag.toLowerCase().replace(/[^\w\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
+  // 앞의 #만 제거하고, 의미 있는 특수문자(+, #, ., -)는 보존
+  return tag
+    .trim()
+    .toLowerCase()
+    .replace(/^#/, '')
+    .replace(/[^\w\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F+#.-]/g, '');
 }
 
 export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterToken }: CategoryTreeViewProps) {
