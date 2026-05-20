@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, CalendarDays, Hash, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, CalendarDays, ChevronLeft, ChevronRight, Hash, Search } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useArchiveCategoryCards, type SearchCardResult, type SearchParams } from '@san/shared';
 import { searchApi } from '../../api/client';
@@ -146,7 +146,7 @@ function FilterPanel({
   }, [inputValue, keyword, onKeywordChange]);
 
   return (
-    <div className="flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
+    <div className="relative z-[300] flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
       <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-primary/25" />
         <input
@@ -163,21 +163,149 @@ function FilterPanel({
           placeholder="#태그"
           className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
         />
-        <input
-          type="date"
+        <CategoryDatePicker
           value={filters.fromDate}
-          onChange={(event) => onFilterChange({ ...filters, fromDate: event.target.value })}
-          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
+          onChange={(value) => onFilterChange({ ...filters, fromDate: value })}
+          placeholder="연도-월-일"
         />
-        <input
-          type="date"
+        <CategoryDatePicker
           value={filters.toDate}
-          onChange={(event) => onFilterChange({ ...filters, toDate: event.target.value })}
-          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
+          onChange={(value) => onFilterChange({ ...filters, toDate: value })}
+          placeholder="연도-월-일"
         />
       </div>
     </div>
   );
+}
+
+function CategoryDatePicker({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(value ? parseLocalDate(value) : new Date());
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDateClick = (day: number) => {
+    const selected = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+    if (selected > getTodayStart()) return;
+    onChange(formatDate(selected));
+    setIsOpen(false);
+  };
+
+  const totalDays = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+  const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+  const days = Array.from({ length: totalDays }, (_, index) => index + 1);
+
+  return (
+    <div ref={containerRef} className="relative min-w-0">
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-left text-sm font-bold text-text-primary outline-none transition focus:border-primary-signal/30"
+      >
+        <span className={value ? 'text-text-primary' : 'text-text-primary/35'}>
+          {value || placeholder}
+        </span>
+        <Calendar size={16} className="shrink-0 text-action-accent" aria-hidden="true" />
+      </button>
+
+      {isOpen ? (
+        <div className="absolute left-0 top-full z-[1000] mt-3 w-64 overflow-hidden rounded-tl-[28px] rounded-br-[28px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-5 shadow-2xl">
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
+              className="text-text-primary/40 transition hover:text-text-primary"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-sm font-black tracking-wider text-text-primary">
+              {viewDate.toLocaleString('ko-KR', { year: 'numeric', month: 'long' })}
+            </span>
+            <button
+              type="button"
+              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
+              className="text-text-primary/40 transition hover:text-text-primary"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          <div className="mb-2 grid grid-cols-7 gap-1 text-center">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
+              <span key={day} className="text-[10px] font-black text-text-primary/20">
+                {day}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }, (_, index) => (
+              <div key={`empty-${index}`} className="h-8 w-8" />
+            ))}
+            {days.map((day) => {
+              const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+              const isFuture = date > getTodayStart();
+              const isSelected = value === formatDate(date);
+
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  disabled={isFuture}
+                  onClick={() => handleDateClick(day)}
+                  className={`h-8 w-8 rounded-lg text-xs font-bold transition-all disabled:pointer-events-none disabled:text-text-primary/15 ${
+                    isSelected
+                      ? 'bg-action-accent text-text-on-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]'
+                      : isFuture
+                        ? 'text-text-primary/15'
+                        : 'text-text-primary/60 hover:bg-action-accent/20 hover:text-action-accent'
+                  }`}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function getTodayDate() {
+  return formatDate(new Date());
+}
+
+function getTodayStart() {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+}
+
+function parseLocalDate(value: string) {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function ArchiveCard({

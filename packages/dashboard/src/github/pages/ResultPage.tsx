@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ChevronDown, Filter, Search, ExternalLink, Quote as QuoteIcon, MessageSquare, Clock, Globe, ArrowRight, Share2, Bookmark, Calendar, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { ChevronDown, Search, ExternalLink, Quote as QuoteIcon, MessageSquare, Clock, Globe, ArrowRight, Share2, Bookmark, Calendar, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import type { SearchCardResult, SearchParams } from '@san/shared';
 import { searchApi } from '../../api/client';
 import { ContentEmptyState } from '../../components/shared/empty/ContentEmptyState';
@@ -44,7 +44,7 @@ function CustomDatePicker({
   placeholder: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [viewDate, setViewDate] = useState(value ? new Date(value) : new Date());
+  const [viewDate, setViewDate] = useState(value ? parseLocalDate(value) : new Date());
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,12 +80,22 @@ function CustomDatePicker({
 
     // Days
     for (let d = 1; d <= totalDays; d++) {
-      const isSelected = value === `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
+      const isFuture = date > getTodayStart();
+      const isSelected = value === formatDate(date);
       days.push(
         <button
           key={d}
+          type="button"
+          disabled={isFuture}
           onClick={() => handleDateClick(d)}
-          className={`h-8 w-8 rounded-lg text-xs font-bold transition-all hover:bg-action-accent/20 hover:text-action-accent ${isSelected ? 'bg-action-accent text-text-on-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'text-text-primary/60'}`}
+          className={`h-8 w-8 rounded-lg text-xs font-bold transition-all disabled:pointer-events-none disabled:text-text-primary/15 ${
+            isSelected
+              ? 'bg-action-accent text-text-on-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]'
+              : isFuture
+                ? 'text-text-primary/15'
+                : 'text-text-primary/60 hover:bg-action-accent/20 hover:text-action-accent'
+          }`}
         >
           {d}
         </button>
@@ -107,7 +117,7 @@ function CustomDatePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-[120] mt-4 w-64 overflow-hidden rounded-tl-[32px] rounded-br-[32px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-6 shadow-2xl animate-in fade-in zoom-in duration-200 origin-top-left">
+        <div className="absolute left-0 top-full z-[1000] mt-4 w-64 overflow-hidden rounded-tl-[32px] rounded-br-[32px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-6 shadow-2xl animate-in fade-in zoom-in duration-200 origin-top-left">
           <div className="mb-4 flex items-center justify-between">
             <button onClick={handlePrevMonth} className="text-text-primary/40 hover:text-text-primary"><ChevronLeft size={18} /></button>
             <span className="text-sm font-black uppercase tracking-widest text-text-primary">
@@ -127,6 +137,20 @@ function CustomDatePicker({
       )}
     </div>
   );
+}
+
+function parseLocalDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function getTodayStart() {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+}
+
+function formatDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 export function ResultPage() {
@@ -225,8 +249,8 @@ function SearchPage({
         </p>
       </header>
 
-      <div className="group flex flex-col gap-8 rounded-[32px] md:rounded-[40px] glass-card bg-surface-container/80 p-6 md:p-10 shadow-3xl border border-text-secondary/5 transition-all hover:border-text-secondary/10">
-        <div className="relative z-[100] flex flex-col lg:flex-row lg:items-center gap-6">
+      <div className="group relative z-[300] flex flex-col gap-8 rounded-[32px] md:rounded-[40px] glass-card bg-surface-container/80 p-6 md:p-10 shadow-3xl border border-text-secondary/5 transition-all hover:border-text-secondary/10">
+        <div className="relative z-[400] flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 rounded-tl-[24px] rounded-br-[24px] rounded-tr-lg rounded-bl-lg bg-text-primary/[0.03] px-6 py-4 border border-text-secondary/5 focus-within:border-action-accent/40 transition-all">
             <span className="text-[11px] font-black text-text-primary/30 uppercase tracking-widest">날짜 범위</span>
             <div className="flex items-center gap-4">
@@ -256,11 +280,6 @@ function SearchPage({
               className="bg-transparent text-sm font-medium outline-none placeholder:text-text-primary/20 w-full sm:w-32"
             />
           </div>
-
-          <button className="lg:ml-auto flex items-center justify-center gap-2.5 rounded-xl bg-text-primary/5 px-5 py-3.5 text-[13px] font-bold text-text-primary/50 hover:bg-text-primary/10 hover:text-text-primary transition-all">
-            <Filter size={16} />
-            상세 필터
-          </button>
         </div>
 
         <div className="relative">
