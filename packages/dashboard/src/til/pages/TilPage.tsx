@@ -213,7 +213,7 @@ export function TilPage() {
                                                 const dayValue = shiftDate(day);
                                                 const isCurrentMonth = day.getMonth() === calendarMonth.getMonth();
                                                 const isSelected = dayValue === selectedDate;
-                                                const isDisabled = dayValue > latestGeneratedTilDate;
+                                                const isDisabled = dayValue > maxSelectableDate;
 
                                                 return (
                                                     <button
@@ -244,7 +244,6 @@ export function TilPage() {
                             <div className="hidden h-4 w-px bg-text-primary/10 xl:block" />
                         </div>
 
-                        <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-end xl:w-auto">
                         <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-end xl:w-auto">
                             <TILModeTabs activeTab={activeTab} onChange={setActiveTab} />
 
