@@ -42,23 +42,23 @@ function layoutCards(origin: Pos, total: number): { pos: Pos; layer: number }[] 
 
   if (total === 1) return [{ pos: { x: origin.x, y: origin.y - 14 }, layer: 0 }];
   if (total === 2) return [
-    { pos: { x: origin.x - 9, y: origin.y - 13 }, layer: 0 },
-    { pos: { x: origin.x + 9, y: origin.y - 13 }, layer: 0 },
+    { pos: { x: origin.x - 13, y: origin.y - 16 }, layer: 0 },
+    { pos: { x: origin.x + 13, y: origin.y - 16 }, layer: 0 },
   ];
   if (total === 3) return [
-    { pos: { x: origin.x - 9, y: origin.y - 12 }, layer: 0 },
-    { pos: { x: origin.x + 9, y: origin.y - 12 }, layer: 0 },
-    { pos: { x: origin.x, y: origin.y - 22 }, layer: 1 },
+    { pos: { x: origin.x - 14, y: origin.y - 15 }, layer: 0 },
+    { pos: { x: origin.x + 14, y: origin.y - 15 }, layer: 0 },
+    { pos: { x: origin.x, y: origin.y - 33 }, layer: 1 },
   ];
   if (total <= 5) return [
     ...Array.from({ length: 2 }, (_, i) => ({
-      pos: { x: origin.x + (i === 0 ? -9 : 9), y: origin.y - 12 }, layer: 0,
+      pos: { x: origin.x + (i === 0 ? -14 : 14), y: origin.y - 15 }, layer: 0,
     })),
     ...Array.from({ length: total - 2 }, (_, i) => {
-      const spread = total === 4 ? 10 : 12;
+      const spread = total === 4 ? 16 : 20;
       const cnt = total - 2;
       return {
-        pos: { x: clamp(cnt === 1 ? origin.x : origin.x - spread + (i / (cnt - 1)) * spread * 2, 3, 97), y: origin.y - 23 },
+        pos: { x: clamp(cnt === 1 ? origin.x : origin.x - spread + (i / (cnt - 1)) * spread * 2, 3, 97), y: origin.y - 34 },
         layer: 1,
       };
     }),
@@ -79,13 +79,13 @@ function layoutCards(origin: Pos, total: number): { pos: Pos; layer: number }[] 
     rowIdx++;
   }
 
-  const rowHeight = clamp(78 / rows.length, 6, 9);
+  const rowHeight = clamp(92 / rows.length, 8, 13);
   const out: { pos: Pos; layer: number }[] = [];
 
   for (let layer = 0; layer < rows.length; layer++) {
     const count = rows[layer];
-    const y = clamp(origin.y - 10 - layer * rowHeight, 3, 88);
-    const spread = 3 + count * 4;
+    const y = clamp(origin.y - 15 - layer * rowHeight, 3, 88);
+    const spread = 4 + count * 5;
     const nudge = (layer % 2) * 2.5 - 1.25;
 
     for (let i = 0; i < count; i++) {

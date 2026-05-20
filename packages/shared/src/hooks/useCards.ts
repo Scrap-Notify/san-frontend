@@ -72,3 +72,31 @@ export function useUpdateRefinedContent(
     onError: options?.onError,
   });
 }
+
+export function useDeleteCard(
+  cardId: string | null | undefined,
+  options?: {
+    onSuccess?: () => void;
+    onError?: (error: unknown) => void;
+  },
+) {
+  const { cardsApi } = useApiContext();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      if (!cardId) throw new Error('cardId is required');
+      return cardsApi.deleteCard(cardId);
+    },
+    onSuccess: () => {
+      if (cardId) {
+        queryClient.removeQueries({ queryKey: cardKeys.detail(cardId) });
+        queryClient.removeQueries({ queryKey: cardKeys.similar(cardId) });
+      }
+      void queryClient.invalidateQueries({ queryKey: cardKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['archive'] });
+      options?.onSuccess?.();
+    },
+    onError: options?.onError,
+  });
+}

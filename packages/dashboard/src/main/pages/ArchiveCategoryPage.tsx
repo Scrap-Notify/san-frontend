@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarDays, Hash, Search } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useArchiveCategoryCards, type SearchCardResult, type SearchParams } from '@san/shared';
 import { searchApi } from '../../api/client';
@@ -78,6 +78,8 @@ export function ArchiveCategoryPage() {
                 title={card.title}
                 summary={null}
                 tags={card.tags.map((tag) => tag.tagName)}
+                categoryName={categoryName}
+                createdAt={card.createdAt}
                 onClick={() => navigate(`/cards/${card.cardId}`)}
               />
             ))}
@@ -98,6 +100,7 @@ export function ArchiveCategoryPage() {
                 title={card.title}
                 summary={card.summary}
                 tags={[]}
+                categoryName={categoryName}
                 onClick={() => navigate(`/cards/${card.cardId}`)}
               />
             ))}
@@ -181,42 +184,78 @@ function ArchiveCard({
   title,
   summary,
   tags,
+  categoryName,
+  createdAt,
   onClick,
 }: {
   title: string;
   summary: string | null;
   tags: string[];
+  categoryName?: string;
+  createdAt?: string;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-48 flex-col justify-between rounded-leaf border border-text-secondary/5 glass-card bg-surface-container/80 p-5 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
+      className="group relative flex h-[300px] min-w-0 cursor-pointer flex-col overflow-hidden rounded-[30px] border border-text-secondary/5 bg-surface-low p-7 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-action-accent/18 hover:bg-surface-container/90"
     >
-      <div>
-        <h2 className="text-lg font-bold leading-snug text-text-primary">{title}</h2>
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-action-accent/[0.035] blur-[60px]" />
+      <div className="relative flex items-start justify-between gap-4">
+        <span className="inline-flex min-w-0 items-center gap-2 rounded-full border border-action-accent/15 bg-action-accent/8 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-action-accent">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-action-accent" />
+          <span className="truncate">{categoryName || 'Archive'}</span>
+        </span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-text-secondary/5 bg-text-primary/[0.03] text-text-primary/28 transition group-hover:border-action-accent/20 group-hover:text-action-accent">
+          <ArrowRight size={16} aria-hidden="true" />
+        </span>
+      </div>
+
+      <div className="relative mt-8 min-w-0">
+        <h2 className="line-clamp-3 text-[22px] font-extrabold leading-tight text-text-primary transition group-hover:text-action-accent">
+          {title}
+        </h2>
         {summary ? (
           <ArchiveSummary
             summary={summary}
-            className="mt-4 max-h-[4.25rem] space-y-1 overflow-hidden text-[13px] leading-5 text-text-primary/50"
+            className="mt-5 max-h-[4.5rem] space-y-1 overflow-hidden text-[13px] leading-5 text-text-primary/50"
           />
         ) : null}
       </div>
-      {tags.length > 0 ? (
-        <div className="mt-5 flex flex-wrap gap-1.5">
-          {tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-action-accent/15 bg-action-accent/5 px-2.5 py-1 text-[12px] font-medium leading-none text-action-accent"
-            >
-              #{tag}
-            </span>
-          ))}
+
+      <div className="relative mt-auto flex flex-col gap-4 border-t border-text-secondary/5 pt-5">
+        <div className="flex items-center gap-2 text-[11px] font-bold text-text-primary/35">
+          <CalendarDays size={13} className="text-action-accent/70" aria-hidden="true" />
+          <span>{createdAt ? formatArchiveDate(createdAt) : '날짜 정보 없음'}</span>
         </div>
-      ) : null}
+        {tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 rounded-full border border-text-secondary/5 bg-text-primary/[0.03] px-2.5 py-1 text-[11px] font-bold leading-none text-text-primary/42 transition group-hover:border-action-accent/20 group-hover:text-action-accent"
+              >
+                <Hash size={10} aria-hidden="true" />
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </button>
   );
+}
+
+function formatArchiveDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
 }
 
 function dedupeByCardId(cards: SearchCardResult[]) {

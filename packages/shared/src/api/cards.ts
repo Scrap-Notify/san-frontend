@@ -38,6 +38,9 @@ export function createCardsApi(apiClient: AxiosInstance) {
         .patch<ApiResponse<KnowledgeCardDetailResponse>>(`/cards/${cardId}/refined-content`, payload)
         .then((response) => unwrapApiResponse(response.data)),
 
+    deleteCard: (cardId: string): Promise<void> =>
+      apiClient.delete<ApiResponse<void>>(`/cards/${cardId}`).then(() => undefined),
+
     getSimilarByCardId: (cardId: string): Promise<KnowledgeCardSimilarCardsResponse> =>
       apiClient
         .get<ApiResponse<KnowledgeCardSimilarCardsResponse>>(`/cards/${cardId}/similar-cards`)
