@@ -1,51 +1,61 @@
-import { FolderOpen, Search } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useArchiveCategories } from '@san/shared';
 import { ContentEmptyState } from '../../components/shared/empty/ContentEmptyState';
+import { ArchiveFolderIcon } from '../components/archive/ArchiveFolderIcon';
 
 export function ArchivePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const keyword = searchParams.get('query')?.trim() ?? '';
   const categoriesQuery = useArchiveCategories();
-
-  if (keyword) {
-    return (
-      <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
-        <header className="flex flex-col gap-3">
-          <h1 className="text-4xl font-extrabold tracking-tight">Archive</h1>
-          <p className="text-text-primary/50">??? ???? ??? ? ??????. ?? ??? ?????.</p>
-        </header>
-        <div className="rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-8">
-          <div className="mb-3 flex items-center gap-3 text-action-accent">
-            <Search size={18} />
-            <span className="text-sm font-bold">?{keyword}? ?? ???</span>
-          </div>
-          <p className="text-sm text-text-primary/45">?? ???? ??? ?? ?? ???? ???? ??? ? ? ?? ??? ? ? ????.</p>
-        </div>
-        <CategoryGrid
-          categories={categoriesQuery.data?.categories ?? []}
-          isPending={categoriesQuery.isPending}
-          isError={categoriesQuery.isError}
-          onSelect={(categoryId) => navigate(`/archive/${categoryId}?${searchParams.toString()}`)}
-        />
-      </section>
-    );
-  }
+  const folderCount = categoriesQuery.data?.categories.length ?? 0;
 
   return (
-    <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-4xl font-extrabold tracking-tight">Archive</h1>
-        <p className="text-text-primary/50">?????? ??? ???? ?????.</p>
-      </header>
+    <section className="flex w-full min-w-0 flex-col gap-7 py-10 text-text-primary">
+      <ArchiveExplorerHeader rightText={`${folderCount} folders`} />
+
+      {keyword ? (
+        <div className="rounded-lg border border-text-secondary/10 bg-surface-lowest/70 px-4 py-3">
+          <div className="flex items-center gap-3 text-action-accent">
+            <Search size={16} />
+            <span className="text-sm font-bold">"{keyword}" 검색 결과</span>
+          </div>
+        </div>
+      ) : null}
+
       <CategoryGrid
         categories={categoriesQuery.data?.categories ?? []}
         isPending={categoriesQuery.isPending}
         isError={categoriesQuery.isError}
-        onSelect={(categoryId) => navigate(`/archive/${categoryId}`)}
+        onSelect={(categoryId) => {
+          const query = searchParams.toString();
+          navigate(`/archive/${categoryId}${query ? `?${query}` : ''}`);
+        }}
       />
     </section>
+  );
+}
+
+function ArchiveExplorerHeader({ rightText }: { rightText: string }) {
+  return (
+    <header className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight">Archive</h1>
+          <p className="mt-2 text-text-primary/50">카테고리 폴더에서 저장한 지식 카드를 찾아보세요.</p>
+        </div>
+        <span className="text-xs font-bold uppercase tracking-wide text-text-primary/35">{rightText}</span>
+      </div>
+
+      <div className="flex min-w-0 items-center gap-2 rounded-lg border border-text-secondary/10 bg-surface-lowest/70 px-3 py-2 text-sm text-text-primary/55 shadow-sm">
+        <span className="font-semibold text-text-primary/75">SAN</span>
+        <ChevronRight size={14} className="shrink-0 text-text-primary/25" aria-hidden="true" />
+        <span className="font-semibold text-text-primary/75">Archive</span>
+        <ChevronRight size={14} className="shrink-0 text-text-primary/25" aria-hidden="true" />
+        <span className="truncate">Categories</span>
+      </div>
+    </header>
   );
 }
 
@@ -61,45 +71,54 @@ function CategoryGrid({
   onSelect: (categoryId: string) => void;
 }) {
   if (isPending) {
-    return <p className="py-16 text-center text-sm text-text-primary/40">???? ??? ???? ????...</p>;
+    return <p className="py-16 text-center text-sm text-text-primary/40">폴더를 불러오는 중입니다...</p>;
   }
 
   if (isError) {
-    return <p className="py-16 text-center text-sm text-red-400">???? ??? ???? ?????.</p>;
+    return <p className="py-16 text-center text-sm text-red-400">폴더를 불러오지 못했습니다.</p>;
   }
 
   if (categories.length === 0) {
     return (
       <ContentEmptyState
-        title="?? ??? ??? ????"
-        description="????? ??? ????? ??? ??? ????."
+        title="아직 폴더가 없습니다"
+        description="지식 카드가 저장되면 카테고리별 폴더가 여기에 생깁니다."
       />
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-      {categories.map((category) => (
-        <button
-          key={category.categoryId}
-          type="button"
-          onClick={() => onSelect(category.categoryId)}
-          className="group flex min-h-40 flex-col justify-between rounded-[28px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-action-accent/10 text-action-accent">
-              <FolderOpen size={22} />
-            </div>
-            <span className="rounded-full border border-text-secondary/5 bg-text-primary/[0.03] px-3 py-1 text-xs font-bold text-text-primary/45">
-              {category.cardCount} cards
-            </span>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-text-primary transition group-hover:text-action-accent">{category.categoryName}</h2>
-            <p className="mt-2 text-sm text-text-primary/40">?? ??</p>
-          </div>
-        </button>
-      ))}
+    <div className="px-2 py-6">
+      <div className="grid grid-cols-1 gap-x-12 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
+        {categories.map((category) => (
+          <ArchiveFolderTile key={category.categoryId} category={category} onSelect={onSelect} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function ArchiveFolderTile({
+  category,
+  onSelect,
+}: {
+  category: { categoryId: string; categoryName: string; cardCount: number };
+  onSelect: (categoryId: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(category.categoryId)}
+      className="group flex min-w-0 items-center gap-3 rounded-lg px-3 py-2 text-left transition duration-150 hover:brightness-[1.02] active:translate-y-0.5 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-action-accent/45"
+    >
+      <ArchiveFolderIcon
+        isOpen={category.cardCount > 0}
+        className="h-[112px] w-[178px] shrink-0 drop-shadow-[0_14px_18px_rgba(45,101,63,0.16)] transition duration-150 group-hover:drop-shadow-[0_18px_24px_rgba(45,101,63,0.2)] group-active:drop-shadow-[0_7px_10px_rgba(45,101,63,0.18)]"
+      />
+      <span className="min-w-0">
+        <span className="block truncate text-lg font-bold text-text-primary">{category.categoryName}</span>
+        <span className="mt-1 block text-sm font-medium text-text-primary/40">{category.cardCount} cards</span>
+      </span>
+    </button>
   );
 }

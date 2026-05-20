@@ -1,6 +1,7 @@
 import type { KnowledgeCardResponse } from '@san/shared';
 import { ExternalLink } from 'lucide-react';
 import { CurvedButton } from '@san/ui/components/Button/CurvedButton';
+import { KnowledgeSummary } from './KnowledgeSummary';
 
 interface RelatedCardsProps {
   cards: KnowledgeCardResponse[];
@@ -88,23 +89,27 @@ export function RelatedCards({
       {cards.map((card) => (
         <article
           key={card.cardId}
-          className="flex flex-col gap-3 p-5 rounded-leaf glass-card bg-surface-container/80 border border-text-secondary/20"
+          className="flex flex-col gap-2.5 rounded-leaf border border-text-secondary/20 glass-card bg-surface-container/80 p-4"
         >
           <div className="flex items-start justify-between gap-3">
             <p className="text-body-main-bold text-text-primary line-clamp-1">{card.title}</p>
             <ExternalLink size={16} className="text-text-secondary" aria-hidden="true" />
           </div>
 
-          <p className="text-body-main text-text-secondary line-clamp-2 leading-6">
-            {card.summary}
-          </p>
+          <KnowledgeSummary
+            summary={card.summary}
+            className="max-h-10 overflow-hidden text-[13px] leading-5 text-text-secondary"
+            paragraphClassName="mb-0.5 last:mb-0"
+            listClassName="space-y-0.5"
+            itemClassName="flex items-start gap-2"
+          />
 
           {card.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex flex-wrap gap-1.5 pt-1">
               {card.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag.tagId}
-                  className="inline-flex items-center gap-1 rounded-full border border-primary-signal/20 bg-primary-signal/5 px-2.5 py-1 text-caption font-bold uppercase text-primary-signal"
+                  className="inline-flex items-center gap-1 rounded-full border border-primary-signal/20 bg-primary-signal/5 px-2 py-0.5 text-[11px] font-bold uppercase text-primary-signal"
                 >
                   {tag.tagName}
                 </span>

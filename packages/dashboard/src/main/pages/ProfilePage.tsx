@@ -5,9 +5,11 @@ import { AlertTriangle, Bell, ChevronDown, ExternalLink, Keyboard, Loader2, LogO
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../../api/client';
 import {
+  getExtensionShortcuts,
   getExtensionTilRecallSettings,
   openExtensionShortcutSettings as requestOpenExtensionShortcutSettings,
   setExtensionTilRecallSettings,
+  type ExtensionShortcuts,
   type TilRecallSettings,
 } from '../../api/extensionAuth';
 import { useToast } from '../../components/shared/toast/toastContext';
@@ -147,6 +149,14 @@ export function ProfilePage() {
     staleTime: 1000 * 60,
   });
   const statistics = statisticsQuery.data;
+  const shortcutQuery = useQuery({
+    queryKey: ['extension', 'shortcuts'],
+    queryFn: getExtensionShortcuts,
+    retry: false,
+    staleTime: 0,
+  });
+  const shortcuts = shortcutQuery.data;
+  const refetchShortcuts = shortcutQuery.refetch;
   const statisticsItems = [
     {
       label: '지식 카드',
@@ -192,6 +202,15 @@ export function ProfilePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleFocus = () => {
+      void refetchShortcuts();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [refetchShortcuts]);
+
   const saveRecallSettings = useCallback(async (nextSettings: TilRecallSettings) => {
     const previousSettings = recallSettings;
     setRecallSettings(nextSettings);
@@ -228,12 +247,13 @@ export function ProfilePage() {
 
     try {
       await requestOpenExtensionShortcutSettings();
+      void refetchShortcuts();
     } catch (error) {
       console.warn('[SAN:shortcut-settings] failed to open shortcut settings', error);
       await navigator.clipboard?.writeText('chrome://extensions/shortcuts').catch(() => undefined);
       setShortcutSettingsMessage('익스텐션 연결이 안 되어 단축키 설정 주소를 복사했어요.');
     }
-  }, []);
+  }, [refetchShortcuts]);
 
   const recallTimeDisabled = !recallSettings.enabled || isRecallSettingsLoading || isRecallSettingsSaving;
   const handleLogout = async () => {
@@ -349,6 +369,9 @@ export function ProfilePage() {
           saveRecallSettings={saveRecallSettings}
           openShortcutSettings={openShortcutSettings}
           shortcutSettingsMessage={shortcutSettingsMessage}
+          shortcuts={shortcuts}
+          isShortcutLoading={shortcutQuery.isPending}
+          shortcutError={shortcutQuery.isError ? '익스텐션 연결이 필요해요.' : null}
         />
 
         <section className="border-t border-text-secondary/[0.06] pt-6">
@@ -515,6 +538,9 @@ function ProfileSettingsCards({
   saveRecallSettings,
   openShortcutSettings,
   shortcutSettingsMessage,
+  shortcuts,
+  isShortcutLoading,
+  shortcutError,
 }: {
   recallSettings: TilRecallSettings;
   recallTimeDisabled: boolean;
@@ -524,6 +550,9 @@ function ProfileSettingsCards({
   saveRecallSettings: (settings: TilRecallSettings) => Promise<void>;
   openShortcutSettings: () => Promise<void>;
   shortcutSettingsMessage: string | null;
+  shortcuts?: ExtensionShortcuts;
+  isShortcutLoading: boolean;
+  shortcutError: string | null;
 }) {
   const recallTimeParts = parseRecallTimeParts(recallSettings.time);
   const updateRecallTimePart = (nextParts: Partial<RecallTimeParts>) => {
@@ -548,9 +577,14 @@ function ProfileSettingsCards({
         </h3>
 
         <div className="mt-6 space-y-4">
-          <ShortcutRow label="사이드패널 열기" shortcut="Alt + S" />
-          <ShortcutRow label="화면 캡처" shortcut="Ctrl + Shift + Y" />
+          <ShortcutRow label="사이드패널 열기" shortcut={formatShortcutLabel(shortcuts?.openSidePanel, isShortcutLoading)} />
+          <ShortcutRow label="화면 캡처" shortcut={formatShortcutLabel(shortcuts?.captureImage, isShortcutLoading)} />
         </div>
+        {shortcutError ? (
+          <p className="mt-4 rounded-md border border-primary-signal/15 bg-primary-signal/8 px-3 py-2 text-xs text-primary-signal/80">
+            {shortcutError}
+          </p>
+        ) : null}
 
         <div className="mt-7 border-t border-text-secondary/[0.06] pt-6">
           <button
@@ -774,6 +808,12 @@ function RecallTimeOption({
       {children}
     </button>
   );
+}
+
+function formatShortcutLabel(shortcut: string | undefined, isLoading: boolean) {
+  if (isLoading) return 'Loading';
+  if (!shortcut?.trim()) return 'Not set';
+  return shortcut.replace(/\+/g, ' + ');
 }
 
 function ShortcutRow({ label, shortcut }: { label: string; shortcut: string }) {

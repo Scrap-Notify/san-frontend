@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, CalendarDays, ChevronLeft, ChevronRight, Hash, Search } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useArchiveCategoryCards, type SearchCardResult, type SearchParams } from '@san/shared';
 import { searchApi } from '../../api/client';
 import { ContentEmptyState } from '../../components/shared/empty/ContentEmptyState';
+import { ArchiveSummary } from '../components/archive/ArchiveSummary';
 
 interface Filters {
   tag: string;
@@ -75,7 +76,10 @@ export function ArchiveCategoryPage() {
               <ArchiveCard
                 key={card.cardId}
                 title={card.title}
-                subtitle={card.tags.map((tag) => tag.tagName).join(' · ')}
+                summary={null}
+                tags={card.tags.map((tag) => tag.tagName)}
+                categoryName={categoryName}
+                createdAt={card.createdAt}
                 onClick={() => navigate(`/cards/${card.cardId}`)}
               />
             ))}
@@ -94,7 +98,9 @@ export function ArchiveCategoryPage() {
               <ArchiveCard
                 key={card.cardId}
                 title={card.title}
-                subtitle={card.summary ?? '요약이 없습니다.'}
+                summary={card.summary}
+                tags={[]}
+                categoryName={categoryName}
                 onClick={() => navigate(`/cards/${card.cardId}`)}
               />
             ))}
@@ -140,7 +146,7 @@ function FilterPanel({
   }, [inputValue, keyword, onKeywordChange]);
 
   return (
-    <div className="flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
+    <div className="relative z-[300] flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
       <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-primary/25" />
         <input
@@ -157,34 +163,227 @@ function FilterPanel({
           placeholder="#태그"
           className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
         />
-        <input
-          type="date"
+        <CategoryDatePicker
           value={filters.fromDate}
-          onChange={(event) => onFilterChange({ ...filters, fromDate: event.target.value })}
-          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
+          onChange={(value) => onFilterChange({ ...filters, fromDate: value })}
+          placeholder="연도-월-일"
         />
-        <input
-          type="date"
+        <CategoryDatePicker
           value={filters.toDate}
-          onChange={(event) => onFilterChange({ ...filters, toDate: event.target.value })}
-          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
+          onChange={(value) => onFilterChange({ ...filters, toDate: value })}
+          placeholder="연도-월-일"
         />
       </div>
     </div>
   );
 }
 
-function ArchiveCard({ title, subtitle, onClick }: { title: string; subtitle: string; onClick: () => void }) {
+function CategoryDatePicker({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(value ? parseLocalDate(value) : new Date());
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleDateClick = (day: number) => {
+    const selected = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+    if (selected > getTodayStart()) return;
+    onChange(formatDate(selected));
+    setIsOpen(false);
+  };
+
+  const totalDays = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+  const firstDay = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+  const days = Array.from({ length: totalDays }, (_, index) => index + 1);
+
+  return (
+    <div ref={containerRef} className="relative min-w-0">
+      <button
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-left text-sm font-bold text-text-primary outline-none transition focus:border-primary-signal/30"
+      >
+        <span className={value ? 'text-text-primary' : 'text-text-primary/35'}>
+          {value || placeholder}
+        </span>
+        <Calendar size={16} className="shrink-0 text-action-accent" aria-hidden="true" />
+      </button>
+
+      {isOpen ? (
+        <div className="absolute left-0 top-full z-[1000] mt-3 w-64 overflow-hidden rounded-tl-[28px] rounded-br-[28px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-5 shadow-2xl">
+          <div className="mb-4 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))}
+              className="text-text-primary/40 transition hover:text-text-primary"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-sm font-black tracking-wider text-text-primary">
+              {viewDate.toLocaleString('ko-KR', { year: 'numeric', month: 'long' })}
+            </span>
+            <button
+              type="button"
+              onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))}
+              className="text-text-primary/40 transition hover:text-text-primary"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          <div className="mb-2 grid grid-cols-7 gap-1 text-center">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => (
+              <span key={day} className="text-[10px] font-black text-text-primary/20">
+                {day}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: firstDay }, (_, index) => (
+              <div key={`empty-${index}`} className="h-8 w-8" />
+            ))}
+            {days.map((day) => {
+              const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+              const isFuture = date > getTodayStart();
+              const isSelected = value === formatDate(date);
+
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  disabled={isFuture}
+                  onClick={() => handleDateClick(day)}
+                  className={`h-8 w-8 rounded-lg text-xs font-bold transition-all disabled:pointer-events-none disabled:text-text-primary/15 ${
+                    isSelected
+                      ? 'bg-action-accent text-text-on-accent shadow-[0_0_10px_rgba(74,222,128,0.5)]'
+                      : isFuture
+                        ? 'text-text-primary/15'
+                        : 'text-text-primary/60 hover:bg-action-accent/20 hover:text-action-accent'
+                  }`}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function getTodayDate() {
+  return formatDate(new Date());
+}
+
+function getTodayStart() {
+  const today = new Date();
+  return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+}
+
+function parseLocalDate(value: string) {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatDate(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function ArchiveCard({
+  title,
+  summary,
+  tags,
+  categoryName,
+  createdAt,
+  onClick,
+}: {
+  title: string;
+  summary: string | null;
+  tags: string[];
+  categoryName?: string;
+  createdAt?: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-48 flex-col justify-between rounded-leaf border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
+      className="group relative flex h-[300px] min-w-0 cursor-pointer flex-col overflow-hidden rounded-[30px] border border-text-secondary/5 bg-surface-low p-7 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-action-accent/18 hover:bg-surface-container/90"
     >
-      <h2 className="text-xl font-bold leading-snug text-text-primary">{title}</h2>
-      <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-text-primary/45">{subtitle}</p>
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-action-accent/[0.035] blur-[60px]" />
+      <div className="relative flex items-start justify-between gap-4">
+        <span className="inline-flex min-w-0 items-center gap-2 rounded-full border border-action-accent/15 bg-action-accent/8 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider text-action-accent">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-action-accent" />
+          <span className="truncate">{categoryName || 'Archive'}</span>
+        </span>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-text-secondary/5 bg-text-primary/[0.03] text-text-primary/28 transition group-hover:border-action-accent/20 group-hover:text-action-accent">
+          <ArrowRight size={16} aria-hidden="true" />
+        </span>
+      </div>
+
+      <div className="relative mt-8 min-w-0">
+        <h2 className="line-clamp-3 text-[22px] font-extrabold leading-tight text-text-primary transition group-hover:text-action-accent">
+          {title}
+        </h2>
+        {summary ? (
+          <ArchiveSummary
+            summary={summary}
+            className="mt-5 max-h-[4.5rem] space-y-1 overflow-hidden text-[13px] leading-5 text-text-primary/50"
+          />
+        ) : null}
+      </div>
+
+      <div className="relative mt-auto flex flex-col gap-4 border-t border-text-secondary/5 pt-5">
+        <div className="flex items-center gap-2 text-[11px] font-bold text-text-primary/35">
+          <CalendarDays size={13} className="text-action-accent/70" aria-hidden="true" />
+          <span>{createdAt ? formatArchiveDate(createdAt) : '날짜 정보 없음'}</span>
+        </div>
+        {tags.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 rounded-full border border-text-secondary/5 bg-text-primary/[0.03] px-2.5 py-1 text-[11px] font-bold leading-none text-text-primary/42 transition group-hover:border-action-accent/20 group-hover:text-action-accent"
+              >
+                <Hash size={10} aria-hidden="true" />
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </button>
   );
+}
+
+function formatArchiveDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
 }
 
 function dedupeByCardId(cards: SearchCardResult[]) {

@@ -7,6 +7,7 @@ import Editor, { type OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   Bold,
   BookOpen,
@@ -26,8 +27,18 @@ import {
   RotateCcw,
   Save,
   Tags,
+  Trash2,
 } from 'lucide-react';
-import { useCardDetail, useSimilarCards, type KnowledgeCardDetailResponse, type KnowledgeCardResponse } from '@san/shared';
+import {
+  getApiErrorMessage,
+  useCardDetail,
+  useDeleteCard,
+  useSimilarCards,
+  useUpdateRefinedContent,
+  type KnowledgeCardDetailResponse,
+  type KnowledgeCardResponse,
+} from '@san/shared';
+import { hangulAdjacentStrongPlugin, normalizeHangulAdjacentStrong } from '@dashboard/utils/markdown';
 
 export type KnowledgeSourceType = 'LINK' | 'IMAGE' | 'PDF' | 'OCR' | 'TEXT';
 
@@ -117,6 +128,8 @@ export function KnowledgeCardDetailPage() {
   const navigate = useNavigate();
   const [refinePollStartedAt, setRefinePollStartedAt] = useState<number | null>(null);
   const [refinePollTimedOut, setRefinePollTimedOut] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
   const detailQuery = useCardDetail(cardId, {
     refetchInterval: (query) => {
       if (!query.state.data || refinePollTimedOut) return false;
@@ -125,6 +138,15 @@ export function KnowledgeCardDetailPage() {
     },
   });
   const similarQuery = useSimilarCards(cardId);
+  const deleteCardMutation = useDeleteCard(cardId, {
+    onSuccess: () => {
+      setIsDeleteDialogOpen(false);
+      navigate('/archive', { replace: true });
+    },
+    onError: (error) => {
+      setDeleteErrorMessage(getApiErrorMessage(error, '지식카드를 삭제하지 못했습니다.'));
+    },
+  });
   const hasRefinedContent = Boolean(detailQuery.data?.refinedContent?.trim());
 
   useEffect(() => {
@@ -153,6 +175,15 @@ export function KnowledgeCardDetailPage() {
   }, [cardId, detailQuery.data, similarQuery.data?.similarCards]);
 
   const isCheckingRefinedContent = Boolean(detailQuery.data) && !hasRefinedContent && !refinePollTimedOut;
+  const requestDeleteCard = () => {
+    setDeleteErrorMessage(null);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteCard = () => {
+    if (!cardId || deleteCardMutation.isPending) return;
+    deleteCardMutation.mutate();
+  };
 
   if (!cardId) {
     return <DetailStatus tone="error" title="잘못된 카드 주소입니다." description="상세보기로 이동할 지식카드 ID가 없습니다." />;
@@ -173,59 +204,166 @@ export function KnowledgeCardDetailPage() {
   }
 
   return (
-    <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
-      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-        <div className="min-w-0">
+    <>
+      <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="min-w-0">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-text-primary/40 transition-colors hover:text-text-primary"
+            >
+              <ArrowLeft size={16} aria-hidden="true" />
+              돌아가기
+            </button>
+            <p className="text-md font-bold uppercase tracking-wide text-primary-signal">지식카드 상세보기</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <h1 className="max-w-4xl text-h1-bold leading-[1.25] text-text-primary md:text-[40px]">
+                {data.finalCard.title}
+              </h1>
+              <span className="shrink-0 rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-sm font-semibold text-primary-signal">
+                {data.finalCard.categoryName}
+              </span>
+            </div>
+            <p className="mt-4 max-w-3xl text-base leading-7 text-text-primary/50">
+              원본 데이터에서 AI 1차 정제 텍스트를 거쳐 최종 지식카드가 만들어진 흐름을 확인합니다.
+            </p>
+          </div>
           <button
             type="button"
-            onClick={() => navigate(-1)}
-            className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-text-primary/40 transition-colors hover:text-text-primary"
+            onClick={requestDeleteCard}
+            disabled={deleteCardMutation.isPending}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-tl-[14px] rounded-br-[14px] rounded-bl-md rounded-tr-md border border-red-400/20 bg-red-400/5 px-4 py-2 text-sm font-bold text-red-500 transition hover:border-red-400/40 hover:bg-red-400/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <ArrowLeft size={16} aria-hidden="true" />
-            돌아가기
+            <Trash2 size={15} strokeWidth={2.2} aria-hidden="true" />
+            삭제
           </button>
-          <p className="text-md font-bold uppercase tracking-wide text-primary-signal">지식카드 상세보기</p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="max-w-4xl text-h1-bold leading-[1.25] text-text-primary md:text-[40px]">
-              {data.finalCard.title}
-            </h1>
-            <span className="shrink-0 rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-sm font-semibold text-primary-signal">
-              {data.finalCard.categoryName}
-            </span>
-          </div>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-text-primary/50">
-            원본 데이터에서 AI 1차 정제 텍스트를 거쳐 최종 지식카드가 만들어진 흐름을 확인합니다.
-          </p>
         </div>
-      </div>
 
-      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <ProcessedTextSection processedText={data.processedText} isCheckingRefinedContent={isCheckingRefinedContent} />
-          <FinalKnowledgeCardSection finalCard={data.finalCard} />
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="flex min-w-0 flex-col gap-6">
+            <ProcessedTextSection
+              cardId={data.cardId}
+              processedText={data.processedText}
+              isCheckingRefinedContent={isCheckingRefinedContent}
+            />
+            <FinalKnowledgeCardSection finalCard={data.finalCard} />
+          </div>
+          <DetailMetaPanel data={data} isLoadingRelated={similarQuery.isPending} />
         </div>
-        <DetailMetaPanel data={data} isLoadingRelated={similarQuery.isPending} />
+      </section>
+
+      {isDeleteDialogOpen ? (
+        <DeleteCardDialog
+          title={data.finalCard.title}
+          isPending={deleteCardMutation.isPending}
+          errorMessage={deleteErrorMessage}
+          onCancel={() => {
+            if (deleteCardMutation.isPending) return;
+            setIsDeleteDialogOpen(false);
+          }}
+          onConfirm={confirmDeleteCard}
+        />
+      ) : null}
+    </>
+  );
+}
+
+
+function DeleteCardDialog({
+  title,
+  isPending,
+  errorMessage,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  isPending: boolean;
+  errorMessage: string | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-scrim/70 px-4 backdrop-blur-sm"
+      onClick={onCancel}
+      onKeyDown={(event) => event.key === 'Escape' && onCancel()}
+      role="button"
+      tabIndex={0}
+    >
+      <div
+        className="w-full max-w-md rounded-tl-[28px] rounded-br-[28px] rounded-tr-xl rounded-bl-xl border border-red-400/15 bg-surface-container p-6 text-text-primary shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-tl-[16px] rounded-br-[16px] rounded-tr-md rounded-bl-md bg-red-400/10 text-red-500">
+            <AlertTriangle size={19} aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-text-primary">지식카드를 삭제할까요?</h2>
+            <p className={`mt-2 line-clamp-2 text-sm leading-6 text-text-primary/45 ${textWrapClass}`}>{title}</p>
+          </div>
+        </div>
+        <p className="mt-5 text-sm leading-6 text-text-primary/45">
+          삭제한 지식카드는 아카이브와 관련 카드 목록에서 사라지며 되돌릴 수 없습니다.
+        </p>
+        {errorMessage ? <p className="mt-3 text-sm font-medium text-red-400">{errorMessage}</p> : null}
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isPending}
+            className="rounded-lg px-4 py-2 text-sm font-semibold text-text-primary/45 transition hover:bg-text-primary/5 hover:text-text-primary disabled:opacity-40"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-tl-[12px] rounded-br-[12px] rounded-bl-md rounded-tr-md bg-red-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-500/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} strokeWidth={2.2} />}
+            {isPending ? '삭제 중...' : '삭제'}
+          </button>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }
 
 
 function ProcessedTextSection({
+  cardId,
   processedText,
   isCheckingRefinedContent,
 }: {
+  cardId: string;
   processedText: KnowledgeCardDetailData['processedText'];
   isCheckingRefinedContent: boolean;
 }) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(processedText.refinedContent);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const hasRefinedContent = processedText.refinedContent.trim().length > 0;
-  const hasUnsavedChanges = editValue !== processedText.refinedContent;
+  const normalizedEditValue = editValue.trim();
+  const hasUnsavedChanges = normalizedEditValue !== processedText.refinedContent.trim();
+  const previewValue = normalizeHangulAdjacentStrong(editValue);
+  const updateRefinedContentMutation = useUpdateRefinedContent(cardId, {
+    onSuccess: (updatedDetail) => {
+      setEditValue(updatedDetail.refinedContent ?? '');
+      setSaveErrorMessage(null);
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      setSaveErrorMessage(getApiErrorMessage(error, '정제 텍스트를 저장하지 못했습니다.'));
+    },
+  });
 
   useEffect(() => {
     setEditValue(processedText.refinedContent);
+    setSaveErrorMessage(null);
   }, [processedText.refinedContent]);
 
   const handleEditorMount: OnMount = (editor) => {
@@ -265,6 +403,17 @@ function ProcessedTextSection({
 
   const handleReset = () => {
     setEditValue(processedText.refinedContent);
+    setSaveErrorMessage(null);
+  };
+
+  const handleSave = () => {
+    if (!hasUnsavedChanges || updateRefinedContentMutation.isPending) return;
+    if (!normalizedEditValue) {
+      setSaveErrorMessage('정제 텍스트를 비워둘 수 없습니다.');
+      return;
+    }
+
+    updateRefinedContentMutation.mutate({ refinedContent: normalizedEditValue });
   };
 
   return (
@@ -345,8 +494,8 @@ function ProcessedTextSection({
           ) : (
             <div className="mt-6 rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 px-4 py-5 sm:px-6">
               <article className={`max-w-none ${textWrapClass}`}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-                  {editValue}
+                <ReactMarkdown remarkPlugins={[remarkGfm, hangulAdjacentStrongPlugin]} components={mdComponents}>
+                  {previewValue}
                 </ReactMarkdown>
               </article>
             </div>
@@ -354,12 +503,14 @@ function ProcessedTextSection({
 
           {isEditing && (
             <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="hidden text-xs text-text-primary/25 sm:block">수정 API 연동 준비 중</span>
+              <span className={`hidden text-xs sm:block ${saveErrorMessage ? 'text-red-400' : 'text-text-primary/25'}`}>
+                {saveErrorMessage ?? (hasUnsavedChanges ? '저장하지 않은 변경사항이 있어요.' : '변경사항이 없습니다.')}
+              </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleReset}
-                  disabled={!hasUnsavedChanges}
+                  disabled={!hasUnsavedChanges || updateRefinedContentMutation.isPending}
                   className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-primary/40 transition-colors hover:text-text-primary disabled:opacity-30"
                 >
                   <RotateCcw size={12} />
@@ -367,11 +518,12 @@ function ProcessedTextSection({
                 </button>
                 <button
                   type="button"
-                  disabled
-                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-action-accent/60 px-3 py-1.5 text-xs font-bold text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={handleSave}
+                  disabled={!hasUnsavedChanges || !normalizedEditValue || updateRefinedContentMutation.isPending}
+                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-action-accent/80 px-3 py-1.5 text-xs font-bold text-text-primary transition hover:bg-action-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Save size={12} />
-                  저장
+                  {updateRefinedContentMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                  {updateRefinedContentMutation.isPending ? '저장 중...' : '저장'}
                 </button>
               </div>
             </div>
@@ -427,13 +579,31 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
             {finalCard.keyPoints.map((point) => (
               <li key={point} className="flex min-w-0 gap-3 text-sm leading-7 text-text-primary/70">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-signal" />
-                <span className={textWrapClass}>{point}</span>
+                <span className={textWrapClass}>
+                  <MarkdownInline>{point}</MarkdownInline>
+                </span>
               </li>
             ))}
           </ul>
         </div>
       </div>
     </section>
+  );
+}
+
+function MarkdownInline({ children }: { children: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, hangulAdjacentStrongPlugin]}
+      components={{
+        p: ({ children: paragraphChildren }: { children?: React.ReactNode }) => <>{paragraphChildren}</>,
+        strong: mdComponents.strong,
+        em: mdComponents.em,
+        code: mdComponents.code,
+      }}
+    >
+      {normalizeHangulAdjacentStrong(children)}
+    </ReactMarkdown>
   );
 }
 
@@ -575,17 +745,31 @@ function ExpandableSourceText({ text }: { text: string }) {
 
 function SourceImagePreview({ src }: { src: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [isFullImageLoaded, setIsFullImageLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsFullImageLoaded(false);
+  }, [src, expanded]);
+
+  const preloadFullImage = () => {
+    const image = new window.Image();
+    image.src = src;
+    void image.decode?.().catch(() => undefined);
+  };
 
   return (
     <>
       <button
         type="button"
         onClick={() => setExpanded(true)}
+        onMouseEnter={preloadFullImage}
+        onFocus={preloadFullImage}
         className="group/img w-full rounded-xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 p-1 transition hover:border-text-secondary/10"
       >
         <img
           src={src}
           alt=""
+          decoding="async"
           className="max-h-48 w-full rounded-lg object-contain"
         />
         <span className="mt-1 block text-center text-[10px] text-text-primary/25 transition-colors group-hover/img:text-text-primary/40">
@@ -595,16 +779,32 @@ function SourceImagePreview({ src }: { src: string }) {
 
       {expanded && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-scrim/80 px-4 pb-4 pt-[calc(var(--dashboard-nav-offset)+1rem)] backdrop-blur-sm sm:px-6 sm:pb-6"
           onClick={() => setExpanded(false)}
           onKeyDown={(e) => e.key === 'Escape' && setExpanded(false)}
           role="button"
           tabIndex={0}
         >
+          {!isFullImageLoaded ? (
+            <div className="absolute inset-x-4 top-[calc(var(--dashboard-nav-offset)+1rem)] bottom-4 flex items-center justify-center rounded-xl border border-text-secondary/10 bg-surface-container/70 shadow-2xl sm:inset-x-6 sm:bottom-6">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 size={24} className="animate-spin text-primary-signal" aria-hidden="true" />
+                <span className="text-xs font-semibold text-text-primary/45">원본 이미지를 불러오는 중...</span>
+              </div>
+            </div>
+          ) : null}
           <img
             src={src}
             alt=""
-            className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
+            loading="eager"
+            decoding="async"
+            onLoad={() => setIsFullImageLoaded(true)}
+            onError={() => setIsFullImageLoaded(true)}
+            onClick={(event) => event.stopPropagation()}
+            className={[
+              'max-h-[calc(100dvh-var(--dashboard-nav-offset)-2rem)] max-w-full rounded-xl object-contain shadow-2xl transition-opacity duration-150',
+              isFullImageLoaded ? 'opacity-100' : 'opacity-0',
+            ].join(' ')}
           />
         </div>
       )}

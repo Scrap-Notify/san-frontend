@@ -27,6 +27,7 @@ export type {
   KnowledgeCardResponse,
   KnowledgeCardSimilarCardsResponse,
   KnowledgeCardView,
+  RefinedContentUpdateRequest,
   SearchCardResult,
   SearchParams,
   SearchResponse,

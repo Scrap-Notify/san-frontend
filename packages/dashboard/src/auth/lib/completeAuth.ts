@@ -13,7 +13,6 @@ export async function completeAuth(tokens: AuthTokens, clientType: ClientType, u
 
   if (clientType === 'EXTENSION') {
     await syncExtensionAuth(scopedTokens);
-    await authTokenStorage.clearToken();
     return;
   }
 

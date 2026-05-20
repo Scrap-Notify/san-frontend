@@ -140,10 +140,10 @@ export function TilPage() {
                         <span className="text-text-primary">earned</span>
                     </h1>
 
-                    <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-                        <div className="flex items-center gap-4">
+                    <div className="flex flex-col justify-between gap-3 min-[1700px]:flex-row min-[1700px]:items-center">
+                        <div className="flex min-w-0 items-center gap-2">
                             <div
-                                className="relative flex items-center gap-1 px-1.5 py-1"
+                                className="relative flex min-w-0 items-center gap-1 px-1.5 py-1"
                                 onPointerDown={(event) => event.stopPropagation()}
                             >
                                 <button
@@ -162,8 +162,9 @@ export function TilPage() {
                                         setOpenTilMenuId(null);
                                         setIsTitleMenuOpen(false);
                                     }}
-                                    className="flex min-w-[118px] items-center justify-center px-1.5 py-0.5 text-center text-sm font-semibold tracking-wide text-text-primary"
+                                    className="flex min-w-0 max-w-[12rem] shrink items-center justify-center truncate whitespace-nowrap px-2 py-0.5 text-center text-sm font-semibold tracking-wide text-text-primary sm:min-w-[148px]"
                                     aria-expanded={isCalendarOpen}
+                                    title={dateLabel}
                                 >
                                     {dateLabel}
                                 </button>
@@ -241,10 +242,10 @@ export function TilPage() {
                                 ) : null}
                             </div>
 
-                            <div className="hidden h-4 w-px bg-text-primary/10 lg:block" />
+                            <div className="hidden h-4 w-px bg-text-primary/10 min-[1700px]:block" />
                         </div>
 
-                        <div className="flex w-full min-w-0 flex-row items-center gap-2 lg:w-auto lg:justify-end">
+                        <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-start min-[1700px]:w-auto min-[1700px]:justify-end">
                             <TILModeTabs activeTab={activeTab} onChange={setActiveTab} />
 
                             <button

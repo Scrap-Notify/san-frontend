@@ -6,6 +6,7 @@ import { authTokenStorage } from '@dashboard/api/client';
 import { useArchiveCards } from '@dashboard/main/hooks/useArchiveCards';
 import { HomeKnowledgeCardsEmptyState } from './HomeEmptyStates';
 import { HomeSectionTitle } from '../layout/HomeSectionTitle';
+import { ArchiveSummary } from './ArchiveSummary';
 
 export function ArchiveSection() {
   const navigate = useNavigate();
@@ -111,23 +112,26 @@ export function ArchiveSection() {
                 <article
                   key={card.card_id}
                   onClick={() => navigate(`/cards/${card.card_id}`)}
-                  className="group relative flex h-[280px] w-[min(88vw,24rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-leaf glass-card bg-surface-container/80 p-6 !shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
+                  className="group relative flex h-[260px] w-[min(88vw,23rem)] min-w-0 shrink-0 cursor-pointer snap-start flex-col justify-between rounded-leaf glass-card bg-surface-container/80 p-5 !shadow-none transition-all hover:bg-surface-container md:w-[calc((100%-24px)/2)] xl:w-[calc((100%-48px)/3)]"
                 >
                   <div>
-                    <div className="mb-4 flex items-center justify-between">
-                      <span className="rounded-tl-lg rounded-br-lg rounded-tr-sm rounded-bl-sm border border-archive-card-accent-20 bg-archive-card-accent-5 px-2.5 py-1 text-[14px] font-bold tracking-wide text-archive-card-accent">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="rounded-tl-lg rounded-br-lg rounded-tr-sm rounded-bl-sm border border-archive-card-accent-20 bg-archive-card-accent-5 px-2.5 py-1 text-[12px] font-bold text-archive-card-accent">
                         {categoryName}
                       </span>
-                      <time className="text-[14px] font-medium text-text-secondary/70">{date}</time>
+                      <time className="text-[12px] font-medium text-text-secondary/70">{date}</time>
                     </div>
-                    <h3 className="line-clamp-2 text-xl font-bold leading-snug text-text-primary">{card.title}</h3>
-                    <p className="mt-2 line-clamp-2 text-base leading-relaxed text-text-secondary">{card.summary ?? '요약 내용이 아직 생성되지 않았습니다.'}</p>
+                    <h3 className="line-clamp-2 text-lg font-bold leading-snug text-text-primary">{card.title}</h3>
+                    <ArchiveSummary
+                      summary={card.summary}
+                      className="mt-3 max-h-[4.5rem] space-y-1 overflow-hidden text-[13px] leading-5 text-text-secondary"
+                    />
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-3">
                     {card.tags.length > 0 ? (
-                      <div className="flex min-w-0 gap-1 overflow-hidden">
-                        {card.tags.slice(0, 2).map(t => (
-                          <span key={t.name} className="shrink-0 rounded-md border border-archive-card-accent-10 bg-archive-card-accent-5 px-1.5 py-0.5 text-[13px] font-medium text-archive-card-accent-70">#{t.name}</span>
+                      <div className="flex min-w-0 gap-1.5 overflow-hidden">
+                        {card.tags.slice(0, 3).map(t => (
+                          <span key={t.name} className="shrink-0 rounded-full border border-archive-card-accent-10 bg-archive-card-accent-5 px-2.5 py-1 text-[12px] font-medium leading-none text-archive-card-accent-70">#{t.name}</span>
                         ))}
                       </div>
                     ) : <div />}
