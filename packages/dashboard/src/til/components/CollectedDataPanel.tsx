@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Search, Loader2, Sparkles } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import type {
     RecallQuizResponse,
     RecallQuizType,
@@ -180,7 +180,6 @@ function ReviewStatusSummary({
                 queryKey: tilKeys.recallQuizzes(selectedTil.targetDate, quizType),
             });
             setQuizJobId(null);
-            setHasRequestedGeneration(false);
         }
         if (quizJobStatusQuery.data?.status === 'FAILED') {
             setQuizJobId(null);
@@ -189,9 +188,10 @@ function ReviewStatusSummary({
     }, [quizJobStatusQuery.data?.status, queryClient, selectedTil, quizType]);
 
     const isGenerating = generateMutation.isPending || quizJobStatusQuery.data?.status === 'PENDING' || quizJobStatusQuery.data?.status === 'PROCESSING';
+    const canGenerate = !isGenerating && !hasRequestedGeneration;
 
     const handleGenerate = () => {
-        if (!selectedTil || isGenerating || hasRequestedGeneration) return;
+        if (!selectedTil || !canGenerate) return;
         setHasRequestedGeneration(true);
         generateMutation.mutate({
             targetDate: selectedTil.targetDate,
@@ -200,7 +200,6 @@ function ReviewStatusSummary({
     };
 
     useEffect(() => {
-        setHasRequestedGeneration(false);
         setQuizJobId(null);
     }, [selectedTil?.summaryId, quizType]);
 
@@ -209,9 +208,7 @@ function ReviewStatusSummary({
             selectedTil &&
             recallQuizzesQuery.isSuccess &&
             quizzes.length === 0 &&
-            !isGenerating &&
-            !generateMutation.isError &&
-            !hasRequestedGeneration &&
+            canGenerate &&
             !quizJobId
         ) {
             handleGenerate();
@@ -220,9 +217,7 @@ function ReviewStatusSummary({
         selectedTil,
         recallQuizzesQuery.isSuccess,
         quizzes.length,
-        isGenerating,
-        generateMutation.isError,
-        hasRequestedGeneration,
+        canGenerate,
         quizJobId,
     ]);
 
@@ -280,7 +275,7 @@ function ReviewStatusSummary({
                             <button
                                 type="button"
                                 onClick={handleGenerate}
-                                disabled={isGenerating}
+                                disabled={!canGenerate}
                                 className="flex items-center gap-2 rounded-lg bg-primary-signal/10 px-4 py-2 text-xs font-bold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {isGenerating ? (
@@ -289,10 +284,7 @@ function ReviewStatusSummary({
                                         {QUIZ_GENERATING_LABEL}
                                     </>
                                 ) : (
-                                    <>
-                                        <Sparkles size={14} />
-                                        {QUIZ_GENERATE_LABEL}
-                                    </>
+                                    QUIZ_GENERATE_LABEL
                                 )}
                             </button>
                         )}
