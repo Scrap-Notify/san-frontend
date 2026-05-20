@@ -15,7 +15,9 @@ type CrossCard = { id: string; title: string; pos: Pos; catId: string };
 
 /* ── layout ── */
 
-const MAX_CARDS = const CAT_IDLE_PRESETS: Record<number, Pos[]> = {
+const MAX_CARDS = 40;
+
+const CAT_IDLE_PRESETS: Record<number, Pos[]> = {
   1: [{ x: 50, y: 48 }],
   2: [{ x: 34, y: 42 }, { x: 66, y: 55 }],
   3: [{ x: 20, y: 38 }, { x: 55, y: 52 }, { x: 82, y: 36 }],
