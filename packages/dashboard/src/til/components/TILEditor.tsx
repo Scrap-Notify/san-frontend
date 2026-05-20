@@ -15,6 +15,7 @@ import type {
     TilUpdateMutation,
 } from '@dashboard/til/types';
 import { ContentEmptyState } from '@dashboard/components/shared/empty/ContentEmptyState';
+import { hangulAdjacentStrongPlugin, normalizeHangulAdjacentStrong } from '@dashboard/utils/markdown';
 
 const STATUS_MESSAGE_VISIBLE_MS = 3500;
 const GENERATE_LABEL = '\uC0DD\uC131\uD558\uAE30';
@@ -75,6 +76,7 @@ export function TILEditor({
     const isDrafts = activeTab === 'drafts';
     const generateLabel = selectedDate === getTodayDate() ? GENERATE_LABEL : REGENERATE_LABEL;
     const displayedDraft = activeTab === 'drafts' ? aiDraft : editDraft;
+    const previewDraft = normalizeHangulAdjacentStrong(displayedDraft);
     const isEmptyTil = !isTilLoading && !selectedTil && !isGenerating;
 
     const handleEditorMount: OnMount = (editor) => {
@@ -370,7 +372,7 @@ export function TILEditor({
                         <div className="til-editor-scrollbar til-editor-surface h-full min-h-[500px] overflow-y-auto px-10 pb-8 pt-4">
                             <article className="max-w-none leading-relaxed text-text-primary">
                                 <ReactMarkdown
-                                    remarkPlugins={[remarkGfm]}
+                                    remarkPlugins={[remarkGfm, hangulAdjacentStrongPlugin]}
                                     components={{
                                         h1: ({ children }) => (
                                             <h1 className="mb-6 border-b border-surface-highest/30 pb-4 text-3xl font-bold leading-tight text-text-primary">
@@ -442,7 +444,7 @@ export function TILEditor({
                                         hr: () => <hr className="my-8 border-primary-signal/20" />,
                                     }}
                                 >
-                                    {displayedDraft}
+                                    {previewDraft}
                                 </ReactMarkdown>
                             </article>
                         </div>

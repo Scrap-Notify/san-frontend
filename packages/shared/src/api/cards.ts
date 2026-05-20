@@ -8,6 +8,7 @@ import type {
   KnowledgeCardListResponse,
   KnowledgeCardListParams,
   KnowledgeCardSimilarCardsResponse,
+  RefinedContentUpdateRequest,
 } from '../types';
 
 export function createCardsApi(apiClient: AxiosInstance) {
@@ -30,6 +31,11 @@ export function createCardsApi(apiClient: AxiosInstance) {
     getDetail: (cardId: string): Promise<KnowledgeCardDetailResponse> =>
       apiClient
         .get<ApiResponse<KnowledgeCardDetailResponse>>(`/cards/${cardId}/detail`)
+        .then((response) => unwrapApiResponse(response.data)),
+
+    updateRefinedContent: (cardId: string, payload: RefinedContentUpdateRequest): Promise<KnowledgeCardDetailResponse> =>
+      apiClient
+        .patch<ApiResponse<KnowledgeCardDetailResponse>>(`/cards/${cardId}/refined-content`, payload)
         .then((response) => unwrapApiResponse(response.data)),
 
     getSimilarByCardId: (cardId: string): Promise<KnowledgeCardSimilarCardsResponse> =>

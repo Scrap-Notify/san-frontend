@@ -27,7 +27,15 @@ import {
   Save,
   Tags,
 } from 'lucide-react';
-import { useCardDetail, useSimilarCards, type KnowledgeCardDetailResponse, type KnowledgeCardResponse } from '@san/shared';
+import {
+  getApiErrorMessage,
+  useCardDetail,
+  useSimilarCards,
+  useUpdateRefinedContent,
+  type KnowledgeCardDetailResponse,
+  type KnowledgeCardResponse,
+} from '@san/shared';
+import { hangulAdjacentStrongPlugin, normalizeHangulAdjacentStrong } from '@dashboard/utils/markdown';
 
 export type KnowledgeSourceType = 'LINK' | 'IMAGE' | 'PDF' | 'OCR' | 'TEXT';
 
@@ -201,7 +209,11 @@ export function KnowledgeCardDetailPage() {
 
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex min-w-0 flex-col gap-6">
-          <ProcessedTextSection processedText={data.processedText} isCheckingRefinedContent={isCheckingRefinedContent} />
+          <ProcessedTextSection
+            cardId={data.cardId}
+            processedText={data.processedText}
+            isCheckingRefinedContent={isCheckingRefinedContent}
+          />
           <FinalKnowledgeCardSection finalCard={data.finalCard} />
         </div>
         <DetailMetaPanel data={data} isLoadingRelated={similarQuery.isPending} />
@@ -212,20 +224,36 @@ export function KnowledgeCardDetailPage() {
 
 
 function ProcessedTextSection({
+  cardId,
   processedText,
   isCheckingRefinedContent,
 }: {
+  cardId: string;
   processedText: KnowledgeCardDetailData['processedText'];
   isCheckingRefinedContent: boolean;
 }) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(processedText.refinedContent);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
   const hasRefinedContent = processedText.refinedContent.trim().length > 0;
-  const hasUnsavedChanges = editValue !== processedText.refinedContent;
+  const normalizedEditValue = editValue.trim();
+  const hasUnsavedChanges = normalizedEditValue !== processedText.refinedContent.trim();
+  const previewValue = normalizeHangulAdjacentStrong(editValue);
+  const updateRefinedContentMutation = useUpdateRefinedContent(cardId, {
+    onSuccess: (updatedDetail) => {
+      setEditValue(updatedDetail.refinedContent ?? '');
+      setSaveErrorMessage(null);
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      setSaveErrorMessage(getApiErrorMessage(error, '정제 텍스트를 저장하지 못했습니다.'));
+    },
+  });
 
   useEffect(() => {
     setEditValue(processedText.refinedContent);
+    setSaveErrorMessage(null);
   }, [processedText.refinedContent]);
 
   const handleEditorMount: OnMount = (editor) => {
@@ -265,6 +293,17 @@ function ProcessedTextSection({
 
   const handleReset = () => {
     setEditValue(processedText.refinedContent);
+    setSaveErrorMessage(null);
+  };
+
+  const handleSave = () => {
+    if (!hasUnsavedChanges || updateRefinedContentMutation.isPending) return;
+    if (!normalizedEditValue) {
+      setSaveErrorMessage('정제 텍스트를 비워둘 수 없습니다.');
+      return;
+    }
+
+    updateRefinedContentMutation.mutate({ refinedContent: normalizedEditValue });
   };
 
   return (
@@ -345,8 +384,8 @@ function ProcessedTextSection({
           ) : (
             <div className="mt-6 rounded-2xl border border-text-secondary/5 glass-panel bg-surface-lowest/60 px-4 py-5 sm:px-6">
               <article className={`max-w-none ${textWrapClass}`}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-                  {editValue}
+                <ReactMarkdown remarkPlugins={[remarkGfm, hangulAdjacentStrongPlugin]} components={mdComponents}>
+                  {previewValue}
                 </ReactMarkdown>
               </article>
             </div>
@@ -354,12 +393,14 @@ function ProcessedTextSection({
 
           {isEditing && (
             <div className="mt-3 flex items-center justify-between gap-3">
-              <span className="hidden text-xs text-text-primary/25 sm:block">수정 API 연동 준비 중</span>
+              <span className={`hidden text-xs sm:block ${saveErrorMessage ? 'text-red-400' : 'text-text-primary/25'}`}>
+                {saveErrorMessage ?? (hasUnsavedChanges ? '저장하지 않은 변경사항이 있어요.' : '변경사항이 없습니다.')}
+              </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleReset}
-                  disabled={!hasUnsavedChanges}
+                  disabled={!hasUnsavedChanges || updateRefinedContentMutation.isPending}
                   className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-primary/40 transition-colors hover:text-text-primary disabled:opacity-30"
                 >
                   <RotateCcw size={12} />
@@ -367,11 +408,12 @@ function ProcessedTextSection({
                 </button>
                 <button
                   type="button"
-                  disabled
-                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-action-accent/60 px-3 py-1.5 text-xs font-bold text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={handleSave}
+                  disabled={!hasUnsavedChanges || !normalizedEditValue || updateRefinedContentMutation.isPending}
+                  className="flex items-center gap-1.5 rounded-tl-[10px] rounded-br-[10px] rounded-bl-md rounded-tr-md bg-action-accent/80 px-3 py-1.5 text-xs font-bold text-text-primary transition hover:bg-action-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Save size={12} />
-                  저장
+                  {updateRefinedContentMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                  {updateRefinedContentMutation.isPending ? '저장 중...' : '저장'}
                 </button>
               </div>
             </div>
@@ -427,13 +469,31 @@ function FinalKnowledgeCardSection({ finalCard }: { finalCard: KnowledgeCardDeta
             {finalCard.keyPoints.map((point) => (
               <li key={point} className="flex min-w-0 gap-3 text-sm leading-7 text-text-primary/70">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary-signal" />
-                <span className={textWrapClass}>{point}</span>
+                <span className={textWrapClass}>
+                  <MarkdownInline>{point}</MarkdownInline>
+                </span>
               </li>
             ))}
           </ul>
         </div>
       </div>
     </section>
+  );
+}
+
+function MarkdownInline({ children }: { children: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, hangulAdjacentStrongPlugin]}
+      components={{
+        p: ({ children: paragraphChildren }: { children?: React.ReactNode }) => <>{paragraphChildren}</>,
+        strong: mdComponents.strong,
+        em: mdComponents.em,
+        code: mdComponents.code,
+      }}
+    >
+      {normalizeHangulAdjacentStrong(children)}
+    </ReactMarkdown>
   );
 }
 
@@ -595,7 +655,7 @@ function SourceImagePreview({ src }: { src: string }) {
 
       {expanded && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-scrim/80 px-4 pb-4 pt-[calc(var(--dashboard-nav-offset)+1rem)] backdrop-blur-sm sm:px-6 sm:pb-6"
           onClick={() => setExpanded(false)}
           onKeyDown={(e) => e.key === 'Escape' && setExpanded(false)}
           role="button"
@@ -604,7 +664,8 @@ function SourceImagePreview({ src }: { src: string }) {
           <img
             src={src}
             alt=""
-            className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+            className="max-h-[calc(100dvh-var(--dashboard-nav-offset)-2rem)] max-w-full rounded-xl object-contain shadow-2xl"
           />
         </div>
       )}

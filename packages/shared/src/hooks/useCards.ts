@@ -1,7 +1,7 @@
 // packages/shared/src/hooks/useCards.ts
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { useApiContext } from '@san/shared';
-import type { KnowledgeCardDetailResponse, KnowledgeCardListParams } from '../types';
+import type { KnowledgeCardDetailResponse, KnowledgeCardListParams, RefinedContentUpdateRequest } from '../types';
 
 export const cardKeys = {
   all: ['cards'] as const,
@@ -46,5 +46,29 @@ export function useSimilarCards(cardId: string | null | undefined) {
     queryFn: () => cardsApi.getSimilarByCardId(cardId ?? ''),
     enabled: Boolean(cardId),
     staleTime: 1000 * 30,
+  });
+}
+
+export function useUpdateRefinedContent(
+  cardId: string | null | undefined,
+  options?: {
+    onSuccess?: (data: KnowledgeCardDetailResponse) => void;
+    onError?: (error: unknown) => void;
+  },
+) {
+  const { cardsApi } = useApiContext();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: RefinedContentUpdateRequest) => {
+      if (!cardId) throw new Error('cardId is required');
+      return cardsApi.updateRefinedContent(cardId, payload);
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(cardKeys.detail(cardId), data);
+      void queryClient.invalidateQueries({ queryKey: cardKeys.list() });
+      options?.onSuccess?.(data);
+    },
+    onError: options?.onError,
   });
 }
