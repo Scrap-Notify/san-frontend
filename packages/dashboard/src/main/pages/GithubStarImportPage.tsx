@@ -30,6 +30,7 @@ export function GithubStarImportPage() {
   const resultsRef = useRef<HTMLDivElement | null>(null);
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(1);
   const [scanPulse, setScanPulse] = useState(0);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [collectingId, setCollectingId] = useState<string | null>(null);
@@ -116,6 +117,14 @@ export function GithubStarImportPage() {
     },
   });
 
+  const recommendations = starRecommendationsQuery.data?.recommendations ?? [];
+  const hasRecommendations = recommendations.length > 0;
+  const isGenerating = Boolean(generationJobId);
+  const isRecommendationsLoading = starRecommendationsQuery.isLoading && !hasRecommendations;
+  const canRequestRecommendations = isLinked && !isGenerating && !requestRecommendationsMutation.isPending;
+  const showGenerationButton = isLinked && !isGenerating && !hasRecommendations;
+  const totalPages = Math.max(1, Math.ceil(recommendations.length / itemsPerPage));
+
   useEffect(() => {
     if (!isLinked) {
       setGenerationJobId(null);
@@ -170,21 +179,43 @@ export function GithubStarImportPage() {
     if (!carousel) return undefined;
 
     const handleScroll = () => {
-      setActiveIndex(Math.round(carousel.scrollLeft / Math.max(1, carousel.clientWidth)));
+      const nextIndex = Math.round(carousel.scrollLeft / Math.max(1, carousel.clientWidth));
+      const maxIndex = Math.max(0, Math.ceil(recommendations.length / itemsPerPage) - 1);
+      setActiveIndex(Math.min(maxIndex, Math.max(0, nextIndex)));
     };
 
     handleScroll();
     carousel.addEventListener('scroll', handleScroll, { passive: true });
     return () => carousel.removeEventListener('scroll', handleScroll);
-  }, [starRecommendationsQuery.data?.recommendations]);
+  }, [itemsPerPage, recommendations.length]);
 
-  const recommendations = starRecommendationsQuery.data?.recommendations ?? [];
-  const hasRecommendations = recommendations.length > 0;
-  const isGenerating = Boolean(generationJobId);
-  const isRecommendationsLoading = starRecommendationsQuery.isLoading && !hasRecommendations;
-  const canRequestRecommendations = isLinked && !isGenerating && !requestRecommendationsMutation.isPending;
-  const showGenerationButton = isLinked && !isGenerating && !hasRecommendations;
-  const totalPages = Math.max(1, Math.ceil(recommendations.length / 3));
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel || !hasRecommendations) return undefined;
+
+    const updateItemsPerPage = () => {
+      const firstItem = carousel.firstElementChild;
+      if (!(firstItem instanceof HTMLElement)) return;
+
+      const styles = window.getComputedStyle(carousel);
+      const columnGap = Number.parseFloat(styles.columnGap || styles.gap || '0') || 0;
+      const itemWidth = firstItem.getBoundingClientRect().width;
+      if (itemWidth <= 0) return;
+
+      const visibleItems = Math.max(1, Math.round((carousel.clientWidth + columnGap) / (itemWidth + columnGap)));
+      setItemsPerPage(visibleItems);
+    };
+
+    updateItemsPerPage();
+
+    const resizeObserver = new ResizeObserver(updateItemsPerPage);
+    resizeObserver.observe(carousel);
+    Array.from(carousel.children).forEach((child) => {
+      if (child instanceof HTMLElement) resizeObserver.observe(child);
+    });
+
+    return () => resizeObserver.disconnect();
+  }, [hasRecommendations, recommendations.length]);
 
   const stageLabel = useMemo(() => {
     if (!isLinked) return '연결 필요';
@@ -201,23 +232,19 @@ export function GithubStarImportPage() {
       : 0;
 
   const scrollRecommendations = (direction: 'prev' | 'next') => {
+    const nextPage = direction === 'next' ? activeIndex + 1 : activeIndex - 1;
+    scrollToRecommendationPage(nextPage);
+  };
+
+  const scrollToRecommendationPage = (pageIndex: number) => {
     const node = carouselRef.current;
     if (!node) return;
 
-    const scrollAmount = node.clientWidth;
-    const isNext = direction === 'next';
+    const nextPage = Math.min(totalPages - 1, Math.max(0, pageIndex));
+    const targetItem = node.children[nextPage * itemsPerPage];
+    const left = targetItem instanceof HTMLElement ? targetItem.offsetLeft : node.clientWidth * nextPage;
 
-    if (isNext && node.scrollLeft + node.clientWidth >= node.scrollWidth - 10) {
-      node.scrollTo({ left: 0, behavior: 'smooth' });
-      return;
-    }
-
-    if (!isNext && node.scrollLeft <= 0) return;
-
-    node.scrollBy({
-      left: isNext ? scrollAmount : -scrollAmount,
-      behavior: 'smooth',
-    });
+    node.scrollTo({ left, behavior: 'smooth' });
   };
 
   const handleGenerateRecommendations = () => {
@@ -422,12 +449,7 @@ export function GithubStarImportPage() {
                     <button
                       key={idx}
                       type="button"
-                      onClick={() =>
-                        carouselRef.current?.scrollTo({
-                          left: carouselRef.current.clientWidth * idx,
-                          behavior: 'smooth',
-                        })
-                      }
+                      onClick={() => scrollToRecommendationPage(idx)}
                       className={`h-2.5 rounded-full transition-all duration-300 ${
                         idx === activeIndex ? 'w-5 bg-primary-signal' : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
                       }`}
