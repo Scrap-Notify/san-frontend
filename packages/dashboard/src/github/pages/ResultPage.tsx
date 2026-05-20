@@ -107,7 +107,7 @@ function CustomDatePicker({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-4 w-64 overflow-hidden rounded-tl-[32px] rounded-br-[32px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-6 shadow-2xl animate-in fade-in zoom-in duration-200 origin-top-left">
+        <div className="absolute left-0 top-full z-[120] mt-4 w-64 overflow-hidden rounded-tl-[32px] rounded-br-[32px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-6 shadow-2xl animate-in fade-in zoom-in duration-200 origin-top-left">
           <div className="mb-4 flex items-center justify-between">
             <button onClick={handlePrevMonth} className="text-text-primary/40 hover:text-text-primary"><ChevronLeft size={18} /></button>
             <span className="text-sm font-black uppercase tracking-widest text-text-primary">
@@ -226,7 +226,7 @@ function SearchPage({
       </header>
 
       <div className="group flex flex-col gap-8 rounded-[32px] md:rounded-[40px] glass-card bg-surface-container/80 p-6 md:p-10 shadow-3xl border border-text-secondary/5 transition-all hover:border-text-secondary/10">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+        <div className="relative z-[100] flex flex-col lg:flex-row lg:items-center gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 rounded-tl-[24px] rounded-br-[24px] rounded-tr-lg rounded-bl-lg bg-text-primary/[0.03] px-6 py-4 border border-text-secondary/5 focus-within:border-action-accent/40 transition-all">
             <span className="text-[11px] font-black text-text-primary/30 uppercase tracking-widest">날짜 범위</span>
             <div className="flex items-center gap-4">
