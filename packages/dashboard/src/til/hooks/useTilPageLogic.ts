@@ -106,8 +106,12 @@ export function useTilPageLogic(): TilPageLogic {
   useEffect(() => {
     if (generationStatusQuery.data?.status === 'COMPLETED') {
       void queryClient.invalidateQueries({ queryKey: tilKeys.byDate(selectedDate) });
+      if (selectedSummaryId) {
+        void queryClient.invalidateQueries({ queryKey: tilKeys.recallCards(selectedSummaryId) });
+        void queryClient.invalidateQueries({ queryKey: tilKeys.recallQuizzes(selectedDate, 'OX') });
+      }
     }
-  }, [generationStatusQuery.data?.status, queryClient, selectedDate]);
+  }, [generationStatusQuery.data?.status, queryClient, selectedDate, selectedSummaryId]);
 
   const generateMutation = useTilGenerateMutation({
     targetDate: selectedDate,

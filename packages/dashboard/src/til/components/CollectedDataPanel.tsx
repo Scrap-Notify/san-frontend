@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Search, X } from 'lucide-react';
+import { CheckCircle2, Search, X, Sparkles, Loader2 } from 'lucide-react';
 import type {
     RecallQuizResponse,
     RecallQuizType,
@@ -9,8 +9,8 @@ import type {
 } from '@san/shared';
 import type { TilRecallCardsQuery, TilSourcesQuery } from '../types';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
-import { useRecallQuizSubmitMutation } from '../hooks/useTilMutations';
-import { tilKeys, useTilRecallQuizzes } from '../hooks/useTilQueries';
+import { useRecallQuizGenerateMutation, useRecallQuizSubmitMutation } from '../hooks/useTilMutations';
+import { tilKeys, useTilAsyncJobStatus, useTilRecallQuizzes } from '../hooks/useTilQueries';
 import { RecallHistory } from './RecallHistory';
 
 const EMPTY_SOURCES: TilSourceContentResponse[] = [];
@@ -22,6 +22,8 @@ const REVIEW_CORRECT_LABEL = '정답 수';
 const REVIEW_STATUS_LABEL = '상태';
 const REVIEW_SUBMITTED_LABEL = '제출 완료';
 const REVIEW_NO_QUIZ_LABEL = '복습할 퀴즈가 없습니다.';
+const QUIZ_GENERATE_LABEL = '퀴즈 생성하기';
+const QUIZ_GENERATING_LABEL = 'AI가 퀴즈를 생성하고 있어요...';
 const QUIZ_MODAL_TITLE = 'Recall 퀴즈';
 const QUIZ_MODAL_DESCRIPTION = '선택한 TIL을 기반으로 복습 문제를 풀어보세요.';
 const QUIZ_CLOSE_LABEL = '닫기';
@@ -144,12 +146,41 @@ function ReviewStatusSummary({
     recallQuizzes: RecallQuizResponse[];
     selectedTil: TilResponse | null;
 }) {
+    const queryClient = useQueryClient();
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+    const [quizJobId, setQuizJobId] = useState<string | null>(null);
     const quizzes = selectedTil ? recallQuizzes : [];
     const solvedQuizCount = quizzes.filter((quiz) => quiz.solved).length;
     const correctQuizCount = quizzes.filter((quiz) => quiz.correct === true).length;
     const reviewed = solvedQuizCount > 0;
     const solvedLabel = quizzes.length > 0 ? `${solvedQuizCount}/${quizzes.length}` : '0/0';
+
+    const generateMutation = useRecallQuizGenerateMutation({
+        onSuccess: (response) => {
+            setQuizJobId(response.quizJobId);
+        },
+    });
+
+    const quizJobStatusQuery = useTilAsyncJobStatus(quizJobId);
+
+    useEffect(() => {
+        if (quizJobStatusQuery.data?.status === 'COMPLETED' && selectedTil) {
+            void queryClient.invalidateQueries({
+                queryKey: tilKeys.recallQuizzes(selectedTil.targetDate, 'OX'),
+            });
+            setQuizJobId(null);
+        }
+    }, [quizJobStatusQuery.data?.status, queryClient, selectedTil]);
+
+    const isGenerating = generateMutation.isPending || quizJobStatusQuery.data?.status === 'PENDING' || quizJobStatusQuery.data?.status === 'PROCESSING';
+
+    const handleGenerate = () => {
+        if (!selectedTil || isGenerating) return;
+        generateMutation.mutate({
+            targetDate: selectedTil.targetDate,
+            quizType: 'OX',
+        });
+    };
 
     return (
         <>
@@ -191,8 +222,30 @@ function ReviewStatusSummary({
                         </div>
                     </button>
                 ) : (
-                    <div className="mt-4 py-6 text-center text-sm italic text-text-secondary/50">
-                        {REVIEW_NO_QUIZ_LABEL}
+                    <div className="mt-4 flex flex-col items-center gap-3 py-6">
+                        <p className="text-center text-sm italic text-text-secondary/50">
+                            {REVIEW_NO_QUIZ_LABEL}
+                        </p>
+                        {selectedTil && (
+                            <button
+                                type="button"
+                                onClick={handleGenerate}
+                                disabled={isGenerating}
+                                className="flex items-center gap-2 rounded-lg bg-primary-signal/10 px-4 py-2 text-xs font-bold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 size={14} className="animate-spin" />
+                                        {QUIZ_GENERATING_LABEL}
+                                    </>
+                                ) : (
+                                    <>
+                                        <Sparkles size={14} />
+                                        {QUIZ_GENERATE_LABEL}
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                 )}
             </section>

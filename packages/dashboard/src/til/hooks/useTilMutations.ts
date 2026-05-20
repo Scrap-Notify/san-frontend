@@ -1,5 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import type {
+  RecallQuizGenerateRequest,
+  RecallQuizGenerationJobResponse,
   RecallQuizSubmitRequest,
   RecallQuizSubmitResponse,
   TilGenerationJobResponse,
@@ -17,6 +19,17 @@ interface UseTilGenerateMutationOptions {
 export function useTilGenerateMutation({ targetDate, onSuccess }: UseTilGenerateMutationOptions) {
   return useMutation({
     mutationFn: () => tilApi.generate({ targetDate }),
+    onSuccess,
+  });
+}
+
+interface UseRecallQuizGenerateMutationOptions {
+  onSuccess?: (response: RecallQuizGenerationJobResponse) => void;
+}
+
+export function useRecallQuizGenerateMutation({ onSuccess }: UseRecallQuizGenerateMutationOptions = {}) {
+  return useMutation({
+    mutationFn: (payload: RecallQuizGenerateRequest) => recallApi.requestQuizGeneration(payload),
     onSuccess,
   });
 }
