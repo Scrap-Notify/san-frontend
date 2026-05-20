@@ -200,6 +200,7 @@ function ReviewStatusSummary({
     };
 
     useEffect(() => {
+        setHasRequestedGeneration(false);
         setQuizJobId(null);
     }, [selectedTil?.summaryId, quizType]);
 
