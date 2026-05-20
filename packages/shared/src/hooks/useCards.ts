@@ -95,6 +95,7 @@ export function useDeleteCard(
       }
       void queryClient.invalidateQueries({ queryKey: cardKeys.all });
       void queryClient.invalidateQueries({ queryKey: ['archive'] });
+      void queryClient.invalidateQueries({ queryKey: ['archive-category-search'] });
       options?.onSuccess?.();
     },
     onError: options?.onError,
