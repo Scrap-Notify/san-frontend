@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowRight,
   CheckSquare,
   ChevronLeft,
   ChevronRight,
@@ -107,10 +106,10 @@ export function GithubStarImportPage() {
       );
       void queryClient.invalidateQueries({ queryKey: ['archive'] });
       void queryClient.invalidateQueries({ queryKey: ['cards'] });
-      setActionMessage('선택한 추천 스크랩을 지식 아카이브에 추가했습니다.');
+      setActionMessage('선택한 추천 스크랩을 지식카드로 생성했습니다.');
     },
     onError: (error) => {
-      setActionMessage(getApiErrorMessage(error, '수집 처리에 실패했습니다.'));
+      setActionMessage(getApiErrorMessage(error, '지식카드 생성에 실패했습니다.'));
     },
     onSettled: () => {
       setCollectingId(null);
@@ -186,8 +185,6 @@ export function GithubStarImportPage() {
   const canRequestRecommendations = isLinked && !isGenerating && !requestRecommendationsMutation.isPending;
   const showGenerationButton = isLinked && !isGenerating && !hasRecommendations;
   const totalPages = Math.max(1, Math.ceil(recommendations.length / 3));
-  const completedCount = recommendations.filter((item) => item.collected).length;
-  const remainingCount = recommendations.length - completedCount;
 
   const stageLabel = useMemo(() => {
     if (!isLinked) return '연결 필요';
@@ -294,7 +291,7 @@ export function GithubStarImportPage() {
             )}
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-text-secondary">
-            GitHub star 목록을 읽고, AI가 관련 스크랩 주소 10개를 추천합니다.
+            GitHub star 목록을 읽고, AI가 관련 스크랩 주소 5개를 추천합니다.
           </p>
         </div>
 
@@ -344,7 +341,7 @@ export function GithubStarImportPage() {
             {[
               { title: '리포지토리 스캔', description: '최근 star와 연결된 저장소를 먼저 읽습니다.' },
               { title: '패턴 추출', description: '기술 스택과 관심 흐름을 하나씩 묶습니다.' },
-              { title: '추천 생성', description: '관련 스크랩 주소 10개를 뽑아 보여줍니다.' },
+              { title: '추천 생성', description: '관련 스크랩 주소 5개를 뽑아 보여줍니다.' },
             ].map((step, index) => {
               const active =
                 (index === 0 && (isRecommendationsLoading || isGenerating || hasRecommendations)) ||
@@ -406,7 +403,7 @@ export function GithubStarImportPage() {
             <div className="min-w-0">
               <h2 className="mt-2 text-body-lg-bold text-text-primary">추천 스크랩 5개</h2>
               <p className="mt-2 text-sm leading-6 text-text-secondary">
-                추천 카드에는 제목, 태그, 외부 링크만 보여주고, 수집하기로 바로 지식 아카이브에 넣을 수 있습니다.
+                카드 내부 체크박스 버튼을 누르면 해당 추천 스크랩 1개가 지식카드로 생성됩니다.
               </p>
             </div>
             {hasRecommendations ? (
@@ -453,7 +450,7 @@ export function GithubStarImportPage() {
 
           {isGenerating || isRecommendationsLoading ? (
             <div className="mt-6 flex gap-4 overflow-hidden">
-              {Array.from({ length: 10 }).map((_, index) => (
+              {Array.from({ length: 5 }).map((_, index) => (
                 <div
                   key={index}
                   className="flex h-[252px] min-w-full flex-col rounded-2xl bg-surface-lowest/80 p-4 sm:min-w-[calc((100%-1rem)/2)] lg:min-w-[calc((100%-2rem)/3)]"
@@ -490,7 +487,10 @@ export function GithubStarImportPage() {
                     item={item}
                     index={index}
                     isCollecting={collectingId === item.recommendationId || collectRecommendationMutation.isPending}
-                    onCollect={() => collectRecommendationMutation.mutate(item.recommendationId)}
+                    onCreate={() => {
+                      setActionMessage(null);
+                      collectRecommendationMutation.mutate(item.recommendationId);
+                    }}
                   />
                 </div>
               ))}
@@ -501,7 +501,7 @@ export function GithubStarImportPage() {
                 type="custom"
                 variant="inline"
                 title="추천 후보가 없습니다."
-                description="GitHub Star 기반 추천을 먼저 실행하면 관련 스크랩 주소 10개를 받아볼 수 있습니다."
+                description="GitHub Star 기반 추천을 먼저 실행하면 관련 스크랩 주소 5개를 받아볼 수 있습니다."
                 primaryAction={{
                   label: 'GitHub Star 기반 추천',
                   onClick: handleGenerateRecommendations,
@@ -511,28 +511,6 @@ export function GithubStarImportPage() {
           )}
         </section>
 
-        {hasRecommendations ? (
-          <section className="rounded-leaf bg-primary-signal/8 p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-bold text-text-primary">수집 현황</p>
-                <p className="mt-1 text-xs leading-5 text-text-secondary">
-                  {completedCount === 0
-                    ? '아직 수집한 항목이 없습니다.'
-                    : `수집 완료 ${completedCount}개, 남은 항목 ${remainingCount}개입니다.`}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/archive')}
-                className="inline-flex items-center gap-2 rounded-xl bg-primary-signal px-4 py-2 text-sm font-bold text-[#007255] transition hover:brightness-105"
-              >
-                아카이브로 보기
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          </section>
-        ) : null}
       </div>
     </section>
   );
@@ -542,12 +520,12 @@ function RecommendationCard({
   item,
   index,
   isCollecting,
-  onCollect,
+  onCreate,
 }: {
   item: GithubStarRecommendation;
   index: number;
   isCollecting: boolean;
-  onCollect: () => void;
+  onCreate: () => void;
 }) {
   return (
     <article
@@ -562,12 +540,9 @@ function RecommendationCard({
       <div className="flex h-full flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-signal/10 text-primary-signal">
-            <Star size={13} />
+            <span className="text-[10px] font-black">{String(index + 1).padStart(2, '0')}</span>
           </div>
           <h3 className="min-w-0 flex-1 break-words text-sm font-bold text-text-primary">{item.title}</h3>
-          <span className="rounded-full bg-primary-signal/10 px-2 py-0.5 text-[10px] font-bold text-primary-signal">
-            {String(index + 1).padStart(2, '0')}
-          </span>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -595,17 +570,17 @@ function RecommendationCard({
           {item.collected ? (
             <div className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary-signal/15 bg-primary-signal/10 px-3 py-2 text-[11px] font-bold text-primary-signal">
               <CheckSquare size={13} />
-              수집됨
+              생성 완료
             </div>
           ) : (
             <button
               type="button"
-              onClick={onCollect}
+              onClick={onCreate}
               disabled={isCollecting}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-text-secondary/10 bg-surface-lowest px-3 py-2 text-[11px] font-bold text-text-primary transition hover:border-text-secondary/20 hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isCollecting ? <Loader2 size={12} className="animate-spin" /> : <Square size={12} />}
-              수집하기
+              지식카드로 생성
             </button>
           )}
         </div>
