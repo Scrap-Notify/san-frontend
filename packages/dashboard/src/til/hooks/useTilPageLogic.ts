@@ -20,7 +20,8 @@ import {
 const EMPTY_TIL_LIST: TilResponse[] = [];
 const AUTO_TIL_POLL_INTERVAL_MS = 2000;
 const AUTO_TIL_POLL_TIMEOUT_MS = 60000;
-const TIL_GENERATION_JOB_STORAGE_PREFIX = 'san:til-generation-job:';
+const TIL_GENERATION_JOB_STORAGE_PREFIX = 'san:til-generation-job';
+const SESSION_ID_STORAGE_KEY = 'san_session_id';
 const DUPLICATE_TIL_GENERATION_MESSAGE = '\uC774\uBBF8 TIL \uC0DD\uC131\uC774 \uC9C4\uD589 \uC911\uC785\uB2C8\uB2E4.';
 const TIL_GENERATION_ERROR_MESSAGES = {
   DUPLICATE_RESOURCE: DUPLICATE_TIL_GENERATION_MESSAGE,
@@ -128,8 +129,8 @@ export function useTilPageLogic(): TilPageLogic {
   const generateMutation = useTilGenerateMutation({
     targetDate: selectedDate,
     onSuccess: (response) => {
-      storeGenerationJobId(selectedDate, response.jobId);
-      setGenerationJobId(response.jobId);
+      storeGenerationJobId(response.targetDate, response.jobId);
+      setGenerationJobId(response.targetDate === selectedDate ? response.jobId : getStoredGenerationJobId(selectedDate));
       setSelectedSummaryId(response.summaryId);
     },
   });
@@ -236,7 +237,10 @@ function getInitialSelectedDate() {
 }
 
 function getGenerationJobStorageKey(targetDate: string) {
-  return `${TIL_GENERATION_JOB_STORAGE_PREFIX}${targetDate}`;
+  const sessionId = typeof window === 'undefined'
+    ? null
+    : window.localStorage.getItem(SESSION_ID_STORAGE_KEY);
+  return `${TIL_GENERATION_JOB_STORAGE_PREFIX}:${sessionId ?? 'anonymous'}:${targetDate}`;
 }
 
 function getStoredGenerationJobId(targetDate: string) {
