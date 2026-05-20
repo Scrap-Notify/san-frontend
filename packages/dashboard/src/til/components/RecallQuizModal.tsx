@@ -1,17 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, X, Loader2, Info } from 'lucide-react';
+import { X, Loader2, Info, HelpCircle, Sparkles } from 'lucide-react';
 import type { RecallQuizResponse, RecallQuizType } from '@san/shared';
 import { useRecallQuizSubmitMutation } from '../hooks/useTilMutations';
 import { tilKeys } from '../hooks/useTilQueries';
 
-const QUIZ_MODAL_TITLE = 'Recall 퀴즈';
-const QUIZ_MODAL_DESCRIPTION = '선택한 TIL을 기반으로 복습 문제를 풀어보세요.';
+const QUIZ_MODAL_TITLE = '오늘의 복습 세션';
 const QUIZ_CLOSE_LABEL = '닫기';
 const QUIZ_GENERATING_LABEL = 'AI가 퀴즈를 생성하고 있어요...';
 const REVIEW_NO_QUIZ_LABEL = '복습할 퀴즈가 없습니다.';
-const QUIZ_CORRECT_LABEL = '정답이에요';
-const QUIZ_INCORRECT_LABEL = '다시 확인해보세요';
 const QUIZ_SELF_JUDGE_LABEL = '해설 확인하기';
 
 interface RecallQuizModalProps {
@@ -33,75 +30,104 @@ export function RecallQuizModal({
     onQuizTypeChange,
     isGenerating,
 }: RecallQuizModalProps) {
+    const solvedCount = useMemo(() => quizzes.filter(q => q.solved).length, [quizzes]);
+    const progress = quizzes.length > 0 ? (solvedCount / quizzes.length) * 100 : 0;
+
+    const formattedDate = useMemo(() => {
+        const date = new Date(targetDate);
+        return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+    }, [targetDate]);
+
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-scrim px-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-md"
             onPointerDown={onClose}
         >
             <section
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="recall-quiz-title"
-                className="flex h-[90vh] w-full max-w-[640px] flex-col rounded-2xl border border-text-secondary/12 glass-popover bg-surface-lowest/90 p-0 shadow-glass-popover backdrop-blur-2xl"
+                className="flex h-[95vh] w-full max-w-[800px] flex-col overflow-hidden rounded-[32px] bg-[#0b0f12] text-[#fbfffa] shadow-2xl transition-all"
                 onPointerDown={(event) => event.stopPropagation()}
             >
-                <header className="shrink-0 border-b border-text-secondary/8 p-5">
-                    <div className="flex items-start justify-between gap-4">
+                {/* Header Section */}
+                <header className="shrink-0 p-8 pb-4">
+                    <div className="flex items-center justify-between gap-4 mb-6">
                         <div className="min-w-0">
-                            <div className="flex items-center gap-3">
-                                <h2 id="recall-quiz-title" className="text-lg font-extrabold text-text-primary">
-                                    {QUIZ_MODAL_TITLE}
-                                </h2>
-                                <div className="flex rounded-lg bg-text-primary/5 p-0.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => onQuizTypeChange('OX')}
-                                        className={`rounded-md px-2 py-1 text-[10px] font-bold transition ${
-                                            quizType === 'OX'
-                                                ? 'bg-surface-lowest text-action-accent shadow-sm'
-                                                : 'text-text-secondary hover:text-text-primary'
-                                        }`}
-                                    >
-                                        OX
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => onQuizTypeChange('SHORT_ANSWER')}
-                                        className={`rounded-md px-2 py-1 text-[10px] font-bold transition ${
-                                            quizType === 'SHORT_ANSWER'
-                                                ? 'bg-surface-lowest text-action-accent shadow-sm'
-                                                : 'text-text-secondary hover:text-text-primary'
-                                        }`}
-                                    >
-                                        단답형
-                                    </button>
-                                </div>
+                            <h2 className="text-3xl font-bold tracking-tight">{QUIZ_MODAL_TITLE}</h2>
+                        </div>
+                        <div className="flex flex-col items-end">
+                            <span className="text-xl font-bold">{formattedDate}</span>
+                            <span className="text-sm font-medium text-[#00ffc2]">오늘 복습 {quizzes.length}개</span>
+                        </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-2 relative h-1.5 w-full overflow-hidden rounded-full bg-[#1c2023]">
+                        <div 
+                            className="absolute top-0 left-0 h-full bg-[#00ffc2] transition-all duration-700 ease-out"
+                            style={{ 
+                                width: `${progress}%`,
+                                boxShadow: "0px 0px 12px 0 rgba(0,255,194,0.6)"
+                            }}
+                        />
+                    </div>
+                    <div className="flex justify-between items-center px-0.5">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#b9cbc1]/40">진행상황</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.1em] text-[#b9cbc1]/40">{Math.round(progress)}% COMPLETED</span>
+                    </div>
+
+                    <div className="mt-8 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                             <div className="flex rounded-xl bg-[#1c2023] p-1 border border-[#3a4a43]/20">
+                                <button
+                                    type="button"
+                                    onClick={() => onQuizTypeChange('OX')}
+                                    className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                                        quizType === 'OX'
+                                            ? 'bg-[#00ffc2] text-[#007255] shadow-lg shadow-[#00ffc2]/10'
+                                            : 'text-[#b9cbc1]/60 hover:text-[#fbfffa]'
+                                    }`}
+                                >
+                                    O/X
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onQuizTypeChange('SHORT_ANSWER')}
+                                    className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
+                                        quizType === 'SHORT_ANSWER'
+                                            ? 'bg-[#00ffc2] text-[#007255] shadow-lg shadow-[#00ffc2]/10'
+                                            : 'text-[#b9cbc1]/60 hover:text-[#fbfffa]'
+                                    }`}
+                                >
+                                    단답형
+                                </button>
                             </div>
-                            <p className="mt-2 line-clamp-1 text-xs leading-relaxed text-text-secondary/70">
-                                {tilTitle || QUIZ_MODAL_DESCRIPTION}
-                            </p>
                         </div>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-secondary transition hover:bg-text-primary/8 hover:text-text-primary"
+                            className="group flex h-10 w-10 items-center justify-center rounded-full bg-[#1c2023] text-[#b9cbc1]/60 transition-all hover:bg-[#00ffc2] hover:text-[#007255]"
                             aria-label={QUIZ_CLOSE_LABEL}
                         >
-                            <X size={17} />
+                            <X size={20} />
                         </button>
                     </div>
                 </header>
 
-                <div className="no-scrollbar flex-1 overflow-y-auto p-5">
+                {/* Content Section */}
+                <div className="no-scrollbar flex-1 overflow-y-auto px-8 py-4">
                     {isGenerating ? (
                         <div className="flex h-full flex-col items-center justify-center py-20">
-                            <Loader2 size={32} className="animate-spin text-primary-signal/50" />
-                            <p className="mt-4 text-sm font-medium text-text-secondary">
+                            <div className="relative mb-6">
+                                <Loader2 size={48} className="animate-spin text-[#00ffc2]/40" />
+                                <Sparkles size={20} className="absolute -top-1 -right-1 text-[#00ffc2] animate-pulse" />
+                            </div>
+                            <p className="text-lg font-bold text-[#b9cbc1]/80">
                                 {QUIZ_GENERATING_LABEL}
                             </p>
                         </div>
                     ) : quizzes.length > 0 ? (
-                        <div className="space-y-6">
+                        <div className="space-y-12 pb-10">
                             {quizzes.map((quiz, index) => (
                                 <QuizCard
                                     key={quiz.quizId}
@@ -113,24 +139,23 @@ export function RecallQuizModal({
                             ))}
                         </div>
                     ) : (
-                        <div className="flex h-full flex-col items-center justify-center py-20">
-                            <p className="text-sm italic text-text-secondary/50">
-                                {REVIEW_NO_QUIZ_LABEL}
-                            </p>
+                        <div className="flex h-full flex-col items-center justify-center py-20 text-center opacity-40">
+                            <HelpCircle size={48} className="mb-4" />
+                            <p className="text-lg font-medium">{REVIEW_NO_QUIZ_LABEL}</p>
                         </div>
                     )}
                 </div>
 
-                <footer className="shrink-0 border-t border-text-secondary/8 p-5">
+                <footer className="shrink-0 bg-[#0b0f12]/80 px-8 py-6 backdrop-blur-md">
                     <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-2 text-xs text-text-secondary/60">
-                            <Info size={14} />
+                        <div className="flex items-center gap-3 rounded-2xl bg-[#1c2023]/50 px-4 py-2 text-xs font-medium text-[#b9cbc1]/70 border border-[#3a4a43]/10">
+                            <Info size={16} className="text-[#00ffc2]" />
                             <span>{quizType === 'OX' ? '정답을 선택하면 즉시 채점됩니다.' : '제출 후 해설을 보고 직접 확인해보세요.'}</span>
                         </div>
                         <button
                             type="button"
                             onClick={onClose}
-                            className="h-9 rounded-lg bg-action-accent px-6 text-sm font-bold text-text-on-accent transition hover:bg-action-accent-hover"
+                            className="h-12 min-w-[120px] rounded-tl-[24px] rounded-tr-md rounded-bl-md rounded-br-[24px] bg-[#00ffc2] px-8 text-sm font-black text-[#007255] transition-all hover:brightness-110 active:scale-95 shadow-lg shadow-[#00ffc2]/20"
                         >
                             {QUIZ_CLOSE_LABEL}
                         </button>
@@ -175,52 +200,43 @@ function QuizCard({
     };
 
     return (
-        <div className="rounded-xl border border-text-secondary/8 bg-text-primary/[0.02] p-5 transition-colors hover:border-text-secondary/15">
-            <header className="mb-4 flex items-center justify-between gap-3">
-                <span className="text-[11px] font-black uppercase tracking-widest text-text-secondary/40">
+        <div className="relative flex flex-col gap-8 rounded-tl-[48px] rounded-tr-lg rounded-bl-lg rounded-br-[48px] bg-[#1c2023] p-8 border border-[#3a4a43]/20 shadow-xl overflow-hidden group">
+            {/* Background Accent Gradient */}
+            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#00ffc2]/5 blur-3xl transition-all group-hover:bg-[#00ffc2]/10" />
+
+            <div className="flex flex-col gap-4">
+                <p className="text-base font-bold uppercase tracking-widest text-[#00ffc2]">
                     Question {index + 1}
-                </span>
-                {isSubmitted && (
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        quiz.correct === true 
-                            ? 'bg-action-accent/10 text-action-accent' 
-                            : quiz.correct === false 
-                                ? 'bg-red-400/10 text-red-400'
-                                : 'bg-text-primary/10 text-text-secondary'
-                    }`}>
-                        {quiz.correct === true ? '정답' : quiz.correct === false ? '오답' : '제출완료'}
-                    </span>
-                )}
-            </header>
+                </p>
+                <h3 className="text-2xl font-bold leading-tight text-[#fbfffa]">
+                    {quiz.question}
+                </h3>
+            </div>
 
-            <p className="text-base font-bold leading-relaxed text-text-primary">
-                {quiz.question}
-            </p>
-
-            <div className="mt-5">
+            <div className="flex flex-col gap-6">
                 {isShortAnswer ? (
-                    <div className="flex gap-2">
+                    <div className="flex items-end gap-6 border-b border-[#3a4a43] pb-2 transition-focus-within focus-within:border-[#00ffc2]">
                         <input
                             type="text"
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
                             disabled={isSubmitted}
-                            placeholder="정답을 입력하세요"
-                            className="h-11 flex-1 rounded-lg border border-text-secondary/10 bg-surface-highest/30 px-4 text-sm font-medium text-text-primary outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/40 disabled:cursor-not-allowed disabled:opacity-70"
+                            placeholder="정답을 입력하세요..."
+                            className="w-full bg-transparent py-2 text-2xl font-medium text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/20 disabled:opacity-50"
                         />
                         {!isSubmitted && (
                             <button
                                 type="button"
                                 onClick={() => handleSubmit(answer)}
                                 disabled={!answer.trim() || submitMutation.isPending}
-                                className="h-11 shrink-0 rounded-lg bg-text-primary/5 px-4 text-sm font-bold text-text-primary transition hover:bg-text-primary/10 disabled:opacity-50"
+                                className="mb-1 flex h-12 shrink-0 items-center justify-center rounded-tl-[24px] rounded-tr-md rounded-bl-md rounded-br-[24px] bg-[#00ffc2] px-8 text-lg font-black text-[#007255] transition-all hover:brightness-110 active:scale-95 disabled:opacity-30 disabled:grayscale"
                             >
-                                {submitMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : QUIZ_SELF_JUDGE_LABEL}
+                                {submitMutation.isPending ? <Loader2 size={24} className="animate-spin" /> : QUIZ_SELF_JUDGE_LABEL}
                             </button>
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-8">
                         {(['O', 'X'] as const).map((option) => {
                             const selected = answer === option;
                             const isCorrect = isSubmitted && quiz.answer === option && quiz.correct === true;
@@ -232,15 +248,15 @@ function QuizCard({
                                     type="button"
                                     onClick={() => handleSubmit(option)}
                                     disabled={isSubmitted}
-                                    className={`flex h-12 items-center justify-center rounded-lg border text-lg font-black transition ${
+                                    className={`relative flex h-20 items-center justify-center rounded-tl-[32px] rounded-tr-md rounded-bl-md rounded-br-[32px] border-2 text-3xl font-black transition-all ${
                                         isCorrect
-                                            ? 'til-light-teal-accent border-action-accent/50 bg-action-accent/12 text-action-accent'
+                                            ? 'bg-[#00ffc2] border-[#00ffc2] text-[#007255] shadow-lg shadow-[#00ffc2]/20'
                                             : isWrong
-                                                ? 'border-red-400/45 bg-red-400/10 text-red-400'
+                                                ? 'bg-red-500/20 border-red-500/50 text-red-400'
                                                 : selected
-                                                    ? 'border-text-primary/25 bg-text-primary/8 text-text-primary'
-                                                    : 'border-text-secondary/10 bg-surface-highest/30 text-text-secondary hover:border-primary-signal/35 hover:text-text-primary'
-                                    }`}
+                                                    ? 'bg-[#fbfffa]/10 border-[#fbfffa]/30 text-[#fbfffa]'
+                                                    : 'bg-[#313539] border-transparent text-[#e0e3e7] hover:border-[#3a4a43]/50 hover:bg-[#313539]/80'
+                                    } disabled:cursor-default`}
                                 >
                                     {option}
                                 </button>
@@ -251,12 +267,14 @@ function QuizCard({
             </div>
 
             {isSubmitted && quiz.explanation && (
-                <div className="mt-5 rounded-lg bg-text-primary/[0.04] p-4 text-sm leading-relaxed text-text-secondary/80">
-                    <div className="mb-2 flex items-center gap-1.5 font-bold text-text-primary">
-                        <Info size={14} className="text-primary-signal" />
-                        <span>해설</span>
+                <div className="rounded-[32px] bg-[#181c1f] p-6 border-l-4 border-[#00ffc2] shadow-inner">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-[#00ffc2]">
+                        <Info size={16} />
+                        <span>Analysis</span>
                     </div>
-                    {quiz.explanation}
+                    <p className="text-lg leading-relaxed text-[#b9cbc1]">
+                        {quiz.explanation}
+                    </p>
                 </div>
             )}
         </div>
