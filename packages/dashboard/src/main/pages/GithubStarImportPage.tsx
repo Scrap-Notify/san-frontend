@@ -401,46 +401,41 @@ export function GithubStarImportPage() {
                 가장 중요한 부분은 추천 결과 10개입니다. 여기에 결과가 채워지고, 사용자는 필요한 것만 아카이브에 넣습니다.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
-                {remainingCount === 0 ? '모두 추가됨' : `${remainingCount}개 남음`}
-              </div>
-              {hasRecommendationCards ? (
-                <div className="flex items-center gap-1.5 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 !shadow-none">
-                  <button
-                    type="button"
-                    onClick={() => scrollRecommendations('prev')}
-                    disabled={activeIndex === 0}
-                    className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20"
-                    aria-label="이전 추천 스크랩"
-                  >
-                    <ChevronLeft size={14} />
-                  </button>
-                  <div className="flex items-center gap-2 px-1">
-                    {Array.from({ length: totalPages }).map((_, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => carouselRef.current?.scrollTo({ left: carouselRef.current.clientWidth * idx, behavior: 'smooth' })}
-                        className={`h-2.5 rounded-full transition-all duration-300 ${
-                          idx === activeIndex ? 'w-5 bg-primary-signal' : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
-                        }`}
-                        aria-label={`${idx + 1}페이지로 이동`}
-                      />
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => scrollRecommendations('next')}
-                    disabled={activeIndex === totalPages - 1}
-                    className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20"
-                    aria-label="다음 추천 스크랩"
-                  >
-                    <ChevronRight size={14} />
-                  </button>
+            {hasRecommendationCards ? (
+              <div className="flex items-center gap-1.5 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 !shadow-none">
+                <button
+                  type="button"
+                  onClick={() => scrollRecommendations('prev')}
+                  disabled={activeIndex === 0}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20"
+                  aria-label="이전 추천 스크랩"
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <div className="flex items-center gap-2 px-1">
+                  {Array.from({ length: totalPages }).map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => carouselRef.current?.scrollTo({ left: carouselRef.current.clientWidth * idx, behavior: 'smooth' })}
+                      className={`h-2.5 rounded-full transition-all duration-300 ${
+                        idx === activeIndex ? 'w-5 bg-primary-signal' : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
+                      }`}
+                      aria-label={`${idx + 1}페이지로 이동`}
+                    />
+                  ))}
                 </div>
-              ) : null}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => scrollRecommendations('next')}
+                  disabled={activeIndex === totalPages - 1}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20"
+                  aria-label="다음 추천 스크랩"
+                >
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            ) : null}
           </div>
 
           {!previewMode && stage !== 'ready' ? (
