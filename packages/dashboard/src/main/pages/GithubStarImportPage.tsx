@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Archive,
   ArrowRight,
-  CheckCircle2,
+  CheckSquare,
+  Eye,
   ExternalLink,
   Loader2,
-  Eye,
+  Square,
   Sparkles,
   Star,
 } from 'lucide-react';
@@ -21,10 +22,7 @@ interface MockRecommendation {
   id: string;
   title: string;
   url: string;
-  repository: string;
-  reason: string;
   tags: string[];
-  score: number;
 }
 
 const MOCK_STAR_SOURCES = [
@@ -38,93 +36,78 @@ const MOCK_STAR_SOURCES = [
 const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
   {
     id: '1',
-    title: 'React Server Components ?ㅼ쟾 ?뺣━',
+    title: 'React Server Components',
     url: 'https://github.com/reactwg/server-components',
-    repository: 'reactwg/server-components',
-    reason: 'React 怨꾩뿴 愿?ъ궗媛 ?믪븘 ?곌껐?깆씠 媛뺥븳 ?ㅽ겕?⑹쑝濡??먮떒?⑸땲??',
     tags: ['React', 'SSR', 'Web'],
-    score: 98,
   },
   {
     id: '2',
-    title: 'TypeScript ????ㅺ퀎 ?⑦꽩 紐⑥쓬',
+    title: 'TypeScript Handbook',
     url: 'https://github.com/microsoft/TypeScript',
-    repository: 'microsoft/TypeScript',
-    reason: '?몄뼱? ????덉쟾??以묒떖 ?먯깋怨???留욌뒗 異뺤엯?덈떎.',
     tags: ['TypeScript', 'Types', 'Architecture'],
-    score: 95,
   },
   {
     id: '3',
-    title: 'Query 罹먯떛 ?꾨왂 ?붿빟',
+    title: 'Query Caching Patterns',
     url: 'https://github.com/TanStack/query',
-    repository: 'TanStack/query',
-    reason: '?곹깭 愿由ъ? ?쒕쾭 ?곗씠???⑥묶 ?먮쫫???④퍡 ?ㅻ（湲?醫뗭뒿?덈떎.',
     tags: ['Query', 'Cache', 'Data'],
-    score: 93,
   },
   {
     id: '4',
-    title: 'UI 而댄룷?뚰듃 ?덉씠?꾩썐 ?⑦꽩',
+    title: 'UI Layout System',
     url: 'https://github.com/tailwindlabs/tailwindcss',
-    repository: 'tailwindlabs/tailwindcss',
-    reason: '?꾩옱 ?붾㈃?먯꽌 ?곕뒗 ?덉씠?꾩썐 ?몄뼱? 媛??媛源뚯슫 異뺤엯?덈떎.',
     tags: ['UI', 'Tailwind', 'Layout'],
-    score: 91,
   },
   {
     id: '5',
-    title: 'GitHub Actions 배포 워크플로우',
+    title: 'GitHub Actions Starter Workflows',
     url: 'https://github.com/actions/starter-workflows',
-    repository: 'actions/starter-workflows',
-    reason: '?먮룞?붿? 諛고룷 愿??吏???먮쫫??蹂닿컯?섍린 醫뗭뒿?덈떎.',
     tags: ['CI/CD', 'GitHub Actions', 'Deploy'],
-    score: 89,
   },
   {
     id: '6',
-    title: '紐⑤끂?덊룷 ?댁쁺 媛?대뱶',
+    title: 'Monorepo Guide',
     url: 'https://github.com/turborepo/turborepo',
-    repository: 'turborepo/turborepo',
-    reason: '?⑦궎吏 援ъ“? 怨듭쑀 紐⑤뱢 愿由??⑦꽩??李멸퀬?섍린 醫뗭뒿?덈떎.',
     tags: ['Monorepo', 'Tooling', 'Workspace'],
-    score: 88,
   },
   {
     id: '7',
-    title: '접근성 체크리스트',
+    title: 'Accessibility Practices',
     url: 'https://github.com/w3c/aria-practices',
-    repository: 'w3c/aria-practices',
-    reason: 'UI ?덉쭏怨??ъ슜??寃쏀뿕???뚯뼱?щ━?????좊━?⑸땲??',
     tags: ['Accessibility', 'UX', 'A11y'],
-    score: 87,
   },
   {
     id: '8',
-    title: '???곹깭 愿由??⑦꽩',
+    title: 'Form State Guide',
     url: 'https://github.com/react-hook-form/react-hook-form',
-    repository: 'react-hook-form/react-hook-form',
-    reason: '?낅젰 ?쇱씠 留롮? ?섏씠吏??諛붾줈 ?곸슜 媛?ν븳 吏?앹엯?덈떎.',
     tags: ['Form', 'Input', 'Validation'],
-    score: 86,
   },
   {
     id: '9',
-    title: '?쒓컖??諛?李⑦듃 援ы쁽 李멸퀬',
+    title: 'Chart Components',
     url: 'https://github.com/recharts/recharts',
-    repository: 'recharts/recharts',
-    reason: '??쒕낫?쒗삎 UI???뺣낫 諛?꾨? ?믪씠?????좊━?⑸땲??',
     tags: ['Chart', 'Dashboard', 'Data Viz'],
-    score: 84,
   },
   {
     id: '10',
-    title: '?뚯뒪???먮룞???덉젣',
+    title: 'Testing Patterns',
     url: 'https://github.com/vitest-dev/vitest',
-    repository: 'vitest-dev/vitest',
-    reason: '諛섎났 寃利??먮쫫???ㅻ챸?섎뒗 ?ㅽ겕?⑹쑝濡??곌껐?섍린 醫뗭뒿?덈떎.',
     tags: ['Testing', 'Vitest', 'QA'],
-    score: 83,
+  },
+];
+
+const FLOW_STEPS = [
+  {
+    title: '리포지토리 스캔',
+    description: '최근 star와 연결된 저장소를 먼저 읽습니다.',
+  },
+  {
+    title: '패턴 추출',
+    description: '기술 스택과 관심 흐름을 하나씩 묶습니다.',
+  },
+  {
+    title: '추천 생성',
+    description: '관련 스크랩 주소 10개를 뽑아 보여줍니다.',
   },
 ];
 
@@ -134,7 +117,7 @@ export function GithubStarImportPage() {
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [scanPulse, setScanPulse] = useState(0);
   const [previewMode, setPreviewMode] = useState(false);
-  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const githubLinkQuery = useQuery({
     queryKey: ['github', 'link-status'],
@@ -157,25 +140,29 @@ export function GithubStarImportPage() {
   useEffect(() => {
     if (stage !== 'loading') return undefined;
 
-    const start = window.setInterval(() => {
+    const intervalId = window.setInterval(() => {
       setScanPulse((current) => (current + 1) % 100);
     }, 120);
 
-    const finish = window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       setStage('ready');
       setScanPulse(100);
     }, 1800);
 
     return () => {
-      window.clearInterval(start);
-      window.clearTimeout(finish);
+      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
     };
   }, [stage]);
 
   const handleLoadStars = () => {
     if (!isLinked || stage === 'loading') return;
     setAddedIds(new Set());
+    setPreviewMode(false);
     setStage('loading');
+    window.setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
   };
 
   const handlePreviewResults = () => {
@@ -184,45 +171,42 @@ export function GithubStarImportPage() {
     setStage('ready');
     setScanPulse(100);
     setAddedIds(new Set());
+    window.setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
   };
 
-  const handleAdd = (id: string) => {
+  const handleToggleRecommendation = (id: string) => {
     setAddedIds((current) => {
       const next = new Set(current);
-      next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
-    });
-  };
-
-  const scrollRecommendations = (direction: 'prev' | 'next') => {
-    const node = carouselRef.current;
-    if (!node) return;
-
-    const scrollAmount = node.clientWidth * 0.9;
-    node.scrollBy({
-      left: direction === 'next' ? scrollAmount : -scrollAmount,
-      behavior: 'smooth',
     });
   };
 
   const addedCount = addedIds.size;
   const remainingCount = MOCK_RECOMMENDATIONS.length - addedCount;
   const progress = MOCK_RECOMMENDATIONS.length > 0 ? (addedCount / MOCK_RECOMMENDATIONS.length) * 100 : 0;
+
   const stageLabel = useMemo(() => {
-    if (!isLinked) return '?곌껐 ?꾩슂';
+    if (!isLinked) return '연결 필요';
     if (stage === 'loading') return '분석 중';
-    if (stage === 'ready') return '異붿쿇 ?꾨즺';
+    if (stage === 'ready') return '추천 준비 완료';
     return '대기 중';
   }, [isLinked, stage]);
 
   if (githubLinkQuery.isError) {
     return (
-      <section className="mx-auto w-full max-w-[960px] py-10">
+      <section className="mx-auto w-full max-w-[720px] py-10">
         <EmptyState
           type="custom"
           variant="full"
-          title="GitHub ?곕룞 ?곹깭瑜??뺤씤?????놁뒿?덈떎."
-          description={getApiErrorMessage(githubLinkQuery.error, '?곌껐 ?뺣낫瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??')}
+          title="GitHub 연결 상태를 확인할 수 없습니다."
+          description={getApiErrorMessage(githubLinkQuery.error, '연결 정보를 불러오지 못했습니다.')}
           primaryAction={{
             label: '연동하러 가기',
             onClick: () => navigate('/profile'),
@@ -234,21 +218,21 @@ export function GithubStarImportPage() {
 
   if (githubLinkQuery.isLoading) {
     return (
-      <section className="mx-auto flex w-full max-w-[960px] flex-col items-center justify-center py-20 text-center">
+      <section className="mx-auto flex w-full max-w-[720px] flex-col items-center justify-center py-20 text-center">
         <Loader2 size={34} className="animate-spin text-primary-signal" />
-        <p className="mt-4 text-sm font-medium text-text-secondary">GitHub ?곕룞 ?곹깭瑜??뺤씤?섍퀬 ?덉뒿?덈떎.</p>
+        <p className="mt-4 text-sm font-medium text-text-secondary">GitHub 연동 상태를 확인하는 중입니다.</p>
       </section>
     );
   }
 
   if (!isLinked) {
     return (
-      <section className="mx-auto w-full max-w-[960px] py-10">
+      <section className="mx-auto w-full max-w-[720px] py-10">
         <EmptyState
           type="custom"
           variant="full"
-          title="GitHub 怨꾩젙 ?곕룞???꾩슂?⑸땲??"
-          description="star 紐⑸줉??遺덈윭?ㅻ젮硫?癒쇱? GitHub 怨꾩젙???곌껐?댁빞 ?⑸땲??"
+          title="GitHub 계정 연결이 필요합니다."
+          description="star 목록을 불러오려면 먼저 GitHub 계정을 연결해야 합니다."
           primaryAction={{
             label: '연동하러 가기',
             onClick: () => navigate('/settings/integrations'),
@@ -263,80 +247,96 @@ export function GithubStarImportPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-[1180px] py-10 text-text-primary">
+    <section className="mx-auto w-full max-w-[720px] py-10 text-text-primary">
       <header className="flex flex-col gap-6 border-b border-text-secondary/8 pb-6">
         <div className="flex flex-col gap-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-primary-signal">
-            GitHub star import
-          </p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-primary-signal">GitHub star import</p>
           <h1 className="text-h1-bold text-text-primary">
             {linkedUsername ? (
               <>
-                <span>諛섍컩?듬땲?? </span>
+                <span>반갑습니다, </span>
                 <span className="text-primary-signal">{linkedUsername}</span>
-                <span> ??</span>
+                <span> 님.</span>
                 <br />
-                <span>?뱀떊??吏???멸퀎瑜?遺꾩꽍?⑸땲??</span>
+                <span>당신의 지식 세계를 분석합니다.</span>
               </>
             ) : (
-              '?뱀떊??吏???멸퀎瑜?遺꾩꽍?⑸땲??'
+              '당신의 지식 세계를 분석합니다.'
             )}
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-text-secondary">
-            GitHub star 紐⑸줉???쎄퀬, AI媛 愿?⑤룄 ?믪? ?ㅽ겕??二쇱냼 10媛쒕? 異붿쿇?⑸땲??
-            ?ъ슜?먭? ?뺤씤????ぉ留?吏???꾩뭅?대툕??異붽??섎뒗 ?먮쫫?쇰줈 ?곌껐?⑸땲??
+            GitHub star 목록을 읽고, AI가 관련 스크랩 주소 10개를 추천합니다. 먼저 불러오고, 결과를 확인하고, 필요한 것만 아카이브에 추가하는 흐름입니다.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <CurvedButton
-            type="button"
-            leadingIcon={<Star size={16} />}
-            onClick={handleLoadStars}
-            disabled={stage === 'loading'}
-          >
-            Star 遺덈윭?ㅺ린
-          </CurvedButton>
-          <CurvedButton
-            type="button"
-            tone="subtle"
-            leadingIcon={<Eye size={16} />}
-            onClick={handlePreviewResults}
-          >
-            異붿쿇 寃곌낵 誘몃━蹂닿린
+          <CurvedButton type="button" leadingIcon={<Star size={16} />} onClick={handleLoadStars} disabled={stage === 'loading'}>
+            Star 불러오기
           </CurvedButton>
           <CurvedButton type="button" tone="ghost" onClick={() => navigate('/profile')}>
-            ?꾨줈?꾨줈 ?뚯븘媛湲?          </CurvedButton>
+            프로필로 돌아가기
+          </CurvedButton>
         </div>
       </header>
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <div className="mt-8 flex flex-col gap-8">
         <section className="rounded-leaf border border-text-secondary/10 glass-card bg-surface-container/80 p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">
-                연결 상태
-              </p>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0 max-w-2xl">
               <h2 className="mt-2 text-body-lg-bold text-text-primary">분석 준비 상태</h2>
+              <p className="mt-2 text-sm leading-6 text-text-secondary">
+                지금 화면은 보고서가 아니라 연동용 로딩 화면입니다. 아래 10개 결과가 이 흐름의 끝입니다.
+              </p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
+
+            <div className="flex items-center gap-2 rounded-full bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
               <Sparkles size={12} className={stage === 'loading' ? 'animate-pulse' : ''} />
               {stageLabel}
             </div>
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <StatBlock label="연결 계정" value={linkedUsername ?? '확인됨'} />
-            <StatBlock label="추천 예고" value={stage === 'ready' ? `${MOCK_RECOMMENDATIONS.length}개` : '대기'} />
-            <StatBlock label="추가 완료" value={stage === 'ready' ? `${addedCount}개` : '0개'} accent />
+          <div className="mt-6">
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+              {FLOW_STEPS.map((step, index) => {
+                const active =
+                  (index === 0 && stage !== 'idle') ||
+                  (index === 1 && stage === 'loading') ||
+                  (index === 2 && stage === 'ready');
+
+                return (
+                  <div
+                    key={step.title}
+                    className={`rounded-leaf p-4 transition ${
+                      active ? 'bg-primary-signal/8' : 'bg-surface-lowest/80'
+                    } ${stage === 'loading' && active ? 'animate-pulse' : ''}`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <h3 className="mt-1 text-body-sm-bold text-text-primary">{step.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-text-secondary">{step.description}</p>
+                      </div>
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-signal/10 text-[11px] font-black text-primary-signal">
+                        {String(index + 1).padStart(2, '0')}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="mt-6 rounded-leaf border border-text-secondary/10 bg-surface-lowest/80 p-4">
+          <div className="mt-6 rounded-leaf bg-surface-lowest/80 p-5">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-bold text-text-primary">진행 상태</p>
-              <p className="text-xs font-semibold text-text-secondary/65">
-                {stage === 'ready' ? `${addedCount}/${MOCK_RECOMMENDATIONS.length}` : '0/10'}
-              </p>
+              <div>
+                <p className="mt-1 text-sm font-bold text-text-primary">
+                  {stage === 'idle'
+                    ? '버튼을 누르면 분석이 시작됩니다.'
+                    : previewMode
+                      ? '미리보기 모드로 10개 결과를 즉시 보여줍니다.'
+                      : 'AI가 star와 스크랩의 연결을 계산하는 중입니다.'}
+                </p>
+              </div>
+              {stage === 'loading' ? <span className="text-xs font-bold text-primary-signal tabular-nums">{scanPulse}%</span> : null}
             </div>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-text-primary/[0.05]">
               <div
@@ -344,107 +344,62 @@ export function GithubStarImportPage() {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-text-secondary/70">
-              <span>
-                {stage === 'idle'
-                  ? '버튼을 누르면 분석이 시작됩니다.'
-                  : previewMode
-                    ? '미리보기 모드로 추천 결과를 보여줍니다.'
-                    : 'AI가 star와 스크랩의 연결을 계산하는 중입니다.'}
-              </span>
-              {stage === 'loading' ? <span className="tabular-nums">{scanPulse}%</span> : null}
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">
-              GitHub star 목록
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {MOCK_STAR_SOURCES.map((item) => (
-                <span
-                  key={item}
-                  className="inline-flex items-center gap-2 rounded-full border border-text-secondary/10 bg-surface-low px-3 py-2 text-xs font-medium text-text-secondary"
-                >
-                  <Star size={12} className="text-primary-signal" />
-                  {item}
-                </span>
-              ))}
-            </div>
           </div>
         </section>
 
-        <section className="rounded-leaf border border-text-secondary/10 glass-card bg-surface-container/80 p-6">
-          <div className="flex items-start justify-between gap-4">
+        <section ref={resultsRef} className="rounded-leaf border border-text-secondary/10 glass-card bg-surface-container/80 p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">
-                AI 추천 결과
-              </p>
               <h2 className="mt-2 text-body-lg-bold text-text-primary">추천 스크랩 10개</h2>
+              <p className="mt-2 text-sm leading-6 text-text-secondary">
+                가장 중요한 부분은 추천 결과 10개입니다. 여기에 결과가 채워지고, 사용자는 필요한 것만 아카이브에 넣습니다.
+              </p>
             </div>
-            <div className="rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
+            <div className="rounded-full bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
               {remainingCount === 0 ? '모두 추가됨' : `${remainingCount}개 남음`}
             </div>
           </div>
 
           {!previewMode && stage !== 'ready' ? (
-            <div className="mt-6">
-              <AnalysisPlaceholder loading={stage === 'loading'} />
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <div key={index} className="flex min-h-[168px] flex-col justify-between rounded-leaf bg-surface-lowest/80 p-4">
+                  <div className="space-y-3">
+                    <div className="h-3 w-10 rounded-full bg-text-secondary/10" />
+                    <div className="h-4 w-4/5 rounded-full bg-text-secondary/10" />
+                    <div className="h-3 w-full rounded-full bg-text-secondary/10" />
+                    <div className="h-3 w-5/6 rounded-full bg-text-secondary/10" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-text-secondary/50">0{index + 1}</span>
+                    <Sparkles size={14} className={stage === 'loading' ? 'animate-pulse text-primary-signal' : 'text-text-secondary/30'} />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="mt-6 space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary/60">
-                  추천 리스트
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => scrollRecommendations('prev')}
-                    className="rounded-full border border-text-secondary/10 bg-surface-lowest p-2 text-text-secondary transition hover:border-primary-signal/30 hover:text-primary-signal"
-                    aria-label="이전 추천"
-                  >
-                    <ArrowRight size={14} className="rotate-180" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => scrollRecommendations('next')}
-                    className="rounded-full border border-text-secondary/10 bg-surface-lowest p-2 text-text-secondary transition hover:border-primary-signal/30 hover:text-primary-signal"
-                    aria-label="다음 추천"
-                  >
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-
-              <div
-                ref={carouselRef}
-                className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
-              >
-                {MOCK_RECOMMENDATIONS.map((item, index) => {
-                  const isAdded = addedIds.has(item.id);
-
-                  return (
-                    <div key={item.id} className="min-w-[calc((100%-1rem)/2)] snap-start md:min-w-[calc((100%-2rem)/5)]">
-                      <RecommendationCard
-                        item={item}
-                        index={index}
-                        isAdded={isAdded}
-                        onAdd={() => handleAdd(item.id)}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              {MOCK_RECOMMENDATIONS.map((item, index) => {
+                const isSelected = addedIds.has(item.id);
+                return (
+                  <RecommendationCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    isSelected={isSelected}
+                    onToggle={() => handleToggleRecommendation(item.id)}
+                  />
+                );
+              })}
             </div>
           )}
         </section>
 
         {stage === 'ready' && (
-          <section className="rounded-leaf border border-primary-signal/15 bg-primary-signal/8 p-5">
+          <section className="rounded-leaf bg-primary-signal/8 p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-bold text-text-primary">
+            <p className="text-sm font-bold text-text-primary">
                   {previewMode ? '추천 결과 미리보기' : '검토 완료 후 아카이브 생성'}
                 </p>
                 <p className="mt-1 text-xs leading-5 text-text-secondary">
@@ -464,46 +419,20 @@ export function GithubStarImportPage() {
   );
 }
 
-function AnalysisPlaceholder({ loading }: { loading: boolean }) {
-  return (
-    <div className="flex min-h-[260px] flex-col items-center justify-center rounded-leaf border border-text-secondary/10 bg-surface-low px-6 py-10 text-center">
-      {loading ? (
-        <div className="relative flex h-16 w-16 items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-2 border-primary-signal/20" />
-          <div className="absolute inset-0 rounded-full border-2 border-primary-signal/50 border-t-transparent animate-spin" />
-          <Sparkles size={18} className="text-primary-signal" />
-        </div>
-      ) : (
-        <IconBox variant="leaf" size="md">
-          <Archive size={20} className="text-text-primary" />
-        </IconBox>
-      )}
-
-      <h3 className="mt-5 text-body-sm-bold text-text-primary">
-        {loading ? 'AI가 star 목록을 읽고 있어요.' : '분석을 시작하면 추천 결과가 표시됩니다.'}
-      </h3>
-      <p className="mt-2 max-w-md text-sm leading-6 text-text-secondary">
-        {loading
-          ? '최근 활동, 관심 기술, 저장소 맥락을 함께 읽어 관련 스크랩을 계산하는 중입니다.'
-          : '왼쪽에서 Star 불러오기를 누르면 10개의 추천 스크랩이 순서대로 나타납니다.'}
-      </p>
-    </div>
-  );
-}
 function RecommendationCard({
   item,
   index,
-  isAdded,
-  onAdd,
+  isSelected,
+  onToggle,
 }: {
   item: MockRecommendation;
   index: number;
-  isAdded: boolean;
-  onAdd: () => void;
+  isSelected: boolean;
+  onToggle: () => void;
 }) {
   return (
     <article
-      className="group rounded-leaf border border-text-secondary/10 bg-surface-lowest/80 p-5 transition hover:border-primary-signal/20 hover:bg-surface-low"
+      className="group rounded-leaf bg-surface-lowest/80 p-4 transition hover:bg-surface-low"
       style={{
         animationDelay: `${index * 60}ms`,
         animationName: 'san-fade-up',
@@ -511,68 +440,40 @@ function RecommendationCard({
         animationFillMode: 'both',
       }}
     >
-      <div className="flex items-start gap-4">
-        <IconBox variant="leaf" size="sm">
-          <Archive size={18} className="text-text-primary" />
-        </IconBox>
+      <div className="flex h-full flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-pressed={isSelected}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-lowest text-primary-signal transition hover:bg-primary-signal/8"
+          >
+            {isSelected ? <CheckSquare size={16} /> : <Square size={16} className="text-text-secondary/45" />}
+          </button>
+          <h3 className="min-w-0 flex-1 break-words text-sm font-bold text-text-primary">{item.title}</h3>
+          <span className="rounded-full bg-primary-signal/10 px-2 py-0.5 text-[10px] font-bold text-primary-signal">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+        </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="truncate text-body-sm-bold text-text-primary">{item.title}</h3>
-                <span className="rounded-full bg-primary-signal/10 px-2 py-0.5 text-[10px] font-bold text-primary-signal">
-                  {item.score}
-                </span>
-              </div>
-              <p className="mt-1 truncate text-xs text-text-secondary">{item.repository}</p>
-              <p className="mt-3 text-sm leading-6 text-text-secondary/80">{item.reason}</p>
-            </div>
+        <div className="flex flex-wrap gap-2">
+          {item.tags.map((tag) => (
+            <TagBadge key={tag} label={tag} />
+          ))}
+        </div>
 
-            <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-signal transition hover:opacity-80"
-              >
-                ?먮낯 蹂닿린
-                <ExternalLink size={12} />
-              </a>
-              <button
-                type="button"
-                onClick={onAdd}
-                disabled={isAdded}
-                className="inline-flex min-h-10 items-center justify-center rounded-leaf bg-primary-signal px-4 text-xs font-bold text-text-on-accent transition hover:bg-primary-signal-hover disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isAdded ? (
-                  <>
-                    <CheckCircle2 size={14} className="mr-1.5" />
-                    異붽???
-                  </>
-                ) : (
-                  '???꾩뭅?대툕??異붽?'
-                )}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {item.tags.map((tag) => (
-              <TagBadge key={tag} label={tag} />
-            ))}
-          </div>
+        <div className="mt-auto flex flex-col gap-2">
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary-signal transition hover:opacity-80"
+          >
+            URL 열기
+            <ExternalLink size={12} />
+          </a>
         </div>
       </div>
     </article>
-  );
-}
-
-function StatBlock({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="rounded-leaf border border-text-secondary/10 bg-surface-lowest/80 p-4">
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-text-secondary/55">{label}</p>
-      <p className={`mt-2 text-lg font-black ${accent ? 'text-primary-signal' : 'text-text-primary'}`}>{value}</p>
-    </div>
   );
 }
