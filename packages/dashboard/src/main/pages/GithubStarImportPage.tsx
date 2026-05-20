@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Archive, ArrowRight, CheckCircle2, ExternalLink, Loader2, Sparkles, Star } from 'lucide-react';
+import {
+  Archive,
+  ArrowRight,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+  Star,
+} from 'lucide-react';
 import { getApiErrorMessage } from '@san/shared';
 import { CurvedButton, EmptyState, IconBox, TagBadge } from '@san/ui';
 import { githubApi } from '../../api/client';
@@ -19,11 +27,11 @@ interface MockRecommendation {
 }
 
 const MOCK_STAR_SOURCES = [
-  { name: 'vercel/next.js', type: 'framework' },
-  { name: 'facebook/react', type: 'ui' },
-  { name: 'microsoft/TypeScript', type: 'language' },
-  { name: 'tailwindlabs/tailwindcss', type: 'design' },
-  { name: 'tanstack/query', type: 'state' },
+  'vercel/next.js',
+  'facebook/react',
+  'microsoft/TypeScript',
+  'tailwindlabs/tailwindcss',
+  'TanStack/query',
 ];
 
 const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
@@ -32,7 +40,7 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: 'React Server Components 실전 정리',
     url: 'https://github.com/reactwg/server-components',
     repository: 'reactwg/server-components',
-    reason: '스타 목록의 React 계열 관심사를 기준으로 연결도가 높습니다.',
+    reason: 'React 계열 관심사가 높아 연결성이 강한 스크랩으로 판단됩니다.',
     tags: ['React', 'SSR', 'Web'],
     score: 98,
   },
@@ -41,7 +49,7 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: 'TypeScript 타입 설계 패턴 모음',
     url: 'https://github.com/microsoft/TypeScript',
     repository: 'microsoft/TypeScript',
-    reason: '언어와 타입 안전성 중심의 탐색 패턴과 잘 맞습니다.',
+    reason: '언어와 타입 안전성 중심 탐색과 잘 맞는 축입니다.',
     tags: ['TypeScript', 'Types', 'Architecture'],
     score: 95,
   },
@@ -50,7 +58,7 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: 'Query 캐싱 전략 요약',
     url: 'https://github.com/TanStack/query',
     repository: 'TanStack/query',
-    reason: '상태 관리, 캐싱, 데이터 패칭 주제와 직접 연결됩니다.',
+    reason: '상태 관리와 서버 데이터 패칭 흐름을 함께 다루기 좋습니다.',
     tags: ['Query', 'Cache', 'Data'],
     score: 93,
   },
@@ -59,7 +67,7 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: 'UI 컴포넌트 레이아웃 패턴',
     url: 'https://github.com/tailwindlabs/tailwindcss',
     repository: 'tailwindlabs/tailwindcss',
-    reason: '현재 시도 중인 레이아웃 스타일과 연관도가 높습니다.',
+    reason: '현재 화면에서 쓰는 레이아웃 언어와 가장 가까운 축입니다.',
     tags: ['UI', 'Tailwind', 'Layout'],
     score: 91,
   },
@@ -68,7 +76,7 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: 'GitHub Actions 배포 템플릿',
     url: 'https://github.com/actions/starter-workflows',
     repository: 'actions/starter-workflows',
-    reason: '실행 환경과 배포 자동화 관심사를 추적할 수 있습니다.',
+    reason: '자동화와 배포 관련 지식 흐름을 보강하기 좋습니다.',
     tags: ['CI/CD', 'GitHub Actions', 'Deploy'],
     score: 89,
   },
@@ -86,7 +94,7 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: '접근성 체크리스트',
     url: 'https://github.com/w3c/aria-practices',
     repository: 'w3c/aria-practices',
-    reason: 'UI 디테일과 사용자 경험 품질을 끌어올리는 데 적합합니다.',
+    reason: 'UI 품질과 사용자 경험을 끌어올리는 데 유리합니다.',
     tags: ['Accessibility', 'UX', 'A11y'],
     score: 87,
   },
@@ -113,7 +121,7 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: '테스트 자동화 예제',
     url: 'https://github.com/vitest-dev/vitest',
     repository: 'vitest-dev/vitest',
-    reason: '지식 카드와 연계되는 반복 검증 흐름을 설명하기 좋습니다.',
+    reason: '반복 검증 흐름을 설명하는 스크랩으로 연결하기 좋습니다.',
     tags: ['Testing', 'Vitest', 'QA'],
     score: 83,
   },
@@ -123,6 +131,7 @@ export function GithubStarImportPage() {
   const navigate = useNavigate();
   const [stage, setStage] = useState<ImportStage>('idle');
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+  const [scanPulse, setScanPulse] = useState(0);
 
   const githubLinkQuery = useQuery({
     queryKey: ['github', 'link-status'],
@@ -137,24 +146,32 @@ export function GithubStarImportPage() {
     if (!isLinked) {
       setStage('idle');
       setAddedIds(new Set());
+      setScanPulse(0);
     }
   }, [isLinked]);
 
   useEffect(() => {
-    if (stage !== 'loading') return;
+    if (stage !== 'loading') return undefined;
 
-    const timerId = window.setTimeout(() => {
+    const start = window.setInterval(() => {
+      setScanPulse((current) => (current + 1) % 100);
+    }, 120);
+
+    const finish = window.setTimeout(() => {
       setStage('ready');
-    }, 1400);
+      setScanPulse(100);
+    }, 1800);
 
-    return () => window.clearTimeout(timerId);
+    return () => {
+      window.clearInterval(start);
+      window.clearTimeout(finish);
+    };
   }, [stage]);
 
   const handleLoadStars = () => {
     if (!isLinked || stage === 'loading') return;
-
-    setStage('loading');
     setAddedIds(new Set());
+    setStage('loading');
   };
 
   const handleAdd = (id: string) => {
@@ -168,7 +185,6 @@ export function GithubStarImportPage() {
   const addedCount = addedIds.size;
   const remainingCount = MOCK_RECOMMENDATIONS.length - addedCount;
   const progress = MOCK_RECOMMENDATIONS.length > 0 ? (addedCount / MOCK_RECOMMENDATIONS.length) * 100 : 0;
-
   const stageLabel = useMemo(() => {
     if (!isLinked) return '연결 필요';
     if (stage === 'loading') return '분석 중';
@@ -178,7 +194,7 @@ export function GithubStarImportPage() {
 
   if (githubLinkQuery.isError) {
     return (
-      <section className="mx-auto w-full max-w-[980px] py-10">
+      <section className="mx-auto w-full max-w-[960px] py-10">
         <EmptyState
           type="custom"
           variant="full"
@@ -195,7 +211,7 @@ export function GithubStarImportPage() {
 
   if (githubLinkQuery.isLoading) {
     return (
-      <section className="mx-auto flex w-full max-w-[980px] flex-col items-center justify-center py-20 text-center">
+      <section className="mx-auto flex w-full max-w-[960px] flex-col items-center justify-center py-20 text-center">
         <Loader2 size={34} className="animate-spin text-primary-signal" />
         <p className="mt-4 text-sm font-medium text-text-secondary">GitHub 연동 상태를 확인하고 있습니다.</p>
       </section>
@@ -204,7 +220,7 @@ export function GithubStarImportPage() {
 
   if (!isLinked) {
     return (
-      <section className="mx-auto w-full max-w-[980px] py-10">
+      <section className="mx-auto w-full max-w-[960px] py-10">
         <EmptyState
           type="custom"
           variant="full"
@@ -233,14 +249,14 @@ export function GithubStarImportPage() {
           <h1 className="text-h1-bold text-text-primary">
             {linkedUsername ? (
               <>
-                <span className="text-text-primary">반갑습니다, </span>
+                <span>반갑습니다, </span>
                 <span className="text-primary-signal">{linkedUsername}</span>
-                <span className="text-text-primary"> 님.</span>
+                <span> 님.</span>
                 <br />
-                <span className="text-text-primary">당신의 star 목록을 분석합니다.</span>
+                <span>당신의 지식 세계를 분석합니다.</span>
               </>
             ) : (
-              '당신의 star 목록을 분석합니다.'
+              '당신의 지식 세계를 분석합니다.'
             )}
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-text-secondary">
@@ -258,27 +274,23 @@ export function GithubStarImportPage() {
           >
             Star 불러오기
           </CurvedButton>
-          <CurvedButton
-            type="button"
-            tone="ghost"
-            onClick={() => navigate('/profile')}
-          >
+          <CurvedButton type="button" tone="ghost" onClick={() => navigate('/profile')}>
             프로필로 돌아가기
           </CurvedButton>
         </div>
       </header>
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <section className="rounded-leaf border border-text-secondary/10 glass-card bg-surface-container/80 p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">
-                연결 정보
+                연결 상태
               </p>
               <h2 className="mt-2 text-body-lg-bold text-text-primary">분석 준비 상태</h2>
             </div>
             <div className="flex items-center gap-2 rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
-              <Sparkles size={12} />
+              <Sparkles size={12} className={stage === 'loading' ? 'animate-pulse' : ''} />
               {stageLabel}
             </div>
           </div>
@@ -302,11 +314,10 @@ export function GithubStarImportPage() {
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="mt-3 text-xs leading-5 text-text-secondary/70">
-              {stage === 'idle' && 'Star 불러오기 버튼을 누르면 AI가 관련 스크랩 10개를 추천합니다.'}
-              {stage === 'loading' && 'star 목록을 읽고 관련 스크랩 후보를 추론하는 중입니다.'}
-              {stage === 'ready' && '사용자가 확인한 항목만 내 아카이브로 추가할 수 있습니다.'}
-            </p>
+            <div className="mt-3 flex items-center justify-between text-xs text-text-secondary/70">
+              <span>{stage === 'idle' ? '버튼을 누르면 스캔을 시작합니다.' : 'AI가 star와 스크랩의 연결을 읽는 중입니다.'}</span>
+              {stage === 'loading' ? <span className="tabular-nums">{scanPulse}%</span> : null}
+            </div>
           </div>
 
           <div className="mt-6">
@@ -316,11 +327,11 @@ export function GithubStarImportPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               {MOCK_STAR_SOURCES.map((item) => (
                 <span
-                  key={item.name}
+                  key={item}
                   className="inline-flex items-center gap-2 rounded-full border border-text-secondary/10 bg-surface-low px-3 py-2 text-xs font-medium text-text-secondary"
                 >
                   <Star size={12} className="text-primary-signal" />
-                  {item.name}
+                  {item}
                 </span>
               ))}
             </div>
@@ -342,79 +353,21 @@ export function GithubStarImportPage() {
 
           {stage !== 'ready' ? (
             <div className="mt-6">
-              <EmptyState
-                type="search"
-                variant="inline"
-                title={stage === 'loading' ? 'AI가 스크랩 후보를 찾고 있어요.' : '분석을 시작하면 추천 결과가 나타납니다.'}
-                description={stage === 'loading'
-                  ? 'star 목록에서 연결성이 높은 주제를 읽어오는 중입니다.'
-                  : '왼쪽에서 star 불러오기를 누르면 10개의 관련 스크랩이 표시됩니다.'}
-              />
+              <AnalysisPlaceholder loading={stage === 'loading'} />
             </div>
           ) : (
             <div className="mt-6 space-y-4">
-              {MOCK_RECOMMENDATIONS.map((item) => {
+              {MOCK_RECOMMENDATIONS.map((item, index) => {
                 const isAdded = addedIds.has(item.id);
 
                 return (
-                  <article
+                  <RecommendationCard
                     key={item.id}
-                    className="rounded-leaf border border-text-secondary/10 bg-surface-lowest/80 p-5 transition hover:border-primary-signal/20 hover:bg-surface-low"
-                  >
-                    <div className="flex items-start gap-4">
-                      <IconBox variant="leaf" size="sm">
-                        <Archive size={18} className="text-text-primary" />
-                      </IconBox>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h3 className="truncate text-body-sm-bold text-text-primary">{item.title}</h3>
-                              <span className="rounded-full bg-primary-signal/10 px-2 py-0.5 text-[10px] font-bold text-primary-signal">
-                                {item.score}
-                              </span>
-                            </div>
-                            <p className="mt-1 truncate text-xs text-text-secondary">{item.repository}</p>
-                            <p className="mt-3 text-sm leading-6 text-text-secondary/80">{item.reason}</p>
-                          </div>
-
-                          <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-signal transition hover:opacity-80"
-                            >
-                              원본 보기
-                              <ExternalLink size={12} />
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => handleAdd(item.id)}
-                              disabled={isAdded}
-                              className="inline-flex min-h-10 items-center justify-center rounded-leaf bg-primary-signal px-4 text-xs font-bold text-text-on-accent transition hover:bg-primary-signal-hover disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {isAdded ? (
-                                <>
-                                  <CheckCircle2 size={14} className="mr-1.5" />
-                                  추가됨
-                                </>
-                              ) : (
-                                '내 아카이브에 추가'
-                              )}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {item.tags.map((tag) => (
-                            <TagBadge key={tag} label={tag} />
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </article>
+                    item={item}
+                    index={index}
+                    isAdded={isAdded}
+                    onAdd={() => handleAdd(item.id)}
+                  />
                 );
               })}
             </div>
@@ -431,17 +384,118 @@ export function GithubStarImportPage() {
                 사용자가 추가한 항목만 지식 아카이브로 생성됩니다. 다음 단계는 AI가 요약과 태그를 붙이는 흐름입니다.
               </p>
             </div>
-            <CurvedButton
-              type="button"
-              leadingIcon={<ArrowRight size={16} />}
-              onClick={() => navigate('/archive')}
-            >
+            <CurvedButton type="button" leadingIcon={<ArrowRight size={16} />} onClick={() => navigate('/archive')}>
               아카이브로 보기
             </CurvedButton>
           </div>
         </section>
       )}
     </section>
+  );
+}
+
+function AnalysisPlaceholder({ loading }: { loading: boolean }) {
+  return (
+    <div className="flex min-h-[260px] flex-col items-center justify-center rounded-leaf border border-text-secondary/10 bg-surface-low px-6 py-10 text-center">
+      {loading ? (
+        <div className="relative flex h-16 w-16 items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-2 border-primary-signal/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-primary-signal/50 border-t-transparent animate-spin" />
+          <Sparkles size={18} className="text-primary-signal" />
+        </div>
+      ) : (
+        <IconBox variant="leaf" size="md">
+          <Archive size={20} className="text-text-primary" />
+        </IconBox>
+      )}
+
+      <h3 className="mt-5 text-body-sm-bold text-text-primary">
+        {loading ? 'AI가 star 목록을 읽고 있어요.' : '분석을 시작하면 추천 결과가 나타납니다.'}
+      </h3>
+      <p className="mt-2 max-w-md text-sm leading-6 text-text-secondary">
+        {loading
+          ? '최근 활동, 관심 기술, 저장 패턴을 바탕으로 관련 스크랩 후보를 추려내는 중입니다.'
+          : '왼쪽에서 Star 불러오기를 누르면 10개의 관련 스크랩이 표시됩니다.'}
+      </p>
+    </div>
+  );
+}
+
+function RecommendationCard({
+  item,
+  index,
+  isAdded,
+  onAdd,
+}: {
+  item: MockRecommendation;
+  index: number;
+  isAdded: boolean;
+  onAdd: () => void;
+}) {
+  return (
+    <article
+      className="group rounded-leaf border border-text-secondary/10 bg-surface-lowest/80 p-5 transition hover:border-primary-signal/20 hover:bg-surface-low"
+      style={{
+        animationDelay: `${index * 60}ms`,
+        animationName: 'san-fade-up',
+        animationDuration: '280ms',
+        animationFillMode: 'both',
+      }}
+    >
+      <div className="flex items-start gap-4">
+        <IconBox variant="leaf" size="sm">
+          <Archive size={18} className="text-text-primary" />
+        </IconBox>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="truncate text-body-sm-bold text-text-primary">{item.title}</h3>
+                <span className="rounded-full bg-primary-signal/10 px-2 py-0.5 text-[10px] font-bold text-primary-signal">
+                  {item.score}
+                </span>
+              </div>
+              <p className="mt-1 truncate text-xs text-text-secondary">{item.repository}</p>
+              <p className="mt-3 text-sm leading-6 text-text-secondary/80">{item.reason}</p>
+            </div>
+
+            <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-signal transition hover:opacity-80"
+              >
+                원본 보기
+                <ExternalLink size={12} />
+              </a>
+              <button
+                type="button"
+                onClick={onAdd}
+                disabled={isAdded}
+                className="inline-flex min-h-10 items-center justify-center rounded-leaf bg-primary-signal px-4 text-xs font-bold text-text-on-accent transition hover:bg-primary-signal-hover disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isAdded ? (
+                  <>
+                    <CheckCircle2 size={14} className="mr-1.5" />
+                    추가됨
+                  </>
+                ) : (
+                  '내 아카이브에 추가'
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {item.tags.map((tag) => (
+              <TagBadge key={tag} label={tag} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
 
