@@ -15,7 +15,9 @@ const STORAGE_KEY = 'san:saved-insights';
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const JOB_POLL_INTERVAL_MS = 1500;
 const JOB_POLL_MAX_ATTEMPTS = 40;
-const DUPLICATE_SCRAP_NOTICE = '\uC774\uBBF8 \uAC19\uC740 \uB370\uC774\uD130\uAC00 \uC218\uC9D1\uB418\uC5C8\uC5B4\uC694.';
+const REANALYZE_EXISTING_SCRAP_NOTICE = '\uAE30\uC874 \uC218\uC9D1 \uB370\uC774\uD130\uB97C \uB2E4\uC2DC \uBD84\uC11D\uD558\uACE0 \uC788\uC5B4\uC694.';
+const EXISTING_CARD_NOTICE = '\uC774\uBBF8 \uAC19\uC740 \uB370\uC774\uD130\uB85C \uB9CC\uB4E0 \uCE74\uB4DC\uAC00 \uC788\uC5B4\uC694.';
+const ANALYZING_SCRAP_NOTICE = '\uC218\uC9D1 \uB370\uC774\uD130\uB97C \uBD84\uC11D\uD558\uACE0 \uC788\uC5B4\uC694.';
 
 function isPendingScrap(value: unknown): value is PendingScrap {
   if (!value || typeof value !== 'object') return false;
@@ -41,8 +43,12 @@ async function waitForCardAnalysis(jobId: string) {
 }
 
 async function resolveCreatedCard(response: CreateScrapResponse) {
-  if (response.analysisJobId) {
-    await waitForCardAnalysis(response.analysisJobId);
+  if (response.cardCreationStatus === 'ANALYSIS_IN_PROGRESS') {
+    const analysisJobId = response.analysisJobId;
+    if (!analysisJobId) {
+      throw new Error('Knowledge card analysis job was not provided.');
+    }
+    await waitForCardAnalysis(analysisJobId);
   }
 
   const cardResponse = response.cardId
@@ -55,6 +61,22 @@ async function resolveCreatedCard(response: CreateScrapResponse) {
     cardId: cardResponse.cardId,
     card,
   };
+}
+
+function getCardCreationNotice(response: CreateScrapResponse) {
+  if (response.originStatus === 'EXISTING' && response.cardCreationStatus === 'ANALYSIS_IN_PROGRESS') {
+    return REANALYZE_EXISTING_SCRAP_NOTICE;
+  }
+
+  if (response.originStatus === 'EXISTING' && response.cardCreationStatus === 'CARD_READY') {
+    return EXISTING_CARD_NOTICE;
+  }
+
+  if (response.originStatus === 'CREATED' && response.cardCreationStatus === 'ANALYSIS_IN_PROGRESS') {
+    return ANALYZING_SCRAP_NOTICE;
+  }
+
+  return null;
 }
 
 function toSavedInsight(scrap: PendingScrap): SavedInsight {
@@ -215,33 +237,28 @@ export function useSaveScrap({
       const request = toCreateScrapRequest(pendingScrap, imageObjectKey);
       setSavingLabel('Saving scrap...');
       const response = await scrapsApi.create(request);
-      const isDuplicateScrap = response.duplicated ?? cards.some((item) => item.id === response.scrapId);
+      setSaveNotice(getCardCreationNotice(response));
+      setSavingLabel(response.cardCreationStatus === 'ANALYSIS_IN_PROGRESS' ? 'Creating card...' : 'Loading card...');
+      setIsLoadingRelated(true);
+      const createdCard = await resolveCreatedCard(response);
       const saved = {
         ...toSavedInsight(pendingScrap),
         id: response.scrapId,
+        card_id: createdCard.cardId,
         created_at: response.createdAt,
       };
-      const nextCards = isDuplicateScrap ? cards : [saved, ...cards];
+      const nextCards = [
+        saved,
+        ...cards.filter((item) => item.id !== response.scrapId && item.card_id !== createdCard.cardId),
+      ];
+
+      setCreatedCard(createdCard.card ? toKnowledgeCardView(createdCard.card) : null);
       setCards(nextCards);
       setPendingScrap(null);
       setPendingImageFile(null);
       await savePendingScrap(null);
       await saveInsights(nextCards);
       await deletePendingImageFile(pendingScrap.image_blob_id);
-      if (isDuplicateScrap) {
-        setSaveNotice(DUPLICATE_SCRAP_NOTICE);
-      }
-
-      setSavingLabel(response.analysisJobId ? 'Creating card...' : 'Loading card...');
-      setIsLoadingRelated(true);
-      const createdCard = await resolveCreatedCard(response);
-      const cardsWithCardId = nextCards.map((item) => (
-        item.id === response.scrapId ? { ...item, card_id: createdCard.cardId } : item
-      ));
-
-      setCreatedCard(createdCard.card ? toKnowledgeCardView(createdCard.card) : null);
-      setCards(cardsWithCardId);
-      await saveInsights(cardsWithCardId);
       setSavingLabel('Finding related cards...');
       const similarCards = await cardsApi.getSimilarByCardId(createdCard.cardId);
       setRelatedCards(similarCards.similarCards.slice(0, 3));
