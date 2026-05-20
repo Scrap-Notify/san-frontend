@@ -7,7 +7,6 @@ const DASHBOARD_MESSAGE_SOURCE = 'SAN_DASHBOARD';
 const EXTENSION_MESSAGE_SOURCE = 'SAN_EXTENSION';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
-const AUTH_REFRESH_MESSAGE = 'SAN_AUTH_REFRESH';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
 const SET_TIL_RECALL_SETTINGS_MESSAGE = 'SET_TIL_RECALL_SETTINGS';
@@ -47,7 +46,6 @@ function isDashboardBridgeMessage(value: unknown): value is { source: string; re
   return (
     bridgeMessage.type === AUTH_SYNC_MESSAGE
     || bridgeMessage.type === AUTH_CLEAR_MESSAGE
-    || bridgeMessage.type === AUTH_REFRESH_MESSAGE
     || bridgeMessage.type === LOGIN_BRIDGE_TICKET_MESSAGE
     || bridgeMessage.type === GET_TIL_RECALL_SETTINGS_MESSAGE
     || bridgeMessage.type === SET_TIL_RECALL_SETTINGS_MESSAGE

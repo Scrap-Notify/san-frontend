@@ -17,11 +17,6 @@ export interface TokenProvider {
   getRefreshToken?: () => Promise<string | null>;
   getAccessTokenExpiresAt?: () => Promise<number | null>;
   setTokens?: (tokens: AuthTokens) => Promise<void>;
-  refreshWithLock?: (
-    refreshTokenAtStart: string,
-    refresh: (refreshToken: string) => Promise<TokenResponse>,
-    getStoredTokens: () => Promise<TokenResponse | null>
-  ) => Promise<TokenResponse>;
   clearToken: () => Promise<void>;
 }
 
@@ -46,17 +41,6 @@ interface RetriableRequestConfig extends InternalAxiosRequestConfig {
 
 const ACCESS_TOKEN_REFRESH_LEEWAY_MS = 60_000;
 
-function getAuthorizationToken(config: InternalAxiosRequestConfig | undefined) {
-  const authorization = config?.headers.get('Authorization');
-
-  if (typeof authorization !== 'string') {
-    return null;
-  }
-
-  const match = authorization.match(/^Bearer\s+(.+)$/i);
-  return match?.[1] ?? null;
-}
-
 export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
   const client = axios.create({
     baseURL,
@@ -64,44 +48,6 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
     withCredentials: true,
   });
   let refreshPromise: Promise<TokenResponse> | null = null;
-
-  async function readStoredTokenResponse(): Promise<TokenResponse | null> {
-    if (!tokenProvider.getRefreshToken) {
-      return null;
-    }
-
-    const [accessToken, refreshToken, expiresAt] = await Promise.all([
-      tokenProvider.getToken(),
-      tokenProvider.getRefreshToken(),
-      tokenProvider.getAccessTokenExpiresAt?.() ?? Promise.resolve(null),
-    ]);
-
-    if (!accessToken || !refreshToken) {
-      return null;
-    }
-
-    return {
-      accessToken,
-      refreshToken,
-      tokenType: 'Bearer',
-      expiresIn: expiresAt ? Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)) : 0,
-      sessionId: '',
-    };
-  }
-
-  async function requestTokenReissue(refreshToken: string) {
-    const response = await axios.post<ApiResponse<TokenResponse>>(
-      '/auth/reissue',
-      { refreshToken },
-      {
-        baseURL,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-    const tokens = unwrapApiResponse(response.data);
-    await tokenProvider.setTokens?.(tokens);
-    return tokens;
-  }
 
   async function reissueAccessToken() {
     if (!tokenProvider.getRefreshToken || !tokenProvider.setTokens) {
@@ -115,11 +61,19 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
             throw new Error('Missing refresh token');
           }
 
-          if (tokenProvider.refreshWithLock) {
-            return tokenProvider.refreshWithLock(refreshToken, requestTokenReissue, readStoredTokenResponse);
-          }
-
-          return requestTokenReissue(refreshToken);
+          return axios.post<ApiResponse<TokenResponse>>(
+            '/auth/reissue',
+            { refreshToken },
+            {
+              baseURL,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+        })
+        .then((response) => unwrapApiResponse(response.data))
+        .then(async (tokens) => {
+          await tokenProvider.setTokens?.(tokens);
+          return tokens;
         })
         .finally(() => {
           refreshPromise = null;
@@ -189,13 +143,6 @@ export function createApiClient(baseURL: string, tokenProvider: TokenProvider) {
         originalRequest._retry = true;
 
         try {
-          const requestToken = getAuthorizationToken(originalRequest);
-          const storedToken = await tokenProvider.getToken();
-          if (requestToken && storedToken && storedToken !== requestToken) {
-            originalRequest.headers.Authorization = `Bearer ${storedToken}`;
-            return client(originalRequest);
-          }
-
           const tokens = await reissueAccessToken();
           originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
 

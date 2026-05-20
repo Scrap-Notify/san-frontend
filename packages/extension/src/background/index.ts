@@ -1,7 +1,6 @@
 // packages/extension/src/background/index.ts
 import type { ExtensionMessage, PendingScrap, TilRecallSettings } from '@extension/types/index';
 import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
-import { runAuthRefreshLock } from '@extension/api/authRefreshLock';
 
 const DEBUG_PREFIX = '[SAN:background]';
 const defaultBaseURL = import.meta.env.PROD
@@ -18,7 +17,6 @@ const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const SESSION_ID_KEY = 'san_session_id';
 const CLIENT_TYPE_KEY = 'san_client_type';
 const ACCESS_TOKEN_EXPIRES_AT_KEY = 'san_access_token_expires_at';
-const ACCESS_TOKEN_REFRESH_LEEWAY_MS = 60_000;
 const TIL_RECALL_SETTINGS_KEY = 'san:til-recall-settings';
 const TIL_RECALL_LAST_NOTIFIED_KEY = 'san:til-recall-last-notified-date';
 const TIL_RECALL_NOTIFICATION_TARGETS_KEY = 'san:til-recall-notification-targets';
@@ -28,7 +26,6 @@ const NOTIFICATION_ICON_URL = chrome.runtime.getURL('SAN_LOGO.png');
 const TIL_RECALL_OFFSETS = [7, 3, 1] as const;
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
-const AUTH_REFRESH_MESSAGE = 'SAN_AUTH_REFRESH';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
@@ -70,11 +67,6 @@ interface AuthClearMessage {
   type: typeof AUTH_CLEAR_MESSAGE;
 }
 
-interface AuthRefreshMessage {
-  type: typeof AUTH_REFRESH_MESSAGE;
-  refreshTokenAtStart?: string;
-}
-
 interface LoginBridgeTicketMessage {
   type: typeof LOGIN_BRIDGE_TICKET_MESSAGE;
   ticket?: string;
@@ -113,12 +105,6 @@ function isAuthClearMessage(message: unknown): message is AuthClearMessage {
   if (!message || typeof message !== 'object') return false;
   const maybe = message as Partial<AuthClearMessage>;
   return maybe.type === AUTH_CLEAR_MESSAGE;
-}
-
-function isAuthRefreshMessage(message: unknown): message is AuthRefreshMessage {
-  if (!message || typeof message !== 'object') return false;
-  const maybe = message as Partial<AuthRefreshMessage>;
-  return maybe.type === AUTH_REFRESH_MESSAGE;
 }
 
 function isLoginBridgeTicketMessage(message: unknown): message is LoginBridgeTicketMessage {
@@ -378,19 +364,6 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
     return true;
   }
 
-  if (isAuthRefreshMessage(message)) {
-    reissueStoredTokenResponse(message.refreshTokenAtStart)
-      .then(async (tokens) => {
-        const authState = await readStoredAuthState();
-        sendResponse(tokens ? { ok: true, tokens, ...authState } : { ok: false, ...authState });
-      })
-      .catch((error) => {
-        console.error(DEBUG_PREFIX, 'failed to refresh auth tokens', error);
-        sendResponse({ ok: false });
-      });
-    return true;
-  }
-
   if (isAuthClearMessage(message)) {
     clearAuthTokens()
       .then(() => {
@@ -478,19 +451,6 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       })
       .catch((error) => {
         console.error(DEBUG_PREFIX, 'failed to open extension shortcut settings from dashboard', error);
-        sendResponse({ ok: false });
-      });
-    return true;
-  }
-
-  if (isAuthRefreshMessage(message)) {
-    reissueStoredTokenResponse(message.refreshTokenAtStart)
-      .then(async (tokens) => {
-        const authState = await readStoredAuthState();
-        sendResponse(tokens ? { ok: true, tokens, ...authState } : { ok: false, ...authState });
-      })
-      .catch((error) => {
-        console.error(DEBUG_PREFIX, 'failed to refresh auth tokens from dashboard', error);
         sendResponse({ ok: false });
       });
     return true;
@@ -805,108 +765,43 @@ async function getStoredRefreshToken() {
   return typeof stored[REFRESH_TOKEN_KEY] === 'string' ? stored[REFRESH_TOKEN_KEY] : null;
 }
 
-async function getStoredAccessTokenExpiresAt() {
-  const stored = await chrome.storage.local.get(ACCESS_TOKEN_EXPIRES_AT_KEY);
-  return typeof stored[ACCESS_TOKEN_EXPIRES_AT_KEY] === 'string'
-    ? Number(stored[ACCESS_TOKEN_EXPIRES_AT_KEY])
-    : null;
-}
-
-async function getStoredTokenResponse(): Promise<TokenResponse | null> {
-  const stored = await chrome.storage.local.get([
-    ACCESS_TOKEN_KEY,
-    REFRESH_TOKEN_KEY,
-    SESSION_ID_KEY,
-    ACCESS_TOKEN_EXPIRES_AT_KEY,
-  ]);
-  const accessToken = stored[ACCESS_TOKEN_KEY];
-  const refreshToken = stored[REFRESH_TOKEN_KEY];
-
-  if (typeof accessToken !== 'string' || typeof refreshToken !== 'string') {
-    return null;
-  }
-
-  const expiresAt = typeof stored[ACCESS_TOKEN_EXPIRES_AT_KEY] === 'string'
-    ? Number(stored[ACCESS_TOKEN_EXPIRES_AT_KEY])
-    : null;
-
-  return {
-    accessToken,
-    refreshToken,
-    sessionId: typeof stored[SESSION_ID_KEY] === 'string' ? stored[SESSION_ID_KEY] : '',
-    expiresIn: expiresAt ? Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)) : 0,
-  };
-}
-
 async function getValidAccessToken() {
-  const accessToken = await getStoredAccessToken();
-  if (!accessToken) {
-    return null;
-  }
-
-  const expiresAt = await getStoredAccessTokenExpiresAt();
-  if (expiresAt !== null && expiresAt - Date.now() <= ACCESS_TOKEN_REFRESH_LEEWAY_MS) {
-    return reissueStoredTokens();
-  }
-
-  return accessToken;
+  return getStoredAccessToken();
 }
 
 async function reissueStoredTokens() {
-  const tokens = await reissueStoredTokenResponse();
-
-  return tokens?.accessToken ?? null;
-}
-
-async function reissueStoredTokenResponse(refreshTokenAtStartOverride?: string) {
-  const refreshTokenAtStart = refreshTokenAtStartOverride ?? (await getStoredRefreshToken());
-  if (!refreshTokenAtStart) {
+  const refreshToken = await getStoredRefreshToken();
+  if (!refreshToken) {
     await clearAuthTokens();
     return null;
   }
 
-  return runAuthRefreshLock(async () => {
-    const refreshToken = await getStoredRefreshToken();
-    if (!refreshToken) {
-      await clearAuthTokens();
-      return null;
-    }
-
-    if (refreshToken !== refreshTokenAtStart) {
-      const tokens = await getStoredTokenResponse();
-      const expiresAt = await getStoredAccessTokenExpiresAt();
-      if (tokens && (expiresAt === null || expiresAt > Date.now())) {
-        return tokens;
-      }
-    }
-
-    const response = await fetch(`${baseURL}/auth/reissue`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    });
-    const payload = await parseApiResponse<TokenResponse>(
-      response,
-      'Failed to parse token reissue response',
-    );
-
-    if (!response.ok || !payload.ok || !payload.data) {
-      if (response.status === 401 || response.status === 403) {
-        await clearAuthTokens();
-      }
-      return null;
-    }
-
-    await chrome.storage.local.set({
-      [ACCESS_TOKEN_KEY]: payload.data.accessToken,
-      [REFRESH_TOKEN_KEY]: payload.data.refreshToken,
-      [CLIENT_TYPE_KEY]: 'EXTENSION',
-      ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
-    });
-    await updateAccessTokenExpiresAt(payload.data.expiresIn);
-
-    return payload.data;
+  const response = await fetch(`${baseURL}/auth/reissue`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
   });
+  const payload = await parseApiResponse<TokenResponse>(
+    response,
+    'Failed to parse token reissue response',
+  );
+
+  if (!response.ok || !payload.ok || !payload.data) {
+    if (response.status === 401 || response.status === 403) {
+      await clearAuthTokens();
+    }
+    return null;
+  }
+
+  await chrome.storage.local.set({
+    [ACCESS_TOKEN_KEY]: payload.data.accessToken,
+    [REFRESH_TOKEN_KEY]: payload.data.refreshToken,
+    [CLIENT_TYPE_KEY]: 'EXTENSION',
+    ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
+  });
+  await updateAccessTokenExpiresAt(payload.data.expiresIn);
+
+  return payload.data.accessToken;
 }
 
 async function exchangeAndSyncBridgeToken(message: LoginBridgeTicketMessage) {
