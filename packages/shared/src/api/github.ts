@@ -1,29 +1,14 @@
 import type { AxiosInstance } from 'axios';
 import { unwrapApiResponse, type ApiResponse } from './client';
-
-export interface GithubRepository {
-  githubRepositoryId: number;
-  name: string;
-  fullName: string;
-  privateRepository: boolean;
-  defaultBranch: string;
-  htmlUrl: string;
-}
-
-export interface GithubRepositoryConnectRequest {
-  githubRepositoryId: number;
-}
-
-export interface GithubAuthorizeUrlResponse {
-  redirectUrl: string;
-}
-
-export interface GithubLinkStatus {
-  linked: boolean;
-  githubUsername: string | null;
-  repositoryConnected: boolean;
-  connectedRepository: GithubRepository | null;
-}
+import type {
+  GithubAuthorizeUrlResponse,
+  GithubLinkStatus,
+  GithubRepository,
+  GithubRepositoryConnectRequest,
+  GithubStarRecommendationCollectResponse,
+  GithubStarRecommendationGenerationResponse,
+  GithubStarRecommendationsResponse,
+} from '../types';
 
 export function createGithubApi(apiClient: AxiosInstance) {
   return {
@@ -43,6 +28,27 @@ export function createGithubApi(apiClient: AxiosInstance) {
     getRepositories: (): Promise<GithubRepository[]> =>
       apiClient
         .get<ApiResponse<GithubRepository[]>>('/github/repositories')
+        .then((response) => unwrapApiResponse(response.data)),
+
+    getStarRecommendations: (): Promise<GithubStarRecommendationsResponse> =>
+      apiClient
+        .get<ApiResponse<GithubStarRecommendationsResponse>>('/github/star-recommendations')
+        .then((response) => unwrapApiResponse(response.data)),
+
+    requestStarRecommendations: async (): Promise<GithubStarRecommendationGenerationResponse> => {
+      const response = await apiClient.post<ApiResponse<GithubStarRecommendationGenerationResponse>>('/github/star-recommendations');
+      const data = unwrapApiResponse(response.data);
+
+      if (response.status === 202 && 'jobId' in data) {
+        return { jobId: data.jobId };
+      }
+
+      return { recommendations: (data as GithubStarRecommendationsResponse).recommendations };
+    },
+
+    collectStarRecommendation: (recommendationId: string): Promise<GithubStarRecommendationCollectResponse> =>
+      apiClient
+        .post<ApiResponse<GithubStarRecommendationCollectResponse>>(`/github/star-recommendations/${recommendationId}/collect`)
         .then((response) => unwrapApiResponse(response.data)),
 
     getConnectedRepositories: (): Promise<GithubRepository[]> =>

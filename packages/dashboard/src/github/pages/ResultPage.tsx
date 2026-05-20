@@ -44,8 +44,12 @@ function CustomDatePicker({
   placeholder: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [viewDate, setViewDate] = useState(value ? parseLocalDate(value) : new Date());
+  const [viewDate, setViewDate] = useState(() => value ? parseDateString(value) : new Date());
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setViewDate(value ? parseDateString(value) : new Date());
+  }, [value]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -139,8 +143,11 @@ function CustomDatePicker({
   );
 }
 
-function parseLocalDate(value: string) {
-  const [year, month, day] = value.split("-").map(Number);
+function parseDateString(value: string) {
+  const [yearText, monthText, dayText] = value.split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
   return new Date(year, month - 1, day);
 }
 

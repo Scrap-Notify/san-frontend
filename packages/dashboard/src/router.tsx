@@ -10,6 +10,7 @@ import { DashboardBridgeLoginPage } from './auth/DashboardBridgeLoginPage';
 import { SettingsIntegrationsPage } from './main/pages/SettingsIntegrationsPage';
 import { TilPage } from './til/pages/TilPage';
 import { ProfilePage } from './main/pages/ProfilePage';
+import { GithubStarImportPage } from './main/pages/GithubStarImportPage';
 import { NotFoundPage } from './main/pages/NotFoundPage';
 import { AuthGate } from './auth/components/AuthGate';
 import { KnowledgeCardDetailPage } from './cards/pages/KnowledgeCardDetailPage';
@@ -88,6 +89,14 @@ export const router = createBrowserRouter([
         element: (
           <AuthGate>
             <ProfilePage />
+          </AuthGate>
+        ),
+      },
+      {
+        path: '/profile/stars',
+        element: (
+          <AuthGate>
+            <GithubStarImportPage />
           </AuthGate>
         ),
       },
