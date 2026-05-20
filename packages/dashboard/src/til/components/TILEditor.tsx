@@ -61,7 +61,7 @@ export function TILEditor({
                           }: TILEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-    const isGenerating = generateMutation.isPending || isRunning(generationStatusQuery.data?.status);
+    const isGenerating = generateMutation.isPending || generationStatusQuery.isFetching || isRunning(generationStatusQuery.data?.status);
 
     const aiDraft = removeTilDateHeading(selectedTil?.content ?? '');
     const savedDraft = removeTilDateHeading(draft || aiDraft);

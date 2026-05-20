@@ -20,6 +20,13 @@ import {
 const EMPTY_TIL_LIST: TilResponse[] = [];
 const AUTO_TIL_POLL_INTERVAL_MS = 2000;
 const AUTO_TIL_POLL_TIMEOUT_MS = 60000;
+const TIL_GENERATION_JOB_STORAGE_PREFIX = 'san:til-generation-job';
+const SESSION_ID_STORAGE_KEY = 'san_session_id';
+const DUPLICATE_TIL_GENERATION_MESSAGE = '\uC774\uBBF8 TIL \uC0DD\uC131\uC774 \uC9C4\uD589 \uC911\uC785\uB2C8\uB2E4.';
+const TIL_GENERATION_ERROR_MESSAGES = {
+  DUPLICATE_RESOURCE: DUPLICATE_TIL_GENERATION_MESSAGE,
+  DUPLICATE_TIL_GENERATION: DUPLICATE_TIL_GENERATION_MESSAGE,
+};
 
 export function useTilPageLogic(): TilPageLogic {
   const queryClient = useQueryClient();
@@ -30,7 +37,7 @@ export function useTilPageLogic(): TilPageLogic {
   const [selectedSummaryId, setSelectedSummaryId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [draft, setDraft] = useState('');
-  const [generationJobId, setGenerationJobId] = useState<string | null>(null);
+  const [generationJobId, setGenerationJobId] = useState<string | null>(() => getStoredGenerationJobId(selectedDate));
   const [commitJobId, setCommitJobId] = useState<string | null>(null);
   const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
   const [prevSelectedSummaryId, setPrevSelectedSummaryId] = useState<string | null | undefined>(null);
@@ -88,7 +95,7 @@ export function useTilPageLogic(): TilPageLogic {
   if (selectedDate !== prevSelectedDate) {
     setPrevSelectedDate(selectedDate);
     setSelectedSummaryId(null);
-    setGenerationJobId(null);
+    setGenerationJobId(getStoredGenerationJobId(selectedDate));
     setCommitJobId(null);
   }
 
@@ -104,7 +111,8 @@ export function useTilPageLogic(): TilPageLogic {
   const commitStatusQuery = useTilAsyncJobStatus(commitJobId);
 
   useEffect(() => {
-    if (generationStatusQuery.data?.status === 'COMPLETED') {
+    const generationStatus = generationStatusQuery.data?.status;
+    if (generationStatus === 'COMPLETED') {
       void queryClient.invalidateQueries({ queryKey: tilKeys.byDate(selectedDate) });
       if (selectedSummaryId) {
         void queryClient.invalidateQueries({ queryKey: tilKeys.recallCards(selectedSummaryId) });
@@ -112,12 +120,17 @@ export function useTilPageLogic(): TilPageLogic {
         void queryClient.invalidateQueries({ queryKey: tilKeys.recallQuizzes(selectedDate, 'SHORT_ANSWER') });
       }
     }
+
+    if (generationStatus === 'COMPLETED' || generationStatus === 'FAILED') {
+      clearStoredGenerationJobId(selectedDate);
+    }
   }, [generationStatusQuery.data?.status, queryClient, selectedDate, selectedSummaryId]);
 
   const generateMutation = useTilGenerateMutation({
     targetDate: selectedDate,
     onSuccess: (response) => {
-      setGenerationJobId(response.jobId);
+      storeGenerationJobId(response.targetDate, response.jobId);
+      setGenerationJobId(response.targetDate === selectedDate ? response.jobId : getStoredGenerationJobId(selectedDate));
       setSelectedSummaryId(response.summaryId);
     },
   });
@@ -159,7 +172,7 @@ export function useTilPageLogic(): TilPageLogic {
   const generationTone = getJobTone(
     generationJobId,
     generationStatusQuery.data?.status,
-    generateMutation.isPending,
+    generateMutation.isPending || generationStatusQuery.isFetching,
     generateMutation.isError || generationStatusQuery.data?.status === 'FAILED',
   );
   const commitTone = getJobTone(
@@ -223,6 +236,28 @@ function getInitialSelectedDate() {
   return isValidDateParam(dateParam) ? dateParam : getTodayDate();
 }
 
+function getGenerationJobStorageKey(targetDate: string) {
+  const sessionId = typeof window === 'undefined'
+    ? null
+    : window.localStorage.getItem(SESSION_ID_STORAGE_KEY);
+  return `${TIL_GENERATION_JOB_STORAGE_PREFIX}:${sessionId ?? 'anonymous'}:${targetDate}`;
+}
+
+function getStoredGenerationJobId(targetDate: string) {
+  if (typeof window === 'undefined') return null;
+  return window.sessionStorage.getItem(getGenerationJobStorageKey(targetDate));
+}
+
+function storeGenerationJobId(targetDate: string, jobId: string) {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(getGenerationJobStorageKey(targetDate), jobId);
+}
+
+function clearStoredGenerationJobId(targetDate: string) {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(getGenerationJobStorageKey(targetDate));
+}
+
 function getTodayDate() {
   return formatDate(new Date());
 }
@@ -269,12 +304,17 @@ function getJobTone(
   return 'idle';
 }
 
+function getTilGenerationErrorMessage(error: unknown) {
+  return getApiErrorMessage(error, 'TIL generation request failed.', TIL_GENERATION_ERROR_MESSAGES);
+}
+
 function getGenerationMessage(
   jobId: string | null,
   status: string | undefined,
   errorMessage: string | null | undefined,
   error: unknown,
 ) {
+  if (error) return getTilGenerationErrorMessage(error);
   if (error) return getApiErrorMessage(error, 'TIL 생성 요청에 실패했습니다.');
   if (status === 'FAILED') return errorMessage ?? 'TIL 생성 작업이 실패했습니다.';
   if (status === 'COMPLETED') return 'TIL 생성이 완료되었습니다.';
