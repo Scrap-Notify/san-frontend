@@ -346,7 +346,7 @@ function QuizTypeButton({
 }
 
 function formatDateLabel(value: string) {
-  const date = new Date(value);
+  const date = parseDateString(value);
   if (Number.isNaN(date.getTime())) return '';
 
   return date.toLocaleDateString('ko-KR', {
@@ -354,4 +354,9 @@ function formatDateLabel(value: string) {
     month: 'long',
     day: 'numeric',
   });
+}
+
+function parseDateString(value: string) {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
 }

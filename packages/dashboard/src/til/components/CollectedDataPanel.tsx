@@ -166,6 +166,8 @@ function ReviewStatusSummary({
                 void queryClient.invalidateQueries({
                     queryKey: tilKeys.recallQuizzes(selectedTil?.targetDate, quizType),
                 });
+            } else {
+                setHasRequestedGeneration(false);
             }
         }
     });
@@ -178,6 +180,11 @@ function ReviewStatusSummary({
                 queryKey: tilKeys.recallQuizzes(selectedTil.targetDate, quizType),
             });
             setQuizJobId(null);
+            setHasRequestedGeneration(false);
+        }
+        if (quizJobStatusQuery.data?.status === 'FAILED') {
+            setQuizJobId(null);
+            setHasRequestedGeneration(false);
         }
     }, [quizJobStatusQuery.data?.status, queryClient, selectedTil, quizType]);
 
@@ -218,6 +225,12 @@ function ReviewStatusSummary({
         hasRequestedGeneration,
         quizJobId,
     ]);
+
+    useEffect(() => {
+        if (generateMutation.isError && !isGenerating) {
+            setHasRequestedGeneration(false);
+        }
+    }, [generateMutation.isError, isGenerating]);
 
     return (
         <>

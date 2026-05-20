@@ -109,6 +109,7 @@ export function useTilPageLogic(): TilPageLogic {
       if (selectedSummaryId) {
         void queryClient.invalidateQueries({ queryKey: tilKeys.recallCards(selectedSummaryId) });
         void queryClient.invalidateQueries({ queryKey: tilKeys.recallQuizzes(selectedDate, 'OX') });
+        void queryClient.invalidateQueries({ queryKey: tilKeys.recallQuizzes(selectedDate, 'SHORT_ANSWER') });
       }
     }
   }, [generationStatusQuery.data?.status, queryClient, selectedDate, selectedSummaryId]);
@@ -131,6 +132,8 @@ export function useTilPageLogic(): TilPageLogic {
         return previous.map((item) => item.summaryId === response.summaryId ? response : item);
       });
       void queryClient.invalidateQueries({ queryKey: tilKeys.recallCards(response.summaryId) });
+      void queryClient.invalidateQueries({ queryKey: tilKeys.recallQuizzes(response.targetDate, 'OX') });
+      void queryClient.invalidateQueries({ queryKey: tilKeys.recallQuizzes(response.targetDate, 'SHORT_ANSWER') });
     },
   });
 
