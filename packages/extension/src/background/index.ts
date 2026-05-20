@@ -28,6 +28,7 @@ const NOTIFICATION_ICON_URL = chrome.runtime.getURL('SAN_LOGO.png');
 const TIL_RECALL_OFFSETS = [7, 3, 1] as const;
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
+const AUTH_REFRESH_MESSAGE = 'SAN_AUTH_REFRESH';
 const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
@@ -69,6 +70,11 @@ interface AuthClearMessage {
   type: typeof AUTH_CLEAR_MESSAGE;
 }
 
+interface AuthRefreshMessage {
+  type: typeof AUTH_REFRESH_MESSAGE;
+  refreshTokenAtStart?: string;
+}
+
 interface LoginBridgeTicketMessage {
   type: typeof LOGIN_BRIDGE_TICKET_MESSAGE;
   ticket?: string;
@@ -107,6 +113,12 @@ function isAuthClearMessage(message: unknown): message is AuthClearMessage {
   if (!message || typeof message !== 'object') return false;
   const maybe = message as Partial<AuthClearMessage>;
   return maybe.type === AUTH_CLEAR_MESSAGE;
+}
+
+function isAuthRefreshMessage(message: unknown): message is AuthRefreshMessage {
+  if (!message || typeof message !== 'object') return false;
+  const maybe = message as Partial<AuthRefreshMessage>;
+  return maybe.type === AUTH_REFRESH_MESSAGE;
 }
 
 function isLoginBridgeTicketMessage(message: unknown): message is LoginBridgeTicketMessage {
@@ -366,6 +378,19 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
     return true;
   }
 
+  if (isAuthRefreshMessage(message)) {
+    reissueStoredTokenResponse(message.refreshTokenAtStart)
+      .then(async (tokens) => {
+        const authState = await readStoredAuthState();
+        sendResponse(tokens ? { ok: true, tokens, ...authState } : { ok: false, ...authState });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to refresh auth tokens', error);
+        sendResponse({ ok: false });
+      });
+    return true;
+  }
+
   if (isAuthClearMessage(message)) {
     clearAuthTokens()
       .then(() => {
@@ -453,6 +478,19 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       })
       .catch((error) => {
         console.error(DEBUG_PREFIX, 'failed to open extension shortcut settings from dashboard', error);
+        sendResponse({ ok: false });
+      });
+    return true;
+  }
+
+  if (isAuthRefreshMessage(message)) {
+    reissueStoredTokenResponse(message.refreshTokenAtStart)
+      .then(async (tokens) => {
+        const authState = await readStoredAuthState();
+        sendResponse(tokens ? { ok: true, tokens, ...authState } : { ok: false, ...authState });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to refresh auth tokens from dashboard', error);
         sendResponse({ ok: false });
       });
     return true;
@@ -774,6 +812,32 @@ async function getStoredAccessTokenExpiresAt() {
     : null;
 }
 
+async function getStoredTokenResponse(): Promise<TokenResponse | null> {
+  const stored = await chrome.storage.local.get([
+    ACCESS_TOKEN_KEY,
+    REFRESH_TOKEN_KEY,
+    SESSION_ID_KEY,
+    ACCESS_TOKEN_EXPIRES_AT_KEY,
+  ]);
+  const accessToken = stored[ACCESS_TOKEN_KEY];
+  const refreshToken = stored[REFRESH_TOKEN_KEY];
+
+  if (typeof accessToken !== 'string' || typeof refreshToken !== 'string') {
+    return null;
+  }
+
+  const expiresAt = typeof stored[ACCESS_TOKEN_EXPIRES_AT_KEY] === 'string'
+    ? Number(stored[ACCESS_TOKEN_EXPIRES_AT_KEY])
+    : null;
+
+  return {
+    accessToken,
+    refreshToken,
+    sessionId: typeof stored[SESSION_ID_KEY] === 'string' ? stored[SESSION_ID_KEY] : '',
+    expiresIn: expiresAt ? Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)) : 0,
+  };
+}
+
 async function getValidAccessToken() {
   const accessToken = await getStoredAccessToken();
   if (!accessToken) {
@@ -789,7 +853,13 @@ async function getValidAccessToken() {
 }
 
 async function reissueStoredTokens() {
-  const refreshTokenAtStart = await getStoredRefreshToken();
+  const tokens = await reissueStoredTokenResponse();
+
+  return tokens?.accessToken ?? null;
+}
+
+async function reissueStoredTokenResponse(refreshTokenAtStartOverride?: string) {
+  const refreshTokenAtStart = refreshTokenAtStartOverride ?? (await getStoredRefreshToken());
   if (!refreshTokenAtStart) {
     await clearAuthTokens();
     return null;
@@ -803,10 +873,10 @@ async function reissueStoredTokens() {
     }
 
     if (refreshToken !== refreshTokenAtStart) {
-      const accessToken = await getStoredAccessToken();
+      const tokens = await getStoredTokenResponse();
       const expiresAt = await getStoredAccessTokenExpiresAt();
-      if (accessToken && (expiresAt === null || expiresAt > Date.now())) {
-        return accessToken;
+      if (tokens && (expiresAt === null || expiresAt > Date.now())) {
+        return tokens;
       }
     }
 
@@ -835,7 +905,7 @@ async function reissueStoredTokens() {
     });
     await updateAccessTokenExpiresAt(payload.data.expiresIn);
 
-    return payload.data.accessToken;
+    return payload.data;
   });
 }
 

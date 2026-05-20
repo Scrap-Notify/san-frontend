@@ -31,6 +31,7 @@ export type MessageType =
   | 'PUSH_TO_SIDEPANEL'
   | 'SAN_AUTH_SYNC'
   | 'SAN_AUTH_CLEAR'
+  | 'SAN_AUTH_REFRESH'
   | 'SAN_AUTH_STATE_CHANGED'
   | 'LOGIN_BRIDGE_TICKET'
   | 'GET_TIL_RECALL_SETTINGS'
@@ -43,6 +44,7 @@ export interface ExtensionMessage {
   payload?: PendingScrap | TilRecallSettings;
   accessToken?: string;
   refreshToken?: string;
+  refreshTokenAtStart?: string;
   sessionId?: string;
   clientType?: 'DASHBOARD' | 'EXTENSION';
   ticket?: string;

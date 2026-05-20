@@ -1,4 +1,5 @@
 import type { AuthTokens, TokenResponse } from '@san/shared';
+import { refreshExtensionAuth } from './extensionAuth';
 
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
@@ -101,6 +102,8 @@ export const authTokenStorage = {
     return value ? Number(value) : null;
   },
   getUsername: async () => localStorage.getItem(USERNAME_KEY),
+  getSessionId: async () => localStorage.getItem(SESSION_ID_KEY),
+  getClientType: async () => localStorage.getItem(CLIENT_TYPE_KEY) as AuthTokens['clientType'] | null,
   setTokens: async ({ accessToken, refreshToken, sessionId, clientType, expiresIn }: AuthTokens) => {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
@@ -123,6 +126,16 @@ export const authTokenStorage = {
     refresh: (refreshToken: string) => Promise<TokenResponse>,
     getStoredTokens: () => Promise<TokenResponse | null>
   ) => runRefreshLock(async () => {
+    if (localStorage.getItem(CLIENT_TYPE_KEY) === 'EXTENSION') {
+      try {
+        const tokens = await refreshExtensionAuth(refreshTokenAtStart);
+        await authTokenStorage.setTokens({ ...tokens, clientType: 'EXTENSION' });
+        return tokens;
+      } catch (error) {
+        console.warn('[SAN:auth] extension refresh bridge failed, falling back to dashboard refresh', error);
+      }
+    }
+
     const latestRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!latestRefreshToken) {
       throw new Error('Missing refresh token');

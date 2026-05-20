@@ -1,6 +1,7 @@
-import type { AuthTokens } from '@san/shared';
+import type { AuthTokens, TokenResponse } from '@san/shared';
 const AUTH_SYNC_MESSAGE = 'SAN_AUTH_SYNC';
 const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
+const AUTH_REFRESH_MESSAGE = 'SAN_AUTH_REFRESH';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
 const SET_TIL_RECALL_SETTINGS_MESSAGE = 'SET_TIL_RECALL_SETTINGS';
@@ -26,6 +27,7 @@ interface ExtensionMessageResponse {
   ok?: boolean;
   hasAccessToken?: boolean;
   hasRefreshToken?: boolean;
+  tokens?: TokenResponse;
   settings?: TilRecallSettings;
   shortcuts?: ExtensionShortcuts;
 }
@@ -79,6 +81,18 @@ export async function syncExtensionBridgeTicket(ticket: string): Promise<void> {
     },
     true
   );
+}
+
+export async function refreshExtensionAuth(refreshTokenAtStart: string): Promise<TokenResponse> {
+  const response = await deliverExtensionMessageWithResponse(
+    {
+      type: AUTH_REFRESH_MESSAGE,
+      refreshTokenAtStart,
+    },
+    isConfirmedAuthRefreshResponse
+  );
+
+  return response.tokens;
 }
 
 export async function getExtensionTilRecallSettings(): Promise<TilRecallSettings> {
@@ -430,6 +444,16 @@ function isConfirmedTilRecallSettingsResponse(
   return { settings: response.settings };
 }
 
+function isConfirmedAuthRefreshResponse(
+  response: ExtensionMessageResponse | undefined
+): { tokens: TokenResponse } | null {
+  if (response?.ok !== true || !isTokenResponse(response.tokens)) {
+    return null;
+  }
+
+  return { tokens: response.tokens };
+}
+
 function isConfirmedExtensionShortcutsResponse(
   response: ExtensionMessageResponse | undefined
 ): { shortcuts: ExtensionShortcuts } | null {
@@ -438,6 +462,14 @@ function isConfirmedExtensionShortcutsResponse(
   }
 
   return { shortcuts: response.shortcuts };
+}
+
+function isTokenResponse(value: unknown): value is TokenResponse {
+  if (!value || typeof value !== 'object') return false;
+  const maybe = value as Partial<TokenResponse>;
+  return typeof maybe.accessToken === 'string'
+    && typeof maybe.refreshToken === 'string'
+    && typeof maybe.sessionId === 'string';
 }
 
 function isExtensionShortcuts(value: unknown): value is ExtensionShortcuts {
