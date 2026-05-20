@@ -25,12 +25,14 @@ export function useTilGenerateMutation({ targetDate, onSuccess }: UseTilGenerate
 
 interface UseRecallQuizGenerateMutationOptions {
   onSuccess?: (response: RecallQuizGenerationJobResponse) => void;
+  onError?: (error: unknown) => void;
 }
 
-export function useRecallQuizGenerateMutation({ onSuccess }: UseRecallQuizGenerateMutationOptions = {}) {
+export function useRecallQuizGenerateMutation({ onSuccess, onError }: UseRecallQuizGenerateMutationOptions = {}) {
   return useMutation({
     mutationFn: (payload: RecallQuizGenerateRequest) => recallApi.requestQuizGeneration(payload),
     onSuccess,
+    onError,
   });
 }
 

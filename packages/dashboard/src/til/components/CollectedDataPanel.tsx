@@ -43,11 +43,12 @@ type PanelTab = 'sources' | 'recall';
 
 export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil }: CollectedDataPanelProps) {
     const [activeTab, setActiveTab] = useState<PanelTab>('recall');
+    const [quizType, setQuizType] = useState<RecallQuizType>('OX');
     const [searchQuery, setSearchQuery] = useState('');
     const debouncedSearch = useDebounce(searchQuery, 300);
     const sources = sourcesQuery.data?.sources ?? EMPTY_SOURCES;
     const recallCount = recallCardsQuery.data?.recallCards.length ?? 0;
-    const recallQuizzesQuery = useTilRecallQuizzes(selectedTil?.targetDate, 'OX', Boolean(selectedTil));
+    const recallQuizzesQuery = useTilRecallQuizzes(selectedTil?.targetDate, quizType, Boolean(selectedTil));
 
     const items: CollectedDataItem[] = useMemo(() => {
         const baseItems = sources.map((source) => ({
@@ -77,8 +78,10 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
     return (
         <aside className="flex h-full w-full flex-col overflow-hidden bg-transparent">
             <ReviewStatusSummary
-                recallQuizzes={recallQuizzesQuery.data?.quizzes ?? []}
+                recallQuizzesQuery={recallQuizzesQuery}
                 selectedTil={selectedTil}
+                quizType={quizType}
+                onQuizTypeChange={setQuizType}
             />
 
             <header className="flex shrink-0 items-center gap-2 border-b border-text-secondary/5 p-3">
@@ -140,18 +143,23 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
 }
 
 function ReviewStatusSummary({
-    recallQuizzes,
+    recallQuizzesQuery,
     selectedTil,
+    quizType,
+    onQuizTypeChange,
 }: {
-    recallQuizzes: RecallQuizResponse[];
+    recallQuizzesQuery: any;
     selectedTil: TilResponse | null;
+    quizType: RecallQuizType;
+    onQuizTypeChange: (type: RecallQuizType) => void;
 }) {
     const queryClient = useQueryClient();
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [quizJobId, setQuizJobId] = useState<string | null>(null);
-    const quizzes = selectedTil ? recallQuizzes : [];
-    const solvedQuizCount = quizzes.filter((quiz) => quiz.solved).length;
-    const correctQuizCount = quizzes.filter((quiz) => quiz.correct === true).length;
+    const [hasRequestedGeneration, setHasRequestedGeneration] = useState(false);
+    const quizzes = recallQuizzesQuery.data?.quizzes ?? [];
+    const solvedQuizCount = quizzes.filter((quiz: RecallQuizResponse) => quiz.solved).length;
+    const correctQuizCount = quizzes.filter((quiz: RecallQuizResponse) => quiz.correct === true).length;
     const reviewed = solvedQuizCount > 0;
     const solvedLabel = quizzes.length > 0 ? `${solvedQuizCount}/${quizzes.length}` : '0/0';
 
@@ -159,6 +167,15 @@ function ReviewStatusSummary({
         onSuccess: (response) => {
             setQuizJobId(response.quizJobId);
         },
+        onError: (error: any) => {
+            // 409 Conflict (C006) means a job is already running or data exists.
+            if (error?.response?.status === 409) {
+                setHasRequestedGeneration(true);
+                void queryClient.invalidateQueries({
+                    queryKey: tilKeys.recallQuizzes(selectedTil?.targetDate, quizType),
+                });
+            }
+        }
     });
 
     const quizJobStatusQuery = useTilAsyncJobStatus(quizJobId);
@@ -166,37 +183,65 @@ function ReviewStatusSummary({
     useEffect(() => {
         if (quizJobStatusQuery.data?.status === 'COMPLETED' && selectedTil) {
             void queryClient.invalidateQueries({
-                queryKey: tilKeys.recallQuizzes(selectedTil.targetDate, 'OX'),
+                queryKey: tilKeys.recallQuizzes(selectedTil.targetDate, quizType),
             });
             setQuizJobId(null);
         }
-    }, [quizJobStatusQuery.data?.status, queryClient, selectedTil]);
+    }, [quizJobStatusQuery.data?.status, queryClient, selectedTil, quizType]);
 
     const isGenerating = generateMutation.isPending || quizJobStatusQuery.data?.status === 'PENDING' || quizJobStatusQuery.data?.status === 'PROCESSING';
 
     const handleGenerate = () => {
-        if (!selectedTil || isGenerating) return;
+        if (!selectedTil || isGenerating || hasRequestedGeneration) return;
+        setHasRequestedGeneration(true);
         generateMutation.mutate({
             targetDate: selectedTil.targetDate,
-            quizType: 'OX',
+            quizType,
         });
     };
+
+    useEffect(() => {
+        setHasRequestedGeneration(false);
+        setQuizJobId(null);
+    }, [selectedTil?.summaryId, quizType]);
+
+    useEffect(() => {
+        if (
+            selectedTil &&
+            recallQuizzesQuery.isSuccess &&
+            quizzes.length === 0 &&
+            !isGenerating &&
+            !generateMutation.isError &&
+            !hasRequestedGeneration &&
+            !quizJobId
+        ) {
+            handleGenerate();
+        }
+    }, [
+        selectedTil,
+        recallQuizzesQuery.isSuccess,
+        quizzes.length,
+        isGenerating,
+        generateMutation.isError,
+        hasRequestedGeneration,
+        quizJobId,
+    ]);
 
     return (
         <>
             <section className="shrink-0 px-5 pb-6 pt-2">
-                <header className="flex items-start">
+                <header className="flex items-center justify-between">
                     <div className="min-w-0">
                         <p className="text-sm font-extrabold text-text-primary">
                             {REVIEW_STATUS_TITLE}
                         </p>
-                        {quizzes.length > 0 && (
-                            <p className="mt-1 text-xs leading-relaxed text-text-secondary/75">
-                                {reviewed ? REVIEW_COMPLETE_DESCRIPTION : REVIEW_PENDING_DESCRIPTION}
-                            </p>
-                        )}
                     </div>
                 </header>
+                {quizzes.length > 0 && (
+                    <p className="mt-1 text-xs leading-relaxed text-text-secondary/75">
+                        {reviewed ? REVIEW_COMPLETE_DESCRIPTION : REVIEW_PENDING_DESCRIPTION}
+                    </p>
+                )}
 
                 {quizzes.length > 0 ? (
                     <button
@@ -250,12 +295,15 @@ function ReviewStatusSummary({
                 )}
             </section>
 
-            {selectedTil && isQuizModalOpen && quizzes.length > 0 ? (
+            {selectedTil && isQuizModalOpen ? (
                 <RecallQuizModal
                     onClose={() => setIsQuizModalOpen(false)}
                     tilTitle={selectedTil.title}
                     targetDate={selectedTil.targetDate}
                     quizzes={quizzes}
+                    quizType={quizType}
+                    onQuizTypeChange={onQuizTypeChange}
+                    isGenerating={isGenerating}
                 />
             ) : null}
         </>
@@ -267,61 +315,61 @@ function RecallQuizModal({
     quizzes,
     targetDate,
     tilTitle,
+    quizType,
+    onQuizTypeChange,
+    isGenerating,
 }: {
     onClose: () => void;
     quizzes: RecallQuizResponse[];
     targetDate: string;
     tilTitle: string | null;
+    quizType: RecallQuizType;
+    onQuizTypeChange: (type: RecallQuizType) => void;
+    isGenerating: boolean;
 }) {
     const queryClient = useQueryClient();
-    const [localQuizzes, setLocalQuizzes] = useState<RecallQuizResponse[]>(() => quizzes);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState(() => quizzes[0]?.submittedAnswer ?? '');
-    const [isSubmitted, setIsSubmitted] = useState(() => quizzes[0]?.solved ?? false);
-    const currentQuiz = localQuizzes[currentIndex];
-    const quizType: RecallQuizType = localQuizzes[0]?.quizType ?? 'OX';
+    const [selectedAnswer, setSelectedAnswer] = useState('');
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
     const submitMutation = useRecallQuizSubmitMutation({
         onSuccess: (response) => {
             setIsSubmitted(true);
-            setLocalQuizzes((currentQuizzes) =>
-                currentQuizzes.map((quiz) =>
-                    quiz.quizId === response.quizId ? { ...quiz, ...response } : quiz,
-                ),
-            );
-
             void queryClient.invalidateQueries({
                 queryKey: tilKeys.recallQuizzes(targetDate, quizType),
             });
         },
     });
 
-    if (!currentQuiz) {
-        return null;
-    }
+    const currentQuiz = quizzes[currentIndex];
 
-    const isCorrect = currentQuiz.correct === true;
-    const isLastQuiz = currentIndex === localQuizzes.length - 1;
-    const isShortAnswer = currentQuiz.quizType === 'SHORT_ANSWER';
+    useEffect(() => {
+        if (currentQuiz) {
+            setSelectedAnswer(currentQuiz.submittedAnswer ?? '');
+            setIsSubmitted(currentQuiz.solved);
+        }
+    }, [currentQuiz]);
+
+    useEffect(() => {
+        setCurrentIndex(0);
+    }, [quizType]);
+
+    const isCorrect = currentQuiz?.correct === true;
+    const isLastQuiz = currentIndex === quizzes.length - 1;
+    const isShortAnswer = quizType === 'SHORT_ANSWER';
     const isSubmitDisabled = submitMutation.isPending || (!isSubmitted && !selectedAnswer.trim());
 
     const goNext = () => {
         if (!isSubmitted) return;
-
         if (isLastQuiz) {
             onClose();
             return;
         }
-
-        const nextQuiz = localQuizzes[currentIndex + 1];
         setCurrentIndex((index) => index + 1);
-        setSelectedAnswer(nextQuiz?.submittedAnswer ?? '');
-        setIsSubmitted(nextQuiz?.solved ?? false);
     };
 
     const handleSubmit = () => {
-        if (submitMutation.isPending) return;
-
+        if (submitMutation.isPending || !currentQuiz) return;
         if (!isSubmitted) {
             submitMutation.mutate({
                 quizId: currentQuiz.quizId,
@@ -329,7 +377,6 @@ function RecallQuizModal({
             });
             return;
         }
-
         goNext();
     };
 
@@ -347,12 +394,35 @@ function RecallQuizModal({
             >
                 <header className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-text-secondary/60">
-                            {currentIndex + 1} / {localQuizzes.length}
-                        </p>
-                        <h2 id="recall-quiz-title" className="mt-1 text-lg font-extrabold text-text-primary">
-                            {QUIZ_MODAL_TITLE}
-                        </h2>
+                        <div className="flex items-center gap-3">
+                            <h2 id="recall-quiz-title" className="text-lg font-extrabold text-text-primary">
+                                {QUIZ_MODAL_TITLE}
+                            </h2>
+                            <div className="flex rounded-lg bg-text-primary/5 p-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => onQuizTypeChange('OX')}
+                                    className={`rounded-md px-2 py-1 text-[10px] font-bold transition ${
+                                        quizType === 'OX'
+                                            ? 'bg-surface-lowest text-action-accent shadow-sm'
+                                            : 'text-text-secondary hover:text-text-primary'
+                                    }`}
+                                >
+                                    OX
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onQuizTypeChange('SHORT_ANSWER')}
+                                    className={`rounded-md px-2 py-1 text-[10px] font-bold transition ${
+                                        quizType === 'SHORT_ANSWER'
+                                            ? 'bg-surface-lowest text-action-accent shadow-sm'
+                                            : 'text-text-secondary hover:text-text-primary'
+                                    }`}
+                                >
+                                    단답형
+                                </button>
+                            </div>
+                        </div>
                         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-text-secondary/70">
                             {tilTitle || QUIZ_MODAL_DESCRIPTION}
                         </p>
@@ -367,69 +437,89 @@ function RecallQuizModal({
                     </button>
                 </header>
 
-                <div className="mt-6 rounded-lg border border-text-secondary/8 bg-text-primary/[0.025] p-4">
-                    <p className="text-base font-bold leading-relaxed text-text-primary">
-                        {currentQuiz.question}
-                    </p>
+                <div className="mt-6 min-h-[200px]">
+                    {isGenerating ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <Loader2 size={32} className="animate-spin text-primary-signal/50" />
+                            <p className="mt-4 text-sm font-medium text-text-secondary">
+                                {QUIZ_GENERATING_LABEL}
+                            </p>
+                        </div>
+                    ) : quizzes.length > 0 && currentQuiz ? (
+                        <div className="rounded-lg border border-text-secondary/8 bg-text-primary/[0.025] p-4">
+                            <p className="text-[11px] font-bold uppercase tracking-widest text-text-secondary/60 mb-2">
+                                {currentIndex + 1} / {quizzes.length}
+                            </p>
+                            <p className="text-base font-bold leading-relaxed text-text-primary">
+                                {currentQuiz.question}
+                            </p>
 
-                    {isShortAnswer ? (
-                        <label className="mt-5 block">
-                            <span className="sr-only">정답 입력</span>
-                            <input
-                                type="text"
-                                value={selectedAnswer}
-                                onChange={(event) => {
-                                    if (isSubmitted) return;
-                                    setSelectedAnswer(event.target.value);
-                                }}
-                                disabled={isSubmitted}
-                                placeholder="정답을 입력하세요"
-                                className="h-14 w-full rounded-lg border border-text-secondary/10 bg-surface-highest/30 px-4 text-sm font-medium text-text-primary outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/40 disabled:cursor-not-allowed disabled:opacity-70"
-                            />
-                        </label>
-                    ) : (
-                        <div className="mt-5 grid grid-cols-2 gap-3">
-                            {(['O', 'X'] as const).map((answer) => {
-                                const selected = selectedAnswer === answer;
-                                const showCorrect = isSubmitted && currentQuiz.submittedAnswer === answer && currentQuiz.correct === true;
-                                const showWrong = isSubmitted && selected && currentQuiz.correct !== true;
-
-                                return (
-                                    <button
-                                        key={answer}
-                                        type="button"
-                                        onClick={() => {
+                            {isShortAnswer ? (
+                                <label className="mt-5 block">
+                                    <span className="sr-only">정답 입력</span>
+                                    <input
+                                        type="text"
+                                        value={selectedAnswer}
+                                        onChange={(event) => {
                                             if (isSubmitted) return;
-                                            setSelectedAnswer(answer);
+                                            setSelectedAnswer(event.target.value);
                                         }}
-                                        className={`flex h-14 items-center justify-center rounded-lg border text-xl font-black transition ${
-                                            showCorrect
-                                                ? 'til-light-teal-accent border-action-accent/50 bg-action-accent/12 text-action-accent'
-                                                : showWrong
-                                                    ? 'border-red-400/45 bg-red-400/10 text-red-300'
-                                                    : selected
-                                                        ? 'border-text-primary/25 bg-text-primary/8 text-text-primary'
-                                                        : 'border-text-secondary/10 bg-surface-highest/30 text-text-secondary hover:border-primary-signal/35 hover:text-text-primary'
-                                        }`}
-                                    >
-                                        {answer}
-                                    </button>
-                                );
-                            })}
+                                        disabled={isSubmitted}
+                                        placeholder="정답을 입력하세요"
+                                        className="h-14 w-full rounded-lg border border-text-secondary/10 bg-surface-highest/30 px-4 text-sm font-medium text-text-primary outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/40 disabled:cursor-not-allowed disabled:opacity-70"
+                                    />
+                                </label>
+                            ) : (
+                                <div className="mt-5 grid grid-cols-2 gap-3">
+                                    {(['O', 'X'] as const).map((answer) => {
+                                        const selected = selectedAnswer === answer;
+                                        const showCorrect = isSubmitted && currentQuiz.answer === answer && currentQuiz.isCorrect === true;
+                                        const showWrong = isSubmitted && selected && currentQuiz.isCorrect !== true;
+
+                                        return (
+                                            <button
+                                                key={answer}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isSubmitted) return;
+                                                    setSelectedAnswer(answer);
+                                                }}
+                                                className={`flex h-14 items-center justify-center rounded-lg border text-xl font-black transition ${
+                                                    showCorrect
+                                                        ? 'til-light-teal-accent border-action-accent/50 bg-action-accent/12 text-action-accent'
+                                                        : showWrong
+                                                            ? 'border-red-400/45 bg-red-400/10 text-red-300'
+                                                            : selected
+                                                                ? 'border-text-primary/25 bg-text-primary/8 text-text-primary'
+                                                                : 'border-text-secondary/10 bg-surface-highest/30 text-text-secondary hover:border-primary-signal/35 hover:text-text-primary'
+                                                }`}
+                                            >
+                                                {answer}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {isSubmitted ? (
+                                <div className="mt-4 rounded-lg bg-text-primary/[0.035] p-3">
+                                    <p className={`flex items-center gap-1.5 text-sm font-bold ${isCorrect ? 'til-light-teal-accent text-action-accent' : 'text-red-300'}`}>
+                                        {isCorrect ? <CheckCircle2 size={15} /> : null}
+                                        {isCorrect ? QUIZ_CORRECT_LABEL : QUIZ_INCORRECT_LABEL}
+                                    </p>
+                                    <p className="mt-2 text-xs leading-relaxed text-text-secondary/75">
+                                        {currentQuiz.explanation || ''}
+                                    </p>
+                                </div>
+                            ) : null}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-12">
+                            <p className="text-sm italic text-text-secondary/50">
+                                {REVIEW_NO_QUIZ_LABEL}
+                            </p>
                         </div>
                     )}
-
-                    {isSubmitted ? (
-                        <div className="mt-4 rounded-lg bg-text-primary/[0.035] p-3">
-                            <p className={`flex items-center gap-1.5 text-sm font-bold ${isCorrect ? 'til-light-teal-accent text-action-accent' : 'text-red-300'}`}>
-                                {isCorrect ? <CheckCircle2 size={15} /> : null}
-                                {isCorrect ? QUIZ_CORRECT_LABEL : QUIZ_INCORRECT_LABEL}
-                            </p>
-                            <p className="mt-2 text-xs leading-relaxed text-text-secondary/75">
-                                {currentQuiz.explanation || ''}
-                            </p>
-                        </div>
-                    ) : null}
                 </div>
 
                 <footer className="mt-5 flex justify-end gap-2">
@@ -443,7 +533,7 @@ function RecallQuizModal({
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        disabled={isSubmitDisabled}
+                        disabled={isSubmitDisabled || isGenerating || quizzes.length === 0}
                         className="h-9 rounded-lg bg-action-accent px-4 text-sm font-bold text-text-on-accent transition hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {submitMutation.isPending
