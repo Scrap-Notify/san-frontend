@@ -227,6 +227,14 @@ body {
   color: var(--color-primary-signal);
 }
 
+.til-button-contrast {
+  color: #fff !important;
+}
+
+:root[data-theme='light'] .til-button-contrast {
+  color: #000 !important;
+}
+
 .auth-shell {
   width: 100%;
   padding-inline: clamp(24px, 5vw, 96px);

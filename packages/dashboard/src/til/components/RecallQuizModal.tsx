@@ -1,282 +1,357 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { X, Loader2, Info, HelpCircle, Sparkles } from 'lucide-react';
+import { CheckCircle2, HelpCircle, Loader2, RotateCcw, Sparkles, X } from 'lucide-react';
+import { getResolvedTheme, type ThemeMode } from '@san/ui';
 import type { RecallQuizResponse, RecallQuizType } from '@san/shared';
 import { useRecallQuizSubmitMutation } from '../hooks/useTilMutations';
 import { tilKeys } from '../hooks/useTilQueries';
 
-const QUIZ_MODAL_TITLE = '오늘의 복습 세션';
+const QUIZ_MODAL_TITLE = 'Recall 퀴즈';
 const QUIZ_CLOSE_LABEL = '닫기';
-const QUIZ_GENERATING_LABEL = 'AI가 퀴즈를 생성하고 있어요...';
+const QUIZ_GENERATING_LABEL = 'AI가 퀴즈를 생성하고 있어요.';
 const REVIEW_NO_QUIZ_LABEL = '복습할 퀴즈가 없습니다.';
-const QUIZ_SELF_JUDGE_LABEL = '해설 확인하기';
+const QUIZ_SELF_JUDGE_LABEL = '정답 확인';
 
 interface RecallQuizModalProps {
-    onClose: () => void;
-    quizzes: RecallQuizResponse[];
-    targetDate: string;
-    tilTitle: string | null;
-    quizType: RecallQuizType;
-    onQuizTypeChange: (type: RecallQuizType) => void;
-    isGenerating: boolean;
+  onClose: () => void;
+  quizzes: RecallQuizResponse[];
+  targetDate: string;
+  tilTitle: string | null;
+  quizType: RecallQuizType;
+  onQuizTypeChange: (type: RecallQuizType) => void;
+  isGenerating: boolean;
 }
 
 export function RecallQuizModal({
-    onClose,
-    quizzes,
-    targetDate,
-    tilTitle,
-    quizType,
-    onQuizTypeChange,
-    isGenerating,
+  onClose,
+  quizzes,
+  targetDate,
+  tilTitle,
+  quizType,
+  onQuizTypeChange,
+  isGenerating,
 }: RecallQuizModalProps) {
-    const solvedCount = useMemo(() => quizzes.filter(q => q.solved).length, [quizzes]);
-    const progress = quizzes.length > 0 ? (solvedCount / quizzes.length) * 100 : 0;
+  const solvedCount = useMemo(() => quizzes.filter((quiz) => quiz.solved).length, [quizzes]);
+  const progress = quizzes.length > 0 ? (solvedCount / quizzes.length) * 100 : 0;
+  const formattedDate = useMemo(() => formatDateLabel(targetDate), [targetDate]);
+  const [theme, setTheme] = useState<ThemeMode>(() => getResolvedTheme());
 
-    const formattedDate = useMemo(() => {
-        const date = new Date(targetDate);
-        return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-    }, [targetDate]);
+  useEffect(() => {
+    const root = document.documentElement;
+    const syncTheme = () => {
+      setTheme(root.dataset.theme === 'light' ? 'light' : 'dark');
+    };
 
-    return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-md"
-            onPointerDown={onClose}
-        >
-            <section
-                role="dialog"
-                aria-modal="true"
-                className="flex h-[95vh] w-full max-w-[800px] flex-col overflow-hidden rounded-[32px] bg-[#0b0f12] text-[#fbfffa] shadow-2xl transition-all"
-                onPointerDown={(event) => event.stopPropagation()}
-            >
-                {/* Header Section */}
-                <header className="shrink-0 p-8 pb-4">
-                    <div className="flex items-center justify-between gap-4 mb-6">
-                        <div className="min-w-0">
-                            <h2 className="text-3xl font-bold tracking-tight">{QUIZ_MODAL_TITLE}</h2>
-                        </div>
-                        <div className="flex flex-col items-end">
-                            <span className="text-xl font-bold">{formattedDate}</span>
-                            <span className="text-sm font-medium text-[#00ffc2]">오늘 복습 {quizzes.length}개</span>
-                        </div>
-                    </div>
+    syncTheme();
 
-                    {/* Progress Bar */}
-                    <div className="mb-2 relative h-1.5 w-full overflow-hidden rounded-full bg-[#1c2023]">
-                        <div 
-                            className="absolute top-0 left-0 h-full bg-[#00ffc2] transition-all duration-700 ease-out"
-                            style={{ 
-                                width: `${progress}%`,
-                                boxShadow: "0px 0px 12px 0 rgba(0,255,194,0.6)"
-                            }}
-                        />
-                    </div>
-                    <div className="flex justify-between items-center px-0.5">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#b9cbc1]/40">진행상황</span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.1em] text-[#b9cbc1]/40">{Math.round(progress)}% COMPLETED</span>
-                    </div>
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 
-                    <div className="mt-8 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                             <div className="flex rounded-xl bg-[#1c2023] p-1 border border-[#3a4a43]/20">
-                                <button
-                                    type="button"
-                                    onClick={() => onQuizTypeChange('OX')}
-                                    className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
-                                        quizType === 'OX'
-                                            ? 'bg-[#00ffc2] text-[#007255] shadow-lg shadow-[#00ffc2]/10'
-                                            : 'text-[#b9cbc1]/60 hover:text-[#fbfffa]'
-                                    }`}
-                                >
-                                    O/X
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => onQuizTypeChange('SHORT_ANSWER')}
-                                    className={`rounded-lg px-4 py-1.5 text-xs font-bold transition-all ${
-                                        quizType === 'SHORT_ANSWER'
-                                            ? 'bg-[#00ffc2] text-[#007255] shadow-lg shadow-[#00ffc2]/10'
-                                            : 'text-[#b9cbc1]/60 hover:text-[#fbfffa]'
-                                    }`}
-                                >
-                                    단답형
-                                </button>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="group flex h-10 w-10 items-center justify-center rounded-full bg-[#1c2023] text-[#b9cbc1]/60 transition-all hover:bg-[#00ffc2] hover:text-[#007255]"
-                            aria-label={QUIZ_CLOSE_LABEL}
-                        >
-                            <X size={20} />
-                        </button>
-                    </div>
-                </header>
+    return () => observer.disconnect();
+  }, []);
 
-                {/* Content Section */}
-                <div className="no-scrollbar flex-1 overflow-y-auto px-8 py-4">
-                    {isGenerating ? (
-                        <div className="flex h-full flex-col items-center justify-center py-20">
-                            <div className="relative mb-6">
-                                <Loader2 size={48} className="animate-spin text-[#00ffc2]/40" />
-                                <Sparkles size={20} className="absolute -top-1 -right-1 text-[#00ffc2] animate-pulse" />
-                            </div>
-                            <p className="text-lg font-bold text-[#b9cbc1]/80">
-                                {QUIZ_GENERATING_LABEL}
-                            </p>
-                        </div>
-                    ) : quizzes.length > 0 ? (
-                        <div className="space-y-12 pb-10">
-                            {quizzes.map((quiz, index) => (
-                                <QuizCard
-                                    key={quiz.quizId}
-                                    quiz={quiz}
-                                    index={index}
-                                    targetDate={targetDate}
-                                    quizType={quizType}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex h-full flex-col items-center justify-center py-20 text-center opacity-40">
-                            <HelpCircle size={48} className="mb-4" />
-                            <p className="text-lg font-medium">{REVIEW_NO_QUIZ_LABEL}</p>
-                        </div>
-                    )}
+  const contrastTextColor = theme === 'light' ? '#ffffff' : '#000000';
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-scrim/80 px-4 backdrop-blur-md"
+      onPointerDown={onClose}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        className="flex h-[95vh] w-full max-w-[800px] flex-col overflow-hidden rounded-[32px] bg-surface-lowest/92 text-text-primary shadow-2xl transition-all"
+        onPointerDown={(event) => event.stopPropagation()}
+      >
+        <div className="mx-auto flex h-full w-full max-w-[640px] min-w-0 flex-col px-6 py-6 md:px-7 md:py-7">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={QUIZ_CLOSE_LABEL}
+            className="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-text-primary/[0.04] text-text-secondary transition hover:bg-primary-signal hover:text-forest-bg"
+          >
+            <X size={18} />
+          </button>
+
+          <header className="shrink-0 pt-2">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-text-secondary/55">
+                  {QUIZ_MODAL_TITLE}
+                </p>
+                <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-text-primary">
+                  {tilTitle || QUIZ_MODAL_TITLE}
+                </h2>
+              </div>
+
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-bold text-text-primary">{formattedDate}</p>
+                <p className="mt-1 text-[11px] font-bold text-primary-signal">
+                  오늘 복습 {quizzes.length}개
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <div className="h-1.5 overflow-hidden rounded-full bg-text-primary/[0.04]">
+                <div
+                  className="h-full rounded-full bg-primary-signal transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.18em] text-text-secondary/40">
+                <span>진행 상황</span>
+                <span>{Math.round(progress)}% completed</span>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center">
+              <div className="inline-flex rounded-lg border border-text-secondary/10 bg-text-primary/[0.035] p-1">
+                <QuizTypeButton
+                  active={quizType === 'OX'}
+                  label="OX Quiz"
+                  contrastTextColor={contrastTextColor}
+                  onClick={() => onQuizTypeChange('OX')}
+                />
+                <QuizTypeButton
+                  active={quizType === 'SHORT_ANSWER'}
+                  label="Short Answer"
+                  contrastTextColor={contrastTextColor}
+                  onClick={() => onQuizTypeChange('SHORT_ANSWER')}
+                />
+              </div>
+            </div>
+          </header>
+
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto py-6">
+            {isGenerating ? (
+              <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 py-10 text-center">
+                <div className="relative">
+                  <Loader2 size={42} className="animate-spin text-primary-signal/30" />
+                  <Sparkles size={16} className="absolute -right-1 -top-1 text-primary-signal" />
                 </div>
+                <p className="text-sm font-medium text-text-secondary/80">{QUIZ_GENERATING_LABEL}</p>
+              </div>
+            ) : quizzes.length > 0 ? (
+              <div className="mx-auto flex w-full max-w-[580px] flex-col gap-4 pb-4">
+                {quizzes.map((quiz, index) => (
+                  <QuizCard
+                    key={quiz.quizId}
+                    quiz={quiz}
+                    index={index}
+                    targetDate={targetDate}
+                    quizType={quizType}
+                    contrastTextColor={contrastTextColor}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 py-10 text-center">
+                <HelpCircle size={42} className="text-text-secondary/35" />
+                <p className="text-sm font-medium text-text-secondary/70">{REVIEW_NO_QUIZ_LABEL}</p>
+              </div>
+            )}
+          </div>
 
-                <footer className="shrink-0 bg-[#0b0f12]/80 px-8 py-6 backdrop-blur-md">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 rounded-2xl bg-[#1c2023]/50 px-4 py-2 text-xs font-medium text-[#b9cbc1]/70 border border-[#3a4a43]/10">
-                            <Info size={16} className="text-[#00ffc2]" />
-                            <span>{quizType === 'OX' ? '정답을 선택하면 즉시 채점됩니다.' : '제출 후 해설을 보고 직접 확인해보세요.'}</span>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="h-12 min-w-[120px] rounded-tl-[24px] rounded-tr-md rounded-bl-md rounded-br-[24px] bg-[#00ffc2] px-8 text-sm font-black text-[#007255] transition-all hover:brightness-110 active:scale-95 shadow-lg shadow-[#00ffc2]/20"
-                        >
-                            {QUIZ_CLOSE_LABEL}
-                        </button>
-                    </div>
-                </footer>
-            </section>
+          <footer className="shrink-0 border-t border-text-secondary/5 pt-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 rounded-lg border border-text-secondary/10 bg-text-primary/[0.03] px-3 py-2 text-[11px] font-medium text-text-secondary/75">
+                <CheckCircle2 size={14} className="text-primary-signal" />
+                <span>
+                  {quizType === 'OX'
+                    ? '답을 누른 뒤 다시 누르면 수정할 수 있어요.'
+                    : '입력창을 다시 눌러 재도전할 수 있어요.'}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-10 min-w-[112px] items-center justify-center rounded-leaf bg-primary-signal px-5 text-[12px] font-extrabold transition hover:brightness-110 active:scale-95"
+                style={{ color: contrastTextColor }}
+              >
+                {QUIZ_CLOSE_LABEL}
+              </button>
+            </div>
+          </footer>
         </div>
-    );
+      </section>
+    </div>
+  );
 }
 
 function QuizCard({
-    quiz,
-    index,
-    targetDate,
-    quizType,
+  quiz,
+  index,
+  targetDate,
+  quizType,
+  contrastTextColor,
 }: {
-    quiz: RecallQuizResponse;
-    index: number;
-    targetDate: string;
-    quizType: RecallQuizType;
+  quiz: RecallQuizResponse;
+  index: number;
+  targetDate: string;
+  quizType: RecallQuizType;
+  contrastTextColor: string;
 }) {
-    const queryClient = useQueryClient();
-    const [answer, setAnswer] = useState(quiz.submittedAnswer ?? '');
-    const isSubmitted = quiz.solved;
-    const isShortAnswer = quizType === 'SHORT_ANSWER';
+  const queryClient = useQueryClient();
+  const [answer, setAnswer] = useState(quiz.submittedAnswer ?? '');
+  const [isRevealed, setIsRevealed] = useState(quiz.solved);
+  const isShortAnswer = quizType === 'SHORT_ANSWER';
 
-    const submitMutation = useRecallQuizSubmitMutation({
-        onSuccess: () => {
-            void queryClient.invalidateQueries({
-                queryKey: tilKeys.recallQuizzes(targetDate, quizType),
-            });
-        },
+  useEffect(() => {
+    setAnswer(quiz.submittedAnswer ?? '');
+    setIsRevealed(quiz.solved);
+  }, [quiz.quizId, quiz.solved, quiz.submittedAnswer]);
+
+  const submitMutation = useRecallQuizSubmitMutation({
+    onSuccess: () => {
+      setIsRevealed(true);
+      void queryClient.invalidateQueries({
+        queryKey: tilKeys.recallQuizzes(targetDate, quizType),
+      });
+    },
+  });
+
+  const handleSubmit = (submittedAnswer: string) => {
+    if (submitMutation.isPending) return;
+
+    setAnswer(submittedAnswer);
+    submitMutation.mutate({
+      quizId: quiz.quizId,
+      answer: submittedAnswer,
     });
+  };
 
-    const handleSubmit = (submittedAnswer: string) => {
-        if (isSubmitted || submitMutation.isPending) return;
-        setAnswer(submittedAnswer);
-        submitMutation.mutate({
-            quizId: quiz.quizId,
-            answer: submittedAnswer,
-        });
-    };
+  const handleRetry = () => {
+    setIsRevealed(false);
+    setAnswer('');
+  };
 
-    return (
-        <div className="relative flex flex-col gap-8 rounded-tl-[48px] rounded-tr-lg rounded-bl-lg rounded-br-[48px] bg-[#1c2023] p-8 border border-[#3a4a43]/20 shadow-xl overflow-hidden group">
-            {/* Background Accent Gradient */}
-            <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[#00ffc2]/5 blur-3xl transition-all group-hover:bg-[#00ffc2]/10" />
+  return (
+    <article className="group relative overflow-hidden rounded-tl-[32px] rounded-br-[32px] rounded-tr-xl rounded-bl-xl border border-text-secondary/8 bg-surface-container/85 p-4 shadow-sm transition hover:border-text-secondary/12">
+      <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-primary-signal/5 blur-3xl transition group-hover:bg-primary-signal/8" />
 
-            <div className="flex flex-col gap-4">
-                <p className="text-base font-bold uppercase tracking-widest text-[#00ffc2]">
-                    Question {index + 1}
-                </p>
-                <h3 className="text-2xl font-bold leading-tight text-[#fbfffa]">
-                    {quiz.question}
-                </h3>
-            </div>
-
-            <div className="flex flex-col gap-6">
-                {isShortAnswer ? (
-                    <div className="flex items-end gap-6 border-b border-[#3a4a43] pb-2 transition-focus-within focus-within:border-[#00ffc2]">
-                        <input
-                            type="text"
-                            value={answer}
-                            onChange={(e) => setAnswer(e.target.value)}
-                            disabled={isSubmitted}
-                            placeholder="정답을 입력하세요..."
-                            className="w-full bg-transparent py-2 text-2xl font-medium text-[#fbfffa] outline-none placeholder:text-[#b9cbc1]/20 disabled:opacity-50"
-                        />
-                        {!isSubmitted && (
-                            <button
-                                type="button"
-                                onClick={() => handleSubmit(answer)}
-                                disabled={!answer.trim() || submitMutation.isPending}
-                                className="mb-1 flex h-12 shrink-0 items-center justify-center rounded-tl-[24px] rounded-tr-md rounded-bl-md rounded-br-[24px] bg-[#00ffc2] px-8 text-lg font-black text-[#007255] transition-all hover:brightness-110 active:scale-95 disabled:opacity-30 disabled:grayscale"
-                            >
-                                {submitMutation.isPending ? <Loader2 size={24} className="animate-spin" /> : QUIZ_SELF_JUDGE_LABEL}
-                            </button>
-                        )}
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 gap-8">
-                        {(['O', 'X'] as const).map((option) => {
-                            const selected = answer === option;
-                            const isCorrect = isSubmitted && quiz.answer === option && quiz.correct === true;
-                            const isWrong = isSubmitted && selected && quiz.correct !== true;
-
-                            return (
-                                <button
-                                    key={option}
-                                    type="button"
-                                    onClick={() => handleSubmit(option)}
-                                    disabled={isSubmitted}
-                                    className={`relative flex h-20 items-center justify-center rounded-tl-[32px] rounded-tr-md rounded-bl-md rounded-br-[32px] border-2 text-3xl font-black transition-all ${
-                                        isCorrect
-                                            ? 'bg-[#00ffc2] border-[#00ffc2] text-[#007255] shadow-lg shadow-[#00ffc2]/20'
-                                            : isWrong
-                                                ? 'bg-red-500/20 border-red-500/50 text-red-400'
-                                                : selected
-                                                    ? 'bg-[#fbfffa]/10 border-[#fbfffa]/30 text-[#fbfffa]'
-                                                    : 'bg-[#313539] border-transparent text-[#e0e3e7] hover:border-[#3a4a43]/50 hover:bg-[#313539]/80'
-                                    } disabled:cursor-default`}
-                                >
-                                    {option}
-                                </button>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-
-            {isSubmitted && quiz.explanation && (
-                <div className="rounded-[32px] bg-[#181c1f] p-6 border-l-4 border-[#00ffc2] shadow-inner">
-                    <div className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-[#00ffc2]">
-                        <Info size={16} />
-                        <span>Analysis</span>
-                    </div>
-                    <p className="text-lg leading-relaxed text-[#b9cbc1]">
-                        {quiz.explanation}
-                    </p>
-                </div>
-            )}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-signal">
+            Question {index + 1}
+          </p>
+          <h3 className="mt-2 text-base font-extrabold leading-7 text-text-primary">{quiz.question}</h3>
         </div>
-    );
+
+        {isRevealed ? (
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold text-text-secondary/45 transition hover:bg-text-primary/[0.04] hover:text-primary-signal"
+          >
+            <RotateCcw size={12} />
+            다시 풀기
+          </button>
+        ) : null}
+      </div>
+
+      <div className="mt-4">
+        {isShortAnswer ? (
+          <div className="flex items-end gap-3 border-b border-text-secondary/10 pb-2 transition focus-within:border-primary-signal/50">
+            <input
+              type="text"
+              value={answer}
+              onChange={(event) => setAnswer(event.target.value)}
+              onFocus={() => isRevealed && handleRetry()}
+              placeholder="정답을 입력하세요"
+              className="w-full bg-transparent py-1.5 text-sm text-text-primary outline-none placeholder:text-text-secondary/25"
+            />
+            {!isRevealed ? (
+              <button
+                type="button"
+                onClick={() => handleSubmit(answer)}
+                disabled={!answer.trim() || submitMutation.isPending}
+                className="inline-flex h-9 shrink-0 items-center justify-center rounded-leaf bg-primary-signal px-4 text-[12px] font-extrabold transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-35"
+                style={{ color: contrastTextColor }}
+              >
+                {submitMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : QUIZ_SELF_JUDGE_LABEL}
+              </button>
+            ) : null}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-5 sm:gap-6">
+            {(['O', 'X'] as const).map((option) => {
+              const isMyAnswer = answer === option;
+              const isCorrectChoice = isRevealed && isMyAnswer && quiz.correct === true;
+              const isWrongChoice = isRevealed && isMyAnswer && quiz.correct === false;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    if (isRevealed) {
+                      if (isMyAnswer) handleRetry();
+                      return;
+                    }
+
+                    handleSubmit(option);
+                  }}
+                  className={`flex h-11 items-center justify-center rounded-tl-[24px] rounded-br-[24px] rounded-tr-md rounded-bl-md border text-sm font-bold transition ${
+                    isCorrectChoice
+                      ? 'border-action-accent/50 bg-action-accent/12'
+                      : isWrongChoice
+                        ? 'border-red-400/40 bg-red-400/10'
+                        : isMyAnswer && !isRevealed
+                          ? 'border-text-primary/25 bg-text-primary/6'
+                          : 'border-text-secondary/10 bg-surface-highest/50 hover:border-primary-signal/35'
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {isRevealed && quiz.explanation ? (
+        <div className="mt-4 rounded-xl border border-primary-signal/10 bg-surface-lowest/70 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-signal/85">해설</p>
+          <p className="mt-1.5 text-sm leading-6 text-text-secondary/80">{quiz.explanation}</p>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+function QuizTypeButton({
+  active,
+  label,
+  contrastTextColor,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  contrastTextColor: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-md px-4 py-2 text-[11px] font-bold transition ${
+        active ? 'bg-primary-signal shadow-sm' : 'text-text-secondary/65 hover:text-text-primary'
+      }`}
+      style={active ? { color: contrastTextColor } : undefined}
+    >
+      {label}
+    </button>
+  );
+}
+
+function formatDateLabel(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
