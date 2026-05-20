@@ -21,7 +21,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
     const isPanel = variant === 'panel';
     const sectionClassName = isPanel
         ? 'no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto bg-transparent px-5 py-5'
-        : 'bg-surface-lowest px-7 py-7 md:px-[60px]';
+        : 'bg-transparent px-7 py-7 md:px-[60px]';
 
     useEffect(() => {
         itemRefs.current = itemRefs.current.slice(0, visibleCards.length);

@@ -153,50 +153,48 @@ function ReviewStatusSummary({
 
     return (
         <>
-            <section className="shrink-0 border-b border-text-secondary/5 px-5 pb-5">
-                <div className="rounded-lg border border-text-secondary/8 bg-surface-highest/40 p-4">
-                    <header className="flex items-start">
-                        <div className="min-w-0">
-                            <p className="text-sm font-extrabold text-text-primary">
-                                {REVIEW_STATUS_TITLE}
-                            </p>
+            <section className="shrink-0 px-5 pb-6 pt-2">
+                <header className="flex items-start">
+                    <div className="min-w-0">
+                        <p className="text-sm font-extrabold text-text-primary">
+                            {REVIEW_STATUS_TITLE}
+                        </p>
+                        {quizzes.length > 0 && (
                             <p className="mt-1 text-xs leading-relaxed text-text-secondary/75">
-                                {quizzes.length > 0
-                                    ? (reviewed ? REVIEW_COMPLETE_DESCRIPTION : REVIEW_PENDING_DESCRIPTION)
-                                    : REVIEW_NO_QUIZ_LABEL}
+                                {reviewed ? REVIEW_COMPLETE_DESCRIPTION : REVIEW_PENDING_DESCRIPTION}
                             </p>
-                        </div>
-                    </header>
+                        )}
+                    </div>
+                </header>
 
-                    {quizzes.length > 0 ? (
-                        <button
-                            type="button"
-                            onClick={() => setIsQuizModalOpen(true)}
-                            className="mt-5 block w-full rounded-lg text-left transition hover:bg-text-primary/[0.025] focus:outline-none focus:ring-1 focus:ring-primary-signal/30"
-                        >
-                            <div className="rounded-lg border border-text-secondary/8 bg-text-primary/[0.02] p-4">
-                                <dl className="space-y-3 text-xs">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <dt className="text-text-secondary/65">{REVIEW_SOLVED_LABEL}</dt>
-                                        <dd className="font-bold text-text-primary">{solvedLabel}</dd>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-3">
-                                        <dt className="text-text-secondary/65">{REVIEW_CORRECT_LABEL}</dt>
-                                        <dd className="font-bold text-text-primary">{correctQuizCount}</dd>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-3">
-                                        <dt className="text-text-secondary/65">{REVIEW_STATUS_LABEL}</dt>
-                                        <dd className="font-bold text-text-primary">{reviewed ? REVIEW_SUBMITTED_LABEL : '-'}</dd>
-                                    </div>
-                                </dl>
-                            </div>
-                        </button>
-                    ) : (
-                        <div className="mt-5 rounded-lg border border-text-secondary/8 bg-text-primary/[0.02] p-4 text-sm text-text-secondary/75">
-                            복습할 퀴즈가 없습니다.
+                {quizzes.length > 0 ? (
+                    <button
+                        type="button"
+                        onClick={() => setIsQuizModalOpen(true)}
+                        className="mt-4 block w-full text-left transition focus:outline-none"
+                    >
+                        <div className="rounded-xl bg-text-primary/[0.03] p-4 transition hover:bg-text-primary/[0.05]">
+                            <dl className="space-y-3 text-xs">
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-text-secondary/65">{REVIEW_SOLVED_LABEL}</dt>
+                                    <dd className="font-bold text-text-primary">{solvedLabel}</dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-text-secondary/65">{REVIEW_CORRECT_LABEL}</dt>
+                                    <dd className="font-bold text-text-primary">{correctQuizCount}</dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-text-secondary/65">{REVIEW_STATUS_LABEL}</dt>
+                                    <dd className="font-bold text-text-primary">{reviewed ? REVIEW_SUBMITTED_LABEL : '-'}</dd>
+                                </div>
+                            </dl>
                         </div>
-                    )}
-                </div>
+                    </button>
+                ) : (
+                    <div className="mt-4 py-6 text-center text-sm italic text-text-secondary/50">
+                        {REVIEW_NO_QUIZ_LABEL}
+                    </div>
+                )}
             </section>
 
             {selectedTil && isQuizModalOpen && quizzes.length > 0 ? (
