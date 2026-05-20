@@ -29,6 +29,7 @@ const tokenProvider = {
   getAccessTokenExpiresAt: localAuthTokenStorage.getAccessTokenExpiresAt,
   getUsername: localAuthTokenStorage.getUsername,
   setUsername: localAuthTokenStorage.setUsername,
+  refreshWithLock: localAuthTokenStorage.refreshWithLock,
   setTokens: async (tokens: AuthTokens) => {
     await localAuthTokenStorage.setTokens(tokens);
   },
