@@ -7,13 +7,15 @@ import {
   CheckSquare,
   Eye,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Square,
   Sparkles,
   Star,
 } from 'lucide-react';
 import { getApiErrorMessage } from '@san/shared';
-import { CurvedButton, EmptyState, IconBox, TagBadge } from '@san/ui';
+import { CurvedButton, EmptyState, IconBox } from '@san/ui';
 import { githubApi } from '../../api/client';
 
 type ImportStage = 'idle' | 'loading' | 'ready';
@@ -117,7 +119,9 @@ export function GithubStarImportPage() {
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [scanPulse, setScanPulse] = useState(0);
   const [previewMode, setPreviewMode] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const resultsRef = useRef<HTMLDivElement | null>(null);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
 
   const githubLinkQuery = useQuery({
     queryKey: ['github', 'link-status'],
@@ -155,6 +159,24 @@ export function GithubStarImportPage() {
     };
   }, [stage]);
 
+  useEffect(() => {
+    if (stage !== 'ready' && !previewMode) {
+      setActiveIndex(0);
+      return;
+    }
+
+    const carousel = carouselRef.current;
+    if (!carousel) return undefined;
+
+    const handleScroll = () => {
+      setActiveIndex(Math.round(carousel.scrollLeft / carousel.clientWidth));
+    };
+
+    handleScroll();
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
+    return () => carousel.removeEventListener('scroll', handleScroll);
+  }, [previewMode, stage]);
+
   const handleLoadStars = () => {
     if (!isLinked || stage === 'loading') return;
     setAddedIds(new Set());
@@ -188,9 +210,28 @@ export function GithubStarImportPage() {
     });
   };
 
+  const scrollRecommendations = (direction: 'prev' | 'next') => {
+    const node = carouselRef.current;
+    if (!node) return;
+
+    const scrollAmount = node.clientWidth;
+    const isNext = direction === 'next';
+    if (isNext && node.scrollLeft + node.clientWidth >= node.scrollWidth - 10) {
+      node.scrollTo({ left: 0, behavior: 'smooth' });
+      return;
+    }
+    if (!isNext && node.scrollLeft <= 0) return;
+    node.scrollBy({
+      left: isNext ? scrollAmount : -scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
   const addedCount = addedIds.size;
   const remainingCount = MOCK_RECOMMENDATIONS.length - addedCount;
   const progress = MOCK_RECOMMENDATIONS.length > 0 ? (addedCount / MOCK_RECOMMENDATIONS.length) * 100 : 0;
+  const totalPages = Math.max(1, Math.ceil(MOCK_RECOMMENDATIONS.length / 3));
+  const hasRecommendationCards = stage === 'ready' || previewMode;
 
   const stageLabel = useMemo(() => {
     if (!isLinked) return '연결 필요';
@@ -250,7 +291,6 @@ export function GithubStarImportPage() {
     <section className="mx-auto w-full max-w-[720px] py-10 text-text-primary">
       <header className="flex flex-col gap-6 border-b border-text-secondary/8 pb-6">
         <div className="flex flex-col gap-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-primary-signal">GitHub star import</p>
           <h1 className="text-h1-bold text-text-primary">
             {linkedUsername ? (
               <>
@@ -265,14 +305,20 @@ export function GithubStarImportPage() {
             )}
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-text-secondary">
-            GitHub star 목록을 읽고, AI가 관련 스크랩 주소 10개를 추천합니다. 먼저 불러오고, 결과를 확인하고, 필요한 것만 아카이브에 추가하는 흐름입니다.
+            GitHub star 목록을 읽고, AI가 관련 스크랩 주소 10개를 추천합니다.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <CurvedButton type="button" leadingIcon={<Star size={16} />} onClick={handleLoadStars} disabled={stage === 'loading'}>
+          <button
+            type="button"
+            onClick={handleLoadStars}
+            disabled={stage === 'loading'}
+            className="inline-flex items-center gap-2 rounded-xl border border-text-secondary/10 bg-surface-lowest px-4 py-2 text-sm font-semibold text-text-primary transition hover:border-text-secondary/20 hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Star size={16} />
             Star 불러오기
-          </CurvedButton>
+          </button>
           <CurvedButton type="button" tone="ghost" onClick={() => navigate('/profile')}>
             프로필로 돌아가기
           </CurvedButton>
@@ -348,47 +394,96 @@ export function GithubStarImportPage() {
         </section>
 
         <section ref={resultsRef} className="rounded-leaf border border-text-secondary/10 glass-card bg-surface-container/80 p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <h2 className="mt-2 text-body-lg-bold text-text-primary">추천 스크랩 10개</h2>
               <p className="mt-2 text-sm leading-6 text-text-secondary">
                 가장 중요한 부분은 추천 결과 10개입니다. 여기에 결과가 채워지고, 사용자는 필요한 것만 아카이브에 넣습니다.
               </p>
             </div>
-            <div className="rounded-full bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
-              {remainingCount === 0 ? '모두 추가됨' : `${remainingCount}개 남음`}
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
+                {remainingCount === 0 ? '모두 추가됨' : `${remainingCount}개 남음`}
+              </div>
+              {hasRecommendationCards ? (
+                <div className="flex items-center gap-1.5 rounded-full border border-text-secondary/10 glass-card bg-surface-container/80 px-3 py-1.5 !shadow-none">
+                  <button
+                    type="button"
+                    onClick={() => scrollRecommendations('prev')}
+                    disabled={activeIndex === 0}
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20"
+                    aria-label="이전 추천 스크랩"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <div className="flex items-center gap-2 px-1">
+                    {Array.from({ length: totalPages }).map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => carouselRef.current?.scrollTo({ left: carouselRef.current.clientWidth * idx, behavior: 'smooth' })}
+                        className={`h-2.5 rounded-full transition-all duration-300 ${
+                          idx === activeIndex ? 'w-5 bg-primary-signal' : 'w-2.5 bg-surface-highest/70 hover:bg-surface-container/90'
+                        }`}
+                        aria-label={`${idx + 1}페이지로 이동`}
+                      />
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => scrollRecommendations('next')}
+                    disabled={activeIndex === totalPages - 1}
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-text-primary/40 transition hover:bg-surface-container/90 hover:text-text-primary disabled:opacity-20"
+                    aria-label="다음 추천 스크랩"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
 
           {!previewMode && stage !== 'ready' ? (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="mt-6 flex gap-4 overflow-hidden">
               {Array.from({ length: 10 }).map((_, index) => (
-                <div key={index} className="flex min-h-[168px] flex-col justify-between rounded-leaf bg-surface-lowest/80 p-4">
-                  <div className="space-y-3">
-                    <div className="h-3 w-10 rounded-full bg-text-secondary/10" />
-                    <div className="h-4 w-4/5 rounded-full bg-text-secondary/10" />
-                    <div className="h-3 w-full rounded-full bg-text-secondary/10" />
-                    <div className="h-3 w-5/6 rounded-full bg-text-secondary/10" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-text-secondary/50">0{index + 1}</span>
-                    <Sparkles size={14} className={stage === 'loading' ? 'animate-pulse text-primary-signal' : 'text-text-secondary/30'} />
+                <div
+                  key={index}
+                  className="flex h-[252px] min-w-full flex-col rounded-2xl bg-surface-lowest/80 p-4 sm:min-w-[calc((100%-1rem)/2)] lg:min-w-[calc((100%-2rem)/3)]"
+                >
+                  <div className="flex flex-1 flex-col justify-between gap-3">
+                    <div className="space-y-3">
+                      <div className="h-3 w-10 rounded-full bg-text-secondary/10" />
+                      <div className="h-4 w-4/5 rounded-full bg-text-secondary/10" />
+                      <div className="h-3 w-full rounded-full bg-text-secondary/10" />
+                      <div className="h-3 w-5/6 rounded-full bg-text-secondary/10" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-text-secondary/50">0{index + 1}</span>
+                      <Sparkles size={14} className={stage === 'loading' ? 'animate-pulse text-primary-signal' : 'text-text-secondary/30'} />
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div
+              ref={carouselRef}
+              className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            >
               {MOCK_RECOMMENDATIONS.map((item, index) => {
                 const isSelected = addedIds.has(item.id);
                 return (
-                  <RecommendationCard
+                  <div
                     key={item.id}
-                    item={item}
-                    index={index}
-                    isSelected={isSelected}
-                    onToggle={() => handleToggleRecommendation(item.id)}
-                  />
+                    className="min-w-full snap-start sm:min-w-[calc((100%-1rem)/2)] lg:min-w-[calc((100%-2rem)/3)]"
+                  >
+                    <RecommendationCard
+                      item={item}
+                      index={index}
+                      isSelected={isSelected}
+                      onToggle={() => handleToggleRecommendation(item.id)}
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -432,7 +527,7 @@ function RecommendationCard({
 }) {
   return (
     <article
-      className="group rounded-leaf bg-surface-lowest/80 p-4 transition hover:bg-surface-low"
+      className="group flex h-[252px] flex-col rounded-2xl border border-text-secondary/6 bg-surface-lowest/80 p-4 transition hover:border-text-secondary/10 hover:bg-surface-low"
       style={{
         animationDelay: `${index * 60}ms`,
         animationName: 'san-fade-up',
@@ -458,7 +553,12 @@ function RecommendationCard({
 
         <div className="flex flex-wrap gap-2">
           {item.tags.map((tag) => (
-            <TagBadge key={tag} label={tag} />
+            <span
+              key={tag}
+              className="inline-flex items-center rounded-full bg-text-primary/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary"
+            >
+              #{tag}
+            </span>
           ))}
         </div>
 
