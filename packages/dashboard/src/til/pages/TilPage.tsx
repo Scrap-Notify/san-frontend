@@ -139,7 +139,7 @@ export function TilPage() {
                         <span className="text-text-primary">earned</span>
                     </h1>
 
-                    <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                    <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
                         <div className="flex items-center gap-4">
                             <div
                                 className="relative flex items-center gap-1 px-1.5 py-1"
@@ -240,10 +240,10 @@ export function TilPage() {
                                 ) : null}
                             </div>
 
-                            <div className="hidden h-4 w-px bg-text-primary/10 md:block" />
+                            <div className="hidden h-4 w-px bg-text-primary/10 lg:block" />
                         </div>
 
-                        <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-end md:w-auto">
+                        <div className="flex w-full min-w-0 flex-row items-center gap-2 lg:w-auto lg:justify-end">
                             <TILModeTabs activeTab={activeTab} onChange={setActiveTab} />
 
                             <button
