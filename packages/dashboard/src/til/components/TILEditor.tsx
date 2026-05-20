@@ -17,9 +17,13 @@ import type {
 import { ContentEmptyState } from '@dashboard/components/shared/empty/ContentEmptyState';
 
 const STATUS_MESSAGE_VISIBLE_MS = 3500;
+const GENERATE_LABEL = '\uC0DD\uC131\uD558\uAE30';
+const REGENERATE_LABEL = '\uB2E4\uC2DC \uC0DD\uC131\uD558\uAE30';
+const GENERATING_LABEL = '\uC0DD\uC131\uD558\uB294 \uC911...';
 
 interface TILEditorProps {
     activeTab: TILMode;
+    selectedDate: string;
     title: string;
     setTitle: (value: string) => void;
     draft: string;
@@ -38,6 +42,7 @@ interface TILEditorProps {
 
 export function TILEditor({
                               activeTab,
+                              selectedDate,
                               title,
                               setTitle,
                               draft,
@@ -68,6 +73,7 @@ export function TILEditor({
     const setEditDraft = (value: string) => setEditDraftState({ key: draftKey, value });
     const isEditing = activeTab === 'edit';
     const isDrafts = activeTab === 'drafts';
+    const generateLabel = selectedDate === getTodayDate() ? GENERATE_LABEL : REGENERATE_LABEL;
     const displayedDraft = activeTab === 'drafts' ? aiDraft : editDraft;
     const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
 
@@ -267,7 +273,7 @@ export function TILEditor({
                                 className="flex items-center gap-1.5 font-bold text-action-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
-                                {isGenerating ? '생성하는 중...' : '다시 생성하기'}
+                                {isGenerating ? GENERATING_LABEL : generateLabel}
                             </button>
                         ) : null}
 
@@ -438,6 +444,14 @@ export function TILEditor({
 
 function isRunning(status?: string) {
     return status === 'PENDING' || status === 'PROCESSING';
+}
+
+function getTodayDate() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function removeTilDateHeading(content: string) {
