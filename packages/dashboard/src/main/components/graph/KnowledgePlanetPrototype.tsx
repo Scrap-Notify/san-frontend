@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FolderOpen, Loader2 } from 'lucide-react';
-import { useArchiveCategories, useArchiveCategoryCards, useArchiveCardTagRelations, useSimilarCards } from '@san/shared';
+import { useArchiveCategories, useArchiveCategoryCards, useArchiveCardTagRelations } from '@san/shared';
 import { graphFixtureCategories, graphFixtureLeavesByCategory } from './fixtures';
 
 /* ── types ── */
@@ -288,11 +288,11 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
         seen.add(catId);
         out.push({ catId, to: cat.idlePos });
       }
-    } catch (err) {
+    } catch {
       return [];
     }
     return out;
-  }, [selectedCat, rootSimilarQuery.data?.relatedCards, rootSimilarQuery.isError, selectedCatId, categories]);
+  }, [selectedCat, rootSimilarQuery.data, rootSimilarQuery.isError, selectedCatId, categories]);
 
   const linkedCatIds = useMemo(() => new Set(rootLinks.map(r => r.catId)), [rootLinks]);
 
@@ -315,7 +315,7 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
 
   const crossCards = useMemo<CrossCard[]>(() => {
     if (!hoveredCard || hoverSimilarQuery.isError || !hoverSimilarQuery.data?.relatedCards?.length) return [];
-    const out: CrossCard[] = [];
+    const out: { id: string; title: string; pos: Pos; catId: string }[] = [];
     try {
       const apiRelated = hoverSimilarQuery.data.relatedCards;
       for (const sc of apiRelated) {
@@ -331,11 +331,11 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
         });
         if (out.length >= 5) break;
       }
-    } catch (err) {
+    } catch {
       return [];
     }
     return out;
-  }, [hoveredCard, hoverSimilarQuery.data?.relatedCards, hoverSimilarQuery.isError, selectedCatId, categories]);
+  }, [hoveredCard, hoverSimilarQuery.data, hoverSimilarQuery.isError, selectedCatId, categories]);
 
   const crossCatIds = useMemo(() => new Set(crossCards.map(c => c.catId)), [crossCards]);
 
