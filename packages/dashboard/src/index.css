@@ -214,6 +214,19 @@ body {
   filter: brightness(0);
 }
 
+:root[data-theme='light'] .til-light-teal-accent {
+  color: var(--color-primary-signal);
+}
+
+:root[data-theme='light'] .til-light-teal-accent::after {
+  background-color: var(--color-primary-signal);
+}
+
+:root[data-theme='light'] .til-light-teal-badge {
+  background-color: color-mix(in oklab, var(--color-primary-signal) 12%, transparent);
+  color: var(--color-primary-signal);
+}
+
 .auth-shell {
   width: 100%;
   padding-inline: clamp(24px, 5vw, 96px);

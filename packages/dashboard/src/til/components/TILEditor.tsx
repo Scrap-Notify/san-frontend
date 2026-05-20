@@ -270,7 +270,7 @@ export function TILEditor({
                                 type="button"
                                 onClick={handleGenerate}
                                 disabled={isGenerating}
-                                className="flex items-center gap-1.5 font-bold text-action-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="til-light-teal-accent flex items-center gap-1.5 font-bold text-action-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
                                 {isGenerating ? GENERATING_LABEL : generateLabel}
