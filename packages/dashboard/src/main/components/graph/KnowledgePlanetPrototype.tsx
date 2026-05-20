@@ -15,9 +15,7 @@ type CrossCard = { id: string; title: string; pos: Pos; catId: string };
 
 /* ── layout ── */
 
-const MAX_CARDS = 40;
-
-const CAT_IDLE: Record<number, Pos[]> = {
+const MAX_CARDS = const CAT_IDLE_PRESETS: Record<number, Pos[]> = {
   1: [{ x: 50, y: 48 }],
   2: [{ x: 34, y: 42 }, { x: 66, y: 55 }],
   3: [{ x: 20, y: 38 }, { x: 55, y: 52 }, { x: 82, y: 36 }],
@@ -25,7 +23,7 @@ const CAT_IDLE: Record<number, Pos[]> = {
   5: [{ x: 14, y: 30 }, { x: 46, y: 22 }, { x: 82, y: 32 }, { x: 26, y: 60 }, { x: 68, y: 58 }],
 };
 
-const CAT_DOCK: Record<number, Pos[]> = {
+const CAT_DOCK_PRESETS: Record<number, Pos[]> = {
   1: [{ x: 50, y: 90 }],
   2: [{ x: 36, y: 90 }, { x: 64, y: 90 }],
   3: [{ x: 18, y: 91 }, { x: 50, y: 89 }, { x: 82, y: 91 }],
@@ -35,6 +33,54 @@ const CAT_DOCK: Record<number, Pos[]> = {
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.min(hi, Math.max(lo, v));
+}
+
+function getCategoryIdlePositions(total: number): Pos[] {
+  const preset = CAT_IDLE_PRESETS[total];
+  if (preset) return preset;
+
+  const columns = Math.ceil(Math.sqrt(total * 1.35));
+  const rows = Math.ceil(total / columns);
+  const xMin = 12;
+  const xMax = 88;
+  const yMin = 24;
+  const yMax = 66;
+  const rowGap = rows > 1 ? (yMax - yMin) / (rows - 1) : 0;
+  const columnGap = columns > 1 ? (xMax - xMin) / (columns - 1) : 0;
+
+  return Array.from({ length: total }, (_, i) => {
+    const row = Math.floor(i / columns);
+    const col = i % columns;
+    const rowCount = Math.min(columns, total - row * columns);
+    const xBase = rowCount === 1 ? 50 : xMin + (col / (rowCount - 1)) * (xMax - xMin);
+    const stagger = row % 2 === 1 ? columnGap * 0.28 : 0;
+
+    return {
+      x: clamp(xBase + stagger, 8, 92),
+      y: clamp(rows === 1 ? 44 : yMin + row * rowGap, 18, 72),
+    };
+  });
+}
+
+function getCategoryDockPositions(total: number): Pos[] {
+  const preset = CAT_DOCK_PRESETS[total];
+  if (preset) return preset;
+
+  const rows = total <= 6 ? 1 : 2;
+  const perRow = Math.ceil(total / rows);
+  const yPositions = rows === 1 ? [90] : [88, 95];
+
+  return Array.from({ length: total }, (_, i) => {
+    const row = Math.floor(i / perRow);
+    const col = i % perRow;
+    const rowCount = Math.min(perRow, total - row * perRow);
+    const x = rowCount === 1 ? 50 : 8 + (col / (rowCount - 1)) * 84;
+
+    return {
+      x: clamp(x, 6, 94),
+      y: yPositions[row] ?? 94,
+    };
+  });
 }
 
 function layoutCards(origin: Pos, total: number): { pos: Pos; layer: number }[] {
@@ -136,17 +182,14 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
     if (!showMarkers) return [];
     const apiCats = catQuery.data?.categories;
     if (!apiCats?.length && useFixtures) {
-      const n = Math.min(graphFixtureCategories.length, 5);
-      const idle = CAT_IDLE[n] ?? CAT_IDLE[5]!;
-      const dock = CAT_DOCK[n] ?? CAT_DOCK[5]!;
+      const idle = getCategoryIdlePositions(graphFixtureCategories.length);
+      const dock = getCategoryDockPositions(graphFixtureCategories.length);
       return graphFixtureCategories.map((c, i) => ({ id: c.id, name: c.name, count: 0, idlePos: idle[i], dockPos: dock[i] }));
     }
     if (!apiCats?.length) return [];
-    const sliced = apiCats.slice(0, 5);
-    const n = Math.min(sliced.length, 5);
-    const idle = CAT_IDLE[n] ?? CAT_IDLE[5]!;
-    const dock = CAT_DOCK[n] ?? CAT_DOCK[5]!;
-    return sliced.map((c, i) => ({ id: c.categoryId, name: c.categoryName, count: c.cardCount, idlePos: idle[i], dockPos: dock[i] }));
+    const idle = getCategoryIdlePositions(apiCats.length);
+    const dock = getCategoryDockPositions(apiCats.length);
+    return apiCats.map((c, i) => ({ id: c.categoryId, name: c.categoryName, count: c.cardCount, idlePos: idle[i], dockPos: dock[i] }));
   }, [catQuery.data?.categories, showMarkers, useFixtures]);
 
   const selectedCat = categories.find(c => c.id === selectedCatId) ?? null;
