@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ExternalLink,
   Loader2,
+  Eye,
   Sparkles,
   Star,
 } from 'lucide-react';
@@ -37,55 +38,55 @@ const MOCK_STAR_SOURCES = [
 const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
   {
     id: '1',
-    title: 'React Server Components 실전 정리',
+    title: 'React Server Components ?ㅼ쟾 ?뺣━',
     url: 'https://github.com/reactwg/server-components',
     repository: 'reactwg/server-components',
-    reason: 'React 계열 관심사가 높아 연결성이 강한 스크랩으로 판단됩니다.',
+    reason: 'React 怨꾩뿴 愿?ъ궗媛 ?믪븘 ?곌껐?깆씠 媛뺥븳 ?ㅽ겕?⑹쑝濡??먮떒?⑸땲??',
     tags: ['React', 'SSR', 'Web'],
     score: 98,
   },
   {
     id: '2',
-    title: 'TypeScript 타입 설계 패턴 모음',
+    title: 'TypeScript ????ㅺ퀎 ?⑦꽩 紐⑥쓬',
     url: 'https://github.com/microsoft/TypeScript',
     repository: 'microsoft/TypeScript',
-    reason: '언어와 타입 안전성 중심 탐색과 잘 맞는 축입니다.',
+    reason: '?몄뼱? ????덉쟾??以묒떖 ?먯깋怨???留욌뒗 異뺤엯?덈떎.',
     tags: ['TypeScript', 'Types', 'Architecture'],
     score: 95,
   },
   {
     id: '3',
-    title: 'Query 캐싱 전략 요약',
+    title: 'Query 罹먯떛 ?꾨왂 ?붿빟',
     url: 'https://github.com/TanStack/query',
     repository: 'TanStack/query',
-    reason: '상태 관리와 서버 데이터 패칭 흐름을 함께 다루기 좋습니다.',
+    reason: '?곹깭 愿由ъ? ?쒕쾭 ?곗씠???⑥묶 ?먮쫫???④퍡 ?ㅻ（湲?醫뗭뒿?덈떎.',
     tags: ['Query', 'Cache', 'Data'],
     score: 93,
   },
   {
     id: '4',
-    title: 'UI 컴포넌트 레이아웃 패턴',
+    title: 'UI 而댄룷?뚰듃 ?덉씠?꾩썐 ?⑦꽩',
     url: 'https://github.com/tailwindlabs/tailwindcss',
     repository: 'tailwindlabs/tailwindcss',
-    reason: '현재 화면에서 쓰는 레이아웃 언어와 가장 가까운 축입니다.',
+    reason: '?꾩옱 ?붾㈃?먯꽌 ?곕뒗 ?덉씠?꾩썐 ?몄뼱? 媛??媛源뚯슫 異뺤엯?덈떎.',
     tags: ['UI', 'Tailwind', 'Layout'],
     score: 91,
   },
   {
     id: '5',
-    title: 'GitHub Actions 배포 템플릿',
+    title: 'GitHub Actions 배포 워크플로우',
     url: 'https://github.com/actions/starter-workflows',
     repository: 'actions/starter-workflows',
-    reason: '자동화와 배포 관련 지식 흐름을 보강하기 좋습니다.',
+    reason: '?먮룞?붿? 諛고룷 愿??吏???먮쫫??蹂닿컯?섍린 醫뗭뒿?덈떎.',
     tags: ['CI/CD', 'GitHub Actions', 'Deploy'],
     score: 89,
   },
   {
     id: '6',
-    title: '모노레포 운영 가이드',
+    title: '紐⑤끂?덊룷 ?댁쁺 媛?대뱶',
     url: 'https://github.com/turborepo/turborepo',
     repository: 'turborepo/turborepo',
-    reason: '패키지 구조와 공유 모듈 관리 패턴을 참고하기 좋습니다.',
+    reason: '?⑦궎吏 援ъ“? 怨듭쑀 紐⑤뱢 愿由??⑦꽩??李멸퀬?섍린 醫뗭뒿?덈떎.',
     tags: ['Monorepo', 'Tooling', 'Workspace'],
     score: 88,
   },
@@ -94,34 +95,34 @@ const MOCK_RECOMMENDATIONS: MockRecommendation[] = [
     title: '접근성 체크리스트',
     url: 'https://github.com/w3c/aria-practices',
     repository: 'w3c/aria-practices',
-    reason: 'UI 품질과 사용자 경험을 끌어올리는 데 유리합니다.',
+    reason: 'UI ?덉쭏怨??ъ슜??寃쏀뿕???뚯뼱?щ━?????좊━?⑸땲??',
     tags: ['Accessibility', 'UX', 'A11y'],
     score: 87,
   },
   {
     id: '8',
-    title: '폼 상태 관리 패턴',
+    title: '???곹깭 愿由??⑦꽩',
     url: 'https://github.com/react-hook-form/react-hook-form',
     repository: 'react-hook-form/react-hook-form',
-    reason: '입력 폼이 많은 페이지에 바로 적용 가능한 지식입니다.',
+    reason: '?낅젰 ?쇱씠 留롮? ?섏씠吏??諛붾줈 ?곸슜 媛?ν븳 吏?앹엯?덈떎.',
     tags: ['Form', 'Input', 'Validation'],
     score: 86,
   },
   {
     id: '9',
-    title: '시각화 및 차트 구현 참고',
+    title: '?쒓컖??諛?李⑦듃 援ы쁽 李멸퀬',
     url: 'https://github.com/recharts/recharts',
     repository: 'recharts/recharts',
-    reason: '대시보드형 UI의 정보 밀도를 높이는 데 유리합니다.',
+    reason: '??쒕낫?쒗삎 UI???뺣낫 諛?꾨? ?믪씠?????좊━?⑸땲??',
     tags: ['Chart', 'Dashboard', 'Data Viz'],
     score: 84,
   },
   {
     id: '10',
-    title: '테스트 자동화 예제',
+    title: '?뚯뒪???먮룞???덉젣',
     url: 'https://github.com/vitest-dev/vitest',
     repository: 'vitest-dev/vitest',
-    reason: '반복 검증 흐름을 설명하는 스크랩으로 연결하기 좋습니다.',
+    reason: '諛섎났 寃利??먮쫫???ㅻ챸?섎뒗 ?ㅽ겕?⑹쑝濡??곌껐?섍린 醫뗭뒿?덈떎.',
     tags: ['Testing', 'Vitest', 'QA'],
     score: 83,
   },
@@ -132,6 +133,8 @@ export function GithubStarImportPage() {
   const [stage, setStage] = useState<ImportStage>('idle');
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [scanPulse, setScanPulse] = useState(0);
+  const [previewMode, setPreviewMode] = useState(false);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
 
   const githubLinkQuery = useQuery({
     queryKey: ['github', 'link-status'],
@@ -147,6 +150,7 @@ export function GithubStarImportPage() {
       setStage('idle');
       setAddedIds(new Set());
       setScanPulse(0);
+      setPreviewMode(false);
     }
   }, [isLinked]);
 
@@ -174,6 +178,14 @@ export function GithubStarImportPage() {
     setStage('loading');
   };
 
+  const handlePreviewResults = () => {
+    if (!isLinked) return;
+    setPreviewMode(true);
+    setStage('ready');
+    setScanPulse(100);
+    setAddedIds(new Set());
+  };
+
   const handleAdd = (id: string) => {
     setAddedIds((current) => {
       const next = new Set(current);
@@ -182,13 +194,24 @@ export function GithubStarImportPage() {
     });
   };
 
+  const scrollRecommendations = (direction: 'prev' | 'next') => {
+    const node = carouselRef.current;
+    if (!node) return;
+
+    const scrollAmount = node.clientWidth * 0.9;
+    node.scrollBy({
+      left: direction === 'next' ? scrollAmount : -scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
   const addedCount = addedIds.size;
   const remainingCount = MOCK_RECOMMENDATIONS.length - addedCount;
   const progress = MOCK_RECOMMENDATIONS.length > 0 ? (addedCount / MOCK_RECOMMENDATIONS.length) * 100 : 0;
   const stageLabel = useMemo(() => {
-    if (!isLinked) return '연결 필요';
+    if (!isLinked) return '?곌껐 ?꾩슂';
     if (stage === 'loading') return '분석 중';
-    if (stage === 'ready') return '추천 완료';
+    if (stage === 'ready') return '異붿쿇 ?꾨즺';
     return '대기 중';
   }, [isLinked, stage]);
 
@@ -198,10 +221,10 @@ export function GithubStarImportPage() {
         <EmptyState
           type="custom"
           variant="full"
-          title="GitHub 연동 상태를 확인할 수 없습니다."
-          description={getApiErrorMessage(githubLinkQuery.error, '연결 정보를 불러오지 못했습니다.')}
+          title="GitHub ?곕룞 ?곹깭瑜??뺤씤?????놁뒿?덈떎."
+          description={getApiErrorMessage(githubLinkQuery.error, '?곌껐 ?뺣낫瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??')}
           primaryAction={{
-            label: '프로필로 돌아가기',
+            label: '연동하러 가기',
             onClick: () => navigate('/profile'),
           }}
         />
@@ -213,7 +236,7 @@ export function GithubStarImportPage() {
     return (
       <section className="mx-auto flex w-full max-w-[960px] flex-col items-center justify-center py-20 text-center">
         <Loader2 size={34} className="animate-spin text-primary-signal" />
-        <p className="mt-4 text-sm font-medium text-text-secondary">GitHub 연동 상태를 확인하고 있습니다.</p>
+        <p className="mt-4 text-sm font-medium text-text-secondary">GitHub ?곕룞 ?곹깭瑜??뺤씤?섍퀬 ?덉뒿?덈떎.</p>
       </section>
     );
   }
@@ -224,8 +247,8 @@ export function GithubStarImportPage() {
         <EmptyState
           type="custom"
           variant="full"
-          title="GitHub 계정 연동이 필요합니다."
-          description="star 목록을 불러오려면 먼저 GitHub 계정을 연결해야 합니다."
+          title="GitHub 怨꾩젙 ?곕룞???꾩슂?⑸땲??"
+          description="star 紐⑸줉??遺덈윭?ㅻ젮硫?癒쇱? GitHub 怨꾩젙???곌껐?댁빞 ?⑸땲??"
           primaryAction={{
             label: '연동하러 가기',
             onClick: () => navigate('/settings/integrations'),
@@ -249,19 +272,19 @@ export function GithubStarImportPage() {
           <h1 className="text-h1-bold text-text-primary">
             {linkedUsername ? (
               <>
-                <span>반갑습니다, </span>
+                <span>諛섍컩?듬땲?? </span>
                 <span className="text-primary-signal">{linkedUsername}</span>
-                <span> 님.</span>
+                <span> ??</span>
                 <br />
-                <span>당신의 지식 세계를 분석합니다.</span>
+                <span>?뱀떊??吏???멸퀎瑜?遺꾩꽍?⑸땲??</span>
               </>
             ) : (
-              '당신의 지식 세계를 분석합니다.'
+              '?뱀떊??吏???멸퀎瑜?遺꾩꽍?⑸땲??'
             )}
           </h1>
           <p className="max-w-2xl text-sm leading-6 text-text-secondary">
-            GitHub star 목록을 읽고, AI가 관련도 높은 스크랩 주소 10개를 추천합니다.
-            사용자가 확인한 항목만 지식 아카이브에 추가하는 흐름으로 연결됩니다.
+            GitHub star 紐⑸줉???쎄퀬, AI媛 愿?⑤룄 ?믪? ?ㅽ겕??二쇱냼 10媛쒕? 異붿쿇?⑸땲??
+            ?ъ슜?먭? ?뺤씤????ぉ留?吏???꾩뭅?대툕??異붽??섎뒗 ?먮쫫?쇰줈 ?곌껐?⑸땲??
           </p>
         </div>
 
@@ -272,11 +295,18 @@ export function GithubStarImportPage() {
             onClick={handleLoadStars}
             disabled={stage === 'loading'}
           >
-            Star 불러오기
+            Star 遺덈윭?ㅺ린
+          </CurvedButton>
+          <CurvedButton
+            type="button"
+            tone="subtle"
+            leadingIcon={<Eye size={16} />}
+            onClick={handlePreviewResults}
+          >
+            異붿쿇 寃곌낵 誘몃━蹂닿린
           </CurvedButton>
           <CurvedButton type="button" tone="ghost" onClick={() => navigate('/profile')}>
-            프로필로 돌아가기
-          </CurvedButton>
+            ?꾨줈?꾨줈 ?뚯븘媛湲?          </CurvedButton>
         </div>
       </header>
 
@@ -297,7 +327,7 @@ export function GithubStarImportPage() {
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <StatBlock label="연결 계정" value={linkedUsername ?? '확인됨'} />
-            <StatBlock label="추천 후보" value={stage === 'ready' ? `${MOCK_RECOMMENDATIONS.length}개` : '대기'} />
+            <StatBlock label="추천 예고" value={stage === 'ready' ? `${MOCK_RECOMMENDATIONS.length}개` : '대기'} />
             <StatBlock label="추가 완료" value={stage === 'ready' ? `${addedCount}개` : '0개'} accent />
           </div>
 
@@ -315,7 +345,13 @@ export function GithubStarImportPage() {
               />
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-text-secondary/70">
-              <span>{stage === 'idle' ? '버튼을 누르면 스캔을 시작합니다.' : 'AI가 star와 스크랩의 연결을 읽는 중입니다.'}</span>
+              <span>
+                {stage === 'idle'
+                  ? '버튼을 누르면 분석이 시작됩니다.'
+                  : previewMode
+                    ? '미리보기 모드로 추천 결과를 보여줍니다.'
+                    : 'AI가 star와 스크랩의 연결을 계산하는 중입니다.'}
+              </span>
               {stage === 'loading' ? <span className="tabular-nums">{scanPulse}%</span> : null}
             </div>
           </div>
@@ -344,52 +380,86 @@ export function GithubStarImportPage() {
               <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text-secondary/60">
                 AI 추천 결과
               </p>
-              <h2 className="mt-2 text-body-lg-bold text-text-primary">관련 스크랩 10개</h2>
+              <h2 className="mt-2 text-body-lg-bold text-text-primary">추천 스크랩 10개</h2>
             </div>
             <div className="rounded-full border border-primary-signal/20 bg-primary-signal/10 px-3 py-1 text-[11px] font-bold text-primary-signal">
               {remainingCount === 0 ? '모두 추가됨' : `${remainingCount}개 남음`}
             </div>
           </div>
 
-          {stage !== 'ready' ? (
+          {!previewMode && stage !== 'ready' ? (
             <div className="mt-6">
               <AnalysisPlaceholder loading={stage === 'loading'} />
             </div>
           ) : (
             <div className="mt-6 space-y-4">
-              {MOCK_RECOMMENDATIONS.map((item, index) => {
-                const isAdded = addedIds.has(item.id);
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-secondary/60">
+                  추천 리스트
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => scrollRecommendations('prev')}
+                    className="rounded-full border border-text-secondary/10 bg-surface-lowest p-2 text-text-secondary transition hover:border-primary-signal/30 hover:text-primary-signal"
+                    aria-label="이전 추천"
+                  >
+                    <ArrowRight size={14} className="rotate-180" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollRecommendations('next')}
+                    className="rounded-full border border-text-secondary/10 bg-surface-lowest p-2 text-text-secondary transition hover:border-primary-signal/30 hover:text-primary-signal"
+                    aria-label="다음 추천"
+                  >
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
 
-                return (
-                  <RecommendationCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    isAdded={isAdded}
-                    onAdd={() => handleAdd(item.id)}
-                  />
-                );
-              })}
+              <div
+                ref={carouselRef}
+                className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
+              >
+                {MOCK_RECOMMENDATIONS.map((item, index) => {
+                  const isAdded = addedIds.has(item.id);
+
+                  return (
+                    <div key={item.id} className="min-w-[calc((100%-1rem)/2)] snap-start md:min-w-[calc((100%-2rem)/5)]">
+                      <RecommendationCard
+                        item={item}
+                        index={index}
+                        isAdded={isAdded}
+                        onAdd={() => handleAdd(item.id)}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </section>
-      </div>
 
-      {stage === 'ready' && (
-        <section className="mt-6 rounded-leaf border border-primary-signal/15 bg-primary-signal/8 p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-bold text-text-primary">검토 완료 후 아카이브 생성</p>
-              <p className="mt-1 text-xs leading-5 text-text-secondary">
-                사용자가 추가한 항목만 지식 아카이브로 생성됩니다. 다음 단계는 AI가 요약과 태그를 붙이는 흐름입니다.
-              </p>
+        {stage === 'ready' && (
+          <section className="rounded-leaf border border-primary-signal/15 bg-primary-signal/8 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold text-text-primary">
+                  {previewMode ? '추천 결과 미리보기' : '검토 완료 후 아카이브 생성'}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-text-secondary">
+                  {previewMode
+                    ? '추천 결과를 먼저 확인하고, 선택한 항목만 아카이브에 추가할 수 있습니다.'
+                    : '추가한 스크랩을 기반으로 새로운 지식 아카이브를 생성할 수 있습니다.'}
+                </p>
+              </div>
+              <CurvedButton type="button" leadingIcon={<ArrowRight size={16} />} onClick={() => navigate('/archive')}>
+                아카이브로 보기
+              </CurvedButton>
             </div>
-            <CurvedButton type="button" leadingIcon={<ArrowRight size={16} />} onClick={() => navigate('/archive')}>
-              아카이브로 보기
-            </CurvedButton>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
+      </div>
     </section>
   );
 }
@@ -410,17 +480,16 @@ function AnalysisPlaceholder({ loading }: { loading: boolean }) {
       )}
 
       <h3 className="mt-5 text-body-sm-bold text-text-primary">
-        {loading ? 'AI가 star 목록을 읽고 있어요.' : '분석을 시작하면 추천 결과가 나타납니다.'}
+        {loading ? 'AI가 star 목록을 읽고 있어요.' : '분석을 시작하면 추천 결과가 표시됩니다.'}
       </h3>
       <p className="mt-2 max-w-md text-sm leading-6 text-text-secondary">
         {loading
-          ? '최근 활동, 관심 기술, 저장 패턴을 바탕으로 관련 스크랩 후보를 추려내는 중입니다.'
-          : '왼쪽에서 Star 불러오기를 누르면 10개의 관련 스크랩이 표시됩니다.'}
+          ? '최근 활동, 관심 기술, 저장소 맥락을 함께 읽어 관련 스크랩을 계산하는 중입니다.'
+          : '왼쪽에서 Star 불러오기를 누르면 10개의 추천 스크랩이 순서대로 나타납니다.'}
       </p>
     </div>
   );
 }
-
 function RecommendationCard({
   item,
   index,
@@ -467,7 +536,7 @@ function RecommendationCard({
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-signal transition hover:opacity-80"
               >
-                원본 보기
+                ?먮낯 蹂닿린
                 <ExternalLink size={12} />
               </a>
               <button
@@ -479,10 +548,10 @@ function RecommendationCard({
                 {isAdded ? (
                   <>
                     <CheckCircle2 size={14} className="mr-1.5" />
-                    추가됨
+                    異붽???
                   </>
                 ) : (
-                  '내 아카이브에 추가'
+                  '???꾩뭅?대툕??異붽?'
                 )}
               </button>
             </div>
