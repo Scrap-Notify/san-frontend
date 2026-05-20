@@ -24,11 +24,13 @@ export async function completeAuth(tokens: AuthTokens, clientType: ClientType, u
   void syncDashboardBridgeAuth();
 }
 
-async function syncDashboardBridgeAuth() {
+export async function syncDashboardBridgeAuth() {
   try {
     const { ticket } = await authApi.createBridgeTicket();
     await syncExtensionBridgeTicket(ticket);
+    return true;
   } catch (error) {
     console.info('[SAN:extension-auth] dashboard login extension bridge skipped', error);
+    return false;
   }
 }

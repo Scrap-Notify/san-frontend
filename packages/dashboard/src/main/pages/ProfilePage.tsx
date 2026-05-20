@@ -12,6 +12,7 @@ import {
   type ExtensionShortcuts,
   type TilRecallSettings,
 } from '../../api/extensionAuth';
+import { syncDashboardBridgeAuth } from '../../auth/lib/completeAuth';
 import { useToast } from '../../components/shared/toast/toastContext';
 
 const sessionLabel: Record<AuthSession['clientType'], string> = {
@@ -182,7 +183,8 @@ export function ProfilePage() {
   useEffect(() => {
     let ignore = false;
 
-    getExtensionTilRecallSettings()
+    syncDashboardBridgeAuth()
+      .then(() => getExtensionTilRecallSettings())
       .then((settings) => {
         if (ignore) return;
         setRecallSettings(settings);
@@ -218,7 +220,13 @@ export function ProfilePage() {
     setIsRecallSettingsSaving(true);
 
     try {
-      const savedSettings = await setExtensionTilRecallSettings(nextSettings);
+      let savedSettings: TilRecallSettings;
+      try {
+        savedSettings = await setExtensionTilRecallSettings(nextSettings);
+      } catch {
+        await syncDashboardBridgeAuth();
+        savedSettings = await setExtensionTilRecallSettings(nextSettings);
+      }
       setRecallSettings(savedSettings);
       showToast({
         type: 'success',
