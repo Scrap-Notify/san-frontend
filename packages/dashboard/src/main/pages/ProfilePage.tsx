@@ -588,7 +588,7 @@ function ProfileSettingsCards({
   };
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)]">
+    <section className="relative z-20 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)]">
       <section className="rounded-lg border border-text-secondary/[0.07] glass-card bg-surface-container/70 p-5">
         <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
           <Keyboard size={16} className="text-primary-signal" />
