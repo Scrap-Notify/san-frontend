@@ -508,7 +508,8 @@ export function GithubStarImportPage() {
                   <RecommendationCard
                     item={item}
                     index={index}
-                    isCollecting={collectingId === item.recommendationId || collectRecommendationMutation.isPending}
+                    isCollecting={collectingId === item.recommendationId}
+                    isDisabled={collectRecommendationMutation.isPending}
                     onCreate={() => {
                       setActionMessage(null);
                       collectRecommendationMutation.mutate(item.recommendationId);
@@ -542,11 +543,13 @@ function RecommendationCard({
   item,
   index,
   isCollecting,
+  isDisabled,
   onCreate,
 }: {
   item: GithubStarRecommendation;
   index: number;
   isCollecting: boolean;
+  isDisabled: boolean;
   onCreate: () => void;
 }) {
   return (
@@ -598,7 +601,7 @@ function RecommendationCard({
             <button
               type="button"
               onClick={onCreate}
-              disabled={isCollecting}
+              disabled={isDisabled}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-text-secondary/10 bg-surface-lowest px-3 py-2 text-[11px] font-bold text-text-primary transition hover:border-text-secondary/20 hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isCollecting ? <Loader2 size={12} className="animate-spin" /> : <Square size={12} />}
