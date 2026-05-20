@@ -1,11 +1,13 @@
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
-import { asyncJobsApi, tilApi } from '@dashboard/api/client';
-import type { TilResponse } from '@san/shared';
+import { asyncJobsApi, recallApi, tilApi } from '@dashboard/api/client';
+import type { RecallQuizListResponse, RecallQuizType, TilResponse } from '@san/shared';
 
 export const tilKeys = {
   all: ['til'] as const,
   byDate: (date: string) => [...tilKeys.all, date] as const,
   recallCards: (summaryId: string | null | undefined) => [...tilKeys.all, 'recall-cards', summaryId] as const,
+  recallQuizzes: (targetDate: string | null | undefined, quizType: RecallQuizType) =>
+    [...tilKeys.all, 'recall-quizzes', targetDate, quizType] as const,
   sources: (summaryId: string | null | undefined) => [...tilKeys.all, 'sources', summaryId] as const,
   asyncJob: (jobId: string | null | undefined) => ['async-job', jobId] as const,
 };
@@ -26,6 +28,18 @@ export function useTilRecallCards(summaryId: string | null | undefined) {
     queryKey: tilKeys.recallCards(summaryId),
     queryFn: () => tilApi.getRecallCards(summaryId ?? ''),
     enabled: Boolean(summaryId),
+  });
+}
+
+export function useTilRecallQuizzes(
+  targetDate: string | null | undefined,
+  quizType: RecallQuizType = 'OX',
+  enabled = true,
+) {
+  return useQuery<RecallQuizListResponse>({
+    queryKey: tilKeys.recallQuizzes(targetDate, quizType),
+    queryFn: () => recallApi.getQuizzes(targetDate ?? '', quizType),
+    enabled: Boolean(targetDate) && enabled,
   });
 }
 

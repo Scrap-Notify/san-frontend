@@ -1,55 +1,35 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, PackageOpen, Search, X } from 'lucide-react';
-import type { TilResponse, TilSourceContentResponse } from '@san/shared';
+import { useQueryClient } from '@tanstack/react-query';
+import { CheckCircle2, Search, X } from 'lucide-react';
+import type {
+    RecallQuizResponse,
+    RecallQuizType,
+    TilResponse,
+    TilSourceContentResponse,
+} from '@san/shared';
 import type { TilRecallCardsQuery, TilSourcesQuery } from '../types';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
+import { useRecallQuizSubmitMutation } from '../hooks/useTilMutations';
+import { tilKeys, useTilRecallQuizzes } from '../hooks/useTilQueries';
 import { RecallHistory } from './RecallHistory';
 
 const EMPTY_SOURCES: TilSourceContentResponse[] = [];
-const REVIEW_STATUS_TITLE = '\uBCF5\uC2B5 \uD604\uD669';
-const REVIEW_COMPLETE_DESCRIPTION = 'Recall \uD034\uC988 \uC81C\uCD9C \uAE30\uB85D\uC774 \uC788\uC5B4\uC694.';
-const REVIEW_PENDING_DESCRIPTION = 'Recall \uD034\uC988\uB97C \uD480\uBA74 \uBCF5\uC2B5 \uC644\uB8CC\uB85C \uD45C\uC2DC\uB429\uB2C8\uB2E4.';
-const REVIEW_SOLVED_LABEL = '\uD480\uC774 \uD604\uD669';
-const REVIEW_CORRECT_LABEL = '\uC815\uB2F5 \uC218';
-const REVIEW_STATUS_LABEL = '\uC0C1\uD0DC';
-const REVIEW_SUBMITTED_LABEL = '\uC81C\uCD9C \uC644\uB8CC';
-const REVIEW_EMPTY_TITLE = '\uC544\uC9C1 \uCE74\uB4DC\uAC00 \uC5C6\uC5B4\uC694';
-const REVIEW_EMPTY_DESCRIPTION = 'TIL\uC744 \uC0DD\uC131\uD558\uBA74 \uBCF5\uC2B5 \uD604\uD669\uC774 \uC774\uACF3\uC5D0 \uD45C\uC2DC\uB3FC\uC694.';
-const REVIEW_NO_QUIZ_LABEL = '\uBCF5\uC2B5\uD560 \uD034\uC988\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.';
-const QUIZ_MODAL_TITLE = 'Recall \uD034\uC988';
-const QUIZ_MODAL_DESCRIPTION = '\uC120\uD0DD\uD55C TIL\uC744 \uAE30\uBC18\uC73C\uB85C \uBCF5\uC2B5 \uBB38\uC81C\uB97C \uD480\uC5B4\uBCF4\uC138\uC694.';
-const QUIZ_CLOSE_LABEL = '\uB2EB\uAE30';
-const QUIZ_SUBMIT_LABEL = '\uC815\uB2F5 \uD655\uC778';
-const QUIZ_NEXT_LABEL = '\uB2E4\uC74C \uBB38\uC81C';
-const QUIZ_DONE_LABEL = '\uC644\uB8CC';
-const QUIZ_CORRECT_LABEL = '\uC815\uB2F5\uC774\uC5D0\uC694';
-const QUIZ_INCORRECT_LABEL = '\uB2E4\uC2DC \uD655\uC778\uD574\uBCF4\uC138\uC694';
-const MOCK_REVIEW_QUIZZES = [
-    {
-        id: 'mock-quiz-1',
-        question: 'TIL\uC5D0\uC11C \uC815\uB9AC\uD55C \uD575\uC2EC \uAC1C\uB150\uC740 \uC2E4\uC81C \uC0AC\uB840\uC640 \uD568\uAED8 \uC774\uD574\uD558\uB294 \uAC83\uC774 \uC88B\uB2E4.',
-        answer: 'O',
-        explanation: '\uD575\uC2EC \uAC1C\uB150\uC744 \uC0AC\uB840\uC640 \uC5F0\uACB0\uD558\uBA74 \uB2E4\uC74C\uC5D0 \uB354 \uBE60\uB974\uAC8C \uB5A0\uC62C\uB9B4 \uC218 \uC788\uC5B4\uC694.',
-        solved: true,
-        correct: true,
-    },
-    {
-        id: 'mock-quiz-2',
-        question: '\uC624\uB298 \uBCF5\uC2B5\uD560 \uCE74\uB4DC\uB294 TIL\uACFC \uAD00\uB828 \uC5C6\uB294 \uC784\uC758\uC758 \uCE74\uB4DC\uB9CC \uC120\uD0DD\uB41C\uB2E4.',
-        answer: 'X',
-        explanation: 'Recall\uC740 \uC120\uD0DD\uB41C TIL\uACFC \uC5F0\uACB0\uB41C \uCE74\uB4DC\uB97C \uAE30\uBC18\uC73C\uB85C \uBCF5\uC2B5 \uD750\uB984\uC744 \uB9CC\uB4DC\uB294 \uC601\uC5ED\uC785\uB2C8\uB2E4.',
-        solved: true,
-        correct: false,
-    },
-    {
-        id: 'mock-quiz-3',
-        question: 'TIL\uC744 \uC0DD\uC131\uD55C \uB4A4\uC5D0\uB3C4 \uBCF5\uC2B5 \uD034\uC988\uB97C \uD1B5\uD574 \uAE30\uC5B5\uC744 \uB2E4\uC2DC \uC810\uAC80\uD560 \uC218 \uC788\uB2E4.',
-        answer: 'O',
-        explanation: '\uD034\uC988\uB294 TIL\uC744 \uC77D\uB294 \uAC83\uC5D0\uC11C \uB05D\uB098\uC9C0 \uC54A\uACE0 \uAE30\uC5B5\uC744 \uC7AC\uD655\uC778\uD558\uB294 \uC7A5\uCE58\uB85C \uC0AC\uC6A9\uB429\uB2C8\uB2E4.',
-        solved: false,
-        correct: null,
-    },
-] as const;
+const REVIEW_STATUS_TITLE = '복습 현황';
+const REVIEW_COMPLETE_DESCRIPTION = 'Recall 퀴즈 제출 기록이 있어요.';
+const REVIEW_PENDING_DESCRIPTION = 'Recall 퀴즈를 풀면 복습 완료로 표시됩니다.';
+const REVIEW_SOLVED_LABEL = '풀이 현황';
+const REVIEW_CORRECT_LABEL = '정답 수';
+const REVIEW_STATUS_LABEL = '상태';
+const REVIEW_SUBMITTED_LABEL = '제출 완료';
+const REVIEW_NO_QUIZ_LABEL = '복습할 퀴즈가 없습니다.';
+const QUIZ_MODAL_TITLE = 'Recall 퀴즈';
+const QUIZ_MODAL_DESCRIPTION = '선택한 TIL을 기반으로 복습 문제를 풀어보세요.';
+const QUIZ_CLOSE_LABEL = '닫기';
+const QUIZ_SUBMIT_LABEL = '정답 확인';
+const QUIZ_NEXT_LABEL = '다음 문제';
+const QUIZ_DONE_LABEL = '완료';
+const QUIZ_CORRECT_LABEL = '정답이에요';
+const QUIZ_INCORRECT_LABEL = '다시 확인해보세요';
 
 interface CollectedDataPanelProps {
     sourcesQuery: TilSourcesQuery;
@@ -65,6 +45,7 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
     const debouncedSearch = useDebounce(searchQuery, 300);
     const sources = sourcesQuery.data?.sources ?? EMPTY_SOURCES;
     const recallCount = recallCardsQuery.data?.recallCards.length ?? 0;
+    const recallQuizzesQuery = useTilRecallQuizzes(selectedTil?.targetDate, 'OX', Boolean(selectedTil));
 
     const items: CollectedDataItem[] = useMemo(() => {
         const baseItems = sources.map((source) => ({
@@ -94,7 +75,7 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
     return (
         <aside className="flex h-full w-full flex-col overflow-hidden bg-transparent">
             <ReviewStatusSummary
-                recallCount={recallCount}
+                recallQuizzes={recallQuizzesQuery.data?.quizzes ?? []}
                 selectedTil={selectedTil}
             />
 
@@ -157,14 +138,14 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
 }
 
 function ReviewStatusSummary({
-    recallCount,
+    recallQuizzes,
     selectedTil,
 }: {
-    recallCount: number;
+    recallQuizzes: RecallQuizResponse[];
     selectedTil: TilResponse | null;
 }) {
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
-    const quizzes = selectedTil && recallCount > 0 ? MOCK_REVIEW_QUIZZES : [];
+    const quizzes = selectedTil ? recallQuizzes : [];
     const solvedQuizCount = quizzes.filter((quiz) => quiz.solved).length;
     const correctQuizCount = quizzes.filter((quiz) => quiz.correct === true).length;
     const reviewed = solvedQuizCount > 0;
@@ -173,78 +154,57 @@ function ReviewStatusSummary({
     return (
         <>
             <section className="shrink-0 border-b border-text-secondary/5 px-5 pb-5">
-                {selectedTil ? (
-                    quizzes.length > 0 ? (
+                <div className="rounded-lg border border-text-secondary/8 bg-surface-highest/40 p-4">
+                    <header className="flex items-start">
+                        <div className="min-w-0">
+                            <p className="text-sm font-extrabold text-text-primary">
+                                {REVIEW_STATUS_TITLE}
+                            </p>
+                            <p className="mt-1 text-xs leading-relaxed text-text-secondary/75">
+                                {quizzes.length > 0
+                                    ? (reviewed ? REVIEW_COMPLETE_DESCRIPTION : REVIEW_PENDING_DESCRIPTION)
+                                    : REVIEW_NO_QUIZ_LABEL}
+                            </p>
+                        </div>
+                    </header>
+
+                    {quizzes.length > 0 ? (
                         <button
                             type="button"
                             onClick={() => setIsQuizModalOpen(true)}
-                            className="block w-full rounded-lg text-left transition hover:bg-text-primary/[0.025] focus:outline-none focus:ring-1 focus:ring-primary-signal/30"
+                            className="mt-5 block w-full rounded-lg text-left transition hover:bg-text-primary/[0.025] focus:outline-none focus:ring-1 focus:ring-primary-signal/30"
                         >
-                            <div className="px-1 py-1">
-                                <header className="flex items-start">
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-extrabold text-text-primary">
-                                            {REVIEW_STATUS_TITLE}
-                                        </p>
-                                        <p className="mt-1 text-xs leading-relaxed text-text-secondary/75">
-                                            {reviewed ? REVIEW_COMPLETE_DESCRIPTION : REVIEW_PENDING_DESCRIPTION}
-                                        </p>
+                            <div className="rounded-lg border border-text-secondary/8 bg-text-primary/[0.02] p-4">
+                                <dl className="space-y-3 text-xs">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <dt className="text-text-secondary/65">{REVIEW_SOLVED_LABEL}</dt>
+                                        <dd className="font-bold text-text-primary">{solvedLabel}</dd>
                                     </div>
-                                </header>
-
-                                <div className="mt-5 rounded-lg border border-text-secondary/8 bg-surface-highest/40 p-4">
-                                    <dl className="space-y-3 text-xs">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <dt className="text-text-secondary/65">{REVIEW_SOLVED_LABEL}</dt>
-                                            <dd className="font-bold text-text-primary">{solvedLabel}</dd>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3">
-                                            <dt className="text-text-secondary/65">{REVIEW_CORRECT_LABEL}</dt>
-                                            <dd className="font-bold text-text-primary">{correctQuizCount}</dd>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-3">
-                                            <dt className="text-text-secondary/65">{REVIEW_STATUS_LABEL}</dt>
-                                            <dd className="font-bold text-text-primary">{reviewed ? REVIEW_SUBMITTED_LABEL : '-'}</dd>
-                                        </div>
-                                    </dl>
-                                </div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <dt className="text-text-secondary/65">{REVIEW_CORRECT_LABEL}</dt>
+                                        <dd className="font-bold text-text-primary">{correctQuizCount}</dd>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <dt className="text-text-secondary/65">{REVIEW_STATUS_LABEL}</dt>
+                                        <dd className="font-bold text-text-primary">{reviewed ? REVIEW_SUBMITTED_LABEL : '-'}</dd>
+                                    </div>
+                                </dl>
                             </div>
                         </button>
                     ) : (
-                        <div className="rounded-lg border border-text-secondary/8 bg-surface-highest/40 p-4">
-                            <header className="flex items-start">
-                                <div className="min-w-0">
-                                    <p className="text-sm font-extrabold text-text-primary">
-                                        {REVIEW_STATUS_TITLE}
-                                    </p>
-                                    <p className="mt-1 text-xs leading-relaxed text-text-secondary/75">
-                                        {REVIEW_NO_QUIZ_LABEL}
-                                    </p>
-                                </div>
-                            </header>
+                        <div className="mt-5 rounded-lg border border-text-secondary/8 bg-text-primary/[0.02] p-4 text-sm text-text-secondary/75">
+                            복습할 퀴즈가 없습니다.
                         </div>
-                    )
-                ) : (
-                    <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-                        <div className="til-light-teal-accent text-action-accent/80 drop-shadow-[0_0_18px_rgba(119,255,210,0.22)]">
-                            <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-body-sm font-medium text-text-secondary">
-                                {REVIEW_EMPTY_TITLE}
-                            </p>
-                            <p className="text-caption text-text-secondary/60">
-                                {REVIEW_EMPTY_DESCRIPTION}
-                            </p>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </section>
 
-            {selectedTil && isQuizModalOpen ? (
+            {selectedTil && isQuizModalOpen && quizzes.length > 0 ? (
                 <RecallQuizModal
                     onClose={() => setIsQuizModalOpen(false)}
                     tilTitle={selectedTil.title}
+                    targetDate={selectedTil.targetDate}
+                    quizzes={quizzes}
                 />
             ) : null}
         </>
@@ -253,27 +213,73 @@ function ReviewStatusSummary({
 
 function RecallQuizModal({
     onClose,
+    quizzes,
+    targetDate,
     tilTitle,
 }: {
     onClose: () => void;
+    quizzes: RecallQuizResponse[];
+    targetDate: string;
     tilTitle: string | null;
 }) {
+    const queryClient = useQueryClient();
+    const [localQuizzes, setLocalQuizzes] = useState<RecallQuizResponse[]>(() => quizzes);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState<'O' | 'X' | null>(null);
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const quiz = MOCK_REVIEW_QUIZZES[currentIndex];
-    const isCorrect = selectedAnswer === quiz.answer;
-    const isLastQuiz = currentIndex === MOCK_REVIEW_QUIZZES.length - 1;
+    const [selectedAnswer, setSelectedAnswer] = useState(() => quizzes[0]?.submittedAnswer ?? '');
+    const [isSubmitted, setIsSubmitted] = useState(() => quizzes[0]?.solved ?? false);
+    const currentQuiz = localQuizzes[currentIndex];
+    const quizType: RecallQuizType = localQuizzes[0]?.quizType ?? 'OX';
+
+    const submitMutation = useRecallQuizSubmitMutation({
+        onSuccess: (response) => {
+            setIsSubmitted(true);
+            setLocalQuizzes((currentQuizzes) =>
+                currentQuizzes.map((quiz) =>
+                    quiz.quizId === response.quizId ? { ...quiz, ...response } : quiz,
+                ),
+            );
+
+            void queryClient.invalidateQueries({
+                queryKey: tilKeys.recallQuizzes(targetDate, quizType),
+            });
+        },
+    });
+
+    if (!currentQuiz) {
+        return null;
+    }
+
+    const isCorrect = currentQuiz.correct === true;
+    const isLastQuiz = currentIndex === localQuizzes.length - 1;
+    const isShortAnswer = currentQuiz.quizType === 'SHORT_ANSWER';
+    const isSubmitDisabled = submitMutation.isPending || (!isSubmitted && !selectedAnswer.trim());
 
     const goNext = () => {
-        if (!isSubmitted || !selectedAnswer) return;
+        if (!isSubmitted) return;
+
         if (isLastQuiz) {
             onClose();
             return;
         }
+
+        const nextQuiz = localQuizzes[currentIndex + 1];
         setCurrentIndex((index) => index + 1);
-        setSelectedAnswer(null);
-        setIsSubmitted(false);
+        setSelectedAnswer(nextQuiz?.submittedAnswer ?? '');
+        setIsSubmitted(nextQuiz?.solved ?? false);
+    };
+
+    const handleSubmit = () => {
+        if (submitMutation.isPending) return;
+
+        if (!isSubmitted) {
+            submitMutation.mutate({
+                quizId: currentQuiz.quizId,
+                answer: selectedAnswer.trim(),
+            });
+            return;
+        }
+
+        goNext();
     };
 
     return (
@@ -291,7 +297,7 @@ function RecallQuizModal({
                 <header className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                         <p className="text-[11px] font-bold uppercase tracking-widest text-text-secondary/60">
-                            {currentIndex + 1} / {MOCK_REVIEW_QUIZZES.length}
+                            {currentIndex + 1} / {localQuizzes.length}
                         </p>
                         <h2 id="recall-quiz-title" className="mt-1 text-lg font-extrabold text-text-primary">
                             {QUIZ_MODAL_TITLE}
@@ -312,39 +318,55 @@ function RecallQuizModal({
 
                 <div className="mt-6 rounded-lg border border-text-secondary/8 bg-text-primary/[0.025] p-4">
                     <p className="text-base font-bold leading-relaxed text-text-primary">
-                        {quiz.question}
+                        {currentQuiz.question}
                     </p>
 
-                    <div className="mt-5 grid grid-cols-2 gap-3">
-                        {(['O', 'X'] as const).map((answer) => {
-                            const selected = selectedAnswer === answer;
-                            const correctAnswer = quiz.answer === answer;
-                            const showCorrect = isSubmitted && correctAnswer;
-                            const showWrong = isSubmitted && selected && !correctAnswer;
+                    {isShortAnswer ? (
+                        <label className="mt-5 block">
+                            <span className="sr-only">정답 입력</span>
+                            <input
+                                type="text"
+                                value={selectedAnswer}
+                                onChange={(event) => {
+                                    if (isSubmitted) return;
+                                    setSelectedAnswer(event.target.value);
+                                }}
+                                disabled={isSubmitted}
+                                placeholder="정답을 입력하세요"
+                                className="h-14 w-full rounded-lg border border-text-secondary/10 bg-surface-highest/30 px-4 text-sm font-medium text-text-primary outline-none transition placeholder:text-text-secondary/50 focus:border-primary-signal/40 disabled:cursor-not-allowed disabled:opacity-70"
+                            />
+                        </label>
+                    ) : (
+                        <div className="mt-5 grid grid-cols-2 gap-3">
+                            {(['O', 'X'] as const).map((answer) => {
+                                const selected = selectedAnswer === answer;
+                                const showCorrect = isSubmitted && currentQuiz.submittedAnswer === answer && currentQuiz.correct === true;
+                                const showWrong = isSubmitted && selected && currentQuiz.correct !== true;
 
-                            return (
-                                <button
-                                    key={answer}
-                                    type="button"
-                                    onClick={() => {
-                                        if (isSubmitted) return;
-                                        setSelectedAnswer(answer);
-                                    }}
-                                    className={`flex h-14 items-center justify-center rounded-lg border text-xl font-black transition ${
-                                        showCorrect
-                                            ? 'til-light-teal-accent border-action-accent/50 bg-action-accent/12 text-action-accent'
-                                            : showWrong
-                                                ? 'border-red-400/45 bg-red-400/10 text-red-300'
-                                                : selected
-                                                    ? 'border-text-primary/25 bg-text-primary/8 text-text-primary'
-                                                    : 'border-text-secondary/10 bg-surface-highest/30 text-text-secondary hover:border-primary-signal/35 hover:text-text-primary'
-                                    }`}
-                                >
-                                    {answer}
-                                </button>
-                            );
-                        })}
-                    </div>
+                                return (
+                                    <button
+                                        key={answer}
+                                        type="button"
+                                        onClick={() => {
+                                            if (isSubmitted) return;
+                                            setSelectedAnswer(answer);
+                                        }}
+                                        className={`flex h-14 items-center justify-center rounded-lg border text-xl font-black transition ${
+                                            showCorrect
+                                                ? 'til-light-teal-accent border-action-accent/50 bg-action-accent/12 text-action-accent'
+                                                : showWrong
+                                                    ? 'border-red-400/45 bg-red-400/10 text-red-300'
+                                                    : selected
+                                                        ? 'border-text-primary/25 bg-text-primary/8 text-text-primary'
+                                                        : 'border-text-secondary/10 bg-surface-highest/30 text-text-secondary hover:border-primary-signal/35 hover:text-text-primary'
+                                        }`}
+                                    >
+                                        {answer}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     {isSubmitted ? (
                         <div className="mt-4 rounded-lg bg-text-primary/[0.035] p-3">
@@ -353,7 +375,7 @@ function RecallQuizModal({
                                 {isCorrect ? QUIZ_CORRECT_LABEL : QUIZ_INCORRECT_LABEL}
                             </p>
                             <p className="mt-2 text-xs leading-relaxed text-text-secondary/75">
-                                {quiz.explanation}
+                                {currentQuiz.explanation || ''}
                             </p>
                         </div>
                     ) : null}
@@ -369,18 +391,17 @@ function RecallQuizModal({
                     </button>
                     <button
                         type="button"
-                        onClick={() => {
-                            if (!selectedAnswer) return;
-                            if (!isSubmitted) {
-                                setIsSubmitted(true);
-                                return;
-                            }
-                            goNext();
-                        }}
-                        disabled={!selectedAnswer}
+                        onClick={handleSubmit}
+                        disabled={isSubmitDisabled}
                         className="h-9 rounded-lg bg-action-accent px-4 text-sm font-bold text-text-on-accent transition hover:bg-action-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        {!isSubmitted ? QUIZ_SUBMIT_LABEL : isLastQuiz ? QUIZ_DONE_LABEL : QUIZ_NEXT_LABEL}
+                        {submitMutation.isPending
+                            ? QUIZ_SUBMIT_LABEL
+                            : !isSubmitted
+                                ? QUIZ_SUBMIT_LABEL
+                                : isLastQuiz
+                                    ? QUIZ_DONE_LABEL
+                                    : QUIZ_NEXT_LABEL}
                     </button>
                 </footer>
             </section>
