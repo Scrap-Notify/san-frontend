@@ -20,10 +20,18 @@ export type {
 export { createGithubApi } from './github';
 export type {
   GithubApi,
+} from './github';
+export type {
+  GithubAuthorizeUrlResponse,
   GithubLinkStatus,
   GithubRepository,
   GithubRepositoryConnectRequest,
-} from './github';
+  GithubStarRecommendation,
+  GithubStarRecommendationCollectResponse,
+  GithubStarRecommendationGenerationAcceptedResponse,
+  GithubStarRecommendationGenerationResponse,
+  GithubStarRecommendationsResponse,
+} from '../types';
 export { createFeedbackApi } from './feedback';
 export type {
   FeedbackApi,

@@ -4,6 +4,17 @@ export type { BaseEntity } from './common';
 export type { AuthProvider, User, UserStatus } from './user';
 export type { AsyncJobStatus, AsyncJobStatusResponse, AsyncJobType } from './async';
 export type {
+  GithubAuthorizeUrlResponse,
+  GithubLinkStatus,
+  GithubRepository,
+  GithubRepositoryConnectRequest,
+  GithubStarRecommendation,
+  GithubStarRecommendationCollectResponse,
+  GithubStarRecommendationGenerationAcceptedResponse,
+  GithubStarRecommendationGenerationResponse,
+  GithubStarRecommendationsResponse,
+} from './github';
+export type {
   AiStatus,
   CreateScrapRequest,
   CreateScrapResponse,
