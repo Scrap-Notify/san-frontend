@@ -141,9 +141,9 @@ export function TilPage() {
                     </h1>
 
                     <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-                        <div className="flex items-center gap-4">
+                        <div className="flex min-w-0 shrink-0 items-center gap-4">
                             <div
-                                className="relative flex items-center gap-1 px-1.5 py-1"
+                                className="relative flex shrink-0 items-center gap-1 px-1.5 py-1"
                                 onPointerDown={(event) => event.stopPropagation()}
                             >
                                 <button
@@ -162,7 +162,7 @@ export function TilPage() {
                                         setOpenTilMenuId(null);
                                         setIsTitleMenuOpen(false);
                                     }}
-                                    className="flex min-w-[118px] items-center justify-center px-1.5 py-0.5 text-center text-sm font-semibold tracking-wide text-text-primary"
+                                    className="flex min-w-[168px] shrink-0 items-center justify-center whitespace-nowrap px-2 py-0.5 text-center text-sm font-semibold tracking-wide text-text-primary"
                                     aria-expanded={isCalendarOpen}
                                 >
                                     {dateLabel}
@@ -213,7 +213,7 @@ export function TilPage() {
                                                 const dayValue = shiftDate(day);
                                                 const isCurrentMonth = day.getMonth() === calendarMonth.getMonth();
                                                 const isSelected = dayValue === selectedDate;
-                                                const isDisabled = dayValue > maxSelectableDate;
+                                                const isDisabled = dayValue > latestGeneratedTilDate;
 
                                                 return (
                                                     <button
@@ -241,10 +241,11 @@ export function TilPage() {
                                 ) : null}
                             </div>
 
-                            <div className="hidden h-4 w-px bg-text-primary/10 lg:block" />
+                            <div className="hidden h-4 w-px bg-text-primary/10 xl:block" />
                         </div>
 
-                        <div className="flex w-full min-w-0 flex-row items-center gap-2 lg:w-auto lg:justify-end">
+                        <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-end xl:w-auto">
+                        <div className="flex w-full min-w-0 flex-row items-center gap-2 sm:justify-end xl:w-auto">
                             <TILModeTabs activeTab={activeTab} onChange={setActiveTab} />
 
                             <button
