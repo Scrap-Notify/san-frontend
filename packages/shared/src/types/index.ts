@@ -50,6 +50,15 @@ export type {
   TilUpdateRequest,
 } from './til';
 export type {
+  RecallQuizGenerateRequest,
+  RecallQuizGenerationJobResponse,
+  RecallQuizListResponse,
+  RecallQuizResponse,
+  RecallQuizSubmitRequest,
+  RecallQuizSubmitResponse,
+  RecallQuizType,
+} from './recall';
+export type {
   ArchiveCardTagRelationResponse,
   ArchiveCardTagResponse,
   ArchiveCategoryCardListResponse,

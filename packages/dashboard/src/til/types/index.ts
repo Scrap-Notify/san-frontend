@@ -1,6 +1,8 @@
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 import type {
   AsyncJobStatusResponse,
+  RecallQuizListResponse,
+  RecallQuizSubmitResponse,
   TilGenerationJobResponse,
   TilGithubCommitJobResponse,
   TilRecallCardsResponse,
@@ -14,6 +16,7 @@ export type TilJobTone = 'idle' | 'pending' | 'success' | 'error';
 
 export type TilListQuery = UseQueryResult<TilResponse[]>;
 export type TilRecallCardsQuery = UseQueryResult<TilRecallCardsResponse>;
+export type TilRecallQuizzesQuery = UseQueryResult<RecallQuizListResponse>;
 export type TilSourcesQuery = UseQueryResult<TilSourcesResponse>;
 export type TilJobStatusQuery = UseQueryResult<AsyncJobStatusResponse>;
 
@@ -21,6 +24,7 @@ export type TilGenerateMutation = UseMutationResult<TilGenerationJobResponse, Er
 export type TilGithubCommitMutation = UseMutationResult<TilGithubCommitJobResponse, Error, string, unknown>;
 export type TilUpdateMutation = UseMutationResult<TilResponse, Error, { summaryId: string; title: string; content: string }, unknown>;
 export type TilDeleteMutation = UseMutationResult<void, Error, string, unknown>;
+export type RecallQuizSubmitMutation = UseMutationResult<RecallQuizSubmitResponse, Error, { quizId: string; answer: string }, unknown>;
 
 export interface TilSourceContent {
   inputType: 'text' | 'url' | 'image' | string;

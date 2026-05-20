@@ -1,6 +1,15 @@
 import { useMutation } from '@tanstack/react-query';
-import type { TilGenerationJobResponse, TilGithubCommitJobResponse, TilResponse, TilUpdateRequest } from '@san/shared';
-import { tilApi } from '@dashboard/api/client';
+import type {
+  RecallQuizGenerateRequest,
+  RecallQuizGenerationJobResponse,
+  RecallQuizSubmitRequest,
+  RecallQuizSubmitResponse,
+  TilGenerationJobResponse,
+  TilGithubCommitJobResponse,
+  TilResponse,
+  TilUpdateRequest,
+} from '@san/shared';
+import { recallApi, tilApi } from '@dashboard/api/client';
 
 interface UseTilGenerateMutationOptions {
   targetDate: string;
@@ -11,6 +20,19 @@ export function useTilGenerateMutation({ targetDate, onSuccess }: UseTilGenerate
   return useMutation({
     mutationFn: () => tilApi.generate({ targetDate }),
     onSuccess,
+  });
+}
+
+interface UseRecallQuizGenerateMutationOptions {
+  onSuccess?: (response: RecallQuizGenerationJobResponse) => void;
+  onError?: (error: unknown) => void;
+}
+
+export function useRecallQuizGenerateMutation({ onSuccess, onError }: UseRecallQuizGenerateMutationOptions = {}) {
+  return useMutation({
+    mutationFn: (payload: RecallQuizGenerateRequest) => recallApi.requestQuizGeneration(payload),
+    onSuccess,
+    onError,
   });
 }
 
@@ -48,6 +70,18 @@ interface UseTilDeleteMutationOptions {
 export function useTilDeleteMutation({ onSuccess }: UseTilDeleteMutationOptions = {}) {
   return useMutation({
     mutationFn: (summaryId: string) => tilApi.delete(summaryId),
+    onSuccess,
+  });
+}
+
+interface UseRecallQuizSubmitMutationOptions {
+  onSuccess?: (response: RecallQuizSubmitResponse, variables: { quizId: string; answer: string }) => void;
+}
+
+export function useRecallQuizSubmitMutation({ onSuccess }: UseRecallQuizSubmitMutationOptions = {}) {
+  return useMutation({
+    mutationFn: ({ quizId, answer }: { quizId: string; answer: string }) =>
+      recallApi.submitQuiz(quizId, { answer } satisfies RecallQuizSubmitRequest),
     onSuccess,
   });
 }

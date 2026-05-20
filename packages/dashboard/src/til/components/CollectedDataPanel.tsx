@@ -1,11 +1,30 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
-import type { TilResponse, TilSourceContentResponse } from '@san/shared';
+import { useQueryClient } from '@tanstack/react-query';
+import { Search, Loader2 } from 'lucide-react';
+import type {
+    RecallQuizResponse,
+    RecallQuizType,
+    TilResponse,
+    TilSourceContentResponse,
+} from '@san/shared';
 import type { TilRecallCardsQuery, TilSourcesQuery } from '../types';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
+import { useRecallQuizGenerateMutation } from '../hooks/useTilMutations';
+import { tilKeys, useTilAsyncJobStatus, useTilRecallQuizzes } from '../hooks/useTilQueries';
 import { RecallHistory } from './RecallHistory';
+import { RecallQuizModal } from './RecallQuizModal';
 
 const EMPTY_SOURCES: TilSourceContentResponse[] = [];
+const REVIEW_STATUS_TITLE = '복습 현황';
+const REVIEW_COMPLETE_DESCRIPTION = 'Recall 퀴즈 제출 기록이 있어요.';
+const REVIEW_PENDING_DESCRIPTION = 'Recall 퀴즈를 풀면 복습 완료로 표시됩니다.';
+const REVIEW_SOLVED_LABEL = '풀이 현황';
+const REVIEW_CORRECT_LABEL = '정답 수';
+const REVIEW_STATUS_LABEL = '상태';
+const REVIEW_SUBMITTED_LABEL = '제출 완료';
+const REVIEW_NO_QUIZ_LABEL = '복습할 퀴즈가 없습니다.';
+const QUIZ_GENERATE_LABEL = '퀴즈 생성하기';
+const QUIZ_GENERATING_LABEL = 'AI가 퀴즈를 생성하고 있어요...';
 
 interface CollectedDataPanelProps {
     sourcesQuery: TilSourcesQuery;
@@ -17,10 +36,12 @@ type PanelTab = 'sources' | 'recall';
 
 export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil }: CollectedDataPanelProps) {
     const [activeTab, setActiveTab] = useState<PanelTab>('recall');
+    const [quizType, setQuizType] = useState<RecallQuizType>('OX');
     const [searchQuery, setSearchQuery] = useState('');
     const debouncedSearch = useDebounce(searchQuery, 300);
     const sources = sourcesQuery.data?.sources ?? EMPTY_SOURCES;
     const recallCount = recallCardsQuery.data?.recallCards.length ?? 0;
+    const recallQuizzesQuery = useTilRecallQuizzes(selectedTil?.targetDate, quizType, Boolean(selectedTil));
 
     const items: CollectedDataItem[] = useMemo(() => {
         const baseItems = sources.map((source) => ({
@@ -49,6 +70,13 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
 
     return (
         <aside className="flex h-full w-full flex-col overflow-hidden bg-transparent">
+            <ReviewStatusSummary
+                recallQuizzesQuery={recallQuizzesQuery}
+                selectedTil={selectedTil}
+                quizType={quizType}
+                onQuizTypeChange={setQuizType}
+            />
+
             <header className="flex shrink-0 items-center gap-2 border-b border-text-secondary/5 p-3">
                 <PanelTabButton
                     active={activeTab === 'recall'}
@@ -107,6 +135,179 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
     );
 }
 
+function ReviewStatusSummary({
+    recallQuizzesQuery,
+    selectedTil,
+    quizType,
+    onQuizTypeChange,
+}: {
+    recallQuizzesQuery: any;
+    selectedTil: TilResponse | null;
+    quizType: RecallQuizType;
+    onQuizTypeChange: (type: RecallQuizType) => void;
+}) {
+    const queryClient = useQueryClient();
+    const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+    const [quizJobId, setQuizJobId] = useState<string | null>(null);
+    const [hasRequestedGeneration, setHasRequestedGeneration] = useState(false);
+    const quizzes = recallQuizzesQuery.data?.quizzes ?? [];
+    const solvedQuizCount = quizzes.filter((quiz: RecallQuizResponse) => quiz.solved).length;
+    const correctQuizCount = quizzes.filter((quiz: RecallQuizResponse) => quiz.correct === true).length;
+    const reviewed = solvedQuizCount > 0;
+    const solvedLabel = quizzes.length > 0 ? `${solvedQuizCount}/${quizzes.length}` : '0/0';
+
+    const generateMutation = useRecallQuizGenerateMutation({
+        onSuccess: (response) => {
+            setQuizJobId(response.quizJobId);
+        },
+        onError: (error: any) => {
+            if (error?.response?.status === 409) {
+                setHasRequestedGeneration(true);
+                void queryClient.invalidateQueries({
+                    queryKey: tilKeys.recallQuizzes(selectedTil?.targetDate, quizType),
+                });
+            } else {
+                setHasRequestedGeneration(false);
+            }
+        }
+    });
+
+    const quizJobStatusQuery = useTilAsyncJobStatus(quizJobId);
+
+    useEffect(() => {
+        if (quizJobStatusQuery.data?.status === 'COMPLETED' && selectedTil) {
+            void queryClient.invalidateQueries({
+                queryKey: tilKeys.recallQuizzes(selectedTil.targetDate, quizType),
+            });
+            setQuizJobId(null);
+        }
+        if (quizJobStatusQuery.data?.status === 'FAILED') {
+            setQuizJobId(null);
+            setHasRequestedGeneration(false);
+        }
+    }, [quizJobStatusQuery.data?.status, queryClient, selectedTil, quizType]);
+
+    const isGenerating = generateMutation.isPending || quizJobStatusQuery.data?.status === 'PENDING' || quizJobStatusQuery.data?.status === 'PROCESSING';
+    const canGenerate = !isGenerating && !hasRequestedGeneration;
+
+    const handleGenerate = () => {
+        if (!selectedTil || !canGenerate) return;
+        setHasRequestedGeneration(true);
+        generateMutation.mutate({
+            targetDate: selectedTil.targetDate,
+            quizType,
+        });
+    };
+
+    useEffect(() => {
+        setHasRequestedGeneration(false);
+        setQuizJobId(null);
+    }, [selectedTil?.summaryId, quizType]);
+
+    useEffect(() => {
+        if (
+            selectedTil &&
+            recallQuizzesQuery.isSuccess &&
+            quizzes.length === 0 &&
+            canGenerate &&
+            !quizJobId
+        ) {
+            handleGenerate();
+        }
+    }, [
+        selectedTil,
+        recallQuizzesQuery.isSuccess,
+        quizzes.length,
+        canGenerate,
+        quizJobId,
+    ]);
+
+    useEffect(() => {
+        if (generateMutation.isError && !isGenerating) {
+            setHasRequestedGeneration(false);
+        }
+    }, [generateMutation.isError, isGenerating]);
+
+    return (
+        <>
+            <section className="shrink-0 px-5 pb-6 pt-2">
+                <header className="flex items-center justify-between">
+                    <div className="min-w-0">
+                        <p className="text-sm font-extrabold text-text-primary">
+                            {REVIEW_STATUS_TITLE}
+                        </p>
+                    </div>
+                </header>
+                {quizzes.length > 0 && (
+                    <p className="mt-1 text-xs leading-relaxed text-text-secondary/75">
+                        {reviewed ? REVIEW_COMPLETE_DESCRIPTION : REVIEW_PENDING_DESCRIPTION}
+                    </p>
+                )}
+
+                {quizzes.length > 0 ? (
+                    <button
+                        type="button"
+                        onClick={() => setIsQuizModalOpen(true)}
+                        className="mt-4 block w-full text-left transition focus:outline-none"
+                    >
+                        <div className="rounded-xl bg-text-primary/[0.03] p-4 transition hover:bg-text-primary/[0.05]">
+                            <dl className="space-y-3 text-xs">
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-text-secondary/65">{REVIEW_SOLVED_LABEL}</dt>
+                                    <dd className="font-bold text-text-primary">{solvedLabel}</dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-text-secondary/65">{REVIEW_CORRECT_LABEL}</dt>
+                                    <dd className="font-bold text-text-primary">{correctQuizCount}</dd>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <dt className="text-text-secondary/65">{REVIEW_STATUS_LABEL}</dt>
+                                    <dd className="font-bold text-text-primary">{reviewed ? REVIEW_SUBMITTED_LABEL : '-'}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </button>
+                ) : (
+                    <div className="mt-4 flex flex-col items-center gap-3 py-6">
+                        <p className="text-center text-sm italic text-text-secondary/50">
+                            {REVIEW_NO_QUIZ_LABEL}
+                        </p>
+                        {selectedTil && (
+                            <button
+                                type="button"
+                                onClick={handleGenerate}
+                                disabled={!canGenerate}
+                                className="flex items-center gap-2 rounded-lg bg-primary-signal/10 px-4 py-2 text-xs font-bold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <Loader2 size={14} className="animate-spin" />
+                                        {QUIZ_GENERATING_LABEL}
+                                    </>
+                                ) : (
+                                    QUIZ_GENERATE_LABEL
+                                )}
+                            </button>
+                        )}
+                    </div>
+                )}
+            </section>
+
+            {selectedTil && isQuizModalOpen ? (
+                <RecallQuizModal
+                    onClose={() => setIsQuizModalOpen(false)}
+                    tilTitle={selectedTil.title}
+                    targetDate={selectedTil.targetDate}
+                    quizzes={quizzes}
+                    quizType={quizType}
+                    onQuizTypeChange={onQuizTypeChange}
+                    isGenerating={isGenerating}
+                />
+            ) : null}
+        </>
+    );
+}
+
 function PanelTabButton({
     active,
     badge,
@@ -124,13 +325,13 @@ function PanelTabButton({
             onClick={onClick}
             className={`relative flex h-9 flex-1 items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-8 after:-translate-x-1/2 after:transition-all ${
                 active
-                    ? 'text-action-accent after:bg-action-accent'
+                    ? 'til-light-teal-accent text-action-accent after:bg-action-accent'
                     : 'text-text-secondary/65 after:bg-transparent hover:text-text-primary/90 hover:after:bg-text-primary/20'
             }`}
         >
             {label}
             {badge ? (
-                <span className="rounded-full bg-action-accent/15 px-1.5 py-0.5 text-[10px] text-action-accent">
+                <span className="til-light-teal-badge rounded-full bg-action-accent/15 px-1.5 py-0.5 text-[10px] text-action-accent">
                     {badge}
                 </span>
             ) : null}

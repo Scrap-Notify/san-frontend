@@ -17,9 +17,13 @@ import type {
 import { ContentEmptyState } from '@dashboard/components/shared/empty/ContentEmptyState';
 
 const STATUS_MESSAGE_VISIBLE_MS = 3500;
+const GENERATE_LABEL = '\uC0DD\uC131\uD558\uAE30';
+const REGENERATE_LABEL = '\uB2E4\uC2DC \uC0DD\uC131\uD558\uAE30';
+const GENERATING_LABEL = '\uC0DD\uC131\uD558\uB294 \uC911...';
 
 interface TILEditorProps {
     activeTab: TILMode;
+    selectedDate: string;
     title: string;
     setTitle: (value: string) => void;
     draft: string;
@@ -38,6 +42,7 @@ interface TILEditorProps {
 
 export function TILEditor({
                               activeTab,
+                              selectedDate,
                               title,
                               setTitle,
                               draft,
@@ -68,8 +73,9 @@ export function TILEditor({
     const setEditDraft = (value: string) => setEditDraftState({ key: draftKey, value });
     const isEditing = activeTab === 'edit';
     const isDrafts = activeTab === 'drafts';
+    const generateLabel = selectedDate === getTodayDate() ? GENERATE_LABEL : REGENERATE_LABEL;
     const displayedDraft = activeTab === 'drafts' ? aiDraft : editDraft;
-    const isEmptyTil = !isTilLoading && !selectedTil && !displayedDraft.trim() && !isGenerating;
+    const isEmptyTil = !isTilLoading && !selectedTil && !isGenerating;
 
     const handleEditorMount: OnMount = (editor) => {
         editorRef.current = editor;
@@ -264,10 +270,10 @@ export function TILEditor({
                                 type="button"
                                 onClick={handleGenerate}
                                 disabled={isGenerating}
-                                className="flex items-center gap-1.5 font-bold text-action-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="til-light-teal-accent flex items-center gap-1.5 font-bold text-action-accent transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <RotateCcw size={14} className={isGenerating ? 'animate-spin' : ''} />
-                                {isGenerating ? '생성하는 중...' : '다시 생성하기'}
+                                {isGenerating ? GENERATING_LABEL : generateLabel}
                             </button>
                         ) : null}
 
@@ -297,11 +303,22 @@ export function TILEditor({
                             <div className="h-4 w-5/6 rounded bg-text-primary/5" />
                         </div>
                     ) : isEmptyTil ? (
-                        <ContentEmptyState
+                        <div className="flex min-h-[500px] flex-col items-center justify-center gap-5">
+                            <ContentEmptyState
                             variant="til"
                             title="오늘은 작성된 TIL이 없어요"
                             description={'뿌리가 튼튼하게 자리를 잡았습니다.\n새로운 지식을 수확하면 오늘의 TIL을 정리할 수 있어요.'}
-                        />
+                            />
+                            <button
+                                type="button"
+                                onClick={handleGenerate}
+                                disabled={isGenerating}
+                                className="til-light-teal-accent flex h-10 items-center gap-2 rounded-lg border border-action-accent/30 bg-action-accent/10 px-4 text-sm font-bold text-action-accent transition hover:bg-action-accent/15 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <RotateCcw size={15} className={isGenerating ? 'animate-spin' : ''} />
+                                {isGenerating ? GENERATING_LABEL : generateLabel}
+                            </button>
+                        </div>
                     ) : isEditing ? (
                         <div className="til-editor-scrollbar til-editor-surface relative h-full min-h-[500px] w-full overflow-hidden rounded-lg border border-text-secondary/5 bg-surface-lowest/30">
                             <Editor
@@ -438,6 +455,14 @@ export function TILEditor({
 
 function isRunning(status?: string) {
     return status === 'PENDING' || status === 'PROCESSING';
+}
+
+function getTodayDate() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 function removeTilDateHeading(content: string) {
