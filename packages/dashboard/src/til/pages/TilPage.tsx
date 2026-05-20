@@ -8,7 +8,7 @@ import { TILModeTabs, type TILMode } from '../components/TILModeTabs';
 import type { TilResponse } from '@san/shared';
 
 export function TilPage() {
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const {
         selectedDate,
         setSelectedDate,
@@ -82,6 +82,7 @@ export function TilPage() {
 
     const changeSelectedDate = (date: string) => {
         setSelectedDate(date);
+        setSearchParams({ date });
         setCalendarMonth(startOfMonth(parseDateString(date)));
         closeFloatingControls();
     };

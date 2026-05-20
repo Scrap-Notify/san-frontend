@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpRight, BrainCircuit } from 'lucide-react';
+import { ArrowUpRight, BrainCircuit, PackageOpen } from 'lucide-react';
 import type { KnowledgeCardResponse, TilResponse } from '@san/shared';
 import type { TilRecallCardsQuery } from '../types';
 
@@ -56,7 +56,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
     if (!selectedTil) {
         return (
             <section className={sectionClassName}>
-                <PanelStatus message={"TIL\uC744 \uC120\uD0DD\uD558\uBA74 \uAD00\uB828 \uC9C0\uC2DD \uCE74\uB4DC\uB97C \uD655\uC778\uD560 \uC218 \uC788\uC5B4\uC694."} />
+                <RecallEmptyState />
             </section>
         );
     }
@@ -169,6 +169,24 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                 </div>
             </div>
         </section>
+    );
+}
+
+function RecallEmptyState() {
+    return (
+        <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
+            <div className="til-light-teal-accent text-action-accent/80 drop-shadow-[0_0_18px_rgba(119,255,210,0.22)]">
+                <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
+            </div>
+            <div className="space-y-1">
+                <p className="text-body-sm font-medium text-text-secondary">
+                    {'\uC544\uC9C1 \uCE74\uB4DC\uAC00 \uC5C6\uC5B4\uC694'}
+                </p>
+                <p className="text-caption text-text-secondary/60">
+                    {'TIL\uC744 \uC0DD\uC131\uD558\uBA74 \uBCF5\uC2B5 \uCE74\uB4DC\uAC00 \uC774\uACF3\uC5D0 \uD45C\uC2DC\uB3FC\uC694.'}
+                </p>
+            </div>
+        </div>
     );
 }
 
