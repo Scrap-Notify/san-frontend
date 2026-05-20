@@ -4,6 +4,7 @@ const AUTH_CLEAR_MESSAGE = 'SAN_AUTH_CLEAR';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
 const SET_TIL_RECALL_SETTINGS_MESSAGE = 'SET_TIL_RECALL_SETTINGS';
+const GET_EXTENSION_SHORTCUTS_MESSAGE = 'GET_EXTENSION_SHORTCUTS';
 const OPEN_EXTENSION_SHORTCUT_SETTINGS_MESSAGE = 'OPEN_EXTENSION_SHORTCUT_SETTINGS';
 const DEBUG_PREFIX = '[SAN:extension-auth]';
 const DASHBOARD_MESSAGE_SOURCE = 'SAN_DASHBOARD';
@@ -26,6 +27,7 @@ interface ExtensionMessageResponse {
   hasAccessToken?: boolean;
   hasRefreshToken?: boolean;
   settings?: TilRecallSettings;
+  shortcuts?: ExtensionShortcuts;
 }
 
 interface ExtensionBridgeResponseMessage {
@@ -43,6 +45,11 @@ declare global {
 export interface TilRecallSettings {
   enabled: boolean;
   time: string;
+}
+
+export interface ExtensionShortcuts {
+  openSidePanel: string;
+  captureImage: string;
 }
 
 export async function syncExtensionAuth(tokens: AuthTokens): Promise<void> {
@@ -93,6 +100,15 @@ export async function setExtensionTilRecallSettings(settings: TilRecallSettings)
   );
 
   return response.settings;
+}
+
+export async function getExtensionShortcuts(): Promise<ExtensionShortcuts> {
+  const response = await deliverExtensionMessageWithResponse(
+    { type: GET_EXTENSION_SHORTCUTS_MESSAGE },
+    isConfirmedExtensionShortcutsResponse
+  );
+
+  return response.shortcuts;
 }
 
 export async function openExtensionShortcutSettings(): Promise<void> {
@@ -412,6 +428,23 @@ function isConfirmedTilRecallSettingsResponse(
   }
 
   return { settings: response.settings };
+}
+
+function isConfirmedExtensionShortcutsResponse(
+  response: ExtensionMessageResponse | undefined
+): { shortcuts: ExtensionShortcuts } | null {
+  if (response?.ok !== true || !isExtensionShortcuts(response.shortcuts)) {
+    return null;
+  }
+
+  return { shortcuts: response.shortcuts };
+}
+
+function isExtensionShortcuts(value: unknown): value is ExtensionShortcuts {
+  if (!value || typeof value !== 'object') return false;
+  const maybe = value as Partial<ExtensionShortcuts>;
+  return typeof maybe.openSidePanel === 'string'
+    && typeof maybe.captureImage === 'string';
 }
 
 function isTilRecallSettings(value: unknown): value is TilRecallSettings {

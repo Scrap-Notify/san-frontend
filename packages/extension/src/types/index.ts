@@ -35,6 +35,7 @@ export type MessageType =
   | 'LOGIN_BRIDGE_TICKET'
   | 'GET_TIL_RECALL_SETTINGS'
   | 'SET_TIL_RECALL_SETTINGS'
+  | 'GET_EXTENSION_SHORTCUTS'
   | 'OPEN_EXTENSION_SHORTCUT_SETTINGS';
 
 export interface ExtensionMessage {

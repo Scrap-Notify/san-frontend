@@ -30,6 +30,7 @@ const AUTH_STATE_CHANGED_MESSAGE = 'SAN_AUTH_STATE_CHANGED';
 const LOGIN_BRIDGE_TICKET_MESSAGE = 'LOGIN_BRIDGE_TICKET';
 const GET_TIL_RECALL_SETTINGS_MESSAGE = 'GET_TIL_RECALL_SETTINGS';
 const SET_TIL_RECALL_SETTINGS_MESSAGE = 'SET_TIL_RECALL_SETTINGS';
+const GET_EXTENSION_SHORTCUTS_MESSAGE = 'GET_EXTENSION_SHORTCUTS';
 const OPEN_EXTENSION_SHORTCUT_SETTINGS_MESSAGE = 'OPEN_EXTENSION_SHORTCUT_SETTINGS';
 const isDebug = import.meta.env.DEV;
 let lastFocusedWindowId: number | undefined;
@@ -124,6 +125,14 @@ function isSetTilRecallSettingsMessage(
   if (!message || typeof message !== 'object') return false;
   const maybe = message as { type?: unknown; payload?: unknown };
   return maybe.type === SET_TIL_RECALL_SETTINGS_MESSAGE && isTilRecallSettings(maybe.payload);
+}
+
+function isGetExtensionShortcutsMessage(
+  message: unknown,
+): message is { type: typeof GET_EXTENSION_SHORTCUTS_MESSAGE } {
+  if (!message || typeof message !== 'object') return false;
+  const maybe = message as { type?: unknown };
+  return maybe.type === GET_EXTENSION_SHORTCUTS_MESSAGE;
 }
 
 function isOpenExtensionShortcutSettingsMessage(
@@ -331,6 +340,18 @@ chrome.runtime.onMessage.addListener((message: ExtensionMessage, sender, sendRes
     return true;
   }
 
+  if (isGetExtensionShortcutsMessage(message)) {
+    getExtensionShortcuts()
+      .then((shortcuts) => {
+        sendResponse({ ok: true, shortcuts });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to read extension shortcuts', error);
+        sendResponse({ ok: false });
+      });
+    return true;
+  }
+
   if (isOpenExtensionShortcutSettingsMessage(message)) {
     openExtensionShortcutSettings()
       .then(() => {
@@ -406,6 +427,18 @@ chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => 
       })
       .catch((error) => {
         console.error(DEBUG_PREFIX, 'failed to save TIL recall settings from dashboard', error);
+        sendResponse({ ok: false });
+      });
+    return true;
+  }
+
+  if (isGetExtensionShortcutsMessage(message)) {
+    getExtensionShortcuts()
+      .then((shortcuts) => {
+        sendResponse({ ok: true, shortcuts });
+      })
+      .catch((error) => {
+        console.error(DEBUG_PREFIX, 'failed to read extension shortcuts from dashboard', error);
         sendResponse({ ok: false });
       });
     return true;
@@ -685,6 +718,16 @@ async function openTilRecallNotification(notificationId: string) {
 
 async function openExtensionShortcutSettings() {
   await chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+}
+
+async function getExtensionShortcuts() {
+  const commands = await chrome.commands.getAll();
+  const commandByName = Object.fromEntries(commands.map((command) => [command.name, command.shortcut ?? '']));
+
+  return {
+    openSidePanel: commandByName._execute_action ?? '',
+    captureImage: commandByName.capture_image ?? '',
+  };
 }
 
 function getNextAlarmTime(time: string) {
