@@ -33,11 +33,13 @@ import {
   getApiErrorMessage,
   useCardDetail,
   useDeleteCard,
-  useSimilarCards,
+  useArchiveCardTagRelations,
   useUpdateRefinedContent,
   type KnowledgeCardDetailResponse,
-  type KnowledgeCardResponse,
+  type ArchiveRelatedCardResponse,
 } from '@san/shared';
+
+// ... (rest of imports)
 import { hangulAdjacentStrongPlugin, normalizeHangulAdjacentStrong } from '@dashboard/utils/markdown';
 
 export type KnowledgeSourceType = 'LINK' | 'IMAGE' | 'PDF' | 'OCR' | 'TEXT';
@@ -137,7 +139,7 @@ export function KnowledgeCardDetailPage() {
       return REFINE_POLL_INTERVAL_MS;
     },
   });
-  const similarQuery = useSimilarCards(cardId);
+  const relatedQuery = useArchiveCardTagRelations(cardId);
   const deleteCardMutation = useDeleteCard(cardId, {
     onSuccess: () => {
       setIsDeleteDialogOpen(false);
@@ -171,8 +173,8 @@ export function KnowledgeCardDetailPage() {
 
   const data = useMemo(() => {
     if (!cardId || !detailQuery.data) return null;
-    return toDetailData(cardId, detailQuery.data, similarQuery.data?.similarCards ?? []);
-  }, [cardId, detailQuery.data, similarQuery.data?.similarCards]);
+    return toDetailData(cardId, detailQuery.data, relatedQuery.data?.relatedCards ?? []);
+  }, [cardId, detailQuery.data, relatedQuery.data?.relatedCards]);
 
   const isCheckingRefinedContent = Boolean(detailQuery.data) && !hasRefinedContent && !refinePollTimedOut;
   const requestDeleteCard = () => {
@@ -249,7 +251,7 @@ export function KnowledgeCardDetailPage() {
             />
             <FinalKnowledgeCardSection finalCard={data.finalCard} />
           </div>
-          <DetailMetaPanel data={data} isLoadingRelated={similarQuery.isPending} />
+          <DetailMetaPanel data={data} isLoadingRelated={relatedQuery.isPending} />
         </div>
       </section>
 
@@ -852,7 +854,7 @@ function TagList({ values, subtle = false }: { values: string[]; subtle?: boolea
 function toDetailData(
   cardId: string,
   detail: KnowledgeCardDetailResponse,
-  similarCards: KnowledgeCardResponse[],
+  relatedCards: ArchiveRelatedCardResponse[],
 ): KnowledgeCardDetailData {
   const sourceContent = detail.sourceContent ?? '';
   const tags = [...new Set(detail.tags ?? [])];
@@ -879,10 +881,10 @@ function toDetailData(
       relatedKeywords: toRelatedKeywords(detail.categoryName, tags),
       createdAt: null,
     },
-    relatedCards: similarCards.map((card) => ({
+    relatedCards: relatedCards.map((card) => ({
       cardId: card.cardId,
       title: card.title,
-      categoryName: card.category?.categoryName ?? 'Uncategorized',
+      categoryName: card.categoryName,
     })),
   };
 }

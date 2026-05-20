@@ -57,6 +57,11 @@ const leafPositions: LeafSlot[] = [
   { x: 47, y: 73, rotate: -6, scale: 0.92, opacity: 0.88 },
 ];
 
+function normalizeTag(tag: string): string {
+  if (!tag) return '';
+  return tag.toLowerCase().replace(/[^\w\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '');
+}
+
 export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterToken }: CategoryTreeViewProps) {
   const navigate = useNavigate();
   const [activeLeafId, setActiveLeafId] = useState<string | null>(null);
@@ -88,10 +93,13 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
   const relatedThreads = useMemo(() => {
     if (!activeLeaf || !activeLeafPosition) return [];
 
+    const activeTags = activeLeaf.tags.map(normalizeTag).filter(Boolean);
+
     return positionedLeaves
       .filter(({ leaf }) => leaf.id !== activeLeaf.id)
       .map(({ leaf, position, index }) => {
-        const sharedTags = leaf.tags.filter((tag) => activeLeaf.tags.includes(tag));
+        const leafTags = leaf.tags.map(normalizeTag).filter(Boolean);
+        const sharedTags = leafTags.filter((tag) => activeTags.includes(tag));
         const overlapCount = sharedTags.length;
         if (overlapCount === 0) return null;
 
