@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FolderOpen, Loader2 } from 'lucide-react';
-import { useArchiveCategories, useArchiveCategoryCards, useSimilarCards } from '@san/shared';
+import { useArchiveCategories, useArchiveCategoryCards, useArchiveCardTagRelations } from '@san/shared';
 import { graphFixtureCategories, graphFixtureLeavesByCategory } from './fixtures';
 
 /* ── types ── */
@@ -10,12 +10,13 @@ import { graphFixtureCategories, graphFixtureLeavesByCategory } from './fixtures
 type Pos = { x: number; y: number };
 type CatNode = { id: string; name: string; count: number; idlePos: Pos; dockPos: Pos };
 type CardNode = { id: string; title: string; tags: string[]; pos: Pos; layer: number };
-type TagLine = { aId: string; bId: string; from: Pos; to: Pos; weight: number };
+type TagLineIndices = { aIdx: number; bIdx: number; weight: number };
 type CrossCard = { id: string; title: string; pos: Pos; catId: string };
 
 /* ── layout ── */
 
 const MAX_CARDS = 13;
+const SELECTED_CAT_DOCK_POS: Pos = { x: 50, y: 90 };
 
 const CAT_IDLE_PRESETS: Record<number, Pos[]> = {
   1: [{ x: 50, y: 48 }],
@@ -153,255 +154,42 @@ function curvePath(a: Pos, b: Pos, i: number): string {
   return `M${a.x} ${a.y} Q${mx + (i % 2 ? curve : -curve)} ${my - curve},${b.x} ${b.y}`;
 }
 
-function buildTagLines(cards: CardNode[]): TagLine[] {
-  const out: TagLine[] = [];
-  for (let i = 0; i < cards.length; i++)
+function normalizeTag(tag: string): string {
+  if (!tag) return '';
+  // 앞의 #만 제거하고, 의미 있는 특수문자(+, #, ., -)는 보존
+  return tag
+    .trim()
+    .toLowerCase()
+    .replace(/^#/, '')
+    .replace(/[^\w\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F+#.-]/g, '');
+}
+
+function buildTagLineIndices(cards: CardNode[]): TagLineIndices[] {
+  const out: TagLineIndices[] = [];
+  const cardTagSets = cards.map(c => {
+    const rawTags = c.tags || [];
+    const normalized = rawTags
+      .map(t => normalizeTag(String(t)))
+      .filter(Boolean);
+    return new Set(normalized);
+  });
+
+  for (let i = 0; i < cards.length; i++) {
+    const setA = cardTagSets[i];
+    if (setA.size === 0) continue;
     for (let j = i + 1; j < cards.length; j++) {
-      const weight = cards[i].tags.filter(t => cards[j].tags.includes(t)).length;
-      if (weight) out.push({ aId: cards[i].id, bId: cards[j].id, from: cards[i].pos, to: cards[j].pos, weight });
+      const setB = cardTagSets[j];
+      if (setB.size === 0) continue;
+      const commonTags = Array.from(setA).filter(tag => setB.has(tag));
+      if (commonTags.length > 0) {
+        out.push({ aIdx: i, bIdx: j, weight: commonTags.length });
+      }
     }
+  }
   return out;
 }
 
-/* ================================================================ */
-/*  Main                                                            */
-/* ================================================================ */
-
-export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?: boolean }) {
-  const navigate = useNavigate();
-  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
-  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [probeCardId, setProbeCardId] = useState<string | null>(null);
-
-  const catQuery = useArchiveCategories({ enabled: showMarkers });
-  const cardQuery = useArchiveCategoryCards(selectedCatId);
-  const hoverSimilarQuery = useSimilarCards(hoveredCardId);
-  const rootSimilarQuery = useSimilarCards(probeCardId);
-  const useFixtures = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES !== 'false';
-
-  /* ── categories ── */
-  const categories = useMemo<CatNode[]>(() => {
-    if (!showMarkers) return [];
-    const apiCats = catQuery.data?.categories;
-    if (!apiCats?.length && useFixtures) {
-      const idle = getCategoryIdlePositions(graphFixtureCategories.length);
-      const dock = getCategoryDockPositions(graphFixtureCategories.length);
-      return graphFixtureCategories.map((c, i) => ({ id: c.id, name: c.name, count: 0, idlePos: idle[i], dockPos: dock[i] }));
-    }
-    if (!apiCats?.length) return [];
-    const idle = getCategoryIdlePositions(apiCats.length);
-    const dock = getCategoryDockPositions(apiCats.length);
-    return apiCats.map((c, i) => ({ id: c.categoryId, name: c.categoryName, count: c.cardCount, idlePos: idle[i], dockPos: dock[i] }));
-  }, [catQuery.data?.categories, showMarkers, useFixtures]);
-
-  const selectedCat = categories.find(c => c.id === selectedCatId) ?? null;
-
-  /* ── cards (time-sorted, capped at MAX_CARDS) ── */
-  const cards = useMemo<CardNode[]>(() => {
-    if (!selectedCat) return [];
-    const apiCards = cardQuery.data?.cards;
-    let raw: { id: string; title: string; tags: string[]; time: number }[] = [];
-
-    if (!apiCards?.length && useFixtures) {
-      const leaves = graphFixtureLeavesByCategory[selectedCatId ?? 'nature'] ?? graphFixtureLeavesByCategory.nature ?? [];
-      raw = leaves.map(l => ({ id: l.id, title: l.title, tags: l.tags, time: l.collectedAt ? new Date(l.collectedAt).getTime() : 0 }));
-    } else if (apiCards?.length) {
-      raw = apiCards.map(c => ({ id: c.cardId, title: c.title, tags: c.tags.map(t => t.tagName), time: new Date(c.createdAt).getTime() }));
-    }
-
-    raw.sort((a, b) => a.time - b.time);
-    const capped = raw.slice(0, MAX_CARDS);
-    const slots = layoutCards(selectedCat.dockPos, capped.length);
-
-    return capped.map((c, i) => ({
-      id: c.id, title: c.title, tags: c.tags,
-      pos: slots[i].pos, layer: slots[i].layer,
-    }));
-  }, [selectedCat, cardQuery.data?.cards, selectedCatId, useFixtures]);
-
-  const tagLines = useMemo(() => buildTagLines(cards), [cards]);
-
-  /* ── root-level category links ── */
-  useEffect(() => {
-    if (!cards.length) { setProbeCardId(null); return; }
-    const best = cards.reduce((a, b) => b.tags.length > a.tags.length ? b : a, cards[0]);
-    setProbeCardId(best.id);
-  }, [cards]);
-
-  const rootLinks = useMemo(() => {
-    if (!selectedCat || !rootSimilarQuery.data?.similarCards?.length) return [] as { catId: string; to: Pos }[];
-    const seen = new Set<string>();
-    const out: { catId: string; to: Pos }[] = [];
-    for (const sc of rootSimilarQuery.data.similarCards) {
-      const catId = sc.category?.categoryId;
-      if (!catId || catId === selectedCatId || seen.has(catId)) continue;
-      const cat = categories.find(c => c.id === catId);
-      if (!cat) continue;
-      seen.add(catId);
-      out.push({ catId, to: cat.dockPos });
-    }
-    return out;
-  }, [selectedCat, rootSimilarQuery.data?.similarCards, selectedCatId, categories]);
-
-  const linkedCatIds = useMemo(() => new Set(rootLinks.map(r => r.catId)), [rootLinks]);
-
-  /* ── hover state ── */
-  const hoveredCard = hoveredCardId ? cards.find(c => c.id === hoveredCardId) ?? null : null;
-
-  const hovRelatedIds = useMemo(() => {
-    if (!hoveredCard) return new Set<string>();
-    return new Set(
-      cards
-        .filter(c => c.id !== hoveredCard.id && c.tags.some(t => hoveredCard.tags.includes(t)))
-        .map(c => c.id),
-    );
-  }, [hoveredCard, cards]);
-
-  const crossCards = useMemo<CrossCard[]>(() => {
-    if (!hoveredCard || !hoverSimilarQuery.data?.similarCards?.length) return [];
-    const out: CrossCard[] = [];
-    for (const sc of hoverSimilarQuery.data.similarCards) {
-      const catId = sc.category?.categoryId;
-      if (!catId || catId === selectedCatId) continue;
-      const cat = categories.find(c => c.id === catId);
-      if (!cat) continue;
-      const idx = out.length;
-      out.push({
-        id: sc.cardId, title: sc.title, catId,
-        pos: { x: clamp(cat.dockPos.x + ((idx % 3) - 1) * 9, 4, 96), y: clamp(cat.dockPos.y - 16 - Math.floor(idx / 3) * 10, 4, 74) },
-      });
-      if (out.length >= 5) break;
-    }
-    return out;
-  }, [hoveredCard, hoverSimilarQuery.data?.similarCards, selectedCatId, categories]);
-
-  const crossCatIds = useMemo(
-    () => new Set(crossCards.map(c => c.catId)),
-    [crossCards],
-  );
-
-  const hasSelection = selectedCatId !== null;
-
-  /* ── category spring positions (ALL categories, spring-animated) ── */
-  const catSpringsRef = useRef<SV[]>([]);
-  const catLoopRef = useRef(0);
-  const catLastTRef = useRef(performance.now());
-  const [catPositions, setCatPositions] = useState<Pos[]>(() => categories.map(c => c.idlePos));
-
-  useEffect(() => {
-    while (catSpringsRef.current.length < categories.length) {
-      const c = categories[catSpringsRef.current.length];
-      catSpringsRef.current.push(sv(c.idlePos.x, c.idlePos.y));
-    }
-  }, [categories]);
-
-  useEffect(() => {
-    catLastTRef.current = performance.now();
-
-    const tick = (now: number) => {
-      const dt = Math.min((now - catLastTRef.current) / 1000, 0.033);
-      catLastTRef.current = now;
-      const sub = dt / SUB_STEPS;
-      let moving = false;
-
-      categories.forEach((cat, i) => {
-        const s = catSpringsRef.current[i];
-        if (!s) return;
-        const t = hasSelection ? cat.dockPos : cat.idlePos;
-        for (let step = 0; step < SUB_STEPS; step++) {
-          catSpringsRef.current[i] = svStep(s, t.x, t.y, sub, ORIGIN_K, ORIGIN_C);
-        }
-        if (!svDone(catSpringsRef.current[i], t.x, t.y)) moving = true;
-        else catSpringsRef.current[i] = sv(t.x, t.y);
-      });
-
-      setCatPositions(catSpringsRef.current.map(s => ({ x: s.x, y: s.y })));
-      if (moving) catLoopRef.current = requestAnimationFrame(tick);
-    };
-
-    catLoopRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(catLoopRef.current);
-  }, [hasSelection, selectedCatId, categories]);
-
-  const selIdx = categories.findIndex(c => c.id === selectedCatId);
-  const selCatLivePos = selIdx >= 0 ? catPositions[selIdx] : null;
-
-  return (
-    <section className="relative font-sans text-text-primary" style={{ minHeight: 'calc(100vh - var(--dashboard-nav-offset, 88px))' }}>
-      <BG />
-
-      {showMarkers && catQuery.isPending ? (
-        <Msg><Loader2 size={24} className="animate-spin text-primary-signal" /><span className="text-sm text-text-secondary">지식 숲을 불러오는 중...</span></Msg>
-      ) : showMarkers && !catQuery.isPending && !categories.length ? (
-        <Msg><FolderOpen size={28} className="text-text-secondary/40" /><p className="text-sm text-text-secondary">표시할 카테고리가 없습니다.</p></Msg>
-      ) : (
-        <div className="relative h-full w-full" style={{ minHeight: 'calc(100vh - var(--dashboard-nav-offset, 88px))' }} onClick={() => hasSelection && setSelectedCatId(null)} role="presentation">
-
-          {/* ── category nodes (spring-positioned) ── */}
-          {categories.map((cat, i) => {
-            const pos = catPositions[i] ?? cat.idlePos;
-            const isSelected = selectedCatId === cat.id;
-            const isLinked = linkedCatIds.has(cat.id) || crossCatIds.has(cat.id);
-            return (
-              <button key={cat.id} type="button"
-                onClick={e => { e.stopPropagation(); setHoveredCardId(null); setSelectedCatId(prev => prev === cat.id ? null : cat.id); }}
-                className="absolute transition-[opacity,filter] duration-300"
-                style={{
-                  left: `${pos.x}%`, top: `${pos.y}%`,
-                  zIndex: isSelected ? 30 : hasSelection ? 1 : 5,
-                  opacity: hasSelection && !isSelected ? (isLinked ? 0.7 : 0.2) : 1,
-                  transform: `translate(-50%,-50%) scale(${isSelected ? 1.1 : 1})`,
-                }}>
-                <div className={`flex min-w-[7.5rem] flex-col gap-1.5 rounded-tl-[20px] rounded-br-[20px] rounded-tr-lg rounded-bl-lg border px-4 py-3 glass-card !shadow-none transition-colors duration-300 ${isSelected ? 'border-primary-signal/60 bg-primary-signal/10' : isLinked ? 'border-primary-signal/40 bg-primary-signal/5' : 'border-primary-signal/25 bg-surface-container/80 hover:border-primary-signal/50 hover:bg-surface-container'}`}>
-                  <span className="text-xs font-bold uppercase tracking-wider text-text-primary">{cat.name}</span>
-                  <span className="text-[11px] text-text-secondary">{cat.count} cards</span>
-                </div>
-              </button>
-            );
-          })}
-
-          {/* ── root links between categories ── */}
-          {rootLinks.length > 0 && selectedCat && (
-            <RootLines key={`rl-${selectedCatId}`} from={catPositions[selIdx] ?? selectedCat.dockPos} links={rootLinks} />
-          )}
-
-          {/* ── card graph (catPos = live spring position of selected category) ── */}
-          {selectedCatId && cards.length > 0 && selectedCat && selCatLivePos && (
-            <CardGraph key={selectedCatId}
-              catPos={selCatLivePos} dockPos={selectedCat.dockPos}
-              cards={cards} tagLines={tagLines}
-              hoveredCardId={hoveredCardId} hovRelatedIds={hovRelatedIds}
-              onHover={setHoveredCardId} onCardClick={id => navigate(`/cards/${id}`)} />
-          )}
-
-          {/* ── cross-category bridge (on hover) ── */}
-          {hoveredCard && crossCards.length > 0 && (
-            <CrossBridge key={hoveredCardId} from={hoveredCard.pos} cards={crossCards} />
-          )}
-
-          {selectedCatId && cardQuery.isPending && (
-            <div className="absolute inset-0 grid place-items-center" style={{ zIndex: 10 }}>
-              <Loader2 size={20} className="animate-spin text-primary-signal/40" />
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  );
-}
-
-/* ================================================================ */
-/*  CardGraph                                                       */
-/* ================================================================ */
-
-function stemPath(from: Pos, to: Pos, i: number): string {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const bend = ((i % 5) - 2) * 1.2;
-  return `M${from.x} ${from.y} C${from.x + bend} ${from.y + dy * 0.35},${from.x + dx * 0.75} ${to.y - dy * 0.06},${to.x} ${to.y}`;
-}
-
-/* ── damped spring: F = -kx - cv, sub-stepped ── */
+/* ── damped spring ── */
 
 type SV = { x: number; y: number; vx: number; vy: number };
 
@@ -424,12 +212,247 @@ const SUB_STEPS = 4;
 const ORIGIN_K = 1000;
 const ORIGIN_C = 55;
 
-function CardGraph({ catPos, dockPos, cards, tagLines, hoveredCardId, hovRelatedIds, onHover, onCardClick }: {
-  catPos: Pos; dockPos: Pos; cards: CardNode[]; tagLines: TagLine[];
+/* ================================================================ */
+/*  Main                                                            */
+/* ================================================================ */
+
+export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?: boolean }) {
+  const navigate = useNavigate();
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
+  const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
+  const [probeCardId, setProbeCardId] = useState<string | null>(null);
+
+  const catQuery = useArchiveCategories({ enabled: showMarkers });
+  const cardQuery = useArchiveCategoryCards(selectedCatId);
+  const hoverSimilarQuery = useArchiveCardTagRelations(hoveredCardId);
+  const rootSimilarQuery = useArchiveCardTagRelations(probeCardId);
+  const useFixtures = import.meta.env.DEV && import.meta.env.VITE_USE_GRAPH_FIXTURES !== 'false';
+
+  /* ── categories ── */
+  const categories = useMemo<CatNode[]>(() => {
+    if (!showMarkers) return [];
+    const apiCats = catQuery.data?.categories;
+    if (!apiCats?.length && useFixtures) {
+      const idle = getCategoryIdlePositions(graphFixtureCategories.length);
+      const dock = getCategoryDockPositions(graphFixtureCategories.length);
+      return graphFixtureCategories.map((c, i) => ({ id: c.id, name: c.name, count: 0, idlePos: idle[i], dockPos: dock[i] }));
+    }
+    if (!apiCats?.length) return [];
+    const idle = getCategoryIdlePositions(apiCats.length);
+    const dock = getCategoryDockPositions(apiCats.length);
+    return apiCats.map((c, i) => ({ id: c.categoryId, name: c.categoryName, count: c.cardCount, idlePos: idle[i], dockPos: dock[i] }));
+  }, [catQuery.data?.categories, showMarkers, useFixtures]);
+
+  const selectedCat = categories.find(c => c.id === selectedCatId) ?? null;
+
+  /* ── cards ── */
+  const cards = useMemo<CardNode[]>(() => {
+    if (!selectedCat) return [];
+    const apiCards = cardQuery.data?.cards;
+    let raw: { id: string; title: string; tags: string[]; time: number }[] = [];
+
+    if (!apiCards?.length && useFixtures) {
+      const leaves = graphFixtureLeavesByCategory[selectedCatId ?? 'nature'] ?? graphFixtureLeavesByCategory.nature ?? [];
+      raw = leaves.map(l => ({ id: l.id, title: l.title, tags: l.tags, time: l.collectedAt ? new Date(l.collectedAt).getTime() : 0 }));
+    } else if (apiCards?.length) {
+      raw = apiCards.map(c => ({ id: c.cardId, title: c.title, tags: c.tags.map(t => t.tagName), time: new Date(c.createdAt).getTime() }));
+    }
+
+    raw.sort((a, b) => a.time - b.time);
+    const capped = raw.slice(0, MAX_CARDS);
+    const slots = layoutCards(SELECTED_CAT_DOCK_POS, capped.length);
+
+    return capped.map((c, i) => ({
+      id: c.id, title: c.title, tags: c.tags,
+      pos: slots[i].pos, layer: slots[i].layer,
+    }));
+  }, [selectedCat, cardQuery.data?.cards, selectedCatId, useFixtures]);
+
+  const tagLineIndices = useMemo(() => buildTagLineIndices(cards), [cards]);
+
+  /* ── root links ── */
+  useEffect(() => {
+    if (!cards.length) { setProbeCardId(null); return; }
+    const best = cards.reduce((a, b) => b.tags.length > a.tags.length ? b : a, cards[0]);
+    setProbeCardId(best.id);
+  }, [cards]);
+
+  const rootLinks = useMemo(() => {
+    if (!selectedCat || rootSimilarQuery.isError || !rootSimilarQuery.data?.relatedCards?.length) return [] as { catId: string; to: Pos }[];
+    const seen = new Set<string>();
+    const out: { catId: string; to: Pos }[] = [];
+    try {
+      for (const sc of rootSimilarQuery.data.relatedCards) {
+        if (!sc) continue;
+        const catId = sc.categoryId;
+        if (!catId || catId === selectedCatId || seen.has(catId)) continue;
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) continue;
+        seen.add(catId);
+        out.push({ catId, to: cat.idlePos });
+      }
+    } catch {
+      return [];
+    }
+    return out;
+  }, [selectedCat, rootSimilarQuery.data, rootSimilarQuery.isError, selectedCatId, categories]);
+
+  const linkedCatIds = useMemo(() => new Set(rootLinks.map(r => r.catId)), [rootLinks]);
+
+  /* ── hover state ── */
+  const hoveredCard = hoveredCardId ? cards.find(c => c.id === hoveredCardId) ?? null : null;
+
+  const hovRelatedIds = useMemo(() => {
+    if (!hoveredCard) return new Set<string>();
+    const hTags = hoveredCard.tags.map(normalizeTag).filter(Boolean);
+    return new Set(
+      cards
+        .filter(c => {
+          if (c.id === hoveredCard.id) return false;
+          const cTags = c.tags.map(normalizeTag).filter(Boolean);
+          return cTags.some(t => hTags.includes(t));
+        })
+        .map(c => c.id),
+    );
+  }, [hoveredCard, cards]);
+
+  const crossCards = useMemo<CrossCard[]>(() => {
+    if (!hoveredCard || hoverSimilarQuery.isError || !hoverSimilarQuery.data?.relatedCards?.length) return [];
+    const out: { id: string; title: string; pos: Pos; catId: string }[] = [];
+    try {
+      const apiRelated = hoverSimilarQuery.data.relatedCards;
+      for (const sc of apiRelated) {
+        if (!sc) continue;
+        const catId = sc.categoryId;
+        if (!catId || catId === selectedCatId) continue;
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) continue;
+        const idx = out.length;
+        out.push({
+          id: sc.cardId, title: sc.title, catId,
+          pos: { x: clamp(cat.idlePos.x + ((idx % 3) - 1) * 9, 4, 96), y: clamp(cat.idlePos.y - 16 - Math.floor(idx / 3) * 10, 4, 74) },
+        });
+        if (out.length >= 5) break;
+      }
+    } catch {
+      return [];
+    }
+    return out;
+  }, [hoveredCard, hoverSimilarQuery.data, hoverSimilarQuery.isError, selectedCatId, categories]);
+
+  const crossCatIds = useMemo(() => new Set(crossCards.map(c => c.catId)), [crossCards]);
+
+  /* ── category spring positions ── */
+  const catSpringsRef = useRef<SV[]>([]);
+  const catLoopRef = useRef(0);
+  const catLastTRef = useRef(performance.now());
+  const [catPositions, setCatPositions] = useState<Pos[]>(() => categories.map(c => c.idlePos));
+
+  useEffect(() => {
+    while (catSpringsRef.current.length < categories.length) {
+      const c = categories[catSpringsRef.current.length];
+      catSpringsRef.current.push(sv(c.idlePos.x, c.idlePos.y));
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    catLastTRef.current = performance.now();
+    const tick = (now: number) => {
+      const dt = Math.min((now - catLastTRef.current) / 1000, 0.033);
+      catLastTRef.current = now;
+      const sub = dt / SUB_STEPS;
+      let moving = false;
+
+      categories.forEach((cat, i) => {
+        const s = catSpringsRef.current[i];
+        if (!s) return;
+        const isSelected = selectedCatId === cat.id;
+        const t = isSelected ? SELECTED_CAT_DOCK_POS : cat.idlePos;
+        for (let step = 0; step < SUB_STEPS; step++) {
+          catSpringsRef.current[i] = svStep(s, t.x, t.y, sub, ORIGIN_K, ORIGIN_C);
+        }
+        if (!svDone(catSpringsRef.current[i], t.x, t.y)) moving = true;
+        else catSpringsRef.current[i] = sv(t.x, t.y);
+      });
+
+      setCatPositions(catSpringsRef.current.map(s => ({ x: s.x, y: s.y })));
+      if (moving) catLoopRef.current = requestAnimationFrame(tick);
+    };
+    catLoopRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(catLoopRef.current);
+  }, [selectedCatId, categories]);
+
+  const selIdx = categories.findIndex(c => c.id === selectedCatId);
+  const selCatLivePos = selIdx >= 0 ? catPositions[selIdx] : null;
+
+  return (
+    <section className="relative font-sans text-text-primary" style={{ minHeight: 'calc(100vh - var(--dashboard-nav-offset, 88px))' }}>
+      <BG />
+      {showMarkers && catQuery.isPending ? (
+        <Msg><Loader2 size={24} className="animate-spin text-primary-signal" /><span className="text-sm text-text-secondary">지식 숲을 불러오는 중...</span></Msg>
+      ) : showMarkers && !catQuery.isPending && !categories.length ? (
+        <Msg><FolderOpen size={28} className="text-text-secondary/40" /><p className="text-sm text-text-secondary">표시할 카테고리가 없습니다.</p></Msg>
+      ) : (
+        <div className="relative h-full w-full" style={{ minHeight: 'calc(100vh - var(--dashboard-nav-offset, 88px))' }} onClick={() => selectedCatId && setSelectedCatId(null)} role="presentation">
+          {categories.map((cat, i) => {
+            const pos = catPositions[i] ?? cat.idlePos;
+            const isSelected = selectedCatId === cat.id;
+            const isLinked = linkedCatIds.has(cat.id) || crossCatIds.has(cat.id);
+            const hasSelection = selectedCatId !== null;
+            return (
+              <button key={cat.id} type="button"
+                onClick={e => { e.stopPropagation(); setHoveredCardId(null); setSelectedCatId(prev => prev === cat.id ? null : cat.id); }}
+                className="absolute transition-[opacity,filter] duration-300"
+                style={{
+                  left: `${pos.x}%`, top: `${pos.y}%`,
+                  zIndex: isSelected ? 30 : hasSelection ? 1 : 5,
+                  opacity: hasSelection && !isSelected ? (isLinked ? 0.7 : 0.2) : 1,
+                  transform: `translate(-50%,-50%) scale(${isSelected ? 1.1 : 1})`,
+                }}>
+                <div className={`flex min-w-[7.5rem] flex-col gap-1.5 rounded-tl-[20px] rounded-br-[20px] rounded-tr-lg rounded-bl-lg border px-4 py-3 glass-card !shadow-none transition-colors duration-300 ${isSelected ? 'border-primary-signal/60 bg-primary-signal/10' : isLinked ? 'border-primary-signal/40 bg-primary-signal/5' : 'border-primary-signal/25 bg-surface-container/80 hover:border-primary-signal/50 hover:bg-surface-container'}`}>
+                  <span className="text-xs font-bold uppercase tracking-wider text-text-primary">{cat.name}</span>
+                  <span className="text-[11px] text-text-secondary">{cat.count} cards</span>
+                </div>
+              </button>
+            );
+          })}
+          {rootLinks.length > 0 && selectedCat && (
+            <RootLines key={`rl-${selectedCatId}`} from={catPositions[selIdx] ?? SELECTED_CAT_DOCK_POS} links={rootLinks} />
+          )}
+          {selectedCatId && cards.length > 0 && selectedCat && selCatLivePos && (
+            <CardGraph key={selectedCatId}
+              catPos={selCatLivePos} dockPos={SELECTED_CAT_DOCK_POS}
+              cards={cards} tagLineIndices={tagLineIndices}
+              hoveredCardId={hoveredCardId} hovRelatedIds={hovRelatedIds}
+              onHover={setHoveredCardId} onCardClick={id => navigate(`/cards/${id}`)} />
+          )}
+          {hoveredCard && crossCards.length > 0 && (
+            <CrossBridge key={hoveredCardId} from={hoveredCard.pos} cards={crossCards} />
+          )}
+          {selectedCatId && cardQuery.isPending && (
+            <div className="absolute inset-0 grid place-items-center" style={{ zIndex: 10 }}>
+              <Loader2 size={20} className="animate-spin text-primary-signal/40" />
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ================================================================ */
+/*  CardGraph                                                       */
+/* ================================================================ */
+
+function CardGraph({ catPos, dockPos, cards, tagLineIndices, hoveredCardId, hovRelatedIds, onHover, onCardClick }: {
+  catPos: Pos; dockPos: Pos; cards: CardNode[]; tagLineIndices: TagLineIndices[];
   hoveredCardId: string | null; hovRelatedIds: Set<string>;
   onHover: (id: string | null) => void; onCardClick: (id: string) => void;
 }) {
-  const cardSpringsRef = useRef<SV[]>(cards.map(() => sv(catPos.x, catPos.y)));
+  const cardSpringsRef = useRef<SV[]>([]);
+  if (cardSpringsRef.current.length !== cards.length) {
+    cardSpringsRef.current = cards.map(() => sv(catPos.x, catPos.y));
+  }
   const stemStartRef = useRef(performance.now());
   const lastTRef = useRef(performance.now());
   const frameRef = useRef(0);
@@ -444,18 +467,14 @@ function CardGraph({ catPos, dockPos, cards, tagLines, hoveredCardId, hovRelated
     stemStartRef.current = performance.now();
     lastTRef.current = performance.now();
     setSettled(false);
-
     const totalDur = STEM_DELAY + cards.length * STEM_GAP + STEM_MS + 400;
-
     const loop = (now: number) => {
       const dt = Math.min((now - lastTRef.current) / 1000, 0.033);
       lastTRef.current = now;
       const sub = dt / SUB_STEPS;
-
       const cp = catPosRef.current;
       const catDx = cp.x - dockPos.x;
       const catDy = cp.y - dockPos.y;
-
       cardSpringsRef.current.forEach((cs, i) => {
         const dist = Math.hypot(cards[i].pos.x - dockPos.x, cards[i].pos.y - dockPos.y);
         const pull = clamp(1 - dist / 60, 0.15, 0.85);
@@ -467,21 +486,17 @@ function CardGraph({ catPos, dockPos, cards, tagLines, hoveredCardId, hovRelated
           cardSpringsRef.current[i] = svStep(cardSpringsRef.current[i], tx, ty, sub, k, c);
         }
       });
-
       const stemElapsed = now - stemStartRef.current;
       const catSettled = Math.abs(catDx) < 0.1 && Math.abs(catDy) < 0.1;
       const cDone = cardSpringsRef.current.every((cs, i) => svDone(cs, cards[i].pos.x, cards[i].pos.y));
       const allDone = catSettled && cDone && stemElapsed > totalDur;
-
       if (allDone) {
         cardSpringsRef.current = cards.map(cd => sv(cd.pos.x, cd.pos.y));
         setSettled(true);
       }
-
       bump(t => t + 1);
       if (!allDone) frameRef.current = requestAnimationFrame(loop);
     };
-
     frameRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frameRef.current);
   }, [cards, dockPos.x, dockPos.y]);
@@ -514,27 +529,25 @@ function CardGraph({ catPos, dockPos, cards, tagLines, hoveredCardId, hovRelated
             </g>
           );
         })}
-
-        {tagLines.map(({ aId, bId, from, to, weight }, idx) => {
+        {tagLineIndices.map(({ aIdx, bIdx, weight }, idx) => {
+          const aId = cards[aIdx].id;
+          const bId = cards[bIdx].id;
           const isRelevant = isHovering && (aId === hoveredCardId || bId === hoveredCardId || (hovRelatedIds.has(aId) && hovRelatedIds.has(bId)));
           const op = isHovering
-            ? (isRelevant ? clamp(0.2 + weight * 0.1, 0.2, 0.5) : 0.03)
-            : clamp(0.08 + weight * 0.04, 0.08, 0.22);
-
-          const aS = cardSpringsRef.current[cards.findIndex(c => c.id === aId)];
-          const bS = cardSpringsRef.current[cards.findIndex(c => c.id === bId)];
-          const af = settled ? from : { x: aS?.x ?? from.x, y: aS?.y ?? from.y };
-          const bf = settled ? to : { x: bS?.x ?? to.x, y: bS?.y ?? to.y };
-
+            ? (isRelevant ? clamp(0.4 + weight * 0.1, 0.4, 0.8) : 0.05)
+            : clamp(0.15 + weight * 0.08, 0.15, 0.45);
+          const aS = cardSpringsRef.current[aIdx];
+          const bS = cardSpringsRef.current[bIdx];
+          const af = settled ? cards[aIdx].pos : { x: aS?.x ?? cards[aIdx].pos.x, y: aS?.y ?? cards[aIdx].pos.y };
+          const bf = settled ? cards[bIdx].pos : { x: bS?.x ?? cards[bIdx].pos.x, y: bS?.y ?? cards[bIdx].pos.y };
           return (
             <path key={idx} d={curvePath(af, bf, idx)} fill="none"
               stroke={`rgba(74,222,128,${op})`}
-              strokeWidth={isRelevant ? '0.28' : '0.18'} strokeDasharray="1 0.6"
+              strokeWidth={isRelevant ? '0.35' : '0.22'} strokeDasharray="1 0.6"
               style={{ opacity: showConn ? 1 : 0, transition: 'opacity 500ms ease, stroke 200ms ease, stroke-width 200ms ease' }} />
           );
         })}
       </svg>
-
       {cards.map((card, i) => {
         const cs = cardSpringsRef.current[i];
         const cp = settled ? card.pos : { x: cs?.x ?? card.pos.x, y: cs?.y ?? card.pos.y };
@@ -544,7 +557,6 @@ function CardGraph({ catPos, dockPos, cards, tagLines, hoveredCardId, hovRelated
         const isThis = hoveredCardId === card.id;
         const isRelated = hovRelatedIds.has(card.id);
         const isDimmed = isHovering && !isThis && !isRelated;
-
         return (
           <button key={card.id} type="button"
             onMouseEnter={() => onHover(card.id)} onMouseLeave={() => onHover(null)}
@@ -580,7 +592,6 @@ function CardGraph({ catPos, dockPos, cards, tagLines, hoveredCardId, hovRelated
 function RootLines({ from, links }: { from: Pos; links: { catId: string; to: Pos }[] }) {
   const [show, setShow] = useState(false);
   useEffect(() => { const t = window.setTimeout(() => setShow(true), 300); return () => window.clearTimeout(t); }, []);
-
   return (
     <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 2 }} viewBox="0 0 100 100" preserveAspectRatio="none">
       {links.map((lk, i) => {
@@ -608,7 +619,6 @@ function RootLines({ from, links }: { from: Pos; links: { catId: string; to: Pos
 function CrossBridge({ from, cards }: { from: Pos; cards: CrossCard[] }) {
   const [show, setShow] = useState(false);
   useEffect(() => { const t = window.setTimeout(() => setShow(true), 50); return () => window.clearTimeout(t); }, []);
-
   return (
     <>
       <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" style={{ zIndex: 18 }} viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -640,6 +650,13 @@ function CrossBridge({ from, cards }: { from: Pos; cards: CrossCard[] }) {
 }
 
 /* ── utilities ── */
+
+function stemPath(from: Pos, to: Pos, i: number): string {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const bend = ((i % 5) - 2) * 1.2;
+  return `M${from.x} ${from.y} C${from.x + bend} ${from.y + dy * 0.35},${from.x + dx * 0.75} ${to.y - dy * 0.06},${to.x} ${to.y}`;
+}
 
 function Msg({ children }: { children: ReactNode }) {
   return <div className="absolute inset-0 z-10 grid place-items-center"><div className="flex flex-col items-center gap-3 text-center">{children}</div></div>;
