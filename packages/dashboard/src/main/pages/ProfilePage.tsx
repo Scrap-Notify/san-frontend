@@ -1,8 +1,9 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Bell, ChevronDown, ExternalLink, Keyboard, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Bell, ChevronDown, ExternalLink, Keyboard, Loader2, LogOut, RefreshCw, Shield, Star, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
+import { CurvedButton } from '@san/ui';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../../api/client';
 import {
   getExtensionShortcuts,
@@ -350,6 +351,17 @@ export function ProfilePage() {
                   </p>
                 </div>
               ))}
+            </div>
+            <div className="mt-5 flex justify-end">
+              <CurvedButton
+                type="button"
+                tone="subtle"
+                size="sm"
+                leadingIcon={<Star size={14} />}
+                onClick={() => navigate('/profile/stars')}
+              >
+                Star 불러오기
+              </CurvedButton>
             </div>
           </div>
 
