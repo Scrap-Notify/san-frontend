@@ -404,7 +404,7 @@ export function GithubStarImportPage() {
         <section ref={resultsRef} className="rounded-leaf border border-text-secondary/10 glass-card bg-surface-container/80 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <h2 className="mt-2 text-body-lg-bold text-text-primary">추천 스크랩 10개</h2>
+              <h2 className="mt-2 text-body-lg-bold text-text-primary">추천 스크랩 5개</h2>
               <p className="mt-2 text-sm leading-6 text-text-secondary">
                 추천 카드에는 제목, 태그, 외부 링크만 보여주고, 수집하기로 바로 지식 아카이브에 넣을 수 있습니다.
               </p>
