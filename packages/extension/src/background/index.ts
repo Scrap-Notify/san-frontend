@@ -1,6 +1,7 @@
 // packages/extension/src/background/index.ts
 import type { ExtensionMessage, PendingScrap, TilRecallSettings } from '@extension/types/index';
 import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
+import { runAuthRefreshLock } from '@extension/api/authRefreshLock';
 
 const DEBUG_PREFIX = '[SAN:background]';
 const defaultBaseURL = import.meta.env.PROD
@@ -17,6 +18,7 @@ const REFRESH_TOKEN_KEY = 'san_refresh_token';
 const SESSION_ID_KEY = 'san_session_id';
 const CLIENT_TYPE_KEY = 'san_client_type';
 const ACCESS_TOKEN_EXPIRES_AT_KEY = 'san_access_token_expires_at';
+const ACCESS_TOKEN_REFRESH_LEEWAY_MS = 60_000;
 const TIL_RECALL_SETTINGS_KEY = 'san:til-recall-settings';
 const TIL_RECALL_LAST_NOTIFIED_KEY = 'san:til-recall-last-notified-date';
 const TIL_RECALL_NOTIFICATION_TARGETS_KEY = 'san:til-recall-notification-targets';
@@ -765,43 +767,76 @@ async function getStoredRefreshToken() {
   return typeof stored[REFRESH_TOKEN_KEY] === 'string' ? stored[REFRESH_TOKEN_KEY] : null;
 }
 
+async function getStoredAccessTokenExpiresAt() {
+  const stored = await chrome.storage.local.get(ACCESS_TOKEN_EXPIRES_AT_KEY);
+  return typeof stored[ACCESS_TOKEN_EXPIRES_AT_KEY] === 'string'
+    ? Number(stored[ACCESS_TOKEN_EXPIRES_AT_KEY])
+    : null;
+}
+
 async function getValidAccessToken() {
-  return getStoredAccessToken();
+  const accessToken = await getStoredAccessToken();
+  if (!accessToken) {
+    return null;
+  }
+
+  const expiresAt = await getStoredAccessTokenExpiresAt();
+  if (expiresAt !== null && expiresAt - Date.now() <= ACCESS_TOKEN_REFRESH_LEEWAY_MS) {
+    return reissueStoredTokens();
+  }
+
+  return accessToken;
 }
 
 async function reissueStoredTokens() {
-  const refreshToken = await getStoredRefreshToken();
-  if (!refreshToken) {
+  const refreshTokenAtStart = await getStoredRefreshToken();
+  if (!refreshTokenAtStart) {
     await clearAuthTokens();
     return null;
   }
 
-  const response = await fetch(`${baseURL}/auth/reissue`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  });
-  const payload = await parseApiResponse<TokenResponse>(
-    response,
-    'Failed to parse token reissue response',
-  );
-
-  if (!response.ok || !payload.ok || !payload.data) {
-    if (response.status === 401 || response.status === 403) {
+  return runAuthRefreshLock(async () => {
+    const refreshToken = await getStoredRefreshToken();
+    if (!refreshToken) {
       await clearAuthTokens();
+      return null;
     }
-    return null;
-  }
 
-  await chrome.storage.local.set({
-    [ACCESS_TOKEN_KEY]: payload.data.accessToken,
-    [REFRESH_TOKEN_KEY]: payload.data.refreshToken,
-    [CLIENT_TYPE_KEY]: 'EXTENSION',
-    ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
+    if (refreshToken !== refreshTokenAtStart) {
+      const accessToken = await getStoredAccessToken();
+      const expiresAt = await getStoredAccessTokenExpiresAt();
+      if (accessToken && (expiresAt === null || expiresAt > Date.now())) {
+        return accessToken;
+      }
+    }
+
+    const response = await fetch(`${baseURL}/auth/reissue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+    const payload = await parseApiResponse<TokenResponse>(
+      response,
+      'Failed to parse token reissue response',
+    );
+
+    if (!response.ok || !payload.ok || !payload.data) {
+      if (response.status === 401 || response.status === 403) {
+        await clearAuthTokens();
+      }
+      return null;
+    }
+
+    await chrome.storage.local.set({
+      [ACCESS_TOKEN_KEY]: payload.data.accessToken,
+      [REFRESH_TOKEN_KEY]: payload.data.refreshToken,
+      [CLIENT_TYPE_KEY]: 'EXTENSION',
+      ...(payload.data.sessionId ? { [SESSION_ID_KEY]: payload.data.sessionId } : {}),
+    });
+    await updateAccessTokenExpiresAt(payload.data.expiresIn);
+
+    return payload.data.accessToken;
   });
-  await updateAccessTokenExpiresAt(payload.data.expiresIn);
-
-  return payload.data.accessToken;
 }
 
 async function exchangeAndSyncBridgeToken(message: LoginBridgeTicketMessage) {

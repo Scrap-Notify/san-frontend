@@ -8,8 +8,10 @@ import {
   createSearchApi,
   createScrapsApi,
   type AuthTokens,
+  type TokenResponse,
   type TokenProvider,
 } from '@san/shared';
+import { runAuthRefreshLock } from './authRefreshLock';
 
 const defaultBaseURL = import.meta.env.PROD
   ? 'https://k14a309.p.ssafy.io/api'
@@ -30,6 +32,27 @@ const ACCESS_TOKEN_EXPIRES_AT_KEY = 'san_access_token_expires_at';
 async function getStorageValue(key: string): Promise<string | null> {
   const stored = await chrome.storage.local.get(key);
   return typeof stored[key] === 'string' ? stored[key] : null;
+}
+
+async function getStoredTokenResponse(): Promise<TokenResponse | null> {
+  const [accessToken, refreshToken, sessionId, expiresAt] = await Promise.all([
+    getStorageValue(ACCESS_TOKEN_KEY),
+    getStorageValue(REFRESH_TOKEN_KEY),
+    getStorageValue(SESSION_ID_KEY),
+    getStorageValue(ACCESS_TOKEN_EXPIRES_AT_KEY),
+  ]);
+
+  if (!accessToken || !refreshToken) {
+    return null;
+  }
+
+  return {
+    accessToken,
+    refreshToken,
+    tokenType: 'Bearer',
+    expiresIn: expiresAt ? Math.max(0, Math.floor((Number(expiresAt) - Date.now()) / 1000)) : 0,
+    sessionId: sessionId ?? '',
+  };
 }
 
 const tokenProvider: TokenProvider = {
@@ -55,6 +78,25 @@ const tokenProvider: TokenProvider = {
       await chrome.storage.local.remove(ACCESS_TOKEN_EXPIRES_AT_KEY);
     }
   },
+  refreshWithLock: async (
+    refreshTokenAtStart: string,
+    refresh: (refreshToken: string) => Promise<TokenResponse>,
+    getStoredTokens: () => Promise<TokenResponse | null>
+  ) => runAuthRefreshLock(async () => {
+    const latestRefreshToken = await getStorageValue(REFRESH_TOKEN_KEY);
+    if (!latestRefreshToken) {
+      throw new Error('Missing refresh token');
+    }
+
+    if (latestRefreshToken !== refreshTokenAtStart) {
+      const tokens = (await getStoredTokenResponse()) ?? (await getStoredTokens());
+      if (tokens) {
+        return tokens;
+      }
+    }
+
+    return refresh(latestRefreshToken);
+  }),
   clearToken: async () => {
     await chrome.storage.local.remove([
       ACCESS_TOKEN_KEY,
