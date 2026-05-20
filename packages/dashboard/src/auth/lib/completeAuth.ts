@@ -12,11 +12,10 @@ export async function completeAuth(tokens: AuthTokens, clientType: ClientType, u
   const scopedTokens = { ...tokens, clientType };
 
   if (clientType === 'EXTENSION') {
+    const previousDashboardAuth = await readStoredDashboardAuth();
+
     await syncExtensionAuth(scopedTokens);
     await authTokenStorage.setTokens(scopedTokens);
-    if (username) {
-      await authTokenStorage.setUsername(username);
-    }
 
     try {
       const { ticket } = await authApi.createDashboardBridgeTicket();
@@ -27,7 +26,14 @@ export async function completeAuth(tokens: AuthTokens, clientType: ClientType, u
       }
     } catch (error) {
       console.warn('[SAN:auth] dashboard bridge login after extension login failed', error);
-      await authTokenStorage.clearToken();
+      if (previousDashboardAuth) {
+        await authTokenStorage.setTokens(previousDashboardAuth.tokens);
+        if (previousDashboardAuth.username) {
+          await authTokenStorage.setUsername(previousDashboardAuth.username);
+        }
+      } else if (username) {
+        await authTokenStorage.setUsername(username);
+      }
     }
     return;
   }
@@ -47,4 +53,30 @@ async function syncDashboardBridgeAuth() {
   } catch (error) {
     console.info('[SAN:extension-auth] dashboard login extension bridge skipped', error);
   }
+}
+
+async function readStoredDashboardAuth(): Promise<{ tokens: AuthTokens; username: string | null } | null> {
+  const [accessToken, refreshToken, sessionId, clientType, expiresAt, username] = await Promise.all([
+    authTokenStorage.getToken(),
+    authTokenStorage.getRefreshToken(),
+    authTokenStorage.getSessionId(),
+    authTokenStorage.getClientType(),
+    authTokenStorage.getAccessTokenExpiresAt(),
+    authTokenStorage.getUsername(),
+  ]);
+
+  if (!accessToken || !refreshToken) {
+    return null;
+  }
+
+  return {
+    tokens: {
+      accessToken,
+      refreshToken,
+      sessionId: sessionId ?? undefined,
+      clientType: clientType ?? 'DASHBOARD',
+      expiresIn: expiresAt ? Math.max(0, Math.floor((expiresAt - Date.now()) / 1000)) : undefined,
+    },
+    username,
+  };
 }
