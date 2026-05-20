@@ -1,6 +1,9 @@
 import type { BaseEntity } from './common';
 
 export type SourceType = 'LINK' | 'TEXT' | 'IMAGE';
+export type ScrapOriginStatus = 'CREATED' | 'EXISTING';
+export type ScrapRefineStatus = 'REFINE_IN_PROGRESS' | 'REFINE_COMPLETED';
+export type ScrapCardCreationStatus = 'ANALYSIS_IN_PROGRESS' | 'CARD_READY';
 
 export interface Scrap extends BaseEntity {
   scrapId: string;
@@ -22,6 +25,9 @@ export interface CreateScrapResponse extends Scrap {
   analysisJobId?: string | null;
   refineJobId?: string | null;
   cardId?: string | null;
+  originStatus: ScrapOriginStatus;
+  refineStatus: ScrapRefineStatus;
+  cardCreationStatus: ScrapCardCreationStatus;
   duplicated?: boolean;
 }
 
