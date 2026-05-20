@@ -1,4 +1,5 @@
 import type { KnowledgeCardView } from '@san/shared';
+import { KnowledgeSummary } from './KnowledgeSummary';
 
 interface CreatedKnowledgeCardProps {
   card: KnowledgeCardView;
@@ -31,7 +32,7 @@ export function CreatedKnowledgeCard({ card, onOpenCard }: CreatedKnowledgeCardP
           }
         } : undefined}
         className={[
-          'glass-card relative flex h-[120px] w-full gap-[calc(var(--spacing-dashboard-gap)*2/3)] overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-surface-container/90 p-4 backdrop-blur-xl shadow-neon-sm transition',
+          'glass-card relative flex h-[132px] w-full gap-3 overflow-hidden rounded-leaf border-t border-l border-text-secondary/20 bg-surface-container/90 p-3.5 backdrop-blur-xl shadow-neon-sm transition',
           canOpenCard
             ? 'cursor-pointer hover:border-action-accent/35 hover:bg-surface-container focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action-accent/55 active:translate-y-px'
             : '',
@@ -39,7 +40,7 @@ export function CreatedKnowledgeCard({ card, onOpenCard }: CreatedKnowledgeCardP
       >
         <div className="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-action-accent/5 blur-2xl" aria-hidden="true" />
 
-        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-leaf border border-action-accent/20 bg-surface-low shadow-neon-sm">
+        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-leaf border border-action-accent/20 bg-surface-low shadow-neon-sm">
           <svg
             width={20}
             height={20}
@@ -63,17 +64,21 @@ export function CreatedKnowledgeCard({ card, onOpenCard }: CreatedKnowledgeCardP
             {card.title}
           </h3>
           <div className="mt-1 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <p className="text-body-sm leading-5 text-text-secondary/90">
-              {card.summary}
-            </p>
+            <KnowledgeSummary
+              summary={card.summary}
+              className="text-[12px] leading-[18px] text-text-secondary/90"
+              paragraphClassName="mb-0.5 last:mb-0"
+              listClassName="space-y-0.5"
+              itemClassName="flex items-start gap-2"
+            />
           </div>
 
           {card.tags.length > 0 ? (
-            <div className="mt-2 flex shrink-0 flex-wrap gap-[calc(var(--spacing-dashboard-gap)/4)]">
+            <div className="mt-1.5 flex shrink-0 flex-wrap gap-1">
               {card.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag.tag_id}
-                  className="rounded-full border border-action-accent/15 bg-background/40 px-2 py-0.5 text-[10px] font-bold text-action-accent"
+                  className="rounded-full border border-action-accent/15 bg-background/40 px-1.5 py-0.5 text-[9px] font-bold leading-none text-action-accent"
                 >
                   #{tag.name}
                 </span>

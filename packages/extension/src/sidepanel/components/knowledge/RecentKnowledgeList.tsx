@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { KnowledgeCardDetailResponse, KnowledgeCardResponse } from '@san/shared';
 import type { SavedInsight } from '@extension/types';
 import { Check, ChevronsDownUp, Copy, FileText, Image, Link, Loader2, PackageOpen } from 'lucide-react';
+import { KnowledgeSummary } from './KnowledgeSummary';
 
 const RECENT_TITLE = '\uCD5C\uADFC \uC9C0\uC2DD';
 const LOADING_MESSAGE = '\uC800\uC7A5\uD55C \uC9C0\uC2DD\uC744 \uBD88\uB7EC\uC624\uB294 \uC911\uC774\uC5D0\uC694.';
@@ -127,7 +128,7 @@ function KnowledgeCardArticle({
     : (source ? getSourceIcon(source) : FileText);
 
   return (
-    <article className="rounded-leaf border border-text-secondary/12 glass-card bg-surface-container/80 px-5 py-5 transition hover:border-primary-signal/25 hover:bg-surface-container">
+    <article className="rounded-leaf border border-text-secondary/12 glass-card bg-surface-container/80 px-4 py-4 transition hover:border-primary-signal/25 hover:bg-surface-container">
         <div className="flex items-start justify-between gap-3">
           <h3
             className={[
@@ -225,23 +226,25 @@ function KnowledgeCardArticle({
       ) : null}
 
       {card.summary ? (
-        <p
-          className="mt-3 line-clamp-3 cursor-text select-text text-body-sm leading-6 text-text-secondary/85"
-        >
-          {card.summary}
-        </p>
+        <KnowledgeSummary
+          summary={card.summary}
+          className="mt-2.5 max-h-[4rem] cursor-text select-text overflow-hidden text-[13px] leading-5 text-text-secondary/85"
+          paragraphClassName="mb-0.5 last:mb-0"
+          listClassName="space-y-0.5"
+          itemClassName="flex items-start gap-2"
+        />
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {card.category ? (
-          <span className="inline-flex items-center rounded-full border border-primary-signal/25 bg-primary-signal/8 px-3 py-1.5 text-caption-bold uppercase text-primary-signal">
+          <span className="inline-flex items-center rounded-full border border-primary-signal/25 bg-primary-signal/8 px-2.5 py-1 text-[11px] font-bold uppercase text-primary-signal">
             {card.category.categoryName}
           </span>
         ) : null}
         {card.tags.slice(0, 3).map((tag) => (
           <span
             key={tag.tagId}
-            className="inline-flex items-center rounded-full border border-primary-signal/25 bg-primary-signal/8 px-3 py-1.5 text-caption-bold uppercase text-primary-signal"
+            className="inline-flex items-center rounded-full border border-primary-signal/25 bg-primary-signal/8 px-2.5 py-1 text-[11px] font-bold uppercase text-primary-signal"
           >
             {tag.tagName}
           </span>

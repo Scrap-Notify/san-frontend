@@ -5,6 +5,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useArchiveCategoryCards, type SearchCardResult, type SearchParams } from '@san/shared';
 import { searchApi } from '../../api/client';
 import { ContentEmptyState } from '../../components/shared/empty/ContentEmptyState';
+import { ArchiveSummary } from '../components/archive/ArchiveSummary';
 
 interface Filters {
   tag: string;
@@ -75,7 +76,8 @@ export function ArchiveCategoryPage() {
               <ArchiveCard
                 key={card.cardId}
                 title={card.title}
-                subtitle={card.tags.map((tag) => tag.tagName).join(' · ')}
+                summary={null}
+                tags={card.tags.map((tag) => tag.tagName)}
                 onClick={() => navigate(`/cards/${card.cardId}`)}
               />
             ))}
@@ -94,7 +96,8 @@ export function ArchiveCategoryPage() {
               <ArchiveCard
                 key={card.cardId}
                 title={card.title}
-                subtitle={card.summary ?? '요약이 없습니다.'}
+                summary={card.summary}
+                tags={[]}
                 onClick={() => navigate(`/cards/${card.cardId}`)}
               />
             ))}
@@ -174,15 +177,44 @@ function FilterPanel({
   );
 }
 
-function ArchiveCard({ title, subtitle, onClick }: { title: string; subtitle: string; onClick: () => void }) {
+function ArchiveCard({
+  title,
+  summary,
+  tags,
+  onClick,
+}: {
+  title: string;
+  summary: string | null;
+  tags: string[];
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-48 flex-col justify-between rounded-leaf border border-text-secondary/5 glass-card bg-surface-container/80 p-6 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
+      className="flex min-h-48 flex-col justify-between rounded-leaf border border-text-secondary/5 glass-card bg-surface-container/80 p-5 text-left transition hover:-translate-y-1 hover:border-action-accent/30 hover:bg-surface-container"
     >
-      <h2 className="text-xl font-bold leading-snug text-text-primary">{title}</h2>
-      <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-text-primary/45">{subtitle}</p>
+      <div>
+        <h2 className="text-lg font-bold leading-snug text-text-primary">{title}</h2>
+        {summary ? (
+          <ArchiveSummary
+            summary={summary}
+            className="mt-4 max-h-[4.25rem] space-y-1 overflow-hidden text-[13px] leading-5 text-text-primary/50"
+          />
+        ) : null}
+      </div>
+      {tags.length > 0 ? (
+        <div className="mt-5 flex flex-wrap gap-1.5">
+          {tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border border-action-accent/15 bg-action-accent/5 px-2.5 py-1 text-[12px] font-medium leading-none text-action-accent"
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </button>
   );
 }
