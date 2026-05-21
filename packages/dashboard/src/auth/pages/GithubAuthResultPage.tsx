@@ -4,6 +4,7 @@ import { getApiErrorMessage } from '@san/shared';
 import { githubAuthApi } from '../../api/client';
 import { consumeRememberedAuthClientType, getAuthClientType, withAuthClientType } from '../lib/clientType';
 import { completeAuth } from '../lib/completeAuth';
+import { consumeRememberedGithubLinkAuthFlow } from '../lib/githubAuthFlow';
 
 const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
   A201: 'GitHub authentication failed. Please try again.',
@@ -19,6 +20,7 @@ export function GithubAuthResultPage() {
   const [searchParams] = useSearchParams();
   const [exchangeErrorMessage, setExchangeErrorMessage] = useState<string | null>(null);
   const [rememberedClientType] = useState(consumeRememberedAuthClientType);
+  const [isRememberedGithubLinkAuthFlow] = useState(consumeRememberedGithubLinkAuthFlow);
   const processedAuthKeyRef = useRef<string | null>(null);
 
   const ticket = searchParams.get('ticket');
@@ -43,7 +45,7 @@ export function GithubAuthResultPage() {
     }
 
     if (error) {
-      if (GITHUB_LINK_ERROR_CODES.has(error)) {
+      if (GITHUB_LINK_ERROR_CODES.has(error) || (isRememberedGithubLinkAuthFlow && error === 'A201')) {
         navigate(`/settings/integrations?githubError=${encodeURIComponent(error)}`, { replace: true });
         return;
       }
@@ -85,7 +87,7 @@ export function GithubAuthResultPage() {
     return () => {
       ignore = true;
     };
-  }, [clientType, code, error, githubLinked, navigate, ticket]);
+  }, [clientType, code, error, githubLinked, isRememberedGithubLinkAuthFlow, navigate, ticket]);
 
   return (
     <main className="auth-shell grid min-h-screen w-full place-items-center overflow-x-hidden bg-background px-lg text-text-primary">

@@ -6,8 +6,10 @@ import { githubApi, tilApi } from '../../api/client';
 import githubSvg from '@ui/assets/icons/github.svg';
 import { InlineActionToast } from '../../components/shared/toast/InlineActionToast';
 import { GithubContributionGraph } from '../components/github/GithubContributionGraph';
+import { rememberGithubLinkAuthFlow } from '../../auth/lib/githubAuthFlow';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
+  A201: 'GitHub 연동 인증에 실패했습니다. 다시 시도해주세요.',
   A202: 'GitHub 계정이 연동되어 있지 않습니다.',
   A204: '이미 다른 계정에 연결된 GitHub 계정입니다.',
   A205: 'GitHub 로그인 계정은 연동을 해제할 수 없습니다.',
@@ -165,7 +167,9 @@ export function SettingsIntegrationsPage() {
     setIsLinking(true);
 
     try {
-      window.location.href = await githubApi.getLinkAuthorizeUrl();
+      const authorizeUrl = await githubApi.getLinkAuthorizeUrl();
+      rememberGithubLinkAuthFlow();
+      window.location.href = authorizeUrl;
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, 'GitHub 연동을 시작하지 못했습니다.', GITHUB_LINK_ERROR_MESSAGE));
       setActionError({ target: 'link', message: 'GitHub 연결에 실패했어요.' });
