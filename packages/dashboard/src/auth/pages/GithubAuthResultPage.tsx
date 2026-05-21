@@ -6,9 +6,13 @@ import { consumeRememberedAuthClientType, getAuthClientType, withAuthClientType 
 import { completeAuth } from '../lib/completeAuth';
 
 const GITHUB_AUTH_ERROR_MESSAGE: Record<string, string> = {
-  A008: 'GitHub authentication failed. Please try again.',
+  A201: 'GitHub authentication failed. Please try again.',
+  A204: '이미 다른 계정에 연결된 GitHub 계정입니다.',
+  A206: '현재 연동된 GitHub 계정이 존재합니다.',
   C003: 'Authentication is required. Please log in again.',
 };
+
+const GITHUB_LINK_ERROR_CODES = new Set(['A202', 'A204', 'A205', 'A206']);
 
 export function GithubAuthResultPage() {
   const navigate = useNavigate();
@@ -39,6 +43,11 @@ export function GithubAuthResultPage() {
     }
 
     if (error) {
+      if (GITHUB_LINK_ERROR_CODES.has(error)) {
+        navigate(`/settings/integrations?githubError=${encodeURIComponent(error)}`, { replace: true });
+        return;
+      }
+
       navigate(withAuthClientType('/login', clientType), {
         replace: true,
         state: { authError: GITHUB_AUTH_ERROR_MESSAGE[error] ?? `GitHub authentication failed (${error})` },

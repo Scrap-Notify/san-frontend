@@ -8,9 +8,10 @@ import { InlineActionToast } from '../../components/shared/toast/InlineActionToa
 import { GithubContributionGraph } from '../components/github/GithubContributionGraph';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
-  A009: 'GitHub 계정이 연동되어 있지 않습니다.',
-  A011: '이미 다른 계정에 연결된 GitHub 계정입니다.',
-  A012: 'GitHub 로그인 계정은 연동을 해제할 수 없습니다.',
+  A202: 'GitHub 계정이 연동되어 있지 않습니다.',
+  A204: '이미 다른 계정에 연결된 GitHub 계정입니다.',
+  A205: 'GitHub 로그인 계정은 연동을 해제할 수 없습니다.',
+  A206: '현재 연동된 GitHub 계정이 존재합니다.',
 };
 
 // Debounce hook
@@ -63,6 +64,7 @@ export function SettingsIntegrationsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const githubLinked = searchParams.get('githubLinked') === 'true';
+  const githubError = searchParams.get('githubError');
   
   const [isGithubLinked, setIsGithubLinked] = useState(githubLinked);
   const [connectedRepositories, setConnectedRepositories] = useState<GithubRepository[]>([]);
@@ -122,6 +124,12 @@ export function SettingsIntegrationsPage() {
       navigate('/settings/integrations', { replace: true });
     }
 
+    if (githubError) {
+      setErrorMessage(GITHUB_LINK_ERROR_MESSAGE[githubError] ?? `GitHub 연동에 실패했습니다. (${githubError})`);
+      setActionError({ target: 'link', message: 'GitHub 연결에 실패했어요.' });
+      navigate('/settings/integrations', { replace: true });
+    }
+
     let ignore = false;
     githubApi.getLinkStatus()
       .then((status) => {
@@ -148,7 +156,7 @@ export function SettingsIntegrationsPage() {
     return () => {
       ignore = true;
     };
-  }, [githubLinked, loadAvailableRepositories, navigate]);
+  }, [githubError, githubLinked, loadAvailableRepositories, navigate]);
 
   const handleLinkGithub = async () => {
     if (isLinking || isGithubLinked) return;
