@@ -169,7 +169,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                   transform: treeVisible ? 'translateY(-28rem)' : 'translateY(0)',
                   opacity: treeVisible ? 0 : 1,
                   background:
-                    'linear-gradient(to top, rgba(94,234,212,0) 0%, rgba(94,234,212,0.32) 45%, rgba(94,234,212,0.06) 72%, transparent 100%)',
+                    'linear-gradient(to top, rgba(74,222,128,0) 0%, rgba(74,222,128,0.32) 45%, rgba(74,222,128,0.06) 72%, transparent 100%)',
                   filter: 'blur(10px)',
                   transition:
                     'transform 1400ms cubic-bezier(0.22, 1, 0.36, 1), opacity 1250ms cubic-bezier(0.22, 1, 0.36, 1)',
@@ -216,7 +216,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                       <path
                         d={path}
                         fill="none"
-                        stroke={`rgba(153,246,228,${style.glowOpacity})`}
+                        stroke={`rgba(134,230,144,${style.glowOpacity})`}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={0.95}
@@ -225,7 +225,7 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                       <path
                         d={path}
                         fill="none"
-                        stroke={`rgba(153,246,228,${style.opacity})`}
+                        stroke={`rgba(134,230,144,${style.opacity})`}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={style.strokeWidth}
@@ -249,11 +249,11 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                   : position.opacity;
                 const leafColor = hasActiveFocus
                   ? isActive
-                    ? 'rgba(153,246,228,1)'
+                    ? 'rgba(134,230,144,1)'
                     : isRelated
-                      ? 'rgba(94,234,212,0.55)'
-                      : 'rgba(94,234,212,0.25)'
-                  : 'rgba(94,234,212,0.7)';
+                      ? 'rgba(74,222,128,0.55)'
+                      : 'rgba(74,222,128,0.25)'
+                  : 'rgba(74,222,128,0.7)';
                 const leafShapeClass = position.x < 50 ? 'rounded-leaf-reverse' : 'rounded-leaf';
 
                 return (
@@ -278,11 +278,11 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                       color: leafColor,
                       filter: hasActiveFocus
                         ? isActive
-                          ? 'drop-shadow(0 0 10px rgba(94,234,212,0.52))'
+                          ? 'drop-shadow(0 0 10px rgba(74,222,128,0.52))'
                           : isRelated
-                            ? 'drop-shadow(0 0 8px rgba(94,234,212,0.22))'
-                            : 'drop-shadow(0 0 3px rgba(94,234,212,0.06))'
-                        : 'drop-shadow(0 0 3px rgba(94,234,212,0.08))',
+                            ? 'drop-shadow(0 0 8px rgba(74,222,128,0.22))'
+                            : 'drop-shadow(0 0 3px rgba(74,222,128,0.06))'
+                        : 'drop-shadow(0 0 3px rgba(74,222,128,0.08))',
                     }}
                     >
                     <span
@@ -307,12 +307,12 @@ export function CategoryTreeView({ leaves, isPending, selectedCategoryId, enterT
                         className={`absolute inset-0 ${leafShapeClass}`}
                         style={{
                           background:
-                            'linear-gradient(160deg, rgba(0,255,194,0.95) 0%, rgba(0,210,165,0.88) 45%, rgba(0,160,125,0.82) 100%)',
+                            'linear-gradient(160deg, rgba(134,230,144,0.95) 0%, rgba(74,222,128,0.88) 45%, rgba(45,160,84,0.82) 100%)',
                           boxShadow: isActive
-                            ? '0 0 16px rgba(0,255,194,0.72), 0 0 30px rgba(0,255,194,0.28)'
+                            ? '0 0 16px rgba(74,222,128,0.72), 0 0 30px rgba(74,222,128,0.28)'
                             : isRelated
-                              ? '0 0 10px rgba(0,255,194,0.38)'
-                              : '0 0 6px rgba(0,255,194,0.32)',
+                              ? '0 0 10px rgba(74,222,128,0.38)'
+                              : '0 0 6px rgba(74,222,128,0.32)',
                           opacity: isActive ? 1 : isRelated ? 0.58 : 0.75,
                           transition:
                             'opacity 180ms ease-out, transform 180ms ease-out, filter 180ms ease-out, box-shadow 180ms ease-out',

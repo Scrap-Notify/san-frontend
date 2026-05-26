@@ -11,10 +11,13 @@ import {
   type TokenProvider,
 } from '@san/shared';
 
-const defaultBaseURL = import.meta.env.PROD
-  ? 'https://k14a309.p.ssafy.io/api'
-  : 'http://localhost:8080/api';
-const baseURL = normalizeApiBaseURL(import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL);
+const baseURL = normalizeApiBaseURL(getApiBaseURL());
+
+function getApiBaseURL() {
+  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
+  if (!import.meta.env.PROD) return 'http://localhost:8080/api';
+  throw new Error('Missing VITE_API_BASE_URL for production extension build');
+}
 
 function normalizeApiBaseURL(value: string) {
   const trimmed = value.replace(/\/$/, '');

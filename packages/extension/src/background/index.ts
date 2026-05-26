@@ -3,14 +3,8 @@ import type { ExtensionMessage, PendingScrap, TilRecallSettings } from '@extensi
 import { createLinkScrap, isHttpUrl } from '@extension/utils/scrap';
 
 const DEBUG_PREFIX = '[SAN:background]';
-const defaultBaseURL = import.meta.env.PROD
-  ? 'https://k14a309.p.ssafy.io/api'
-  : 'http://localhost:8080/api';
-const baseURL = normalizeApiBaseURL(import.meta.env.VITE_API_BASE_URL ?? defaultBaseURL);
-const defaultDashboardBaseUrl = import.meta.env.PROD
-  ? 'https://k14a309.p.ssafy.io'
-  : 'http://localhost:5173';
-const dashboardBaseUrl = (import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl).replace(/\/$/, '');
+const baseURL = normalizeApiBaseURL(getApiBaseURL());
+const dashboardBaseUrl = getDashboardBaseUrl();
 const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const ACCESS_TOKEN_KEY = 'san_access_token';
 const REFRESH_TOKEN_KEY = 'san_refresh_token';
@@ -48,6 +42,20 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 void chrome.windows.getLastFocused().then((window) => {
   lastFocusedWindowId = window.id;
 });
+
+function getApiBaseURL() {
+  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
+  if (!import.meta.env.PROD) return 'http://localhost:8080/api';
+  throw new Error('Missing VITE_API_BASE_URL for production extension build');
+}
+
+function getDashboardBaseUrl() {
+  if (import.meta.env.VITE_DASHBOARD_BASE_URL) {
+    return import.meta.env.VITE_DASHBOARD_BASE_URL.replace(/\/$/, '');
+  }
+  if (!import.meta.env.PROD) return 'http://localhost:5173';
+  throw new Error('Missing VITE_DASHBOARD_BASE_URL for production extension build');
+}
 
 function normalizeApiBaseURL(value: string) {
   const trimmed = value.replace(/\/$/, '');

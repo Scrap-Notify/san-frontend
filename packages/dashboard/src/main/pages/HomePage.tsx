@@ -21,7 +21,7 @@ export function HomePage() {
 
       <GraphSection />
 
-      <div className="relative z-10 -mt-6 rounded-t-[40px] bg-background pt-10 shadow-[0_-16px_48px_var(--color-scrim,rgba(0,0,0,0.15))]">
+      <div className="relative z-10 -mt-6 rounded-t-[40px] bg-background pt-10">
         <div className="px-6 pb-12">
           <ArchiveSection />
         </div>

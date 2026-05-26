@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Search, Loader2 } from 'lucide-react';
 import type {
@@ -7,7 +7,7 @@ import type {
     TilResponse,
     TilSourceContentResponse,
 } from '@san/shared';
-import type { TilRecallCardsQuery, TilSourcesQuery } from '../types';
+import type { TilRecallCardsQuery, TilRecallQuizzesQuery, TilSourcesQuery } from '../types';
 import { CollectedDataCard, type CollectedDataItem } from './CollectedDataCard';
 import { useRecallQuizGenerateMutation } from '../hooks/useTilMutations';
 import { tilKeys, useTilAsyncJobStatus, useTilRecallQuizzes } from '../hooks/useTilQueries';
@@ -94,7 +94,7 @@ export function CollectedDataPanel({ sourcesQuery, recallCardsQuery, selectedTil
             {activeTab === 'sources' ? (
                 <>
                     <div className="border-b border-text-secondary/5 p-4">
-                        <label className="flex items-center gap-2 rounded-full bg-surface-highest px-4 py-2 transition focus-within:ring-1 focus-within:ring-primary-signal/30">
+                        <label className="flex items-center gap-2 rounded-full bg-surface-highest px-4 py-2 transition focus-within:ring-1 focus-within:ring-action-accent/30">
                             <Search size={16} className="text-text-secondary" />
                             <input
                                 type="search"
@@ -141,7 +141,7 @@ function ReviewStatusSummary({
     quizType,
     onQuizTypeChange,
 }: {
-    recallQuizzesQuery: any;
+    recallQuizzesQuery: TilRecallQuizzesQuery;
     selectedTil: TilResponse | null;
     quizType: RecallQuizType;
     onQuizTypeChange: (type: RecallQuizType) => void;
@@ -160,8 +160,8 @@ function ReviewStatusSummary({
         onSuccess: (response) => {
             setQuizJobId(response.quizJobId);
         },
-        onError: (error: any) => {
-            if (error?.response?.status === 409) {
+        onError: (error) => {
+            if (getHttpStatus(error) === 409) {
                 setHasRequestedGeneration(true);
                 void queryClient.invalidateQueries({
                     queryKey: tilKeys.recallQuizzes(selectedTil?.targetDate, quizType),
@@ -179,29 +179,37 @@ function ReviewStatusSummary({
             void queryClient.invalidateQueries({
                 queryKey: tilKeys.recallQuizzes(selectedTil.targetDate, quizType),
             });
-            setQuizJobId(null);
+            const timer = window.setTimeout(() => setQuizJobId(null), 0);
+            return () => window.clearTimeout(timer);
         }
         if (quizJobStatusQuery.data?.status === 'FAILED') {
-            setQuizJobId(null);
-            setHasRequestedGeneration(false);
+            const timer = window.setTimeout(() => {
+                setQuizJobId(null);
+                setHasRequestedGeneration(false);
+            }, 0);
+            return () => window.clearTimeout(timer);
         }
+        return undefined;
     }, [quizJobStatusQuery.data?.status, queryClient, selectedTil, quizType]);
 
     const isGenerating = generateMutation.isPending || quizJobStatusQuery.data?.status === 'PENDING' || quizJobStatusQuery.data?.status === 'PROCESSING';
     const canGenerate = !isGenerating && !hasRequestedGeneration;
 
-    const handleGenerate = () => {
+    const handleGenerate = useCallback(() => {
         if (!selectedTil || !canGenerate) return;
         setHasRequestedGeneration(true);
         generateMutation.mutate({
             targetDate: selectedTil.targetDate,
             quizType,
         });
-    };
+    }, [canGenerate, generateMutation, quizType, selectedTil]);
 
     useEffect(() => {
-        setHasRequestedGeneration(false);
-        setQuizJobId(null);
+        const timer = window.setTimeout(() => {
+            setHasRequestedGeneration(false);
+            setQuizJobId(null);
+        }, 0);
+        return () => window.clearTimeout(timer);
     }, [selectedTil?.summaryId, quizType]);
 
     useEffect(() => {
@@ -212,20 +220,25 @@ function ReviewStatusSummary({
             canGenerate &&
             !quizJobId
         ) {
-            handleGenerate();
+            const timer = window.setTimeout(handleGenerate, 0);
+            return () => window.clearTimeout(timer);
         }
+        return undefined;
     }, [
         selectedTil,
         recallQuizzesQuery.isSuccess,
         quizzes.length,
         canGenerate,
         quizJobId,
+        handleGenerate,
     ]);
 
     useEffect(() => {
         if (generateMutation.isError && !isGenerating) {
-            setHasRequestedGeneration(false);
+            const timer = window.setTimeout(() => setHasRequestedGeneration(false), 0);
+            return () => window.clearTimeout(timer);
         }
+        return undefined;
     }, [generateMutation.isError, isGenerating]);
 
     return (
@@ -277,7 +290,7 @@ function ReviewStatusSummary({
                                 type="button"
                                 onClick={handleGenerate}
                                 disabled={!canGenerate}
-                                className="flex items-center gap-2 rounded-lg bg-primary-signal/10 px-4 py-2 text-xs font-bold text-primary-signal transition hover:bg-primary-signal/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg bg-action-accent/10 px-4 py-2 text-xs font-bold text-action-accent transition hover:bg-action-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {isGenerating ? (
                                     <>
@@ -354,4 +367,8 @@ function toCollectedDataType(sourceType: string): CollectedDataItem['type'] {
     if (sourceType === 'LINK') return 'link';
     if (sourceType === 'IMAGE') return 'image';
     return 'text';
+}
+
+function getHttpStatus(error: unknown) {
+    return (error as { response?: { status?: number } })?.response?.status;
 }

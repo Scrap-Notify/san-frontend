@@ -7,6 +7,7 @@ import githubSvg from '@ui/assets/icons/github.svg';
 import { InlineActionToast } from '../../components/shared/toast/InlineActionToast';
 import { GithubContributionGraph } from '../components/github/GithubContributionGraph';
 import { rememberGithubLinkAuthFlow } from '../../auth/lib/githubAuthFlow';
+import { getExtensionInstallUrl } from '../utils/extensionInstallUrl';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
   A201: 'GitHub 연동 인증에 실패했습니다. 다시 시도해주세요.',
@@ -86,6 +87,7 @@ export function SettingsIntegrationsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const extensionInstallUrl = getExtensionInstallUrl();
 
 
   const loadConnectedRepositories = useCallback(async () => {
@@ -276,6 +278,33 @@ export function SettingsIntegrationsPage() {
 
   return (
     <section className="mx-auto w-full max-w-[1200px] space-y-8 py-12 text-text-primary">
+
+      {extensionInstallUrl && (
+        <div className="rounded-xl border border-text-secondary/10 bg-surface-lowest p-6 shadow-sm">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-action-accent/20 bg-action-accent/10 text-action-accent">
+                <Link2 size={20} strokeWidth={1.7} />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-base font-bold text-text-primary">브라우저 익스텐션</h2>
+                <p className="mt-1 text-sm text-text-primary/50">
+                  웹 페이지 저장 기능은 SAN 익스텐션 설치 후 사용할 수 있습니다.
+                </p>
+              </div>
+            </div>
+            <a
+              href={extensionInstallUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-md bg-action-accent px-4 text-sm font-bold text-text-on-accent transition hover:bg-action-accent/90 active:scale-95"
+            >
+              설치하기
+              <ExternalLink size={14} strokeWidth={1.8} />
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* ── 상단: GitHub 연동 상태 카드 ── */}
       <div className="rounded-xl border border-text-secondary/5 bg-surface-lowest p-8 shadow-sm">

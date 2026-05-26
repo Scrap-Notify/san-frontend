@@ -136,7 +136,8 @@ function FilterPanel({
   const [inputValue, setInputValue] = useState(keyword);
 
   useEffect(() => {
-    setInputValue(keyword);
+    const timer = window.setTimeout(() => setInputValue(keyword), 0);
+    return () => window.clearTimeout(timer);
   }, [keyword]);
 
   useEffect(() => {
@@ -146,14 +147,14 @@ function FilterPanel({
   }, [inputValue, keyword, onKeywordChange]);
 
   return (
-    <div className="relative z-[300] flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
+    <div className="relative z-10 flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
       <div className="relative">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-primary/25" />
         <input
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           placeholder="이 폴더 안에서 검색"
-          className="w-full rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] py-4 pl-11 pr-4 text-sm outline-none transition focus:border-primary-signal/30"
+          className="w-full rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] py-4 pl-11 pr-4 text-sm outline-none transition focus:border-action-accent/30"
         />
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -218,7 +219,7 @@ function CategoryDatePicker({
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-left text-sm font-bold text-text-primary outline-none transition focus:border-primary-signal/30"
+        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-left text-sm font-bold text-text-primary outline-none transition focus:border-action-accent/30"
       >
         <span className={value ? 'text-text-primary' : 'text-text-primary/35'}>
           {value || placeholder}
@@ -227,7 +228,7 @@ function CategoryDatePicker({
       </button>
 
       {isOpen ? (
-        <div className="absolute left-0 top-full z-[1000] mt-3 w-64 overflow-hidden rounded-tl-[28px] rounded-br-[28px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-5 shadow-2xl">
+        <div className="absolute left-0 top-full z-40 mt-3 w-64 overflow-hidden rounded-tl-[28px] rounded-br-[28px] rounded-tr-lg rounded-bl-lg border border-text-secondary/10 bg-surface-container p-5 shadow-2xl">
           <div className="mb-4 flex items-center justify-between">
             <button
               type="button"
@@ -288,10 +289,6 @@ function CategoryDatePicker({
       ) : null}
     </div>
   );
-}
-
-function getTodayDate() {
-  return formatDate(new Date());
 }
 
 function getTodayStart() {

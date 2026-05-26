@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, User, X } from 'lucide-react';
+import { Download, Menu, User, X } from 'lucide-react';
 import { authTokenStorage } from '@dashboard/api/client';
 import { SearchBar } from '../search/SearchBar';
 import { ThemeToggle } from '@san/ui';
+import { getExtensionInstallUrl } from '../../utils/extensionInstallUrl';
 import githubSvg from '@ui/assets/icons/github.svg';
 import sanLogoSvg from '@ui/assets/brand/SAN_LOGO.svg';
 import sanTypoSvg from '@ui/assets/brand/SAN_TYPO.svg';
@@ -24,6 +25,7 @@ export function TopNavBar({
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const extensionInstallUrl = getExtensionInstallUrl();
 
   useEffect(() => {
     let ignore = false;
@@ -72,6 +74,19 @@ export function TopNavBar({
   const actionButtons = (
     <>
       <ThemeToggle iconSize={22} strokeWidth={1.5} />
+
+      {isAuthenticated && extensionInstallUrl ? (
+        <a
+          href={extensionInstallUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="SAN extension install"
+          title="SAN 익스텐션 설치"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-text-primary/5 hover:text-action-accent"
+        >
+          <Download size={21} strokeWidth={1.6} />
+        </a>
+      ) : null}
 
       <button
         onClick={handleGithubClick}

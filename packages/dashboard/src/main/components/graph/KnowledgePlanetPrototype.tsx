@@ -389,7 +389,7 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
     <section className="relative font-sans text-text-primary" style={{ minHeight: 'calc(100vh - var(--dashboard-nav-offset, 88px))' }}>
       <BG />
       {showMarkers && catQuery.isPending ? (
-        <Msg><Loader2 size={24} className="animate-spin text-primary-signal" /><span className="text-sm text-text-secondary">지식 숲을 불러오는 중...</span></Msg>
+        <Msg><Loader2 size={24} className="animate-spin text-action-accent" /><span className="text-sm text-text-secondary">지식 숲을 불러오는 중...</span></Msg>
       ) : showMarkers && !catQuery.isPending && !categories.length ? (
         <Msg><FolderOpen size={28} className="text-text-secondary/40" /><p className="text-sm text-text-secondary">표시할 카테고리가 없습니다.</p></Msg>
       ) : (
@@ -409,7 +409,7 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
                   opacity: hasSelection && !isSelected ? (isLinked ? 0.7 : 0.2) : 1,
                   transform: `translate(-50%,-50%) scale(${isSelected ? 1.1 : 1})`,
                 }}>
-                <div className={`flex min-w-[7.5rem] flex-col gap-1.5 rounded-tl-[20px] rounded-br-[20px] rounded-tr-lg rounded-bl-lg border px-4 py-3 glass-card !shadow-none transition-colors duration-300 ${isSelected ? 'border-primary-signal/60 bg-primary-signal/10' : isLinked ? 'border-primary-signal/40 bg-primary-signal/5' : 'border-primary-signal/25 bg-surface-container/80 hover:border-primary-signal/50 hover:bg-surface-container'}`}>
+                <div className={`flex min-w-[7.5rem] flex-col gap-1.5 rounded-tl-[20px] rounded-br-[20px] rounded-tr-lg rounded-bl-lg border px-4 py-3 glass-card !shadow-none transition-colors duration-300 ${isSelected ? 'border-action-accent/60 bg-action-accent/10' : isLinked ? 'border-action-accent/40 bg-action-accent/5' : 'border-action-accent/25 bg-surface-container/80 hover:border-action-accent/50 hover:bg-surface-container'}`}>
                   <span className="text-xs font-bold uppercase tracking-wider text-text-primary">{cat.name}</span>
                   <span className="text-[11px] text-text-secondary">{cat.count} cards</span>
                 </div>
@@ -431,7 +431,7 @@ export function KnowledgePlanetPrototype({ showMarkers = true }: { showMarkers?:
           )}
           {selectedCatId && cardQuery.isPending && (
             <div className="absolute inset-0 grid place-items-center" style={{ zIndex: 10 }}>
-              <Loader2 size={20} className="animate-spin text-primary-signal/40" />
+              <Loader2 size={20} className="animate-spin text-action-accent/40" />
             </div>
           )}
         </div>
@@ -568,12 +568,12 @@ function CardGraph({ catPos, dockPos, cards, tagLineIndices, hoveredCardId, hovR
               transform: `translate(-50%,-50%) scale(${settled ? (isThis ? 1.06 : 1) : 0.4 + bloom * 0.6})`,
               transition: settled ? 'opacity 300ms ease-out, transform 300ms ease-out' : 'none',
             }}>
-            <div className={`flex w-[8.5rem] flex-col gap-1 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md border px-3 py-2.5 glass-card !shadow-none transition-colors duration-200 ${isThis ? 'border-primary-signal/60 bg-primary-signal/8' : isRelated ? 'border-primary-signal/35 bg-surface-container/90' : 'border-text-secondary/10 bg-surface-container/80 hover:border-primary-signal/30 hover:bg-surface-container'}`}>
+            <div className={`flex w-[8.5rem] flex-col gap-1 rounded-tl-[14px] rounded-br-[14px] rounded-tr-md rounded-bl-md border px-3 py-2.5 glass-card !shadow-none transition-colors duration-200 ${isThis ? 'border-action-accent/60 bg-action-accent/8' : isRelated ? 'border-action-accent/35 bg-surface-container/90' : 'border-action-accent/18 bg-surface-container/80 hover:border-action-accent/34 hover:bg-surface-container'}`}>
               <span className={`line-clamp-2 text-[11px] font-semibold leading-[1.4] ${isThis ? 'text-text-primary' : 'text-text-secondary'}`}>
                 {card.title}
               </span>
               {card.tags.length > 0 && (
-                <span className="truncate text-[10px] text-primary-signal/60">
+                <span className="truncate text-[10px] text-action-accent/60">
                   {card.tags.slice(0, 2).map(t => `#${t}`).join(' ')}
                 </span>
               )}
@@ -640,8 +640,8 @@ function CrossBridge({ from, cards }: { from: Pos; cards: CrossCard[] }) {
           transform: show ? 'translate(-50%,-50%) scale(1)' : 'translate(-50%,10%) scale(0.85)',
           transition: `opacity 250ms ease-out ${i * 60 + 200}ms, transform 300ms ease-out ${i * 60 + 200}ms`,
         }}>
-          <div className="flex w-[7.5rem] flex-col gap-0.5 rounded-tl-[12px] rounded-br-[12px] rounded-tr-md rounded-bl-md border border-primary-signal/30 bg-primary-signal/5 px-2.5 py-2 glass-card !shadow-none">
-            <span className="line-clamp-1 text-[10px] font-semibold text-primary-signal">{card.title}</span>
+          <div className="flex w-[7.5rem] flex-col gap-0.5 rounded-tl-[12px] rounded-br-[12px] rounded-tr-md rounded-bl-md border border-action-accent/30 bg-action-accent/5 px-2.5 py-2 glass-card !shadow-none">
+            <span className="line-clamp-1 text-[10px] font-semibold text-action-accent">{card.title}</span>
           </div>
         </div>
       ))}
@@ -665,8 +665,8 @@ function Msg({ children }: { children: ReactNode }) {
 function BG() {
   return (
     <div className="pointer-events-none absolute -inset-48 overflow-visible">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_62%,var(--color-primary-signal,#4ade80)_0%,transparent_45%)] opacity-[0.05]" />
-      <div className="absolute left-1/2 top-[60%] h-[45rem] w-[45rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-signal/[0.06] blur-[90px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_62%,var(--color-action-accent,#4ade80)_0%,transparent_45%)] opacity-[0.05]" />
+      <div className="absolute left-1/2 top-[60%] h-[45rem] w-[45rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-action-accent/[0.06] blur-[90px]" />
     </div>
   );
 }

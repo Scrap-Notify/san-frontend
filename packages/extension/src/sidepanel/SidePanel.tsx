@@ -33,8 +33,7 @@ const PENDING_STORAGE_KEY = 'san:pending-scrap';
 const IMAGE_DB_NAME = 'san-extension-images';
 const IMAGE_STORE_NAME = 'pending-images';
 const isDebug = import.meta.env.DEV;
-const defaultDashboardBaseUrl = 'http://localhost:5173';
-const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_BASE_URL ?? defaultDashboardBaseUrl;
+const dashboardBaseUrl = getDashboardBaseUrl();
 const dashboardLoginUrl = new URL('/login', dashboardBaseUrl);
 dashboardLoginUrl.searchParams.set('clientType', 'EXTENSION');
 const dashboardGithubLoginUrl = new URL('/login', dashboardBaseUrl);
@@ -45,6 +44,14 @@ const RECENT_TAB_LABEL = '\uCD5C\uADFC \uC9C0\uC2DD';
 const SIMILAR_TAB_LABEL = '\uC720\uC0AC \uC9C0\uC2DD';
 
 type KnowledgeTab = 'recent' | 'similar';
+
+function getDashboardBaseUrl() {
+  if (import.meta.env.VITE_DASHBOARD_BASE_URL) {
+    return import.meta.env.VITE_DASHBOARD_BASE_URL.replace(/\/$/, '');
+  }
+  if (!import.meta.env.PROD) return 'http://localhost:5173';
+  throw new Error('Missing VITE_DASHBOARD_BASE_URL for production extension build');
+}
 
 function isUnauthorizedError(error: unknown) {
   return (

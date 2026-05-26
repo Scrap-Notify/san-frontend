@@ -99,7 +99,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
             {!isPanel ? <RecallHeader count={cards.length} /> : null}
 
             <div className={`relative ${isPanel ? 'mt-1' : 'mt-6'}`}>
-                <span className="pointer-events-none absolute bottom-0 left-[14px] top-0 w-px bg-primary-signal/26" />
+                <span className="pointer-events-none absolute bottom-0 left-[14px] top-0 w-px bg-action-accent/26" />
                 <div className="space-y-8">
                     {visibleCards.map((card, index) => {
                         const isActive = index === activeIndex;
@@ -120,8 +120,8 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                                     <span
                                         className={`relative z-10 mt-1.5 block h-2.5 w-2.5 rounded-full border transition-all duration-300 ${
                                             isActive
-                                                ? 'border-primary-signal/80 bg-primary-signal'
-                                                : 'border-primary-signal/12 bg-surface-highest'
+                                                ? 'border-action-accent/80 bg-action-accent'
+                                                : 'border-action-accent/12 bg-surface-highest'
                                         }`}
                                     />
                                 </div>
@@ -132,7 +132,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                                     className="relative min-w-0 text-left transition-opacity hover:opacity-90"
                                 >
                                     <div>
-                                        <p className={`text-sm font-extrabold ${isActive ? 'text-primary-signal' : 'text-text-secondary/55'}`}>
+                                        <p className={`text-sm font-extrabold ${isActive ? 'text-action-accent' : 'text-text-secondary/55'}`}>
                                             {isFirst ? '\u0031\uC77C \uC804' : formatTimeLabel(card.createdAt)}
                                         </p>
 
@@ -147,7 +147,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
                                     </div>
 
                                     <footer className="mt-3 flex flex-wrap items-center gap-2">
-                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary-signal">
+                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-action-accent">
                                             {'\uC6D0\uBB38 \uBCF4\uAE30'}
                                             <ArrowUpRight size={11} />
                                         </span>
@@ -175,7 +175,7 @@ export function RecallHistory({ recallCardsQuery, selectedTil, variant = 'page' 
 function RecallEmptyState() {
     return (
         <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 pt-6 text-center">
-            <div className="til-light-teal-accent text-action-accent/80 drop-shadow-[0_0_18px_rgba(119,255,210,0.22)]">
+            <div className="til-light-teal-accent text-action-accent/80 drop-shadow-[0_0_18px_rgba(74,222,128,0.22)]">
                 <PackageOpen size={44} strokeWidth={1.6} aria-hidden="true" />
             </div>
             <div className="space-y-1">
@@ -194,7 +194,7 @@ function RecallHeader({ count }: { count: number }) {
     return (
         <header className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-signal/10 text-primary-signal">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-action-accent/10 text-action-accent">
                     <BrainCircuit size={16} />
                 </span>
                 <h2 className="text-xl font-extrabold tracking-tight text-text-primary">Recall History</h2>
