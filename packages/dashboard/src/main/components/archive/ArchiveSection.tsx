@@ -54,7 +54,7 @@ export function ArchiveSection() {
   const hasCards = isAuthenticated && !isPending && !isError && visibleCards.length > 0;
 
   return (
-    <section className="w-full min-w-0 overflow-hidden pb-xl">
+    <section className="w-full min-w-0 overflow-visible pb-xl">
       <div className="flex flex-col gap-dashboard-gap">
         <div className="flex flex-col gap-dashboard-gap sm:flex-row sm:items-center sm:justify-between">
           <HomeSectionTitle>나의 지식 아카이브</HomeSectionTitle>
@@ -89,9 +89,11 @@ export function ArchiveSection() {
           ) : null}
         </div>
 
-        <div className="min-w-0" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+        <div className="relative min-w-0" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+          <div className="pointer-events-none absolute inset-y-4 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent" />
+          <div className="pointer-events-none absolute inset-y-4 right-0 z-10 w-14 bg-gradient-to-l from-background to-transparent" />
           <div ref={carouselRef} onScroll={handleScroll}
-            className="flex w-full min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            className="flex w-full min-w-0 snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-2 scroll-smooth py-4 pl-2 pr-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
             {isCheckingAuth ? <StatusCard message="로그인 상태를 확인하는 중..." /> : null}
             {!isCheckingAuth && !isAuthenticated ? (

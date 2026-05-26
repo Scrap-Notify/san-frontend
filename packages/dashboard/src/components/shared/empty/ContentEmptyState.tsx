@@ -22,7 +22,7 @@ export function ContentEmptyState({ title, description, variant = 'default' }: C
         </p>
       </div>
 
-      <div className="pb-8 text-primary-signal">
+      <div className="pb-8 text-action-accent">
         <Leaf size={72} strokeWidth={1.4} aria-hidden="true" />
       </div>
     </div>

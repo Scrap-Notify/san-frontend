@@ -25,7 +25,7 @@ export function SearchBar({
     <form
       onSubmit={handleSubmit}
       role="search"
-      className={`inline-flex h-11 items-center gap-3 rounded-md bg-text-primary/5 px-4 transition focus-within:ring-1 focus-within:ring-primary-signal/30 ${className}`}
+      className={`inline-flex h-11 items-center gap-3 rounded-md bg-text-primary/5 px-4 transition focus-within:ring-1 focus-within:ring-action-accent/30 ${className}`}
     >
       <Search size={18} aria-hidden="true" className="shrink-0 text-text-secondary/80" />
       <input

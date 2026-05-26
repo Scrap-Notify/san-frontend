@@ -233,7 +233,7 @@ export function TILEditor({
                             <div
                                 className={`flex min-w-0 max-w-[220px] items-center gap-2 rounded-full border px-3 py-1 md:max-w-[420px] ${
                                     statusTone === 'success'
-                                        ? 'border-primary-signal/30 bg-primary-signal/10 text-primary-signal'
+                                        ? 'border-action-accent/30 bg-action-accent/10 text-action-accent'
                                         : statusTone === 'error'
                                             ? 'border-error/30 bg-error/10 text-error'
                                             : statusTone === 'pending'
@@ -408,7 +408,7 @@ export function TILEditor({
                                             </ol>
                                         ),
                                         li: ({ children }) => (
-                                            <li className="pl-1 leading-7 marker:text-primary-signal">{children}</li>
+                                            <li className="pl-1 leading-7 marker:text-action-accent">{children}</li>
                                         ),
                                         strong: ({ children }) => (
                                             <strong className="font-bold text-text-primary">{children}</strong>
@@ -417,17 +417,17 @@ export function TILEditor({
                                             <em className="text-text-secondary">{children}</em>
                                         ),
                                         blockquote: ({ children }) => (
-                                            <blockquote className="mb-5 border-l-2 border-primary-signal/50 bg-primary-signal/5 py-3 pl-4 text-text-secondary">
+                                            <blockquote className="mb-5 border-l-2 border-action-accent/50 bg-action-accent/5 py-3 pl-4 text-text-secondary">
                                                 {children}
                                             </blockquote>
                                         ),
                                         code: ({ children }) => (
-                                            <code className="rounded bg-surface-highest px-1.5 py-0.5 font-mono text-sm text-primary-signal">
+                                            <code className="rounded bg-surface-highest px-1.5 py-0.5 font-mono text-sm text-action-accent">
                                                 {children}
                                             </code>
                                         ),
                                         pre: ({ children }) => (
-                                            <pre className="mb-5 overflow-x-auto rounded-[8px] border border-primary-signal/10 bg-surface-low p-4 text-sm leading-6">
+                                            <pre className="mb-5 overflow-x-auto rounded-[8px] border border-action-accent/10 bg-surface-low p-4 text-sm leading-6">
                         {children}
                       </pre>
                                         ),
@@ -436,12 +436,12 @@ export function TILEditor({
                                                 href={href}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="text-primary-signal underline decoration-primary-signal/40 underline-offset-4"
+                                                className="text-action-accent underline decoration-action-accent/40 underline-offset-4"
                                             >
                                                 {children}
                                             </a>
                                         ),
-                                        hr: () => <hr className="my-8 border-primary-signal/20" />,
+                                        hr: () => <hr className="my-8 border-action-accent/20" />,
                                     }}
                                 >
                                     {previewDraft}

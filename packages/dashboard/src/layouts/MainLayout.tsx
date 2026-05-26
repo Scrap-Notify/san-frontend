@@ -8,7 +8,7 @@ export function MainLayout() {
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-background">
-      <header className="fixed left-0 top-0 z-50 w-full">
+      <header className="fixed left-0 top-0 z-[2000] w-full">
         <TopNavBar activeMenu={activeMenu} />
       </header>
 

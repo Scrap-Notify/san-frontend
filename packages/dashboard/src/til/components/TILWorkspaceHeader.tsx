@@ -51,7 +51,7 @@ export function TILWorkspaceHeader({
         <TILModeTabs activeTab={activeTab} onChange={onTabChange} />
       </div>
 
-      <div className="glass-panel flex min-w-fit items-center justify-center overflow-hidden rounded-[8px] border border-text-primary/5 bg-surface-lowest/92 text-body-sm-bold text-text-primary backdrop-blur-xl focus-within:ring-1 focus-within:ring-primary-signal/40">
+      <div className="glass-panel flex min-w-fit items-center justify-center overflow-hidden rounded-[8px] border border-text-primary/5 bg-surface-lowest/92 text-body-sm-bold text-text-primary backdrop-blur-xl focus-within:ring-1 focus-within:ring-action-accent/40">
         <button
           type="button"
           aria-label="Previous date"
@@ -88,7 +88,7 @@ export function TILWorkspaceHeader({
         </button>
       </div>
 
-      <label className="glass-panel ml-auto flex h-11 w-full max-w-80 min-w-0 items-center gap-md bg-surface-lowest/92 px-md focus-within:ring-1 focus-within:ring-primary-signal/40">
+      <label className="glass-panel ml-auto flex h-11 w-full max-w-80 min-w-0 items-center gap-md bg-surface-lowest/92 px-md focus-within:ring-1 focus-within:ring-action-accent/40">
         <Search
           size={20}
           className="shrink-0 text-text-secondary"

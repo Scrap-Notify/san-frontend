@@ -47,16 +47,16 @@
   --color-surface-lowest: #0b0d0f;
   --color-scrim: rgba(0, 0, 0, 0.6);
 
-  --color-primary-signal: #00ffc2;
-  --color-primary-signal-hover: #00e6af;
-  --color-primary-signal-active: #00cc9b;
-  --color-primary-signal-dark: #00bf92;
-  --color-primary-signal-dark-hover: #009974;
-  --color-primary-signal-dark-active: #007357;
-  --color-primary-signal-darker: #005944;
-  --color-neon: #00ffc2;
-  --color-neon-dim: rgba(0, 255, 194, 0.2);
-  --color-neon-subtle: rgba(0, 255, 194, 0.1);
+  --color-primary-signal: #4ade80;
+  --color-primary-signal-hover: #3fce75;
+  --color-primary-signal-active: #33b968;
+  --color-primary-signal-dark: #33b968;
+  --color-primary-signal-dark-hover: #2da05a;
+  --color-primary-signal-dark-active: #247f49;
+  --color-primary-signal-darker: #1d643b;
+  --color-neon: #4ade80;
+  --color-neon-dim: rgba(74, 222, 128, 0.2);
+  --color-neon-subtle: rgba(74, 222, 128, 0.1);
 
   --color-teal: #1e5056;
   --color-teal-dim: rgba(30, 80, 86, 0.4);
@@ -66,8 +66,8 @@
   --color-text-ghost: #83958c;
   --color-text-on-accent: #101417;
   --color-helper-glow: rgba(74, 222, 128, 0.22);
-  --color-til-title-accent: #00ffc2;
-  --color-home-archive-accent: #00ffc2;
+  --color-til-title-accent: #4ade80;
+  --color-home-archive-accent: #4ade80;
   --color-archive-card-accent: #4ade80;
   --shadow-helper-aura: 0 18px 24px rgba(0, 0, 0, 0.18), 0 0 20px rgba(74, 222, 128, 0.18);
 
@@ -75,8 +75,8 @@
   --shadow-glass-panel: 0 18px 44px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   --shadow-glass-popover: 0 20px 54px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   --shadow-glass-modal: 0 28px 84px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --shadow-neon: 0 0 12px rgba(0, 255, 194, 0.32);
-  --shadow-neon-sm: 0 0 6px rgba(0, 255, 194, 0.6);
+  --shadow-neon: 0 0 12px rgba(74, 222, 128, 0.32);
+  --shadow-neon-sm: 0 0 6px rgba(74, 222, 128, 0.6);
   --blur-glass-card: 16px;
   --blur-glass-panel: 18px;
   --blur-glass-popover: 20px;
@@ -114,24 +114,24 @@
   --color-text-primary: #10201a;
   --color-text-secondary: #4e6159;
   --color-text-ghost: #71827b;
-  --color-text-on-accent: #f4f8f5;
+  --color-text-on-accent: #10201a;
   --color-helper-glow: rgba(15, 143, 127, 0.16);
-  --color-til-title-accent: #0b6f63;
-  --color-home-archive-accent: #0b6f63;
-  --color-archive-card-accent: #0f8f7f;
+  --color-til-title-accent: #4ade80;
+  --color-home-archive-accent: #4ade80;
+  --color-archive-card-accent: #4ade80;
   --shadow-helper-aura: 0 14px 22px rgba(15, 23, 42, 0.10), 0 0 18px rgba(15, 143, 127, 0.14);
 
-  --color-primary-signal: #0f8f7f;
-  --color-primary-signal-hover: #0d7f71;
-  --color-primary-signal-active: #0b6f63;
-  --color-primary-signal-dark: #0d7f71;
-  --color-primary-signal-dark-hover: #0b6f63;
-  --color-primary-signal-dark-active: #09564c;
-  --color-primary-signal-darker: #084a42;
+  --color-primary-signal: #4ade80;
+  --color-primary-signal-hover: #3fce75;
+  --color-primary-signal-active: #33b968;
+  --color-primary-signal-dark: #33b968;
+  --color-primary-signal-dark-hover: #2da05a;
+  --color-primary-signal-dark-active: #247f49;
+  --color-primary-signal-darker: #1d643b;
 
-  --color-neon: #0f8f7f;
-  --color-neon-dim: rgba(15, 143, 127, 0.18);
-  --color-neon-subtle: rgba(15, 143, 127, 0.1);
+  --color-neon: #4ade80;
+  --color-neon-dim: rgba(74, 222, 128, 0.18);
+  --color-neon-subtle: rgba(74, 222, 128, 0.1);
 
   --color-teal: #d9f2ec;
   --color-teal-dim: rgba(15, 143, 127, 0.08);

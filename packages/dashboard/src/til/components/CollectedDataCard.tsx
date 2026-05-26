@@ -39,7 +39,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                             <img src={item.imageUrl} alt="" className="h-full w-full object-cover" />
                         ) : (
                             <div className="flex h-full w-full items-center justify-center bg-surface-lowest">
-                                <div className="h-full w-full bg-gradient-to-br from-primary-signal/20 to-scrim/40" />
+                                <div className="h-full w-full bg-gradient-to-br from-action-accent/20 to-scrim/40" />
                             </div>
                         )}
 
@@ -55,7 +55,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="absolute right-3 top-3 rounded-lg p-1.5 text-text-primary/60 transition hover:bg-text-primary/8 hover:text-primary-signal"
+                            className="absolute right-3 top-3 rounded-lg p-1.5 text-text-primary/60 transition hover:bg-text-primary/8 hover:text-action-accent"
                         >
                             {copied ? <Check size={16} /> : <Copy size={16} />}
                         </button>
@@ -79,7 +79,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-text-primary/8 hover:text-primary-signal"
+                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-text-primary/8 hover:text-action-accent"
                         >
                             {copied ? <Check size={15} /> : <Copy size={15} />}
                         </button>
@@ -107,7 +107,7 @@ export function CollectedDataCard({ item }: { item: CollectedDataItem }) {
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-text-primary/8 hover:text-primary-signal"
+                            className="shrink-0 rounded-lg p-1.5 text-text-secondary/65 transition hover:bg-text-primary/8 hover:text-action-accent"
                         >
                             {copied ? <Check size={15} /> : <Copy size={15} />}
                         </button>

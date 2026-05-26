@@ -32,7 +32,7 @@ export function Signup() {
 
   const validatePassword = (pw: string) => {
     // 영문, 숫자, 특수문자 포함 8~20자
-    const regex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}\[\]:;"'<>,.?\/\\|~`-]).{8,20}$/;
+    const regex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+={}[\]:;"'<>,.?/\\|~`-]).{8,20}$/;
     return regex.test(pw);
   };
 
@@ -116,7 +116,7 @@ export function Signup() {
   };
 
   const inputClass =
-    'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+    'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-action-accent/60 focus:ring-1 focus:ring-action-accent/20';
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background">
@@ -174,7 +174,7 @@ export function Signup() {
               <p
                 className={[
                   'mt-1 min-h-[16px] text-[12px] font-medium',
-                  usernameCheckStatus === 'available' ? 'text-primary-signal' : 'text-red-400',
+                  usernameCheckStatus === 'available' ? 'text-action-accent' : 'text-red-400',
                 ].join(' ')}
               >
                 {usernameMessage || ''}
@@ -242,7 +242,7 @@ export function Signup() {
                 type="submit"
                 disabled={isSubmitting}
                 className="h-12 w-full rounded-xl bg-action-accent text-sm font-bold text-background outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.28)' }}
+                style={{ boxShadow: '0 0 24px 0 rgba(74,222,128,0.28)' }}
               >
                 {isSubmitting ? '가입 중...' : '회원가입'}
               </button>
@@ -253,7 +253,7 @@ export function Signup() {
           <div className="mt-6">
             <p className="text-center text-sm text-text-secondary">
               이미 계정이 있으신가요?{' '}
-              <Link to={withAuthClientType('/login', clientType)} className="font-bold text-primary-signal hover:underline">
+              <Link to={withAuthClientType('/login', clientType)} className="font-bold text-action-accent hover:underline">
                 로그인
               </Link>
             </p>

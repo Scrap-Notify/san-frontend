@@ -68,7 +68,7 @@ export function RecallQuizModal({
             type="button"
             onClick={onClose}
             aria-label={QUIZ_CLOSE_LABEL}
-            className="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-text-primary/[0.04] text-text-secondary transition hover:bg-primary-signal hover:text-forest-bg"
+            className="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-text-primary/[0.04] text-text-secondary transition hover:bg-action-accent hover:text-forest-bg"
           >
             <X size={18} />
           </button>
@@ -86,7 +86,7 @@ export function RecallQuizModal({
 
               <div className="shrink-0 text-right">
                 <p className="text-sm font-bold text-text-primary">{formattedDate}</p>
-                <p className="mt-1 text-[11px] font-bold text-primary-signal">
+                <p className="mt-1 text-[11px] font-bold text-action-accent">
                   오늘 복습 {quizzes.length}개
                 </p>
               </div>
@@ -95,7 +95,7 @@ export function RecallQuizModal({
             <div className="mt-5">
               <div className="h-1.5 overflow-hidden rounded-full bg-text-primary/[0.04]">
                 <div
-                  className="h-full rounded-full bg-primary-signal transition-all duration-500"
+                  className="h-full rounded-full bg-action-accent transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -127,8 +127,8 @@ export function RecallQuizModal({
             {isGenerating ? (
               <div className="flex min-h-[320px] flex-col items-center justify-center gap-4 py-10 text-center">
                 <div className="relative">
-                  <Loader2 size={42} className="animate-spin text-primary-signal/30" />
-                  <Sparkles size={16} className="absolute -right-1 -top-1 text-primary-signal" />
+                  <Loader2 size={42} className="animate-spin text-action-accent/30" />
+                  <Sparkles size={16} className="absolute -right-1 -top-1 text-action-accent" />
                 </div>
                 <p className="text-sm font-medium text-text-secondary/80">{QUIZ_GENERATING_LABEL}</p>
               </div>
@@ -136,7 +136,7 @@ export function RecallQuizModal({
               <div className="mx-auto flex w-full max-w-[580px] flex-col gap-4 pb-4">
                 {quizzes.map((quiz, index) => (
                   <QuizCard
-                    key={quiz.quizId}
+                    key={`${quiz.quizId}:${quiz.solved}:${quiz.submittedAnswer ?? ''}`}
                     quiz={quiz}
                     index={index}
                     targetDate={targetDate}
@@ -156,7 +156,7 @@ export function RecallQuizModal({
           <footer className="shrink-0 border-t border-text-secondary/5 pt-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2 rounded-lg border border-text-secondary/10 bg-text-primary/[0.03] px-3 py-2 text-[11px] font-medium text-text-secondary/75">
-                <CheckCircle2 size={14} className="text-primary-signal" />
+                <CheckCircle2 size={14} className="text-action-accent" />
                 <span>
                   {quizType === 'OX'
                     ? '답을 누른 뒤 다시 누르면 수정할 수 있어요.'
@@ -167,7 +167,7 @@ export function RecallQuizModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-10 min-w-[112px] items-center justify-center rounded-leaf bg-primary-signal px-5 text-[12px] font-extrabold transition hover:brightness-110 active:scale-95"
+                className="inline-flex h-10 min-w-[112px] items-center justify-center rounded-leaf bg-action-accent px-5 text-[12px] font-extrabold transition hover:brightness-110 active:scale-95"
                 style={{ color: contrastTextColor }}
               >
                 {QUIZ_CLOSE_LABEL}
@@ -198,11 +198,6 @@ function QuizCard({
   const [isRevealed, setIsRevealed] = useState(quiz.solved);
   const isShortAnswer = quizType === 'SHORT_ANSWER';
 
-  useEffect(() => {
-    setAnswer(quiz.submittedAnswer ?? '');
-    setIsRevealed(quiz.solved);
-  }, [quiz.quizId, quiz.solved, quiz.submittedAnswer]);
-
   const submitMutation = useRecallQuizSubmitMutation({
     onSuccess: () => {
       setIsRevealed(true);
@@ -229,11 +224,11 @@ function QuizCard({
 
   return (
     <article className="group relative overflow-hidden rounded-tl-[32px] rounded-br-[32px] rounded-tr-xl rounded-bl-xl border border-text-secondary/8 bg-surface-container/85 p-4 shadow-sm transition hover:border-text-secondary/12">
-      <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-primary-signal/5 blur-3xl transition group-hover:bg-primary-signal/8" />
+      <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-action-accent/5 blur-3xl transition group-hover:bg-action-accent/8" />
 
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-signal">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-action-accent">
             Question {index + 1}
           </p>
           <h3 className="mt-2 text-base font-extrabold leading-7 text-text-primary">{quiz.question}</h3>
@@ -243,7 +238,7 @@ function QuizCard({
           <button
             type="button"
             onClick={handleRetry}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold text-text-secondary/45 transition hover:bg-text-primary/[0.04] hover:text-primary-signal"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold text-text-secondary/45 transition hover:bg-text-primary/[0.04] hover:text-action-accent"
           >
             <RotateCcw size={12} />
             다시 풀기
@@ -253,7 +248,7 @@ function QuizCard({
 
       <div className="mt-4">
         {isShortAnswer ? (
-          <div className="flex items-end gap-3 border-b border-text-secondary/10 pb-2 transition focus-within:border-primary-signal/50">
+          <div className="flex items-end gap-3 border-b border-text-secondary/10 pb-2 transition focus-within:border-action-accent/50">
             <input
               type="text"
               value={answer}
@@ -267,7 +262,7 @@ function QuizCard({
                 type="button"
                 onClick={() => handleSubmit(answer)}
                 disabled={!answer.trim() || submitMutation.isPending}
-                className="inline-flex h-9 shrink-0 items-center justify-center rounded-leaf bg-primary-signal px-4 text-[12px] font-extrabold transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-35"
+                className="inline-flex h-9 shrink-0 items-center justify-center rounded-leaf bg-action-accent px-4 text-[12px] font-extrabold transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-35"
                 style={{ color: contrastTextColor }}
               >
                 {submitMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : QUIZ_SELF_JUDGE_LABEL}
@@ -299,7 +294,7 @@ function QuizCard({
                         ? 'border-red-400/40 bg-red-400/10'
                         : isMyAnswer && !isRevealed
                           ? 'border-text-primary/25 bg-text-primary/6'
-                          : 'border-text-secondary/10 bg-surface-highest/50 hover:border-primary-signal/35'
+                          : 'border-text-secondary/10 bg-surface-highest/50 hover:border-action-accent/35'
                   }`}
                 >
                   {option}
@@ -311,8 +306,8 @@ function QuizCard({
       </div>
 
       {isRevealed && quiz.explanation ? (
-        <div className="mt-4 rounded-xl border border-primary-signal/10 bg-surface-lowest/70 p-4">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary-signal/85">해설</p>
+        <div className="mt-4 rounded-xl border border-action-accent/10 bg-surface-lowest/70 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-action-accent/85">해설</p>
           <p className="mt-1.5 text-sm leading-6 text-text-secondary/80">{quiz.explanation}</p>
         </div>
       ) : null}
@@ -336,7 +331,7 @@ function QuizTypeButton({
       type="button"
       onClick={onClick}
       className={`rounded-md px-4 py-2 text-[11px] font-bold transition ${
-        active ? 'bg-primary-signal shadow-sm' : 'text-text-secondary/65 hover:text-text-primary'
+        active ? 'bg-action-accent shadow-sm' : 'text-text-secondary/65 hover:text-text-primary'
       }`}
       style={active ? { color: contrastTextColor } : undefined}
     >

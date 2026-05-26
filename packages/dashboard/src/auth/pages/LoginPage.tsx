@@ -76,7 +76,7 @@ export function LoginPage() {
   };
 
   const inputClass =
-    'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-primary-signal/60 focus:ring-1 focus:ring-primary-signal/20';
+    'block h-12 w-full rounded-xl border border-text-secondary/10 glass-card bg-surface-container/70 px-4 text-sm text-text-primary outline-none placeholder:text-text-secondary/35 transition focus:border-action-accent/60 focus:ring-1 focus:ring-action-accent/20';
 
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-background">
@@ -185,7 +185,7 @@ export function LoginPage() {
                 type="submit"
                 disabled={isSubmitting}
                 className="h-12 w-full rounded-xl bg-action-accent text-sm font-bold text-background outline-none transition hover:bg-action-accent-hover focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ boxShadow: '0 0 24px 0 rgba(0,255,194,0.25)' }}
+                style={{ boxShadow: '0 0 24px 0 rgba(74,222,128,0.25)' }}
               >
                 {isSubmitting ? '접속 중...' : '로그인'}
               </button>
@@ -195,7 +195,7 @@ export function LoginPage() {
           <div className="mt-6">
             <p className="text-center text-sm text-text-secondary">
               계정이 없으신가요?{' '}
-              <Link to={withAuthClientType('/signup', clientType)} className="font-bold text-primary-signal hover:underline">
+              <Link to={withAuthClientType('/signup', clientType)} className="font-bold text-action-accent hover:underline">
                 회원가입
               </Link>
             </p>
