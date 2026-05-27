@@ -5,11 +5,11 @@ import type { TilGithubContributionDayResponse, TilGithubContributionResponse } 
 type ContributionCell = TilGithubContributionDayResponse | null;
 
 const CONTRIBUTION_LEVEL_CLASS = [
-  'border-text-secondary/10 glass-popover bg-surface-lowest/75',
-  'border-[var(--color-action-accent)]/10 bg-[var(--color-action-accent)]/20',
-  'border-[var(--color-action-accent)]/15 bg-[var(--color-action-accent)]/35',
-  'border-[var(--color-action-accent)]/20 bg-[var(--color-action-accent)]/55',
-  'border-[var(--color-action-accent)]/25 bg-[var(--color-action-accent)]/75',
+  'border-[var(--github-contribution-level-0-border)] bg-[var(--github-contribution-level-0-bg)]',
+  'border-[var(--github-contribution-level-1-border)] bg-[var(--github-contribution-level-1-bg)]',
+  'border-[var(--github-contribution-level-2-border)] bg-[var(--github-contribution-level-2-bg)]',
+  'border-[var(--github-contribution-level-3-border)] bg-[var(--github-contribution-level-3-bg)]',
+  'border-[var(--github-contribution-level-4-border)] bg-[var(--github-contribution-level-4-bg)]',
 ];
 
 const MONTH_LABELS = [
@@ -46,6 +46,7 @@ interface GithubContributionGraphProps {
   isLoading: boolean;
   error: string | null;
   onRetry: () => void;
+  className?: string;
 }
 
 function parseLocalDate(date: string) {
@@ -96,13 +97,14 @@ export function GithubContributionGraph({
   isLoading,
   error,
   onRetry,
+  className = '',
 }: GithubContributionGraphProps) {
   const weeks = useMemo(() => buildContributionWeeks(contribution?.days ?? []), [contribution?.days]);
   const monthLabels = useMemo(() => getContributionMonthLabels(weeks), [weeks]);
   const yearText = contribution ? `${formatContributionDate(contribution.from)} - ${formatContributionDate(contribution.to)}` : '';
 
   return (
-    <div className="rounded-lg border border-text-secondary/10 glass-card bg-surface-container/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <div className={`rounded-lg border border-[var(--github-contribution-border)] bg-[var(--github-contribution-surface)] p-5 ${className}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-text-primary">
@@ -110,13 +112,13 @@ export function GithubContributionGraph({
               ? `Total ${contribution.totalCommits} commits in SAN`
               : CONTRIBUTION_COPY.title}
           </h3>
-          <p className="mt-1 text-[11px] text-text-primary/35">{yearText || CONTRIBUTION_COPY.loading}</p>
+          <p className="mt-1 text-[11px] text-text-primary/45">{yearText || CONTRIBUTION_COPY.loading}</p>
         </div>
         <button
           type="button"
           onClick={onRetry}
           disabled={isLoading}
-          className="text-text-primary/35 transition hover:text-[var(--color-action-accent)] disabled:opacity-40"
+          className="text-text-primary/45 transition hover:text-[var(--color-action-accent)] disabled:opacity-40"
           title={CONTRIBUTION_COPY.refresh}
         >
           <RefreshCw size={15} className={isLoading ? 'animate-spin' : ''} />
@@ -134,7 +136,7 @@ export function GithubContributionGraph({
               {monthLabels.map(({ weekIndex, label }) => (
                 <span
                   key={`${label}-${weekIndex}`}
-                  className="absolute top-0 text-xs font-semibold text-text-primary/45"
+                  className="absolute top-0 text-xs font-semibold text-text-primary/55"
                   style={{ left: `${weekIndex * WEEK_STEP}px` }}
                 >
                   {label}
@@ -144,7 +146,7 @@ export function GithubContributionGraph({
 
             <div className="flex gap-3">
               <div
-                className="grid grid-rows-7 text-xs font-semibold leading-none text-text-primary/40"
+                className="grid grid-rows-7 text-xs font-semibold leading-none text-text-primary/50"
                 style={{ gap: `${CELL_GAP}px`, paddingTop: `${CELL_SIZE + CELL_GAP}px` }}
               >
                 <span></span>
@@ -163,7 +165,7 @@ export function GithubContributionGraph({
                         {Array.from({ length: 7 }, (_, dayIndex) => (
                           <span
                             key={dayIndex}
-                            className="animate-pulse rounded-[2px] border border-text-secondary/10 glass-panel bg-surface-lowest/70"
+                            className="animate-pulse rounded-[2px] border border-[var(--github-contribution-level-0-border)] bg-[var(--github-contribution-level-0-bg)]"
                             style={{ width: CELL_SIZE, height: CELL_SIZE }}
                           />
                         ))}
@@ -174,7 +176,7 @@ export function GithubContributionGraph({
                         {week.map((day, dayIndex) => (
                           <span
                             key={day?.date ?? `${weekIndex}-${dayIndex}`}
-                            className={`rounded-[2px] border transition ${day ? CONTRIBUTION_LEVEL_CLASS[Math.min(day.level, 4)] : 'border-transparent bg-transparent'} ${day ? 'hover:scale-125 hover:border-[var(--color-action-accent)]/70 hover:shadow-[0_0_12px_rgba(0,255,194,0.35)]' : ''}`}
+                            className={`rounded-[2px] border transition ${day ? CONTRIBUTION_LEVEL_CLASS[Math.min(day.level, 4)] : 'border-transparent bg-transparent'} ${day ? 'hover:scale-125 hover:border-[var(--color-action-accent)]/70' : ''}`}
                             style={{ width: CELL_SIZE, height: CELL_SIZE }}
                             title={day ? `${formatContributionDate(day.date)}: ${day.count}${CONTRIBUTION_COPY.commitUnit}` : undefined}
                           />

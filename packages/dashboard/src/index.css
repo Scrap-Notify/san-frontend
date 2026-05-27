@@ -171,6 +171,33 @@
   --space-6: 48px;
   --dashboard-layout-gap: clamp(var(--space-3), 4vw, var(--space-5));
   --dashboard-nav-offset: 88px;
+  --github-contribution-surface: #181c1f;
+  --github-contribution-border: #30363d;
+  --github-contribution-level-0-bg: #21262d;
+  --github-contribution-level-0-border: #30363d;
+  --github-contribution-level-1-bg: #0e4429;
+  --github-contribution-level-1-border: #0e4429;
+  --github-contribution-level-2-bg: #006d32;
+  --github-contribution-level-2-border: #006d32;
+  --github-contribution-level-3-bg: #26a641;
+  --github-contribution-level-3-border: #26a641;
+  --github-contribution-level-4-bg: #39d353;
+  --github-contribution-level-4-border: #39d353;
+}
+
+:root[data-theme='light'] {
+  --github-contribution-surface: #ffffff;
+  --github-contribution-border: #d0d7de;
+  --github-contribution-level-0-bg: #ebedf0;
+  --github-contribution-level-0-border: #d0d7de;
+  --github-contribution-level-1-bg: #9be9a8;
+  --github-contribution-level-1-border: #9be9a8;
+  --github-contribution-level-2-bg: #40c463;
+  --github-contribution-level-2-border: #40c463;
+  --github-contribution-level-3-bg: #30a14e;
+  --github-contribution-level-3-border: #30a14e;
+  --github-contribution-level-4-bg: #216e39;
+  --github-contribution-level-4-border: #216e39;
 }
 
 *, *::before, *::after {

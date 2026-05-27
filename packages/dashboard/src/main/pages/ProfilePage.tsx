@@ -1,7 +1,7 @@
 import { type FormEvent, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, Bell, ChevronDown, ExternalLink, Keyboard, Loader2, LogOut, RefreshCw, Shield, Star, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Bell, ChevronDown, ExternalLink, Keyboard, Loader2, LogOut, RefreshCw, Shield, Trash2, X } from 'lucide-react';
 import { getApiErrorMessage, type AuthSession } from '@san/shared';
 import { authApi, authTokenStorage, githubApi, statisticsApi } from '../../api/client';
 import {
@@ -324,24 +324,6 @@ export function ProfilePage() {
                 <p className="mt-1 truncate text-sm text-text-secondary">{profileLabel.caption}</p>
               </div>
 
-              <div className="ml-2 flex items-center gap-2">
-                <div className="group relative flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/profile/stars')}
-                    aria-label="GitHub star 목록 불러오기"
-                    title="GitHub star 목록 불러오기"
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-primary-signal/20 bg-primary-signal/10 text-primary-signal transition hover:border-primary-signal/40 hover:bg-primary-signal/15"
-                  >
-                    <Star size={15} fill="currentColor" />
-                  </button>
-                  <div className="pointer-events-none absolute left-full top-1/2 z-20 ml-3 -translate-y-1/2 opacity-0 transition group-hover:opacity-100">
-                    <div className="whitespace-nowrap rounded-md border border-text-secondary/10 bg-surface-lowest px-3 py-2 text-[11px] font-semibold text-text-primary shadow-lg">
-                      GitHub star 목록 불러오기
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <button
@@ -488,7 +470,7 @@ export function ProfilePage() {
             <button
               type="button"
               onClick={() => setIsWithdrawOpen(true)}
-              className="flex h-7 shrink-0 items-center justify-center gap-1 rounded-md border border-red-400/18 bg-transparent px-2.5 text-[11px] font-bold text-red-200/75 transition hover:border-red-300/35 hover:text-red-100 active:scale-[0.98]"
+              className="flex h-7 shrink-0 items-center justify-center gap-1 rounded-md border border-red-400/18 bg-transparent px-2.5 text-[11px] font-bold text-red-200/75 transition hover:border-red-400/60 hover:bg-red-500/15 hover:text-red-200 active:scale-[0.98]"
             >
               <Trash2 size={12} />
               회원탈퇴
