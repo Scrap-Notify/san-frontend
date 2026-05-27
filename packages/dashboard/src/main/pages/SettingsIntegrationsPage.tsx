@@ -1,4 +1,4 @@
-import { ExternalLink, FolderGit2, GitBranch, RefreshCw, Loader2, Search, Link2, TerminalSquare, AlertTriangle } from 'lucide-react';
+import { ArrowRight, ExternalLink, FolderGit2, GitBranch, RefreshCw, Loader2, Search, Link2, TerminalSquare, AlertTriangle, Star } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getApiErrorMessage, type GithubRepository, type TilGithubContributionResponse } from '@san/shared';
@@ -7,7 +7,6 @@ import githubSvg from '@ui/assets/icons/github.svg';
 import { InlineActionToast } from '../../components/shared/toast/InlineActionToast';
 import { GithubContributionGraph } from '../components/github/GithubContributionGraph';
 import { rememberGithubLinkAuthFlow } from '../../auth/lib/githubAuthFlow';
-import { getExtensionInstallUrl } from '../utils/extensionInstallUrl';
 
 const GITHUB_LINK_ERROR_MESSAGE: Record<string, string> = {
   A201: 'GitHub 연동 인증에 실패했습니다. 다시 시도해주세요.',
@@ -33,7 +32,7 @@ function RepositorySkeleton() {
   return (
     <ul className="flex flex-col gap-3">
       {[1, 2, 3, 4].map((key) => (
-        <li key={key} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 p-4">
+        <li key={key} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 bg-surface-low/80 p-4">
           <div className="min-w-0 flex-1 animate-pulse">
             <div className="h-4 w-2/3 rounded bg-text-primary/10"></div>
             <div className="mt-2 h-3 w-1/3 rounded bg-text-primary/5"></div>
@@ -87,7 +86,6 @@ export function SettingsIntegrationsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const extensionInstallUrl = getExtensionInstallUrl();
 
 
   const loadConnectedRepositories = useCallback(async () => {
@@ -278,36 +276,8 @@ export function SettingsIntegrationsPage() {
 
   return (
     <section className="mx-auto w-full max-w-[1200px] space-y-8 py-12 text-text-primary">
-
-      {extensionInstallUrl && (
-        <div className="rounded-xl border border-text-secondary/10 bg-surface-lowest p-6 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-action-accent/20 bg-action-accent/10 text-action-accent">
-                <Link2 size={20} strokeWidth={1.7} />
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-base font-bold text-text-primary">브라우저 익스텐션</h2>
-                <p className="mt-1 text-sm text-text-primary/50">
-                  웹 페이지 저장 기능은 SAN 익스텐션 설치 후 사용할 수 있습니다.
-                </p>
-              </div>
-            </div>
-            <a
-              href={extensionInstallUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-md bg-action-accent px-4 text-sm font-bold text-text-on-accent transition hover:bg-action-accent/90 active:scale-95"
-            >
-              설치하기
-              <ExternalLink size={14} strokeWidth={1.8} />
-            </a>
-          </div>
-        </div>
-      )}
-
       {/* ── 상단: GitHub 연동 상태 카드 ── */}
-      <div className="rounded-xl border border-text-secondary/5 bg-surface-lowest p-8 shadow-sm">
+      <div className="rounded-xl border border-text-secondary/10 bg-surface-low/80 p-8">
         <div className="flex flex-col items-start justify-between gap-lg sm:flex-row sm:items-center">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-widest text-action-accent">
@@ -367,6 +337,48 @@ export function SettingsIntegrationsPage() {
         </div>
       </div>
 
+      <div className={`rounded-xl border p-6 ${
+        isGithubLinked
+          ? 'border-text-secondary/10 bg-surface-low/80'
+          : 'border-text-secondary/5 bg-surface-low/45 opacity-75'
+      }`}>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border ${
+              isGithubLinked
+                ? 'border-action-accent/25 bg-action-accent/12 text-action-accent'
+                : 'border-text-secondary/10 bg-text-primary/5 text-text-primary/35'
+            }`}>
+              <Star size={20} fill="currentColor" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <h2 className={`text-base font-bold ${isGithubLinked ? 'text-text-primary' : 'text-text-primary/60'}`}>
+                GitHub Star로 지식카드 수집하기
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-text-primary/50">
+                {isGithubLinked
+                  ? 'Star한 Repository를 바탕으로 추천 스크랩을 만들고, 지식카드로 바로 수집할 수 있습니다.'
+                  : 'GitHub 계정을 연동하면 Star 기반 추천 스크랩을 지식카드로 수집할 수 있습니다.'}
+              </p>
+            </div>
+          </div>
+          {isGithubLinked ? (
+            <button
+              type="button"
+              onClick={() => navigate('/profile/stars')}
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-md bg-action-accent px-4 text-sm font-bold text-text-on-accent transition hover:bg-action-accent/90 active:scale-95"
+            >
+              수집하러 가기
+              <ArrowRight size={14} strokeWidth={1.8} aria-hidden="true" />
+            </button>
+          ) : (
+            <span className="inline-flex h-9 shrink-0 items-center rounded-md border border-text-secondary/10 px-3 text-xs font-bold text-text-primary/35">
+              GitHub 연동 후 사용 가능
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* 에러 메시지 */}
       {errorMessage && (
         <div className="flex items-center gap-4 rounded-xl border border-red-500/20 bg-red-500/5 p-4 mt-6">
@@ -386,10 +398,10 @@ export function SettingsIntegrationsPage() {
       )}
 
       {/* ── 하단: 2단 레포지토리 관리 영역 ── */}
-      <div className="grid gap-6 lg:grid-cols-2 items-start mt-10">
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch mt-10">
         
         {/* 왼쪽: Available Repositories */}
-        <div className="flex flex-col gap-4">
+        <div className="flex h-full flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-text-primary">연결 가능한 Repository</h2>
@@ -402,18 +414,18 @@ export function SettingsIntegrationsPage() {
             </span>
           </div>
 
-          <div className="flex h-[460px] flex-col overflow-hidden rounded-xl border border-text-secondary/5 glass-popover bg-surface-lowest/80">
+          <div className="flex h-[460px] flex-col overflow-hidden rounded-xl border border-text-secondary/10 bg-surface-low/80">
             {/* 검색바 */}
             <div className="border-b border-text-secondary/5 p-4">
               <div className="relative">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-primary/30" />
+                <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-text-primary/45" />
                 <input
                   type="text"
                   placeholder="Repository 검색..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={!isGithubLinked || isLoadingAvailable}
-                  className="w-full rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-secondary/30 outline-none transition focus:border-text-secondary/20 disabled:opacity-50"
+                  className="w-full rounded-lg border border-text-secondary/10 bg-surface-container/90 py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder:text-text-secondary/30 outline-none transition focus:border-text-secondary/20 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -441,7 +453,7 @@ export function SettingsIntegrationsPage() {
               ) : filteredAvailableRepos.length > 0 ? (
                 <ul className="flex flex-col gap-3">
                   {filteredAvailableRepos.map((repo) => (
-                    <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 p-4 transition hover:bg-text-primary/[0.04]">
+                    <li key={repo.githubRepositoryId} className="flex items-center justify-between gap-3 rounded-lg border border-text-secondary/10 bg-surface-low/80 p-4 transition hover:bg-text-primary/[0.04]">
                       <div className="flex min-w-0 items-center gap-4">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-text-primary/5 text-text-primary/40">
                           <FolderGit2 size={20} />
@@ -469,7 +481,14 @@ export function SettingsIntegrationsPage() {
                 </ul>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center text-center text-text-primary/40">
-                  <p className="text-sm">검색 결과가 없습니다.</p>
+                  <p className="text-sm font-semibold text-text-primary/55">
+                    {hasConnectedRepository ? '연결 가능한 Repository가 없습니다.' : '검색 결과가 없습니다.'}
+                  </p>
+                  <p className="mt-2 max-w-[260px] text-xs leading-5 text-text-primary/35">
+                    {hasConnectedRepository
+                      ? '현재 하나의 Repository만 선택할 수 있습니다.'
+                      : '검색어를 조금 다르게 입력해보세요.'}
+                  </p>
                 </div>
               )}
             </div>
@@ -477,7 +496,7 @@ export function SettingsIntegrationsPage() {
         </div>
 
         {/* 오른쪽: Connected Repositories */}
-        <div className="flex flex-col gap-4">
+        <div className="flex h-full flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div>
@@ -499,96 +518,98 @@ export function SettingsIntegrationsPage() {
             </button>
           </div>
 
-          <div className={`flex flex-col overflow-hidden rounded-xl bg-transparent p-4 ${
-            isGithubLinked && connectedRepositories.length > 0
-              ? 'border border-transparent'
-              : 'min-h-[220px] border border-text-secondary/10 glass-panel bg-surface-container/45'
-          }`}>
-            {!isGithubLinked || (!isLoadingConnected && connectedRepositories.length === 0) ? (
-              <div className="flex h-full flex-col items-center justify-center text-center">
-                <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-xl border border-text-secondary/10 bg-text-primary/5 text-text-primary/30">
-                  <TerminalSquare size={28} />
-                  <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-surface-lowest">
-                    <div className="flex h-4 w-4 items-center justify-center rounded-full bg-action-accent text-text-on-accent">
-                      <span className="text-[10px] font-bold leading-none">+</span>
+          <div className="flex h-[460px] flex-col gap-4">
+            <div className={`flex shrink-0 flex-col overflow-hidden rounded-xl bg-transparent ${
+              isGithubLinked && connectedRepositories.length > 0
+                ? 'border border-transparent p-0'
+                : 'min-h-[220px] border border-text-secondary/10 bg-surface-low/80 p-4'
+            }`}>
+              {!isGithubLinked || (!isLoadingConnected && connectedRepositories.length === 0) ? (
+                <div className="flex h-full flex-col items-center justify-center text-center">
+                  <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-xl border border-text-secondary/10 bg-text-primary/5 text-text-primary/30">
+                    <TerminalSquare size={28} />
+                    <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-surface-lowest">
+                      <div className="flex h-4 w-4 items-center justify-center rounded-full bg-action-accent text-text-on-accent">
+                        <span className="text-[10px] font-bold leading-none">+</span>
+                      </div>
                     </div>
                   </div>
+                  <h3 className="text-base font-bold text-text-primary">
+                    {isGithubLinked ? '연결된 Repository가 없습니다' : 'GitHub 연동이 필요합니다'}
+                  </h3>
+                  <p className="mt-2 max-w-[280px] text-xs text-text-primary/40 leading-relaxed">
+                    {isGithubLinked 
+                      ? '좌측 목록에서 SAN과 동기화할 Repository를 선택해주세요.'
+                      : '계정 연동 후, SAN 워크스페이스에서 관리할 Repository를 선택할 수 있습니다.'}
+                  </p>
                 </div>
-                <h3 className="text-base font-bold text-text-primary">
-                  {isGithubLinked ? '연결된 Repository가 없습니다' : 'GitHub 연동이 필요합니다'}
-                </h3>
-                <p className="mt-2 max-w-[280px] text-xs text-text-primary/40 leading-relaxed">
-                  {isGithubLinked 
-                    ? '좌측 목록에서 SAN과 동기화할 Repository를 선택해주세요.'
-                    : '계정 연동 후, SAN 워크스페이스에서 관리할 Repository를 선택할 수 있습니다.'}
-                </p>
-              </div>
-            ) : isLoadingConnected ? (
-               <RepositorySkeleton />
-            ) : (
-              <div className="flex min-h-0 flex-1 flex-col">
-                <ul className="flex min-h-0 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                  {connectedRepositories.map((repo) => (
-                    <li key={repo.githubRepositoryId} className="rounded-lg border border-text-secondary/10 glass-card bg-surface-container/80 p-4 ring-1 ring-action-accent/15">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-center gap-4">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-text-primary/5">
-                            <img src={githubSvg} alt="" aria-hidden="true" className="h-5 w-5 brightness-0 invert opacity-80" />
-                          </div>
-                          <div className="min-w-0">
-                            <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-text-primary transition hover:text-action-accent">
-                              {repo.fullName}
-                            </a>
-                            <div className="mt-1 flex items-center gap-2 text-xs text-text-primary/40">
-                              <span>{repo.privateRepository ? '비공개(Private)' : '공개(Public)'}</span>
-                              <span className="h-1 w-1 rounded-full bg-text-primary/20" aria-hidden="true" />
-                              <span className="inline-flex items-center gap-1 text-action-accent">
-                                <span className="h-1.5 w-1.5 rounded-full bg-action-accent" aria-hidden="true" />
-                                Active
-                              </span>
+              ) : isLoadingConnected ? (
+                <RepositorySkeleton />
+              ) : (
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <ul className="flex min-h-0 flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {connectedRepositories.map((repo) => (
+                      <li key={repo.githubRepositoryId} className="rounded-lg border border-text-secondary/10 bg-surface-low/80 p-4 ring-1 ring-action-accent/15">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex min-w-0 items-center gap-4">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-text-primary/5">
+                              <img src={githubSvg} alt="" aria-hidden="true" className="h-5 w-5 brightness-0 invert opacity-80" />
+                            </div>
+                            <div className="min-w-0">
+                              <a href={repo.htmlUrl} target="_blank" rel="noreferrer" className="block truncate text-sm font-bold text-text-primary transition hover:text-action-accent">
+                                {repo.fullName}
+                              </a>
+                              <div className="mt-1 flex items-center gap-2 text-xs text-text-primary/40">
+                                <span>{repo.privateRepository ? '비공개(Private)' : '공개(Public)'}</span>
+                                <span className="h-1 w-1 rounded-full bg-text-primary/20" aria-hidden="true" />
+                                <span className="inline-flex items-center gap-1 text-action-accent">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-action-accent" aria-hidden="true" />
+                                  Active
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <button
+                            onClick={() => handleDisconnectRepository(repo.githubRepositoryId)}
+                            className="inline-flex shrink-0 items-center rounded-md border border-text-secondary/10 px-2.5 py-1.5 text-xs font-bold text-text-primary/35 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300"
+                            title="레포 끊기"
+                          >
+                            레포 끊기
+                          </button>
                         </div>
-                        <button
-                          onClick={() => handleDisconnectRepository(repo.githubRepositoryId)}
-                          className="inline-flex shrink-0 items-center rounded-md border border-text-secondary/10 px-2.5 py-1.5 text-xs font-bold text-text-primary/35 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300"
-                          title="레포 끊기"
-                        >
-                          레포 끊기
-                        </button>
-                      </div>
 
-                      <div className="mt-4 flex items-center justify-between gap-3 border-t border-text-secondary/5 pt-3">
-                        <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-text-secondary/10 glass-panel bg-surface-container/45 px-2.5 py-1 text-xs font-medium text-text-primary/55">
-                          <GitBranch size={13} />
-                          <span className="truncate">{repo.defaultBranch}</span>
-                        </span>
-                        <a
-                          href={repo.htmlUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-text-primary/5 px-2.5 py-1 text-xs font-bold text-action-accent transition hover:bg-text-primary/10"
-                        >
-                          GitHub에서 보기
-                          <ExternalLink size={13} />
-                        </a>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                        <div className="mt-4 flex items-center justify-between gap-3 border-t border-text-secondary/5 pt-3">
+                          <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-text-secondary/10 bg-surface-low/70 px-2.5 py-1 text-xs font-medium text-text-primary/55">
+                            <GitBranch size={13} />
+                            <span className="truncate">{repo.defaultBranch}</span>
+                          </span>
+                          <a
+                            href={repo.htmlUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-text-primary/5 px-2.5 py-1 text-xs font-bold text-action-accent transition hover:bg-text-primary/10"
+                          >
+                            GitHub에서 보기
+                            <ExternalLink size={13} />
+                          </a>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
 
-              </div>
+            {isGithubLinked && (
+              <GithubContributionGraph
+                contribution={githubContribution}
+                isLoading={isLoadingContribution}
+                error={contributionError}
+                onRetry={loadGithubContributions}
+                className="min-h-0 flex-1"
+              />
             )}
           </div>
-
-          {isGithubLinked && (
-            <GithubContributionGraph
-              contribution={githubContribution}
-              isLoading={isLoadingContribution}
-              error={contributionError}
-              onRetry={loadGithubContributions}
-            />
-          )}
         </div>
 
       </div>

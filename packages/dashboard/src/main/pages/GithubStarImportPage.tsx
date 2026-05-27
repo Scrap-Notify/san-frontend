@@ -475,7 +475,7 @@ export function GithubStarImportPage() {
               {Array.from({ length: 5 }).map((_, index) => (
                 <div
                   key={index}
-                  className="flex h-[252px] min-w-full flex-col rounded-2xl bg-surface-lowest/80 p-4 sm:min-w-[calc((100%-1rem)/2)] lg:min-w-[calc((100%-2rem)/3)]"
+                  className="flex h-[288px] min-w-full flex-col rounded-2xl bg-surface-lowest/80 p-4 sm:min-w-[calc((100%-1rem)/2)] lg:min-w-[calc((100%-2rem)/3)]"
                 >
                   <div className="flex flex-1 flex-col justify-between gap-3">
                     <div className="space-y-3">
@@ -554,7 +554,7 @@ function RecommendationCard({
 }) {
   return (
     <article
-      className="group flex h-[252px] flex-col rounded-2xl border border-text-secondary/6 bg-surface-lowest/80 p-4 transition hover:border-text-secondary/10 hover:bg-surface-low"
+      className="group flex h-[288px] flex-col overflow-hidden rounded-2xl border border-text-secondary/6 bg-surface-lowest/80 p-4 transition hover:border-text-secondary/10 hover:bg-surface-low"
       style={{
         animationDelay: `${index * 60}ms`,
         animationName: 'san-fade-up',
@@ -562,7 +562,7 @@ function RecommendationCard({
         animationFillMode: 'both',
       }}
     >
-      <div className="flex h-full flex-col gap-3">
+      <div className="flex h-full min-h-0 flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-signal/10 text-primary-signal">
             <span className="text-[10px] font-black">{String(index + 1).padStart(2, '0')}</span>
@@ -570,18 +570,18 @@ function RecommendationCard({
           <h3 className="min-w-0 flex-1 break-words text-sm font-bold text-text-primary">{item.title}</h3>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex min-h-0 flex-1 content-start flex-wrap gap-2 overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {item.tagList.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center rounded-full bg-text-primary/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary"
+              className="inline-flex max-w-full items-center break-all rounded-full bg-text-primary/[0.04] px-2.5 py-1 text-[11px] font-medium text-text-secondary"
             >
               #{tag}
             </span>
           ))}
         </div>
 
-        <div className="mt-auto flex flex-col gap-2">
+        <div className="mt-auto flex shrink-0 flex-col gap-2">
           <a
             href={item.recommendationUrl}
             target="_blank"
@@ -602,7 +602,7 @@ function RecommendationCard({
               type="button"
               onClick={onCreate}
               disabled={isDisabled}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-text-secondary/10 bg-surface-lowest px-3 py-2 text-[11px] font-bold text-text-primary transition hover:border-text-secondary/20 hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-text-secondary/10 bg-surface-lowest px-3 py-2 text-[11px] font-bold text-text-primary transition hover:border-text-secondary/20 hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isCollecting ? <Loader2 size={12} className="animate-spin" /> : <Square size={12} />}
               지식카드로 생성

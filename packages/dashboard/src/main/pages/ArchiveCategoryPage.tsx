@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, Calendar, CalendarDays, ChevronLeft, ChevronRight, Hash, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, CalendarDays, ChevronLeft, ChevronRight, Hash, Search, X } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useArchiveCategoryCards, type SearchCardResult, type SearchParams } from '@san/shared';
 import { searchApi } from '../../api/client';
@@ -26,7 +26,7 @@ export function ArchiveCategoryPage() {
   const searchQuery = useInfiniteQuery({
     queryKey: ['archive-category-search', categoryId, categoryName, keyword, filters.tag, filters.fromDate, filters.toDate, size],
     queryFn: ({ pageParam }) => searchApi.search(toSearchParams(keyword, categoryName, filters, pageParam, size)),
-    enabled: Boolean(keyword && categoryName),
+    enabled: Boolean((keyword || filters.tag || filters.fromDate || filters.toDate) && categoryName),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => (lastPage.hasNext ? allPages.length : undefined),
   });
@@ -37,7 +37,8 @@ export function ArchiveCategoryPage() {
   );
 
   const archiveCards = archiveQuery.data?.cards ?? [];
-  const isSearching = Boolean(keyword);
+  const isSearching = Boolean(keyword || filters.tag || filters.fromDate || filters.toDate);
+  const hasActiveFilters = isSearching;
 
   return (
     <section className="flex w-full min-w-0 flex-col gap-8 py-12 text-text-primary">
@@ -59,8 +60,13 @@ export function ArchiveCategoryPage() {
       <FilterPanel
         keyword={keyword}
         filters={filters}
+        hasActiveFilters={hasActiveFilters}
         onKeywordChange={(value) => setSearchParams(value ? { query: value } : {})}
         onFilterChange={setFilters}
+        onReset={() => {
+          setFilters({ tag: '', fromDate: '', toDate: '' });
+          setSearchParams({});
+        }}
       />
 
       {!isSearching ? (
@@ -125,13 +131,17 @@ export function ArchiveCategoryPage() {
 function FilterPanel({
   keyword,
   filters,
+  hasActiveFilters,
   onKeywordChange,
   onFilterChange,
+  onReset,
 }: {
   keyword: string;
   filters: Filters;
+  hasActiveFilters: boolean;
   onKeywordChange: (value: string) => void;
   onFilterChange: (filters: Filters) => void;
+  onReset: () => void;
 }) {
   const [inputValue, setInputValue] = useState(keyword);
 
@@ -147,33 +157,71 @@ function FilterPanel({
   }, [inputValue, keyword, onKeywordChange]);
 
   return (
-    <div className="relative z-10 flex flex-col gap-5 rounded-[32px] border border-text-secondary/5 glass-card bg-surface-container/80 p-6">
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-text-primary/25" />
+    <div className="relative z-10 flex flex-col gap-7 rounded-[32px] border border-text-secondary/10 bg-surface-container/70 p-7">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center">
+          <div className="flex min-h-12 min-w-0 flex-col gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-5 py-4 sm:flex-row sm:items-center sm:gap-4 sm:py-0">
+            <span className="shrink-0 text-xs font-bold text-text-primary/35">날짜 범위</span>
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <CategoryDatePicker
+                value={filters.fromDate}
+                onChange={(value) => onFilterChange({ ...filters, fromDate: value })}
+                placeholder="연도. 월. 일."
+              />
+              <span className="hidden text-text-primary/18 sm:inline">-</span>
+              <CategoryDatePicker
+                value={filters.toDate}
+                onChange={(value) => onFilterChange({ ...filters, toDate: value })}
+                placeholder="연도. 월. 일."
+              />
+            </div>
+          </div>
+
+          <label className="flex h-12 min-w-0 items-center gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 sm:min-w-[18rem]">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-action-accent/15 text-action-accent">
+              <Hash size={16} aria-hidden="true" />
+            </span>
+            <input
+              value={filters.tag}
+              onChange={(event) => onFilterChange({ ...filters, tag: event.target.value })}
+              placeholder="태그 검색"
+              className="h-full min-w-0 flex-1 bg-transparent text-sm font-bold text-text-primary outline-none placeholder:text-text-primary/25"
+            />
+          </label>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setInputValue('');
+            onReset();
+          }}
+          disabled={!hasActiveFilters}
+          className="h-10 w-fit rounded-md border border-text-secondary/10 px-4 text-xs font-bold text-text-primary/45 transition hover:border-action-accent/30 hover:bg-action-accent/10 hover:text-action-accent disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-text-secondary/10 disabled:hover:bg-transparent disabled:hover:text-text-primary/45"
+        >
+          초기화
+        </button>
+      </div>
+
+      <div className="flex h-12 w-full items-center gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 transition focus-within:ring-1 focus-within:ring-action-accent/30">
+        <Search size={18} aria-hidden="true" className="shrink-0 text-text-secondary/80" />
         <input
+          type="search"
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           placeholder="이 폴더 안에서 검색"
-          className="w-full rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] py-4 pl-11 pr-4 text-sm outline-none transition focus:border-action-accent/30"
+          className="h-full min-w-0 flex-1 bg-transparent px-0 text-sm tracking-wide text-text-primary outline-none placeholder:text-text-secondary/50 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
         />
-      </div>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <input
-          value={filters.tag}
-          onChange={(event) => onFilterChange({ ...filters, tag: event.target.value })}
-          placeholder="#태그"
-          className="rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-sm outline-none"
-        />
-        <CategoryDatePicker
-          value={filters.fromDate}
-          onChange={(value) => onFilterChange({ ...filters, fromDate: value })}
-          placeholder="연도-월-일"
-        />
-        <CategoryDatePicker
-          value={filters.toDate}
-          onChange={(value) => onFilterChange({ ...filters, toDate: value })}
-          placeholder="연도-월-일"
-        />
+        {inputValue ? (
+          <button
+            type="button"
+            onClick={() => setInputValue('')}
+            className="flex shrink-0 items-center justify-center text-text-secondary transition hover:text-text-primary"
+            aria-label="Clear search"
+          >
+            <X size={16} />
+          </button>
+        ) : null}
       </div>
     </div>
   );
@@ -219,12 +267,12 @@ function CategoryDatePicker({
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="flex w-full items-center justify-between gap-3 rounded-2xl border border-text-secondary/5 bg-text-primary/[0.03] px-4 py-3 text-left text-sm font-bold text-text-primary outline-none transition focus:border-action-accent/30"
+        className="inline-flex h-9 items-center gap-2 text-sm font-black text-text-primary outline-none transition hover:text-action-accent"
       >
-        <span className={value ? 'text-text-primary' : 'text-text-primary/35'}>
+        <span className={value ? 'text-text-primary' : 'text-text-primary/85'}>
           {value || placeholder}
         </span>
-        <Calendar size={16} className="shrink-0 text-action-accent" aria-hidden="true" />
+        <Calendar size={15} className="shrink-0 text-action-accent" aria-hidden="true" />
       </button>
 
       {isOpen ? (
